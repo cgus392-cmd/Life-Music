@@ -116,32 +116,66 @@ highlightKey: String? = null) {
             item { AboutAppCard() }
 
             item {
-                AboutSectionCard(title = "Developer") {
+                AboutSectionCard(title = "Desarrollado por") {
                     AboutActionRow(
-                        icon = painterResource(R.drawable.website),
-                        title = "Website",
-                        subtitle = "iad1tya.cyou",
-                        onClick = { uriHandler.openUri("https://iad1tya.cyou") },
+                        icon = painterResource(R.drawable.person),
+                        title = "Camilo G. (CG)",
+                        subtitle = "cgus392@gmail.com",
+                        onClick = { uriHandler.openUri("mailto:cgus392@gmail.com") },
                     )
                     AboutDivider()
                     AboutActionRow(
-                        icon = painterResource(R.drawable.ic_instagram_new),
-                        title = "Instagram",
-                        subtitle = "@iad1tya",
-                        onClick = { uriHandler.openUri("https://instagram.com/iad1tya") },
+                        icon = painterResource(R.drawable.github),
+                        title = "GitHub",
+                        subtitle = "cgus392-cmd",
+                        onClick = { uriHandler.openUri("https://github.com/cgus392-cmd") },
+                    )
+                }
+            }
+
+            // Creditos obligatorios: Life Music es un fork GPL-3.0 y la licencia
+            // exige conservar la atribucion de toda la cadena de ancestros.
+            item {
+                AboutSectionCard(title = "Creditos") {
+                    AboutActionRow(
+                        icon = painterResource(R.drawable.github),
+                        title = "Echo Music",
+                        subtitle = "El proyecto del que nace Life Music",
+                        onClick = { uriHandler.openUri("https://github.com/EchoMusicApp/Echo-Music") },
                     )
                     AboutDivider()
                     AboutActionRow(
-                        icon = painterResource(R.drawable.ic_x_new),
-                        title = "X (Twitter)",
-                        subtitle = "@xad1tya",
-                        onClick = { uriHandler.openUri("https://x.com/xad1tya") },
+                        icon = painterResource(R.drawable.github),
+                        title = "Vivi Music",
+                        subtitle = "Base fundacional de Echo",
+                        onClick = { uriHandler.openUri("https://github.com/vivizzz007/vivi-music") },
+                    )
+                    AboutDivider()
+                    AboutActionRow(
+                        icon = painterResource(R.drawable.github),
+                        title = "Metrolist",
+                        subtitle = "Base fundacional de Echo",
+                        onClick = { uriHandler.openUri("https://github.com/MetrolistGroup/Metrolist") },
+                    )
+                    AboutDivider()
+                    AboutActionRow(
+                        icon = painterResource(R.drawable.github),
+                        title = "InnerTune",
+                        subtitle = "Origen de la familia",
+                        onClick = { uriHandler.openUri("https://github.com/z-huang/InnerTune") },
+                    )
+                    AboutDivider()
+                    AboutActionRow(
+                        icon = painterResource(R.drawable.license_echo),
+                        title = "Licencia GPL-3.0",
+                        subtitle = "Heredada del proyecto original",
+                        onClick = { uriHandler.openUri("https://www.gnu.org/licenses/gpl-3.0.html") },
                     )
                 }
             }
 
             item {
-                AboutSectionCard(title = "Support") {
+                AboutSectionCard(title = "Apoya al autor original") {
                     AboutActionRow(
                         icon = painterResource(R.drawable.coffee),
                         title = "Buy Me a Coffee",
@@ -190,9 +224,50 @@ highlightKey: String? = null) {
                 }
             } */
 
-
-
+            item { CgLabsFooter() }
         }
+    }
+}
+
+/**
+ * Pie de marca paraguas. Protocolo CG LABS: el wordmark va SIEMPRE en el pie del
+ * "Acerca de", junto al copyright. Es theme-adaptive por recursos (drawable /
+ * drawable-night), no por codigo: Android elige la variante segun el tema.
+ */
+@Composable
+private fun CgLabsFooter() {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(top = 12.dp, bottom = 8.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(10.dp),
+    ) {
+        Image(
+            painter = painterResource(R.drawable.cglabs_wordmark),
+            contentDescription = "CG LABS",
+            modifier = Modifier
+                .fillMaxWidth(0.42f)
+                .padding(vertical = 4.dp),
+        )
+        Text(
+            text = "Life Music by CG · CG LABS",
+            style = MaterialTheme.typography.bodySmall,
+            fontWeight = FontWeight.Medium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+        Text(
+            text = "© 2026 CG LABS",
+            style = MaterialTheme.typography.labelSmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
+        )
+        Text(
+            text = "Proyecto educativo y sin animo de lucro.\nFork de Echo Music bajo licencia GPL-3.0.",
+            style = MaterialTheme.typography.labelSmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.55f),
+            textAlign = androidx.compose.ui.text.style.TextAlign.Center,
+            lineHeight = 14.sp,
+        )
     }
 }
 
@@ -255,20 +330,21 @@ private fun AboutAppCard() {
                 contentAlignment = Alignment.Center
             ) {
                 if (rotation <= 90f) {
+                    // Sin colorFilter: el icono de Life Music es a color, tintarlo lo aplanaria
                     Image(
                         painter = painterResource(R.drawable.ic_launcher_nobg),
                         contentDescription = null,
-                        colorFilter = ColorFilter.tint(if (isDark) Color.White else Color(0xFFEA3829)),
                         modifier = Modifier.fillMaxSize()
                     )
                 } else {
-                    coil3.compose.AsyncImage(
-                        model = "https://avatars.githubusercontent.com/u/147871321?v=4",
+                    // Avatar de la marca paraguas, theme-adaptive via drawable-night
+                    Image(
+                        painter = painterResource(R.drawable.cglabs_avatar),
                         contentDescription = null,
                         modifier = Modifier
                             .fillMaxSize()
+                            .padding(20.dp)
                             .graphicsLayer { rotationY = 180f }, // Un-flip the backside image
-                        contentScale = androidx.compose.ui.layout.ContentScale.Crop
                     )
                 }
             }
@@ -276,7 +352,7 @@ private fun AboutAppCard() {
             Spacer(Modifier.height(4.dp))
             
             Text(
-                text = if (rotation <= 90f) "Echo Music" else "Developed by Aditya",
+                text = if (rotation <= 90f) "Life Music" else "Un desarrollo de CG LABS",
                 style = MaterialTheme.typography.titleLarge,
                 fontWeight = FontWeight.Bold,
                 color = MaterialTheme.colorScheme.onSurface,
