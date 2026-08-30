@@ -1,256 +1,456 @@
 package echo.music.iad1tya.ui.screens
 
+import android.Manifest
+import android.content.pm.PackageManager
+import android.os.Build
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.spring
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.slideOutHorizontally
+import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.interaction.MutableInteractionSource
-import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
-import androidx.compose.material3.ripple
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.graphicsLayer
-import androidx.compose.ui.graphics.painter.Painter
-import androidx.compose.ui.platform.LocalUriHandler
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
+import androidx.core.content.ContextCompat
 import coil3.compose.AsyncImage
 import echo.music.iad1tya.BuildConfig
 import echo.music.iad1tya.R
 
-private const val TOTAL_PASOS = 2
+private const val TOTAL_PASOS = 4
 
 /**
- * Introduccion de primer arranque (patron CG LABS §8.2): recorrido en pasos con
- * indicador de progreso y navegacion anterior/siguiente.
+ * Introduccion de primer arranque (patron CG LABS §8.2): recorrido a pantalla
+ * completa con titular a dos tonos, tarjetas con azulejo de color, indicador de
+ * progreso y navegacion anterior/siguiente.
  *
- * Paso 1 presenta la app. Paso 2 presenta la marca paraguas y da los creditos al
- * proyecto del que nace este fork, que la GPL-3.0 obliga a conservar.
+ * El ultimo paso presenta la marca paraguas y da los creditos al proyecto del que
+ * nace este fork, atribucion que la GPL-3.0 obliga a conservar.
  */
 @Composable
 fun WelcomeDialog(
     onDismissRequest: () -> Unit
 ) {
-    val uriHandler = LocalUriHandler.current
     var paso by remember { mutableIntStateOf(0) }
     val esUltimo = paso == TOTAL_PASOS - 1
 
     Dialog(
-        onDismissRequest = onDismissRequest,
-        properties = DialogProperties(usePlatformDefaultWidth = false)
+        onDismissRequest = { /* la introduccion se completa, no se descarta */ },
+        properties = DialogProperties(
+            usePlatformDefaultWidth = false,
+            dismissOnBackPress = false,
+            dismissOnClickOutside = false,
+        )
     ) {
-        Card(
-            modifier = Modifier
-                .padding(24.dp)
-                .fillMaxWidth(),
-            shape = RoundedCornerShape(28.dp),
-            colors = CardDefaults.cardColors(
-                containerColor = MaterialTheme.colorScheme.surface
-            ),
-            elevation = CardDefaults.cardElevation(defaultElevation = 8.dp)
+        Surface(
+            modifier = Modifier.fillMaxSize(),
+            color = MaterialTheme.colorScheme.background,
         ) {
             Column(
                 modifier = Modifier
-                    .fillMaxWidth()
-                    .verticalScroll(rememberScrollState())
-                    .padding(vertical = 20.dp, horizontal = 16.dp),
-                verticalArrangement = Arrangement.spacedBy(16.dp),
+                    .fillMaxSize()
+                    .systemBarsPadding()
+                    .padding(horizontal = 24.dp),
             ) {
-                when (paso) {
-                    0 -> PasoLifeMusic()
-                    else -> PasoCgLabs(
-                        onAbrirEcho = { uriHandler.openUri("https://github.com/EchoMusicApp/Echo-Music") },
-                        onAbrirCgLabs = { uriHandler.openUri("https://github.com/cgus392-cmd") },
-                    )
+                AnimatedContent(
+                    targetState = paso,
+                    modifier = Modifier.weight(1f),
+                    transitionSpec = {
+                        val haciaAdelante = targetState > initialState
+                        val despl = if (haciaAdelante) 1 else -1
+                        (slideInHorizontally(tween(320)) { it / 4 * despl } + fadeIn(tween(320)))
+                            .togetherWith(
+                                slideOutHorizontally(tween(220)) { -it / 4 * despl } + fadeOut(tween(180))
+                            )
+                    },
+                    label = "pasoIntro",
+                ) { actual ->
+                    Column(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .verticalScroll(rememberScrollState()),
+                    ) {
+                        when (actual) {
+                            0 -> PasoBienvenida()
+                            1 -> PasoPermisos()
+                            2 -> PasoFunciones()
+                            else -> PasoCgLabs()
+                        }
+                    }
                 }
 
                 IndicadorPasos(actual = paso, total = TOTAL_PASOS)
 
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(10.dp),
-                ) {
-                    if (paso > 0) {
-                        OutlinedButton(
-                            onClick = { paso-- },
-                            modifier = Modifier.weight(1f).height(50.dp),
-                            shape = RoundedCornerShape(16.dp),
-                        ) {
-                            Text("Anterior", fontWeight = FontWeight.SemiBold, fontSize = 16.sp)
-                        }
-                    }
-                    Button(
-                        onClick = { if (esUltimo) onDismissRequest() else paso++ },
-                        modifier = Modifier.weight(1f).height(50.dp),
-                        shape = RoundedCornerShape(16.dp),
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = MaterialTheme.colorScheme.primary,
-                            contentColor = MaterialTheme.colorScheme.onPrimary
-                        )
-                    ) {
-                        Text(
-                            text = if (esUltimo) "Comenzar" else "Siguiente",
-                            fontWeight = FontWeight.Bold,
-                            fontSize = 16.sp,
-                        )
-                    }
-                }
+                BarraNavegacion(
+                    primerPaso = paso == 0,
+                    esUltimo = esUltimo,
+                    onAtras = { paso-- },
+                    onSiguiente = { if (esUltimo) onDismissRequest() else paso++ },
+                )
             }
         }
     }
 }
 
-/* ---------------------------------------------------------------- paso 1 */
+/* ------------------------------------------------------------ paso 1: hola */
 
 @Composable
-private fun PasoLifeMusic() {
-    TarjetaPaso {
+private fun PasoBienvenida() {
+    Column(
+        modifier = Modifier.fillMaxWidth(),
+        verticalArrangement = Arrangement.Center,
+    ) {
+        Spacer(Modifier.height(60.dp))
+
         AsyncImage(
             model = R.mipmap.ic_launcher,
             contentDescription = null,
             modifier = Modifier
-                .size(104.dp)
-                .clip(CircleShape)
-                .background(MaterialTheme.colorScheme.surfaceContainer),
+                .size(120.dp)
+                .clip(CircleShape),
         )
-        Spacer(Modifier.height(4.dp))
-        Text(
-            text = "Life Music",
-            style = MaterialTheme.typography.headlineSmall,
-            fontWeight = FontWeight.Bold,
-            color = MaterialTheme.colorScheme.onSurface,
+
+        Spacer(Modifier.height(40.dp))
+
+        TituloDisplay(primeraLinea = "Bienvenido a", segundaLinea = "Life Music")
+
+        Spacer(Modifier.height(28.dp))
+
+        Chip(icono = R.drawable.language, texto = "Predeterminado del sistema")
+        Spacer(Modifier.height(10.dp))
+        Chip(
+            icono = R.drawable.info,
+            texto = "Edicion FOSS v${BuildConfig.VERSION_NAME}",
         )
-        Surface(
-            shape = RoundedCornerShape(8.dp),
-            color = MaterialTheme.colorScheme.primary.copy(alpha = 0.10f),
-        ) {
-            Text(
-                text = BuildConfig.VERSION_NAME,
-                style = MaterialTheme.typography.labelSmall,
-                color = MaterialTheme.colorScheme.primary,
-                fontWeight = FontWeight.Medium,
-                modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp),
-            )
-        }
-        Spacer(Modifier.height(4.dp))
-        Text(
-            text = "Tu musica, sin anuncios y con letras sincronizadas.\n" +
-                "Descargas, podcasts y reproduccion en segundo plano.",
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-            textAlign = TextAlign.Center,
-            lineHeight = 20.sp,
-        )
+
+        Spacer(Modifier.height(24.dp))
     }
 }
 
-/* ---------------------------------------------------------------- paso 2 */
+/* --------------------------------------------------------- paso 2: permisos */
 
 @Composable
-private fun PasoCgLabs(
-    onAbrirEcho: () -> Unit,
-    onAbrirCgLabs: () -> Unit,
-) {
-    TarjetaPaso {
+private fun PasoPermisos() {
+    val contexto = LocalContext.current
+    val necesitaPermiso = Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU
+
+    var concedido by remember {
+        mutableStateOf(
+            !necesitaPermiso || ContextCompat.checkSelfPermission(
+                contexto, Manifest.permission.POST_NOTIFICATIONS
+            ) == PackageManager.PERMISSION_GRANTED
+        )
+    }
+    val solicitar = rememberLauncherForActivityResult(
+        ActivityResultContracts.RequestPermission()
+    ) { resultado -> concedido = resultado }
+
+    Column(modifier = Modifier.fillMaxWidth()) {
+        Spacer(Modifier.height(48.dp))
+        TituloDisplay(primeraLinea = "Permisos", segundaLinea = "necesarios")
+        Spacer(Modifier.height(16.dp))
+        Text(
+            text = "Life Music necesita este permiso para funcionar bien. " +
+                "Puedes cambiarlo cuando quieras desde los ajustes de Android.",
+            style = MaterialTheme.typography.bodyLarge,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            lineHeight = 24.sp,
+        )
+        Spacer(Modifier.height(28.dp))
+
+        TarjetaAzulejo(
+            icono = R.drawable.notification,
+            colorAzulejo = Color(0xFFF48FB1),
+            titulo = "Notificaciones",
+            descripcion = "Para ver que suena y controlar la reproduccion " +
+                "desde la barra de notificaciones.",
+            marcaVerificado = concedido,
+            onClick = {
+                if (!concedido && necesitaPermiso) {
+                    solicitar.launch(Manifest.permission.POST_NOTIFICATIONS)
+                }
+            },
+        )
+        Spacer(Modifier.height(12.dp))
+        TarjetaAzulejo(
+            icono = R.drawable.offline,
+            colorAzulejo = Color(0xFF80CBC4),
+            titulo = "Descargas sin conexion",
+            descripcion = "Se pide solo cuando descargues tu primera cancion.",
+            marcaVerificado = null,
+        )
+        Spacer(Modifier.height(24.dp))
+    }
+}
+
+/* -------------------------------------------------------- paso 3: funciones */
+
+@Composable
+private fun PasoFunciones() {
+    Column(modifier = Modifier.fillMaxWidth()) {
+        Spacer(Modifier.height(48.dp))
+        TituloDisplay(primeraLinea = "Descubre", segundaLinea = "Life Music")
+        Spacer(Modifier.height(16.dp))
+        Text(
+            text = "Todo lo que puedes hacer desde el primer momento.",
+            style = MaterialTheme.typography.bodyLarge,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            lineHeight = 24.sp,
+        )
+        Spacer(Modifier.height(24.dp))
+
+        val funciones = listOf(
+            Funcion(R.drawable.lyrics, Color(0xFFCE93D8), "Letras sincronizadas",
+                "Palabra por palabra, con traduccion opcional."),
+            Funcion(R.drawable.offline, Color(0xFF80CBC4), "Sin conexion",
+                "Descarga y escucha donde no hay senal."),
+            Funcion(R.drawable.mic, Color(0xFFFFAB91), "Reconocimiento",
+                "Averigua que cancion esta sonando a tu alrededor."),
+            Funcion(R.drawable.equalizer, Color(0xFF90CAF9), "Ecualizador",
+                "Ajusta el sonido a tus audifonos."),
+            Funcion(R.drawable.palette, Color(0xFFA5D6A7), "Material You",
+                "La app toma los colores de tu fondo de pantalla."),
+        )
+        funciones.forEachIndexed { i, f ->
+            if (i > 0) Spacer(Modifier.height(12.dp))
+            TarjetaAzulejo(
+                icono = f.icono,
+                colorAzulejo = f.color,
+                titulo = f.titulo,
+                descripcion = f.descripcion,
+            )
+        }
+        Spacer(Modifier.height(24.dp))
+    }
+}
+
+private data class Funcion(
+    val icono: Int,
+    val color: Color,
+    val titulo: String,
+    val descripcion: String,
+)
+
+/* ---------------------------------------------------------- paso 4: CG LABS */
+
+@Composable
+private fun PasoCgLabs() {
+    Column(modifier = Modifier.fillMaxWidth()) {
+        Spacer(Modifier.height(48.dp))
+        TituloDisplay(primeraLinea = "Un desarrollo de", segundaLinea = "CG LABS")
+
+        Spacer(Modifier.height(32.dp))
+
         // Wordmark theme-adaptive por recursos: negro en drawable/, blanco en
         // drawable-night/. Android elige la variante segun el tema del sistema.
         Image(
             painter = painterResource(R.drawable.cglabs_wordmark),
             contentDescription = "CG LABS",
             modifier = Modifier
-                .fillMaxWidth(0.60f)
-                .padding(vertical = 10.dp),
+                .fillMaxWidth(0.72f)
+                .align(Alignment.CenterHorizontally),
         )
-        Text(
-            text = "Un desarrollo de CG LABS",
-            style = MaterialTheme.typography.titleMedium,
-            fontWeight = FontWeight.Bold,
-            color = MaterialTheme.colorScheme.onSurface,
-            textAlign = TextAlign.Center,
-        )
+
+        Spacer(Modifier.height(28.dp))
+
         Text(
             text = "Life Music by CG · CG LABS",
-            style = MaterialTheme.typography.bodySmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            style = MaterialTheme.typography.titleSmall,
+            fontWeight = FontWeight.SemiBold,
+            color = MaterialTheme.colorScheme.primary,
+            modifier = Modifier.align(Alignment.CenterHorizontally),
         )
-        Spacer(Modifier.height(4.dp))
+        Spacer(Modifier.height(12.dp))
         Text(
             text = "Proyecto educativo y sin animo de lucro. Life Music nace como " +
-                "fork de Echo Music, bajo licencia GPL-3.0.",
-            style = MaterialTheme.typography.bodySmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.8f),
+                "fork de Echo Music, que a su vez desciende de Vivi Music, " +
+                "Metrolist e InnerTune. Se distribuye bajo licencia GPL-3.0 y " +
+                "conserva los creditos de toda la cadena.",
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
             textAlign = TextAlign.Center,
-            lineHeight = 18.sp,
+            lineHeight = 21.sp,
         )
-    }
 
-    WelcomeSectionCard(title = "Creditos") {
-        WelcomeActionRow(
-            icon = painterResource(R.drawable.github),
-            title = "Echo Music",
-            subtitle = "El proyecto del que nace Life Music",
-            onClick = onAbrirEcho,
+        Spacer(Modifier.height(24.dp))
+
+        TarjetaAzulejo(
+            icono = R.drawable.github,
+            colorAzulejo = Color(0xFFB0BEC5),
+            titulo = "Echo Music",
+            descripcion = "El proyecto del que nace Life Music.",
         )
-        WelcomeDivider()
-        WelcomeActionRow(
-            icon = painterResource(R.drawable.github),
-            title = "CG LABS",
-            subtitle = "cgus392-cmd",
-            onClick = onAbrirCgLabs,
+        Spacer(Modifier.height(12.dp))
+        TarjetaAzulejo(
+            icono = R.drawable.license_echo,
+            colorAzulejo = Color(0xFFC5E1A5),
+            titulo = "Licencia GPL-3.0",
+            descripcion = "Heredada del proyecto original.",
+        )
+        Spacer(Modifier.height(24.dp))
+    }
+}
+
+/* ------------------------------------------------------------- compartidos */
+
+/** Titular a dos tonos, en cursiva: la segunda linea va en el color de acento. */
+@Composable
+private fun TituloDisplay(primeraLinea: String, segundaLinea: String) {
+    Column {
+        Text(
+            text = primeraLinea,
+            style = MaterialTheme.typography.displaySmall,
+            fontStyle = FontStyle.Italic,
+            fontWeight = FontWeight.Normal,
+            color = MaterialTheme.colorScheme.onSurface,
+            lineHeight = 52.sp,
+        )
+        Text(
+            text = segundaLinea,
+            style = MaterialTheme.typography.displaySmall,
+            fontStyle = FontStyle.Italic,
+            fontWeight = FontWeight.Bold,
+            color = MaterialTheme.colorScheme.primary,
+            lineHeight = 52.sp,
         )
     }
 }
 
-/* ------------------------------------------------------------ compartido */
-
 @Composable
-private fun TarjetaPaso(contenido: @Composable ColumnScope.() -> Unit) {
-    Card(
-        modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(28.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceContainerLow,
-        ),
-        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
+private fun Chip(icono: Int, texto: String) {
+    Surface(
+        shape = RoundedCornerShape(50),
+        color = MaterialTheme.colorScheme.surfaceContainerHigh,
     ) {
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(vertical = 24.dp, horizontal = 20.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(8.dp),
-            content = contenido,
-        )
+        Row(
+            modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(10.dp),
+        ) {
+            Icon(
+                painter = painterResource(icono),
+                contentDescription = null,
+                modifier = Modifier.size(20.dp),
+                tint = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+            Text(
+                text = texto,
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurface,
+            )
+        }
+    }
+}
+
+/**
+ * Tarjeta con azulejo de color a la izquierda. [marcaVerificado] a true pinta un
+ * visto, a false una cruz, y a null no muestra indicador (la fila es informativa).
+ */
+@Composable
+private fun TarjetaAzulejo(
+    icono: Int,
+    colorAzulejo: Color,
+    titulo: String,
+    descripcion: String,
+    marcaVerificado: Boolean? = null,
+    onClick: (() -> Unit)? = null,
+) {
+    Surface(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(20.dp))
+            .then(if (onClick != null) Modifier.clickable(onClick = onClick) else Modifier),
+        shape = RoundedCornerShape(20.dp),
+        color = MaterialTheme.colorScheme.surfaceContainerLow,
+    ) {
+        Row(
+            modifier = Modifier.padding(16.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(16.dp),
+        ) {
+            Box(
+                modifier = Modifier
+                    .size(48.dp)
+                    .clip(RoundedCornerShape(14.dp))
+                    .background(colorAzulejo),
+                contentAlignment = Alignment.Center,
+            ) {
+                Icon(
+                    painter = painterResource(icono),
+                    contentDescription = null,
+                    modifier = Modifier.size(24.dp),
+                    tint = Color(0xFF1B1B1B),
+                )
+            }
+            Column(
+                modifier = Modifier.weight(1f),
+                verticalArrangement = Arrangement.spacedBy(4.dp),
+            ) {
+                Text(
+                    text = titulo,
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.SemiBold,
+                    color = MaterialTheme.colorScheme.onSurface,
+                )
+                Text(
+                    text = descripcion,
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    lineHeight = 20.sp,
+                )
+            }
+            marcaVerificado?.let { ok ->
+                Icon(
+                    painter = painterResource(if (ok) R.drawable.check else R.drawable.close),
+                    contentDescription = null,
+                    modifier = Modifier.size(24.dp),
+                    tint = if (ok) MaterialTheme.colorScheme.primary
+                    else MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
+        }
     }
 }
 
 @Composable
 private fun IndicadorPasos(actual: Int, total: Int) {
     Row(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 16.dp),
         horizontalArrangement = Arrangement.Center,
         verticalAlignment = Alignment.CenterVertically,
     ) {
         repeat(total) { i ->
             val activo = i == actual
             val ancho by animateFloatAsState(
-                targetValue = if (activo) 22f else 8f,
+                targetValue = if (activo) 24f else 8f,
                 animationSpec = spring(stiffness = Spring.StiffnessMediumLow),
                 label = "anchoPunto",
             )
@@ -270,118 +470,53 @@ private fun IndicadorPasos(actual: Int, total: Int) {
 }
 
 @Composable
-private fun WelcomeSectionCard(
-    title: String,
-    content: @Composable ColumnScope.() -> Unit,
+private fun BarraNavegacion(
+    primerPaso: Boolean,
+    esUltimo: Boolean,
+    onAtras: () -> Unit,
+    onSiguiente: () -> Unit,
 ) {
-    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-        Text(
-            text = title,
-            style = MaterialTheme.typography.titleSmall,
-            fontWeight = FontWeight.Bold,
-            color = MaterialTheme.colorScheme.primary,
-            modifier = Modifier.padding(start = 6.dp),
-        )
-        Card(
-            modifier = Modifier.fillMaxWidth(),
-            shape = RoundedCornerShape(28.dp),
-            colors = CardDefaults.cardColors(
-                containerColor = MaterialTheme.colorScheme.surfaceContainerLow,
-            ),
-            elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
-        ) {
-            Column(
-                modifier = Modifier.padding(vertical = 4.dp),
-                content = content,
-            )
-        }
-    }
-}
-
-@Composable
-private fun WelcomeActionRow(
-    icon: Painter,
-    title: String,
-    subtitle: String? = null,
-    onClick: () -> Unit,
-) {
-    val interactionSource = remember { MutableInteractionSource() }
-    val isPressed by interactionSource.collectIsPressedAsState()
-    val scale by animateFloatAsState(
-        targetValue = if (isPressed) 0.98f else 1f,
-        animationSpec = spring(stiffness = Spring.StiffnessHigh),
-        label = "rowScale",
-    )
-    val tint = MaterialTheme.colorScheme.primary
-
-    Box(
+    Row(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 6.dp, vertical = 2.dp)
-            .graphicsLayer { scaleX = scale; scaleY = scale }
-            .clip(RoundedCornerShape(22.dp))
-            .clickable(
-                interactionSource = interactionSource,
-                indication = ripple(),
-                onClick = onClick,
-            ),
+            .padding(bottom = 20.dp),
+        horizontalArrangement = Arrangement.spacedBy(12.dp),
     ) {
-        Row(
-            modifier = Modifier.padding(horizontal = 12.dp, vertical = 10.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(12.dp),
+        if (!primerPaso) {
+            OutlinedButton(
+                onClick = onAtras,
+                modifier = Modifier
+                    .weight(1f)
+                    .height(64.dp),
+                shape = RoundedCornerShape(50),
+            ) {
+                Text("Atras", fontSize = 17.sp, fontWeight = FontWeight.Medium)
+            }
+        }
+        Button(
+            onClick = onSiguiente,
+            modifier = Modifier
+                .weight(if (primerPaso) 1f else 1.15f)
+                .height(64.dp),
+            shape = RoundedCornerShape(50),
+            colors = ButtonDefaults.buttonColors(
+                containerColor = MaterialTheme.colorScheme.primary,
+                contentColor = MaterialTheme.colorScheme.onPrimary,
+            ),
         ) {
-            Surface(
-                modifier = Modifier.size(36.dp),
-                shape = RoundedCornerShape(12.dp),
-                color = tint.copy(alpha = 0.10f),
-            ) {
-                Box(contentAlignment = Alignment.Center, modifier = Modifier.fillMaxSize()) {
-                    Icon(
-                        painter = icon,
-                        contentDescription = null,
-                        modifier = Modifier.size(20.dp),
-                        tint = tint,
-                    )
-                }
-            }
-            Column(
-                modifier = Modifier.weight(1f),
-                verticalArrangement = Arrangement.spacedBy(2.dp),
-            ) {
-                Text(
-                    text = title,
-                    style = MaterialTheme.typography.bodyMedium,
-                    fontWeight = FontWeight.SemiBold,
-                    color = MaterialTheme.colorScheme.onSurface,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
+            if (primerPaso) {
+                Icon(
+                    painter = painterResource(R.drawable.arrow_forward),
+                    contentDescription = "Siguiente",
+                    modifier = Modifier.size(26.dp),
                 )
-                subtitle?.let {
-                    Text(
-                        text = it,
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis,
-                    )
-                }
+            } else {
+                Text(
+                    text = if (esUltimo) "Comenzar" else "Siguiente",
+                    fontSize = 17.sp,
+                    fontWeight = FontWeight.SemiBold,
+                )
             }
-            Icon(
-                painter = painterResource(R.drawable.arrow_forward),
-                contentDescription = null,
-                modifier = Modifier.size(18.dp),
-                tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.55f),
-            )
         }
     }
-}
-
-@Composable
-private fun WelcomeDivider() {
-    HorizontalDivider(
-        modifier = Modifier.padding(start = 78.dp, end = 20.dp),
-        thickness = 0.5.dp,
-        color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.35f),
-    )
 }
