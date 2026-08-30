@@ -6,20 +6,20 @@
 #   http://developer.android.com/guide/developing/tools/proguard.html
 
 # WEB_REMIX Streaming - WebView JavaScript interfaces
--keepclassmembers class echo.music.iad1tya.utils.sabr.EjsNTransformSolver$SolverWebView {
+-keepclassmembers class com.cglabs.lifemusic.utils.sabr.EjsNTransformSolver$SolverWebView {
     @android.webkit.JavascriptInterface public *;
 }
--keepclassmembers class echo.music.iad1tya.utils.cipher.CipherWebView {
+-keepclassmembers class com.cglabs.lifemusic.utils.cipher.CipherWebView {
     @android.webkit.JavascriptInterface public *;
 }
--keepclassmembers class echo.music.iad1tya.utils.potoken.PoTokenWebView {
+-keepclassmembers class com.cglabs.lifemusic.utils.potoken.PoTokenWebView {
     @android.webkit.JavascriptInterface public *;
 }
 
 # Keep streaming utility classes
--keep class echo.music.iad1tya.utils.cipher.** { *; }
--keep class echo.music.iad1tya.utils.sabr.** { *; }
--keep class echo.music.iad1tya.utils.potoken.** { *; }
+-keep class com.cglabs.lifemusic.utils.cipher.** { *; }
+-keep class com.cglabs.lifemusic.utils.sabr.** { *; }
+-keep class com.cglabs.lifemusic.utils.potoken.** { *; }
 
 # Keep coroutine continuation for WebView callbacks
 -keepclassmembers class * {
@@ -117,11 +117,11 @@
 
 ## Queue Persistence Rules
 # Keep queue-related classes to prevent serialization issues in release builds
--keep class echo.music.iad1tya.models.PersistQueue { *; }
--keep class echo.music.iad1tya.models.PersistPlayerState { *; }
--keep class echo.music.iad1tya.models.QueueData { *; }
--keep class echo.music.iad1tya.models.QueueType { *; }
--keep class echo.music.iad1tya.playback.queues.** { *; }
+-keep class com.cglabs.lifemusic.models.PersistQueue { *; }
+-keep class com.cglabs.lifemusic.models.PersistPlayerState { *; }
+-keep class com.cglabs.lifemusic.models.QueueData { *; }
+-keep class com.cglabs.lifemusic.models.QueueType { *; }
+-keep class com.cglabs.lifemusic.playback.queues.** { *; }
 
 # Keep serialization methods for queue persistence
 -keepclassmembers class * implements java.io.Serializable {
@@ -135,7 +135,7 @@
 -keep interface com.yalantis.ucrop** { *; }
 
 ## Google Cast Rules
--keep class echo.music.iad1tya.cast.** { *; }
+-keep class com.cglabs.lifemusic.cast.** { *; }
 -keep class com.google.android.gms.cast.** { *; }
 -keep class androidx.mediarouter.** { *; }
 
@@ -143,8 +143,8 @@
 -dontwarn com.google.re2j.**
 
 # Vibra fingerprint library
--keep class echo.music.iad1tya.recognition.VibraSignature { *; }
--keepclassmembers class echo.music.iad1tya.recognition.VibraSignature {
+-keep class com.cglabs.lifemusic.recognition.VibraSignature { *; }
+-keepclassmembers class com.cglabs.lifemusic.recognition.VibraSignature {
     native <methods>;
 }
 
@@ -174,13 +174,13 @@
 }
 
 ## Listen Together Serialization
--keep class echo.music.iad1tya.listentogether.** { *; }
--keepclassmembers class echo.music.iad1tya.listentogether.** {
+-keep class com.cglabs.lifemusic.listentogether.** { *; }
+-keepclassmembers class com.cglabs.lifemusic.listentogether.** {
     *;
 }
--keepclassmembers class echo.music.iad1tya.listentogether.** {
+-keepclassmembers class com.cglabs.lifemusic.listentogether.** {
     *** Companion;
 }
--keepclasseswithmembers class echo.music.iad1tya.listentogether.** {
+-keepclasseswithmembers class com.cglabs.lifemusic.listentogether.** {
     kotlinx.serialization.KSerializer serializer(...);
 }

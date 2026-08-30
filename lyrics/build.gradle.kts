@@ -4,7 +4,7 @@ plugins {
 }
 
 android {
-    namespace = "com.music.echo.lyrics"
+    namespace = "com.cglabs.lifemusic.lyrics"
     compileSdk = 36
     defaultConfig { minSdk = 26 }
     compileOptions {

@@ -322,9 +322,9 @@
             android:label="@string/widget_music_player">
             <intent-filter>
                 <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
-                <action android:name="echo.music.iad1tya.widget.PLAY_PAUSE" />
-                <action android:name="echo.music.iad1tya.widget.LIKE" />
-                <action android:name="echo.music.iad1tya.widget.UPDATE_WIDGET" />
+                <action android:name="com.cglabs.lifemusic.widget.PLAY_PAUSE" />
+                <action android:name="com.cglabs.lifemusic.widget.LIKE" />
+                <action android:name="com.cglabs.lifemusic.widget.UPDATE_WIDGET" />
             </intent-filter>
 
             <meta-data
@@ -339,9 +339,9 @@
             android:label="@string/widget_turntable">
             <intent-filter>
                 <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
-                <action android:name="echo.music.iad1tya.widget.TURNTABLE_PLAY_PAUSE" />
-                <action android:name="echo.music.iad1tya.widget.TURNTABLE_LIKE" />
-                <action android:name="echo.music.iad1tya.widget.UPDATE_TURNTABLE_WIDGET" />
+                <action android:name="com.cglabs.lifemusic.widget.TURNTABLE_PLAY_PAUSE" />
+                <action android:name="com.cglabs.lifemusic.widget.TURNTABLE_LIKE" />
+                <action android:name="com.cglabs.lifemusic.widget.UPDATE_TURNTABLE_WIDGET" />
             </intent-filter>
 
             <meta-data
@@ -352,7 +352,7 @@
         <!-- Google Cast Options Provider -->
         <meta-data
             android:name="com.google.android.gms.cast.framework.OPTIONS_PROVIDER_CLASS_NAME"
-            android:value="echo.music.iad1tya.cast.CastOptionsProvider" />
+            android:value="com.cglabs.lifemusic.cast.CastOptionsProvider" />
         <!-- Google Cast Reconnection Service (required by setEnableReconnectionService(true)) -->
         <service
             android:name="com.google.android.gms.cast.framework.ReconnectionService"
@@ -365,9 +365,9 @@
             android:label="@string/widget_music_player">
             <intent-filter>
                 <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
-                <action android:name="echo.music.iad1tya.widget.PLAY_PAUSE" />
-                <action android:name="echo.music.iad1tya.widget.LIKE" />
-                <action android:name="echo.music.iad1tya.widget.UPDATE_WIDGET" />
+                <action android:name="com.cglabs.lifemusic.widget.PLAY_PAUSE" />
+                <action android:name="com.cglabs.lifemusic.widget.LIKE" />
+                <action android:name="com.cglabs.lifemusic.widget.UPDATE_WIDGET" />
             </intent-filter>
             <meta-data
                 android:name="android.appwidget.provider"
@@ -394,9 +394,9 @@
             android:label="@string/widget_turntable">
             <intent-filter>
                 <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
-                <action android:name="echo.music.iad1tya.widget.TURNTABLE_PLAY_PAUSE" />
-                <action android:name="echo.music.iad1tya.widget.TURNTABLE_LIKE" />
-                <action android:name="echo.music.iad1tya.widget.UPDATE_TURNTABLE_WIDGET" />
+                <action android:name="com.cglabs.lifemusic.widget.TURNTABLE_PLAY_PAUSE" />
+                <action android:name="com.cglabs.lifemusic.widget.TURNTABLE_LIKE" />
+                <action android:name="com.cglabs.lifemusic.widget.UPDATE_TURNTABLE_WIDGET" />
             </intent-filter>
             <meta-data
                 android:name="android.appwidget.provider"
@@ -404,7 +404,7 @@
         </receiver>
 
         <activity
-            android:name="com.music.echo.discord.DiscordOAuthCallbackActivity"
+            android:name="com.cglabs.lifemusic.discord.DiscordOAuthCallbackActivity"
             android:exported="true"
             android:launchMode="singleTop"
             android:noHistory="true">
@@ -431,9 +431,9 @@
             android:label="@string/widget_recognizer_name">
             <intent-filter>
                 <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
-                <action android:name="echo.music.iad1tya.widget.recognizer.TAP_MIC" />
-                <action android:name="echo.music.iad1tya.widget.recognizer.UPDATE" />
-                <action android:name="echo.music.iad1tya.widget.recognizer.RESET" />
+                <action android:name="com.cglabs.lifemusic.widget.recognizer.TAP_MIC" />
+                <action android:name="com.cglabs.lifemusic.widget.recognizer.UPDATE" />
+                <action android:name="com.cglabs.lifemusic.widget.recognizer.RESET" />
             </intent-filter>
 
             <meta-data

@@ -24,7 +24,7 @@ if (hasGoogleServicesConfig) {
 }
 
 android {
-    namespace = "echo.music.iad1tya"
+    namespace = "com.cglabs.lifemusic"
     compileSdk = 36
     ndkVersion = "27.0.12077973"
 
