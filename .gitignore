@@ -34,3 +34,6 @@ lastfm-empty/build/
 
 # Logs
 *.log
+
+# Credenciales de Firebase - nunca se versionan (CG LABS)
+app/google-services.json

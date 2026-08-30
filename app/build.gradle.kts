@@ -30,7 +30,7 @@ android {
 
 
     defaultConfig {
-        applicationId = "echo.music.iad1tya"
+        applicationId = "com.cglabs.lifemusic"
         minSdk = 26
         targetSdk = 36
         versionCode = 152
