@@ -20,6 +20,8 @@ android {
 }
 kotlin { jvmToolchain(21) }
 dependencies {
+    // Verificacion del DSP de separacion contra la referencia en Python.
+    testImplementation(libs.junit)
     implementation(project(":core"))
     "gmsImplementation"(libs.cast.framework)
     api(libs.media3)
