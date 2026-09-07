@@ -3,6 +3,7 @@ package com.cglabs.lifemusic.ui.component
 import android.provider.Settings
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.SizeTransform
+import androidx.compose.animation.core.EaseInOutSine
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -45,14 +46,21 @@ import kotlinx.coroutines.delay
  * quitarle al usuario la unica referencia de en que pantalla se encuentra.
  */
 
-/** Cuanto se queda el nombre de la app. Largo: es el estado en reposo. */
-private const val ESPERA_NOMBRE_MS = 6_500L
+/**
+ * El relevo, en dos tiempos. Casi dos segundos enteros: la marca no irrumpe, se
+ * disuelve. Con curva seno de entrada y salida, que arranca y termina despacio;
+ * la de Material por defecto empieza de golpe y en un fundido se nota como un
+ * corte.
+ */
+private const val SALIDA_MS = 900
+private const val ENTRADA_MS = 1_100
+private const val TRANSICION_MS = (SALIDA_MS + ENTRADA_MS).toLong()
+
+/** Cuanto se queda el nombre de la app, ya del todo visible. Es el reposo. */
+private const val ESPERA_NOMBRE_MS = 6_000L
 
 /** Cuanto se queda el wordmark. Corto: es una firma, no un cartel. */
-private const val ESPERA_MARCA_MS = 2_600L
-
-private const val SALIDA_MS = 400
-private const val ENTRADA_MS = 500
+private const val ESPERA_MARCA_MS = 3_000L
 
 @Composable
 fun BrandTitle(
@@ -82,7 +90,12 @@ fun BrandTitle(
     var mostrandoMarca by remember { mutableStateOf(false) }
     LaunchedEffect(Unit) {
         while (true) {
-            delay(if (mostrandoMarca) ESPERA_MARCA_MS else ESPERA_NOMBRE_MS)
+            // Hay que sumar la transicion: el reloj cuenta desde que se ordena el
+            // cambio, no desde que la transicion termina. Sin sumarla, el
+            // wordmark se pasaba casi todo su turno entrando y saliendo, del todo
+            // visible apenas medio segundo. Las esperas de arriba son tiempo
+            // quieto de verdad.
+            delay(TRANSICION_MS + if (mostrandoMarca) ESPERA_MARCA_MS else ESPERA_NOMBRE_MS)
             mostrandoMarca = !mostrandoMarca
         }
     }
@@ -93,8 +106,8 @@ fun BrandTitle(
         // el otro. Solapar texto y logo en el mismo sitio se ve sucio, y lo que
         // pidio CG fue que se atenuara y luego apareciera.
         transitionSpec = {
-            fadeIn(tween(durationMillis = ENTRADA_MS, delayMillis = SALIDA_MS))
-                .togetherWith(fadeOut(tween(durationMillis = SALIDA_MS)))
+            fadeIn(tween(ENTRADA_MS, delayMillis = SALIDA_MS, easing = EaseInOutSine))
+                .togetherWith(fadeOut(tween(SALIDA_MS, easing = EaseInOutSine)))
                 // Sin recorte ni animacion de tamano: el hueco del titulo lo
                 // marca "Life Music", que es lo mas ancho, y asi los iconos de
                 // la derecha no se mueven en cada relevo.
@@ -109,7 +122,7 @@ fun BrandTitle(
             // usuario tiene la fuente grande, el wordmark crece con ella.
             val tam = style.fontSize
             val alto = with(LocalDensity.current) {
-                (if (tam.type == TextUnitType.Sp) tam else 24.sp).toDp() * 0.82f
+                (if (tam.type == TextUnitType.Sp) tam else 24.sp).toDp() * 0.92f
             }
             Image(
                 painter = painterResource(R.drawable.cglabs_wordmark),
