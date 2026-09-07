@@ -481,6 +481,19 @@ private fun ControlesKaraoke(
                 valueRange = 0f..100f,
                 modifier = Modifier.fillMaxWidth(),
             )
+
+            // Decir en la propia pantalla que esto es una resta y no una
+            // separacion. Si el usuario sube el control esperando que la voz
+            // desaparezca y lo que oye es la pista adelgazada, el problema no es
+            // que la funcion falle: es que nadie le conto que hace. Sin este
+            // parrafo la funcion promete lo que no da.
+            Text(
+                text = stringResource(R.string.karaoke_reduction_how),
+                fontSize = 11.sp,
+                lineHeight = 15.sp,
+                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.8f),
+                modifier = Modifier.padding(top = 4.dp),
+            )
         }
     }
 }

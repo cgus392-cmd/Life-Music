@@ -1041,9 +1041,10 @@
     <string name="karaoke_mode">Karaoke mode</string>
     <string name="karaoke_exit">Exit karaoke</string>
     <string name="karaoke_no_lyrics">No synced lyrics for this song — karaoke needs word timings</string>
-    <string name="karaoke_vocal_reduction">Reduce lead vocal</string>
-    <string name="karaoke_vocal_reduction_desc">Removes what is centred in the mix, keeping bass and cymbals</string>
+    <string name="karaoke_vocal_reduction">Quick vocal reduction</string>
+    <string name="karaoke_vocal_reduction_desc">Instant and offline — but it also takes out backing vocals and centred percussion</string>
     <string name="karaoke_mono_warning">Mono recording: the vocal cannot be separated</string>
+    <string name="karaoke_reduction_how">It cancels whatever sounds identical in both channels. The lead vocal usually sits there, so it goes — but so does anything else placed at the centre of the mix. It is subtraction, not separation: there is a ceiling no setting can get past.</string>
 
 
     <!-- La voz de Life Line: lo que dice la app cuando no hay letra que cantar o cuando pasa algo por dentro que merece contarse. -->
