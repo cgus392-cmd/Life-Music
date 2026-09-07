@@ -398,7 +398,7 @@ fun Queue(
                         icon = R.drawable.mic,
                         onClick = {
                             playerBottomSheetState.collapseSoft()
-                            navController.navigate("karaoke")
+                            navController.navigate("karaoke") { launchSingleTop = true }
                         },
                         isActive = false,
                         shape = middleShape,
@@ -538,7 +538,10 @@ fun Queue(
 
                     Row(
                         horizontalArrangement = Arrangement.spacedBy(ButtonGroupDefaults.ConnectedSpaceBetween),
-                        modifier = Modifier.width(120.dp)
+                        // 180dp y no 120: la pildora pasa de dos botones a tres
+                        // al entrar el karaoke. Manteniendo el ancho, los tres
+                        // saldrian estrechos y por debajo de la zona tactil.
+                        modifier = Modifier.width(180.dp)
                     ) {
                         ToggleButton(
                             checked = false,
@@ -576,7 +579,7 @@ fun Queue(
                                     }
                                 }
                             },
-                            shapes = ButtonGroupDefaults.connectedTrailingButtonShapes(),
+                            shapes = ButtonGroupDefaults.connectedMiddleButtonShapes(),
                             modifier = Modifier
                                 .height(56.dp)
                                 .weight(1f),
@@ -606,6 +609,37 @@ fun Queue(
                                     )
                                 }
                             }
+                        }
+
+                        // Karaoke, dentro de la misma pildora que el altavoz y el
+                        // temporizador. Suelto al final de la fila rompia el
+                        // ritmo del grupo; aqui es el tercero de un ButtonGroup y
+                        // comparte forma, alto y color con sus vecinos.
+                        ToggleButton(
+                            checked = false,
+                            onCheckedChange = {
+                                playerBottomSheetState.collapseSoft()
+                                // launchSingleTop: sin esto cada pulsacion apila
+                                // otra copia de la pantalla, y al cerrar con la X
+                                // se caia en la de debajo. Parecia un bucle.
+                                navController.navigate("karaoke") { launchSingleTop = true }
+                            },
+                            shapes = ButtonGroupDefaults.connectedTrailingButtonShapes(),
+                            modifier = Modifier
+                                .height(56.dp)
+                                .weight(1f),
+                            colors = ToggleButtonDefaults.toggleButtonColors(
+                                containerColor = TextBackgroundColor.copy(alpha = 0.2f),
+                                contentColor = TextBackgroundColor,
+                                checkedContainerColor = TextBackgroundColor.copy(alpha = 0.4f),
+                                checkedContentColor = TextBackgroundColor
+                            )
+                        ) {
+                            Icon(
+                                painter = painterResource(id = R.drawable.mic),
+                                contentDescription = stringResource(R.string.karaoke_mode),
+                                modifier = Modifier.size(30.dp)
+                            )
                         }
                     }
 
@@ -637,23 +671,6 @@ fun Queue(
                         }
                     }
 
-                    // Karaoke, al lado de la letra. Va tambien aqui y no solo en
-                    // el diseno nuevo: UseNewPlayerDesignKey es una preferencia,
-                    // y quien la tenga apagada se quedaba sin acceso a la funcion.
-                    TextButton(
-                        onClick = {
-                            playerBottomSheetState.collapseSoft()
-                            navController.navigate("karaoke")
-                        },
-                        modifier = Modifier.wrapContentWidth()
-                    ) {
-                        Icon(
-                            painter = painterResource(id = R.drawable.mic),
-                            contentDescription = stringResource(R.string.karaoke_mode),
-                            modifier = Modifier.size(30.dp),
-                            tint = TextBackgroundColor
-                        )
-                    }
                 }
             }
             if (showAudioDeviceBottomSheet) {
