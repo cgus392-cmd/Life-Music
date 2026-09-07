@@ -131,8 +131,11 @@ fun LifeLine(
     if (entries.isNullOrEmpty()) return
 
     val efectiva = positionMs + offsetMs + ANTICIPO_MS
-    val indice = entries.indexOfLast { it.time <= efectiva }
-    if (indice < 0) return
+    // Antes de la primera linea —las intros suelen durar diez segundos o mas— se
+    // muestra esa primera linea entera en color de pendiente, en vez de no pintar
+    // nada. Asi se ve lo que viene y, sobre todo, la fila no aparece de golpe
+    // empujando el slider y los controles hacia abajo a mitad de cancion.
+    val indice = entries.indexOfLast { it.time <= efectiva }.coerceAtLeast(0)
     val entrada = entries[indice]
 
     val finLinea = entries.getOrNull(indice + 1)?.time ?: (entrada.time + DURACION_POR_DEFECTO_MS)
@@ -168,11 +171,13 @@ fun LifeLine(
     }
 
     Column(
+        // 48dp de alto minimo dan la zona tactil que pide accesibilidad, y el
+        // contenido se centra dentro. Nada de padding vertical encima: sumaria
+        // 12dp mas de aire para una linea de 14sp que no los necesita.
         modifier = modifier
             .fillMaxWidth()
             .clickable(onClick = onOpenLyrics)
-            .defaultMinSize(minHeight = 48.dp) // zona tactil completa, no solo el chevron
-            .padding(vertical = 6.dp),
+            .defaultMinSize(minHeight = 48.dp),
         verticalArrangement = Arrangement.Center,
     ) {
         AnimatedContent(
