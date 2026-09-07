@@ -808,6 +808,12 @@ val LifeLineHighlightKey = stringPreferencesKey("lifeLineHighlight")
 val LifeLineCustomColorKey = intPreferencesKey("lifeLineCustomColor")
 val LifeLineTranslationKey = booleanPreferencesKey("lifeLineTranslation")
 
+/**
+ * Si el titulo de Inicio se releva con el wordmark de CG LABS. Activado por
+ * defecto: es identidad de marca, y apagarlo deja el titulo quieto y ya.
+ */
+val BrandTitleAlternateKey = booleanPreferencesKey("brandTitleAlternate")
+
 /** Como se pinta la parte ya cantada de la linea. */
 enum class LifeLineHighlight {
     /** Acento de Material You: la letra se tine con el tema del sistema. Por defecto. */

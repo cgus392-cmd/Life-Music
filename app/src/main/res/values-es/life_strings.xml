@@ -650,6 +650,8 @@
     <string name="life_line_highlight_custom">Color personalizado</string>
     <string name="life_line_custom_color">Elegir color</string>
     <string name="life_line_custom_color_desc">El color con el que se pintan las palabras ya cantadas</string>
+    <string name="brand_title_alternate">Marca alterna en el encabezado</string>
+    <string name="brand_title_alternate_desc">En Inicio, el título se releva con el logo de CG LABS</string>
 
 
     <!-- La voz de Life Line -->

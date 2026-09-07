@@ -31,6 +31,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.TextUnitType
 import androidx.compose.ui.unit.sp
 import com.cglabs.lifemusic.R
+import com.cglabs.lifemusic.constants.BrandTitleAlternateKey
+import com.cglabs.lifemusic.utils.rememberPreference
 import kotlinx.coroutines.delay
 
 /**
@@ -82,7 +84,9 @@ fun BrandTitle(
         ) > 0f
     }
 
-    if (text != nombreDeApp || !animar) {
+    val relevar by rememberPreference(BrandTitleAlternateKey, defaultValue = true)
+
+    if (!relevar || text != nombreDeApp || !animar) {
         Text(text = text, style = style, modifier = modifier)
         return
     }

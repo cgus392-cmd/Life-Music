@@ -1036,6 +1036,8 @@
     <string name="life_line_highlight_custom">Custom colour</string>
     <string name="life_line_custom_color">Pick colour</string>
     <string name="life_line_custom_color_desc">The colour the sung words are painted with</string>
+    <string name="brand_title_alternate">Alternating brand mark</string>
+    <string name="brand_title_alternate_desc">On Home, the title takes turns with the CG LABS logo</string>
 
 
     <!-- La voz de Life Line: lo que dice la app cuando no hay letra que cantar o cuando pasa algo por dentro que merece contarse. -->

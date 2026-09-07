@@ -121,6 +121,7 @@ import com.cglabs.lifemusic.utils.rememberPreference
 import kotlinx.coroutines.launch
 import kotlin.math.roundToInt
 import com.cglabs.lifemusic.constants.LyricsClickKey
+import com.cglabs.lifemusic.constants.BrandTitleAlternateKey
 import com.cglabs.lifemusic.constants.LifeLineCustomColorKey
 import com.cglabs.lifemusic.constants.LifeLineEnabledKey
 import com.cglabs.lifemusic.constants.LifeLineHighlight
@@ -239,6 +240,8 @@ highlightKey: String? = null) {
     val (lyricsClick, onLyricsClickChange) = rememberPreference(LyricsClickKey, defaultValue = true)
 
     // --- Life Line: la linea de letra viva en el reproductor ---
+    val (brandTitleAlternate, onBrandTitleAlternateChange) =
+        rememberPreference(BrandTitleAlternateKey, defaultValue = true)
     val (lifeLineEnabled, onLifeLineEnabledChange) =
         rememberPreference(LifeLineEnabledKey, defaultValue = true)
     val (lifeLineHighlight, onLifeLineHighlightChange) =
@@ -1158,6 +1161,33 @@ highlightKey: String? = null) {
                         )
                     )
                 }
+
+                // Va en Tema y no en un grupo propio: es identidad de la app, del
+                // mismo orden que el color dinamico o el fondo negro.
+                add(
+                    Material3SettingsItem(
+                        isHighlighted = (highlightKey == stringResource(R.string.brand_title_alternate)),
+                        icon = painterResource(R.drawable.sparks),
+                        title = { Text(stringResource(R.string.brand_title_alternate)) },
+                        description = { Text(stringResource(R.string.brand_title_alternate_desc)) },
+                        trailingContent = {
+                            Switch(
+                                checked = brandTitleAlternate,
+                                onCheckedChange = onBrandTitleAlternateChange,
+                                thumbContent = {
+                                    Icon(
+                                        painter = painterResource(
+                                            id = if (brandTitleAlternate) R.drawable.check else R.drawable.close
+                                        ),
+                                        contentDescription = null,
+                                        modifier = Modifier.size(SwitchDefaults.IconSize)
+                                    )
+                                }
+                            )
+                        },
+                        onClick = { onBrandTitleAlternateChange(!brandTitleAlternate) }
+                    )
+                )
             }
         )
 
