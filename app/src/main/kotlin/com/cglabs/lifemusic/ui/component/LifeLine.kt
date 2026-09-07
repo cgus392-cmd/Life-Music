@@ -171,13 +171,15 @@ fun LifeLine(
     }
 
     Column(
-        // 48dp de alto minimo dan la zona tactil que pide accesibilidad, y el
-        // contenido se centra dentro. Nada de padding vertical encima: sumaria
-        // 12dp mas de aire para una linea de 14sp que no los necesita.
+        // 32dp, no 48: medido en pantalla, el bloque titulo/artista respira a
+        // 13dp entre lineas, y con 48dp la letra quedaba a 20dp del artista y a
+        // 57dp del slider —flotando en medio de un hueco en vez de cerrando el
+        // bloque—. Con 32dp cae a 12dp del artista, el mismo ritmo, y sigue
+        // siendo una zona tactil comoda: ancho completo por 32dp de alto.
         modifier = modifier
             .fillMaxWidth()
             .clickable(onClick = onOpenLyrics)
-            .defaultMinSize(minHeight = 48.dp),
+            .defaultMinSize(minHeight = 32.dp),
         verticalArrangement = Arrangement.Center,
     ) {
         AnimatedContent(
