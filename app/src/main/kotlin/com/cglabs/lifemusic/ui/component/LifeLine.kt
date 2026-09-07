@@ -89,8 +89,8 @@ private const val DURACION_POR_DEFECTO_MS = 4000L
  * la caratula —que va en un weight(1f)— recupera ese alto y empuja la cabecera
  * hacia abajo, hasta pegarla a la letra. Cabecera y linea bajan juntas.
  *
- * Sin letra sincronizada se pinta solo la separacion: la maqueta original de
- * Echo, intacta.
+ * Sin letra sincronizada —o con el panel de letras ya abierto, [lyricsExpanded]—
+ * se pinta solo la separacion: la maqueta original de Echo, intacta.
  */
 @Composable
 fun LifeLineSection(
@@ -98,11 +98,15 @@ fun LifeLineSection(
     baseColor: Color,
     onOpenLyrics: () -> Unit,
     separation: Dp,
+    lyricsExpanded: Boolean,
     modifier: Modifier = Modifier,
 ) {
     val activa by rememberPreference(LifeLineEnabledKey, defaultValue = true)
     val conexion = LocalPlayerConnection.current
-    if (!activa || conexion == null) {
+    // Con el panel de letras desplegado la linea sobra: seria la misma frase
+    // dos veces en la misma pantalla, y encima la de arriba es la que manda.
+    // Al replegarse vuelve sola, que es justo lo que se espera de un resumen.
+    if (lyricsExpanded || !activa || conexion == null) {
         Spacer(Modifier.height(separation))
         return
     }

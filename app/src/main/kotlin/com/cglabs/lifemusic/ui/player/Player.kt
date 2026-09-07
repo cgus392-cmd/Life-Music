@@ -1950,6 +1950,7 @@ fun BottomSheetPlayer(
                 baseColor = TextBackgroundColor,
                 onOpenLyrics = { showInlineLyrics = true },
                 separation = if (useNewPlayerDesign) 24.dp else 20.dp,
+                lyricsExpanded = showInlineLyrics,
                 modifier = Modifier.padding(horizontal = PlayerHorizontalPadding),
             )
 
