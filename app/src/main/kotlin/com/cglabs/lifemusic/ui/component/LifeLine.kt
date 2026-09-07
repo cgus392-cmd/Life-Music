@@ -76,25 +76,21 @@ private const val ANTICIPO_MS = 400L
 private const val DURACION_POR_DEFECTO_MS = 4000L
 
 /**
- * Respiro que queda DEBAJO de la linea. Casi nada, y a proposito: el slider que
- * viene despues ya trae unos 20dp de relleno propio antes de su pista. Si se
- * repartiera la separacion a partes iguales, ese relleno contaria doble y la
- * linea quedaria pegada al artista con un vacio debajo. Poniendo casi todo
- * arriba, la linea cae centrada en el hueco: medido, 31.7dp de aire visible a
- * cada lado.
- */
-private val RESPIRO_INFERIOR = 4.dp
-
-/**
  * Envoltorio para el reproductor: lee las preferencias, saca la letra de la
  * cancion en curso y la deja parseada.
  *
- * Tambien se hace cargo de la separacion que ya existia entre el bloque de
- * titulo/artista y el slider —[separation]—, y ese es el punto: Life Line no
- * anade una banda propia encima de un hueco vacio, se mete DENTRO del hueco. El
- * reproductor no crece ni un dp por colocarla, y la linea deja de apretar al
- * artista. Sin letra sincronizada solo se pinta la separacion, byte por byte la
- * maqueta original.
+ * Se hace cargo de la separacion que ya existia entre el bloque de
+ * titulo/artista y el slider —[separation]—, y el reparto es el diseno: cuando
+ * hay letra, la fila SUSTITUYE a esa separacion en vez de sumarse a ella. No
+ * queda ni un dp de aire propio ni encima ni debajo; la linea es sencillamente
+ * la tercera linea del bloque, despues del titulo y del artista.
+ *
+ * El efecto secundario es el que se busca: al no crecer el bloque de controles,
+ * la caratula —que va en un weight(1f)— recupera ese alto y empuja la cabecera
+ * hacia abajo, hasta pegarla a la letra. Cabecera y linea bajan juntas.
+ *
+ * Sin letra sincronizada se pinta solo la separacion: la maqueta original de
+ * Echo, intacta.
  */
 @Composable
 fun LifeLineSection(
@@ -130,8 +126,6 @@ fun LifeLineSection(
         return
     }
 
-    Spacer(Modifier.height((separation - RESPIRO_INFERIOR).coerceAtLeast(0.dp)))
-
     LifeLine(
         entries = entradas,
         positionMs = positionMs,
@@ -143,8 +137,6 @@ fun LifeLineSection(
         onOpenLyrics = onOpenLyrics,
         modifier = modifier,
     )
-
-    Spacer(Modifier.height(RESPIRO_INFERIOR))
 }
 
 @Composable
@@ -204,11 +196,11 @@ fun LifeLine(
     }
 
     Column(
-        // 32dp, no 48: la linea son 14sp, unos 16dp de tinta, asi que 48dp
-        // metian 31dp de aire invisible dentro de la propia fila. Con 32dp la
-        // zona tactil sigue siendo comoda —ancho completo por 32dp— y el aire
-        // que rodea a la linea lo pone la separacion de LifeLineSection, donde
-        // se puede repartir a conciencia en vez de quedar atrapado aqui.
+        // 32dp es todo el alto que gasta la funcion, y es el unico aire que
+        // hay: la fila no lleva separacion ni encima ni debajo. La linea son
+        // 14sp —unos 16dp de tinta— asi que quedan 8dp por lado, justo el
+        // respiro que pide una tercera linea mas pequena que el artista. Con
+        // los 48dp de accesibilidad eran 16dp por lado y se veia el hueco.
         modifier = modifier
             .fillMaxWidth()
             .clickable(onClick = onOpenLyrics)
