@@ -1,156 +1,91 @@
-# Setup Instructions
+# Compilar Life Music
 
-This document provides instructions for setting up the Echo Music project for development.
+## Requisitos
 
-## Prerequisites
+| | |
+|---|---|
+| JDK | **21** |
+| Android SDK | 36 |
+| NDK | 27.0.12077973 |
+| Gradle | 9.3.1 (incluido en el envoltorio) |
 
-- Android Studio (latest version recommended)
-- Android SDK (API level as specified in `build.gradle.kts`)
-- JDK 21
-- Git
+Android Studio los instala todos. Si compila desde la línea de órdenes,
+asegúrese de que `JAVA_HOME` apunta al JDK 21 — **no basta con que `java -version`
+diga algo razonable**: en muchos equipos el `java` del PATH es un JRE viejo y
+Gradle falla con un error que no menciona la versión.
 
-## Initial Setup
-
-### 1. Clone the Repository
-
-```bash
-git clone https://github.com/iad1tya/Echo-Music.git
-cd Echo-Music
-```
-
-### 2. Configure Local Properties
-
-Create a `local.properties` file from the template:
+## Compilar
 
 ```bash
-cp local.properties.template local.properties
+git clone https://github.com/cgus392-cmd/Life-Music.git
+cd Life-Music
+./gradlew assembleUniversalFossDebug
 ```
 
-Edit `local.properties` and set your Android SDK path:
+El APK queda en `app/build/outputs/apk/universalFoss/debug/`.
 
-```properties
-sdk.dir=/path/to/your/android/sdk
-```
+La primera compilación tarda —del orden de diez minutos— porque hay 18 módulos y
+KSP tiene que generar el código de Room y Hilt.
 
-**Example paths:**
+## Variantes
 
-- macOS: `/Users/username/Library/Android/sdk`
-- Linux: `/home/username/Android/sdk`
-- Windows: `C:\\Users\\username\\AppData\\Local\\Android\\sdk`
+Dos dimensiones de sabor, que se combinan:
 
-### 3. Configure Firebase (Optional)
+**Servicios:**
+- **`foss`** *(por defecto)* — sin dependencias de Google.
+- **`gms`** — con servicios de Google.
 
-Firebase is used for analytics and crash reporting. If you want to use these features:
+**Arquitectura:** `arm64`, `arm`, `x86`, `x64`, `universal`.
 
-1. Create a Firebase project at [Firebase Console](https://console.firebase.google.com/)
-2. Add an Android app to your Firebase project
-3. Download the `google-services.json` file
-4. Place it in the `app/` directory
-
-**Note:** If you skip Firebase setup, the app will still build and run, but analytics and crash reporting will be disabled.
-
-### 4. Configure Release Signing (Optional)
-
-For release builds, you need to configure signing credentials. Set these as environment variables or in `gradle.properties`:
+Para un teléfono actual, `arm64` es lo normal y pesa bastante menos. El
+`universal` incluye las cuatro y sirve para no preguntarse cuál toca.
 
 ```bash
-# Environment variables
-export KEYSTORE_PATH=/path/to/your/keystore.jks
-export STORE_PASSWORD=your_store_password
-export KEY_ALIAS=your_key_alias
-export KEY_PASSWORD=your_key_password
+./gradlew assembleArm64FossRelease     # lo habitual
+./gradlew assembleUniversalFossDebug   # para desarrollar
 ```
 
-Or add to `gradle.properties` (never commit this file):
-
-```properties
-KEYSTORE_PATH=/path/to/your/keystore.jks
-STORE_PASSWORD=your_store_password
-KEY_ALIAS=your_key_alias
-KEY_PASSWORD=your_key_password
-```
-
-### 5. Build the Project
-
-Open the project in Android Studio or build from the command line.
-
-Echo Music now ships a single **GMS** build variant (with Google Cast support). The previous FOSS (no Google Play Services) variant has been removed.
+## Pruebas
 
 ```bash
-# Debug build
-./gradlew assembleUniversalGmsDebug
-
-# Release build (requires signing configuration)
-./gradlew assembleUniversalGmsRelease
+./gradlew :playback:testFossDebugUnitTest
 ```
 
-*(On Windows, use `.\gradlew.bat` instead of `./gradlew`)*
+Ojo con el nombre: **`testDebugUnitTest` no existe** y Gradle responde que la
+tarea es ambigua, porque los sabores obligan a decir cuál.
 
-### 6. Configure AI Translation (Optional)
+## Estructura
 
-Echo Music supports AI-powered lyrics translation. You can configure this in **Settings -> AI Settings**.
+18 módulos Gradle. Los importantes:
 
-#### Option A: Using OpenRouter (Default)
+| Módulo | Qué hay |
+|---|---|
+| `app` | interfaz, pantallas, servicio de reproducción |
+| `core` | base de datos, preferencias, modelos |
+| `playback` | procesamiento de audio, ecualizador, análisis de ritmo |
+| `innertube` | cliente de la API de YouTube |
+| `lyrics` | agregador de proveedores de letra |
+| el resto | un proveedor externo cada uno |
 
-This is the recommended setup for most users.
+**Añadir una función no obliga a tocar el núcleo:** módulo nuevo →
+`settings.gradle.kts` → `implementation(project(":x"))` → cablear con Hilt.
 
-1. Get an API Key from [OpenRouter](https://openrouter.ai/).
-2. In the app, go to **Settings -> AI Settings**.
-3. Ensure **Provider** is set to **OpenRouter**.
-4. Enter your **API Key**.
+## Configuración opcional
 
-#### Option B: Using Custom Provider
+Copie `gradle.properties.template` y `local.properties.template` quitándoles el
+sufijo si necesita ajustar algo. La compilación funciona sin tocarlos.
 
-Use this for other services like OpenAI, Anthropic, or local LLMs.
+**No hace falta `google-services.json`**, y no debe añadirse: el proyecto se
+compila sin Firebase a propósito. Si aparece uno, Gradle activará Google Services
+y Crashlytics, que es justo lo que Life Music quitó.
 
-1. In the app, go to **Settings -> AI Settings**.
-2. Select your **Provider** (e.g., ChatGPT, Gemini, or Custom).
-3. If using **Custom**, enter your provider's **Base URL**.
-4. Enter your **API Key**.
+## Problemas conocidos
 
-## Important Files
+**El envoltorio de Gradle agota el tiempo al descargarse** si la red va lenta:
+tiene un límite de 10 segundos. Descargue el zip a mano a
+`~/.gradle/wrapper/dists/<version>/<hash>/`, descomprímalo y cree el fichero
+marcador `.ok` en esa carpeta.
 
-### Confidential Files (Never commit these)
-
-- `local.properties` - Contains your local SDK path
-- `app/google-services.json` - Contains Firebase credentials
-- `*.keystore` - Contains signing keys for release builds
-- `gradle.properties` - May contain signing credentials
-
-These files are already listed in `.gitignore` and should never be committed to version control.
-
-### Template Files (Safe to commit)
-
-- `local.properties.template` - Template for local properties
-- `app/google-services.json` - Optional Firebase configuration
-
-## Troubleshooting
-
-### Build Fails with "SDK location not found"
-
-Make sure you've created `local.properties` with the correct SDK path.
-
-### Firebase-related Build Errors
-
-If you're not using Firebase, you can still build the standard debug variant without `app/google-services.json` — Firebase features will simply be disabled:
-
-```bash
-./gradlew assembleUniversalGmsDebug
-```
-
-### Gradle Sync Issues
-
-Try cleaning and rebuilding:
-
-```bash
-./gradlew clean
-./gradlew build
-```
-
-## Contributing
-
-Please read [CONTRIBUTING.md](CONTRIBUTING.md) for details on our code of conduct and the process for submitting pull requests.
-
-## License
-
-This project is licensed under the GNU General Public License v3.0 - see the [LICENSE](LICENSE) file for details.
+**Tras renombrar paquetes o cambiar el esquema de Room**, un `./gradlew clean` es
+obligatorio: quedan fuentes generadas por Hilt apuntando al paquete anterior y el
+error que sale no dice eso en ninguna parte.

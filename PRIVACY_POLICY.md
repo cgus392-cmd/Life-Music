@@ -1,145 +1,92 @@
-# Privacy Policy for Echo Music App
+# Política de privacidad
 
-## Introduction
+**Life Music no recoge, almacena ni transmite datos personales a ningún servidor
+de CG LABS.** No hay servidores de CG LABS.
 
-Echo Music ("we," "our," or "us") is committed to protecting your privacy. This Privacy Policy explains how we collect, use, disclose, and safeguard your information when you use our mobile application (the "App").
+> **In English** — Life Music collects nothing. There is no CG LABS server, no
+> analytics, no crash reporting, no advertising and no account with us. Everything
+> the app stores lives on your device. Sections below list the third-party
+> services the app talks to and why.
 
-## Information We Collect
+Esta no es una declaración de intenciones: es una consecuencia de cómo está
+construida la aplicación, y se puede comprobar en el código fuente.
 
-### 1. Personal Information
-- **Account Information**: When you log in to Spotify or YouTube, we may collect your username and basic profile information
-- **Usage Data**: We collect information about how you use the App, including:
-  - Songs played, paused, and skipped
-  - Playlists created and modified
-  - Search queries
-  - App settings and preferences
-  - Screen views and user interactions
+## Lo que se queda en su dispositivo
 
-### 2. Device Information
-- **Device Details**: Device model, operating system version, and unique device identifiers
-- **App Performance**: Crash reports and performance metrics to improve app stability
-- **Network Information**: IP address and network type for analytics purposes
+Todo. En concreto:
 
-### 3. Music Data
-- **Local Music Library**: Access to your device's music files for playback
-- **Streaming Data**: Information about songs streamed from YouTube Music and Spotify
-- **Playlist Data**: Your created playlists and song collections
+| Dato | Dónde vive |
+|---|---|
+| Historial de escucha y estadísticas | base de datos local (Room) |
+| Listas, favoritos y descargas | almacenamiento de la aplicación |
+| Letras descargadas | caché local |
+| Ajustes y preferencias | DataStore local |
+| Sesión de YouTube, si inicia sesión | almacenamiento de la aplicación |
 
-## How We Use Your Information
+Desinstalar la aplicación borra todo eso. No queda copia en ninguna parte, porque
+nunca salió del teléfono.
 
-### 1. App Functionality
-- Provide music streaming and playback services
-- Manage your playlists and music library
-- Sync your preferences across devices
-- Enable search and discovery features
+## Lo que se eliminó del proyecto de origen
 
-### 2. Analytics and Improvement
-- **Google Analytics Firebase**: We use Firebase Analytics to understand app usage patterns and improve user experience
-- **Crash Reporting**: We collect crash reports to identify and fix bugs
-- **Performance Monitoring**: We monitor app performance to ensure smooth operation
+Life Music parte de Echo Music, que **sí** enviaba datos:
 
-### 3. Personalization
-- Recommend music based on your listening habits
-- Customize the app interface according to your preferences
-- Remember your settings and preferences
+- **Firebase Analytics y Crashlytics.** El fichero `google-services.json`
+  apuntaba al proyecto de Firebase de Echo, de modo que la analítica de uso y las
+  trazas de fallo iban a infraestructura de terceros. **Se retiró.** Sin ese
+  fichero, Gradle ni siquiera aplica los complementos.
 
-## Data Sharing and Disclosure
+Esa decisión es lo que permite escribir esta política en una línea.
 
-### 1. Third-Party Services
-- **YouTube Music**: We integrate with YouTube Music for streaming content
-- **Spotify**: We integrate with Spotify for music streaming and lyrics
-- **Google Analytics**: We share anonymized usage data with Google Analytics Firebase
+## Con quién habla la aplicación
 
-### 2. No Sale of Personal Data
-We do not sell, trade, or rent your personal information to third parties for marketing purposes.
+Life Music es un cliente: para funcionar tiene que pedir datos a servicios
+ajenos. Cuando lo hace, esos servicios ven su dirección IP y la petición, como
+ocurre con cualquier aplicación conectada.
 
-### 3. Legal Requirements
-We may disclose your information if required by law or to protect our rights and safety.
+| Servicio | Para qué | Cuándo |
+|---|---|---|
+| YouTube / YouTube Music | catálogo y reproducción | siempre |
+| LRCLIB, Kugou, YouLyPlus, PaxSenix, SimpMusic, Unison | letras | al reproducir, si están activados |
+| Apple Music, `canvas.echomusic.fun` | vídeos de fondo (*canvas*) | si activa la función |
+| GitHub | comprobar si hay versión nueva | **desactivado por defecto** |
+| Discord | presencia enriquecida | si la activa usted |
+| Servicio de traducción, si lo configura | traducir letras | solo con clave propia |
+| Proveedor de IA, si lo configura | listas generadas | solo con clave propia |
 
-## Data Storage and Security
+**Ninguno de estos servicios es nuestro.** Cada uno tiene su propia política de
+privacidad y CG LABS no controla qué hacen con la petición.
 
-### 1. Local Storage
-- Your music playlists and preferences are stored locally on your device
-- We use secure local storage to protect your data
+Si inicia sesión con su cuenta de Google, esa sesión va **directamente** a
+YouTube. Life Music no la ve, no la copia y no la envía a ningún otro sitio.
 
-### 2. Cloud Storage
-- Some data may be synced to cloud services (Spotify, YouTube) as per their privacy policies
-- We use industry-standard security measures to protect your data
+## Modo de ahorro de datos
 
-### 3. Data Retention
-- We retain analytics data for up to 2 years
-- Local app data is retained until you uninstall the app or clear app data
+Activarlo reduce las peticiones a terceros: entre otras cosas, deja de
+descargarse la letra automáticamente al cambiar de canción.
 
-## Your Rights and Choices
+## Permisos
 
-### 1. Data Access
-- You can view your data through the app settings
-- You can export your playlists and preferences
+La aplicación pide lo mínimo: red, notificaciones para el reproductor, y
+almacenamiento cuando descarga música. No pide contactos, ni ubicación, ni
+cámara, ni micrófono.
 
-### 2. Data Deletion
-- Uninstalling the app will remove all local data
-- You can clear app data through device settings
-- Contact us to request deletion of any stored data
+El **modo karaoke no graba nada**. Procesa el audio que ya está sonando; no
+enciende el micrófono.
 
-### 3. Privacy Controls
-- You can disable analytics in app settings
-- You can control which services you connect to
-- You can manage permissions through your device settings
+## Menores
 
-## Third-Party Services
+El proyecto no está dirigido a menores de 13 años y no recoge datos de nadie, de
+ninguna edad.
 
-### 1. YouTube Music
-- **Privacy Policy**: [YouTube Privacy Policy](https://policies.google.com/privacy)
-- **Data Collection**: YouTube may collect data about your music preferences and usage
+## Cambios
 
-### 2. Spotify
-- **Privacy Policy**: [Spotify Privacy Policy](https://www.spotify.com/legal/privacy-policy/)
-- **Data Collection**: Spotify may collect data about your listening habits
+Si esta política cambia, quedará reflejado en el
+[registro de cambios](CHANGELOG.md) y en el historial de este fichero.
 
-### 3. Google Analytics Firebase
-- **Privacy Policy**: [Google Privacy Policy](https://policies.google.com/privacy)
-- **Data Collection**: Google collects anonymized usage analytics
+## Contacto
 
-## Children's Privacy
-
-Our App is not intended for children under 13 years of age. We do not knowingly collect personal information from children under 13.
-
-## International Users
-
-If you are using our App from outside the United States, please note that your information may be transferred to, stored, and processed in the United States where our servers are located.
-
-## Changes to This Privacy Policy
-
-We may update this Privacy Policy from time to time. We will notify you of any changes by:
-- Posting the new Privacy Policy in the App
-- Updating the "Last Updated" date
-- Sending you a notification if significant changes are made
-
-## Contact Us
-
-If you have any questions about this Privacy Policy or our data practices, please contact us:
-
-- **GitHub**: [https://github.com/iad1tya/Echo-Music](https://github.com/iad1tya/Echo-Music)
-- **Issues**: [https://github.com/iad1tya/Echo-Music/issues](https://github.com/iad1tya/Echo-Music/issues)
-- **Discussions**: [https://github.com/iad1tya/Echo-Music/discussions](https://github.com/iad1tya/Echo-Music/discussions)
-
-## Data Protection Compliance
-
-This Privacy Policy complies with:
-- **GDPR** (General Data Protection Regulation) for EU users
-- **CCPA** (California Consumer Privacy Act) for California users
-- **PIPEDA** (Personal Information Protection and Electronic Documents Act) for Canadian users
-
-## Summary
-
-- We collect minimal personal information necessary for app functionality
-- We use Google Analytics Firebase for app improvement
-- We integrate with YouTube Music and Spotify for music streaming
-- We do not sell your personal data
-- You have control over your data and privacy settings
-- We are committed to protecting your privacy and being transparent about our practices
+**cgus392@gmail.com**
 
 ---
 
-**By using Echo Music, you agree to the collection and use of information in accordance with this Privacy Policy.**
-
+*Última revisión: 7 de septiembre de 2026 · Life Music 1.0.0*

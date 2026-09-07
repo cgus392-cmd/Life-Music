@@ -1,138 +1,91 @@
-# Echo Music Design Guidelines (Material Design 3)
+# Criterios de diseño
 
-Echo Music strictly adheres to the **Material Design 3 (Material You)** guidelines. For the official specifications, always refer to [m3.material.io](https://m3.material.io/).
+Life Music hereda una interfaz que ya funcionaba. Lo que sigue no es un manual de
+estilo completo: son las decisiones que este proyecto ha tomado por su cuenta y
+el razonamiento detrás, para que la próxima función no las contradiga sin querer.
 
-This document is the definitive guide for designing and implementing UI in the Echo Music codebase. All new UI work and refactors must follow these principles.
+## Material You se queda encendido
 
----
+Es el comportamiento nativo de Android 12 en adelante y el que ya usaban los
+proyectos de los que desciende. La consecuencia se acepta: el verde esmeralda de
+la marca (`#10B981`) **solo se ve si el usuario desactiva el color dinámico**.
 
-## 1. Color System & Theming
+El verde vive en el icono y en el logotipo. La interfaz es del usuario, no de la
+marca.
 
-We embrace the Material 3 Dynamic Color system to provide a personalized, expressive experience. 
+## Una función nueva no añade espacio: ocupa el que sobra
 
-### Dynamic Color & Seed
-*   **Dynamic First:** Colors must *always* come from `MaterialTheme.colorScheme`. Never hardcode hex values (`#FF...`) in individual screens or components.
-*   **Seed Color:** The app uses a default seed color (`DefaultThemeColor = 0xFFED5564`) to generate a full tonal palette when system dynamic color is unavailable or disabled. The current spec version is `SPEC_2025` using `PaletteStyle.TonalSpot`.
+La lección más cara de este proyecto. Life Line se colocó primero **encima** de
+la separación que ya había entre el bloque de título y la barra de progreso: el
+resultado fue una línea apretada contra el artista y un hueco muerto debajo.
 
-### Semantic Color Roles
-Use the correct semantic color roles as defined by M3:
-*   **Primary (`primary` / `onPrimary` / `primaryContainer` / `onPrimaryContainer`):** Used for the most prominent components across the app, such as active states, primary FABs, and filled buttons.
-*   **Secondary (`secondary` / `onSecondary` / `secondaryContainer` / `onSecondaryContainer`):** Used for less prominent components, like filter chips, selection controls, and secondary navigation elements.
-*   **Tertiary (`tertiary` / `onTertiary` / `tertiaryContainer` / `onTertiaryContainer`):** Used for contrasting accents that need to stand out from primary/secondary elements, but aren't errors (e.g., a special "Now Playing" badge).
-*   **Error (`error` / `onError` / `errorContainer` / `onErrorContainer`):** Used for destructive actions (like deleting a playlist) or error states.
-*   **Surface (`surface` / `onSurface`):** Backgrounds for components like cards, bottom sheets, and menus.
-*   **Surface Variant (`surfaceVariant` / `onSurfaceVariant`):** Differentiated backgrounds for standard components, such as search bars or outlined cards.
-*   **Background (`background` / `onBackground`):** The primary app background.
-*   **Outline (`outline` / `outlineVariant`):** Used for boundaries, like text field outlines, dividers, or outlined button borders.
+La versión correcta **sustituye** esa separación en vez de sumarse a ella. El
+reproductor no crece ni un dp, y cuando no hay letra la maqueta vuelve a ser
+exactamente la original.
 
----
+Tres cosas que conviene saber antes de tocar el reproductor:
 
-## 2. Components in Detail
+- **El margen horizontal lo pone cada hijo**, no el contenedor. Sin
+  `padding(horizontal = PlayerHorizontalPadding)` el elemento se va al borde.
+- **La carátula va en un `Box(weight(1f))` y absorbe lo que sobre.** Si el bloque
+  de controles se acorta, la cabecera baja sola. Esa es la palanca para moverla;
+  no hay que empujarla.
+- **El `Slider` de Material 3 trae unos 26 dp de relleno propio** antes de su
+  pista, por el objetivo táctil de 48 dp. Hay que contarlo al repartir aire, o el
+  reparto sale torcido.
 
-All components must be sourced from `androidx.compose.material3.*`. **Do not** use Material 2 (`androidx.compose.material.*`) components.
+## Medir la tinta, no las cajas
 
-### Buttons & FABs
-*   **Filled Button:** High emphasis. Used for the primary action on a screen (e.g., "Play All", "Save").
-    *   *Color:* `containerColor = primary`, `contentColor = onPrimary`.
-    *   *Shape:* Fully rounded (`CircleShape`).
-*   **Filled Tonal Button:** Medium emphasis. Used for important actions that shouldn't distract from the primary action.
-    *   *Color:* `containerColor = secondaryContainer`, `contentColor = onSecondaryContainer`.
-*   **Outlined Button:** Medium-low emphasis. Contains actions that are important but not primary.
-    *   *Color:* Transparent container, `contentColor = primary`, `border = outline`.
-*   **Text Button:** Low emphasis. Used for secondary actions (e.g., "Cancel" in dialogs, "Learn more").
-    *   *Color:* Transparent container, `contentColor = primary`.
-*   **Floating Action Button (FAB):** Represents the primary action of a screen.
-    *   *Primary FAB:* `containerColor = primaryContainer`, `contentColor = onPrimaryContainer`. Shape is typically `RoundedCornerShape(16.dp)` (Large FAB is `28.dp`).
+Al ajustar espaciados se miden **los glifos en una captura**, no los límites de
+maquetado. Las cajas de un texto con marquesina mienten: declaran alto que no se
+ve. Densidad del dispositivo de referencia: 548 dpi, 3,425 px/dp.
 
-### Dialogs & Popups
-*   **Alert Dialogs:** Used to interrupt the user with urgent information, details, or actions.
-    *   *Shape:* `RoundedCornerShape(28.dp)` (Extra Large).
-    *   *Background:* `surface` with a tonal elevation of `6.dp` (usually handled automatically by M3 `AlertDialog`).
-    *   *Buttons:* Confirm/Positive action **must** be a filled `Button`. Cancel/Dismiss action **must** be a `TextButton`.
-*   **Options & Dropdown Menus (Popups):** Used for overflow actions (e.g., three-dot menu on a song).
-    *   *Shape:* `RoundedCornerShape(4.dp)` (Extra Small) to `RoundedCornerShape(8.dp)` (Small).
-    *   *Background:* `surfaceContainer` (or `surface` with tonal elevation).
-    *   *Items:* `DropdownMenuItem`. Text should be `bodyLarge` colored `onSurface`. Leading icons should be `onSurfaceVariant`.
-    *   *Animation:* Menus should cascade open from the point of interaction (anchor point).
+## Se distingue por comportamiento, no por decoración
 
-### Input & Selection Controls
-*   **Text Fields:** Use `OutlinedTextField` or `TextField` (Filled).
-    *   *Shape:* In Echo Music, prominent text fields (like Search) are overridden to be fully rounded (`CircleShape`) or `RoundedCornerShape(24.dp)`, rather than the M3 default small radius.
-    *   *Colors:* `focusedBorderColor = primary`, `unfocusedBorderColor = outline`.
-*   **Switches, Checkboxes, Radio Buttons:** 
-    *   *Active state:* `primary` or `primaryContainer`.
-    *   *Inactive state:* `surfaceVariant` or `outline`.
+Life Line y la voz de la app comparten contenedor, tamaño y zona táctil. Lo que
+las diferencia es cómo se mueven: **la letra barre** de izquierda a derecha
+siguiendo la voz, y **la voz de la app respira** despacio. Basta para leer de un
+vistazo quién está hablando, sin cambiar la tipografía ni meter iconos.
 
-### Navigation
-*   **Bottom Navigation Bar (Mobile):** Use `NavigationBar`.
-    *   *Active Item:* Uses a pill-shaped indicator (`secondaryContainer`) behind the icon. 
-    *   *Icon Color:* `onSecondaryContainer` (active), `onSurfaceVariant` (inactive).
-*   **Navigation Rail (Tablets/Foldables):** Use `NavigationRail`. Follows similar indicator styling as Bottom Nav.
-*   **Top App Bar:** Use `TopAppBar`, `MediumTopAppBar`, or `LargeTopAppBar`.
-    *   *Scroll Behavior:* Always integrate `TopAppBarDefaults.exitUntilCollapsedScrollBehavior()` or `pinnedScrollBehavior()` so the bar reacts to list scrolling.
-    *   *Background:* Transitions from `surface` to `surfaceColorAtElevation` upon scrolling.
+## Los avisos no respiran
 
-### Cards & Surfaces
-*   **Elevated Card:** Uses tonal elevation (shadows are minimal in M3). 
-    *   *Container:* `surfaceContainerLow`.
-*   **Filled Card:** Highest visual emphasis for a card without elevation.
-    *   *Container:* `surfaceVariant`.
-*   **Outlined Card:** 
-    *   *Container:* `surface`.
-    *   *Border:* `outlineVariant`.
-*   *Shape for Cards:* `RoundedCornerShape(12.dp)` (Medium).
+Todo lo que sea una advertencia —se cayó la red, esto no se pudo reproducir— va
+en color de error, sin animación y sin atenuar. Se tiene que leer a la primera.
 
----
+## Una flecha promete algo
 
-## 3. Typography
+El chevron solo aparece si tocar lleva a alguna parte. Sin letra en ningún
+proveedor, abrir el panel mostraría una pantalla vacía: ahí no hay flecha. Una
+flecha que no cumple es peor que ninguna.
 
-Avoid setting custom font sizes or weights inline. Always use `MaterialTheme.typography`.
+## Decir la verdad sobre lo que hace la función
 
-*   **Display (`Large`, `Medium`, `Small`):** Huge text, reserved for short, important text or numerals.
-*   **Headline (`Large`, `Medium`, `Small`):** Large text for prominent screen titles.
-*   **Title (`Large`, `Medium`, `Small`):** Medium-sized text for app bars and medium-emphasis structural text (e.g., Album titles in a grid).
-*   **Body (`Large`, `Medium`, `Small`):** Long-form text, descriptions, and lyrics.
-*   **Label (`Large`, `Medium`, `Small`):** Small text used for utility, buttons, overlines, and metadata (e.g., song duration, artist name under a track).
+La reducción rápida de voz se llamaba «Bajar la voz principal» y prometía
+conservar la mezcla. Lo que hace es restar lo que suena igual en los dos canales,
+y eso se lleva coros y percusión central. **Se renombró y se explicó en su propia
+pantalla.**
 
----
+Si alguien sube un control esperando una cosa y oye otra, el fallo no es de la
+función: es que nadie le contó qué hace.
 
-## 4. Motion & Animation
+## El tema de la aplicación no es el del sistema
 
-Motion in M3 is expressive, fluid, and purposeful. It should guide the user's focus and provide feedback.
+Ajustes ofrece claro, oscuro, automático y negro puro. Por eso los recursos
+`drawable-night`, que Android elige por el modo del **sistema**, pueden servir la
+variante equivocada.
 
-### Transition Types
-*   **Enter/Exit:** When components appear or disappear, use `AnimatedVisibility`. 
-    *   *Fade:* Standard for simple elements (`fadeIn()` / `fadeOut()`).
-    *   *Slide:* For bottom sheets or navigation transitions.
-    *   *Scale:* For FABs or central popups/dialogs (`scaleIn()` / `scaleOut()`).
-*   **State Changes:** Use `animateContentSize()` for expanding/collapsing cards or lyrics blocks. Use `updateTransition` for complex multi-property state changes.
+Para gráficos monocromos la solución es **teñirlos con `LocalContentColor`**: así
+quedan atados al color que de verdad se está usando, venga el tema de donde
+venga.
 
-### Easing & Durations
-Use Compose's built-in easing curves (`androidx.compose.animation.core.*`):
-*   **Emphasized (`FastOutExtraSlowIn` / `EmphasizedEasing`):** The standard M3 easing. Starts quickly and ends slowly. Use for major screen transitions or expanding elements.
-*   **Standard (`FastOutSlowInEasing`):** For simple, small-scale state changes (e.g., button press ripples, switch toggling).
-*   **Durations:**
-    *   *Short (50-200ms):* Button presses, fading icons, color changes.
-    *   *Medium (200-400ms):* Expanding cards, opening dropdown menus, bottom sheet slides.
-    *   *Long (400-500ms+):* Full screen navigation transitions.
+## Respetar cuando el sistema pide quietud
 
----
+Si `ANIMATOR_DURATION_SCALE` vale 0 —ajuste de accesibilidad, o ahorro de batería
+en algunos equipos— las animaciones decorativas no se ejecutan. Un elemento que
+cambia sin transición no es minimalista: es un error visual.
 
-## 5. Elevation (Tonal vs. Shadow)
+## Todo se puede apagar
 
-Material 3 moves away from shadow-based elevation and towards **tonal elevation**.
-
-*   **Tonal Elevation:** Differentiate overlapping surfaces through color tinting rather than drop shadows. Components like `Surface`, `Card`, and `TopAppBar` have a `tonalElevation` parameter.
-*   As `tonalElevation` increases (e.g., from `0.dp` to `3.dp` to `6.dp`), the surface color blends slightly more with the `primary` color, becoming lighter in dark mode and darker in light mode.
-*   **Shadow Elevation:** Used sparingly. Reserved for highly elevated, floating components like FABs or Dialogs, and should always be paired with tonal elevation.
-
----
-
-## 6. Extending the Design System
-
-Before adding a brand new UI component, always check `ui/component/` to see if an existing one already implements our conventions. If you must build a new component:
-
-1.  Consult [m3.material.io](https://m3.material.io/) for the correct structure, state mappings, and interaction patterns.
-2.  Apply the pattern consistently across all similar components.
-3.  Ensure it uses `MaterialTheme` for all styling (never hardcoded values).
-4.  Update this `DESIGN.md` file if a new foundational pattern is established.
+Cada función propia trae su interruptor en Ajustes → Apariencia, con un valor por
+defecto sensato. Apagada, la función no gasta temporizadores, ni animaciones, ni
+recomposiciones: sale por la misma rama que cuando no aplica.
