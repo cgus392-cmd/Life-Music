@@ -1034,6 +1034,8 @@
     <string name="life_line_highlight_white">Solid white</string>
     <string name="life_line_highlight_edge">White with accent edge</string>
     <string name="life_line_highlight_custom">Custom colour</string>
+    <string name="life_line_custom_color">Pick colour</string>
+    <string name="life_line_custom_color_desc">The colour the sung words are painted with</string>
     <string name="life_line_translation">Show translation</string>
     <string name="life_line_translation_desc">Add the translated line under the original</string>
 </resources>

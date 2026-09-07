@@ -121,10 +121,16 @@ import com.cglabs.lifemusic.utils.rememberPreference
 import kotlinx.coroutines.launch
 import kotlin.math.roundToInt
 import com.cglabs.lifemusic.constants.LyricsClickKey
+import com.cglabs.lifemusic.constants.LifeLineCustomColorKey
 import com.cglabs.lifemusic.constants.LifeLineEnabledKey
 import com.cglabs.lifemusic.constants.LifeLineHighlight
 import com.cglabs.lifemusic.constants.LifeLineHighlightKey
 import com.cglabs.lifemusic.constants.LifeLineTranslationKey
+import com.cglabs.lifemusic.ui.component.ColorPickerDialog
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.ui.graphics.Color
 import com.cglabs.lifemusic.constants.AppleMusicLyricsBlurKey
 import com.cglabs.lifemusic.constants.LyricsGlowEffectKey
 import com.cglabs.lifemusic.constants.LyricsLineSpacingKey
@@ -239,7 +245,10 @@ highlightKey: String? = null) {
         rememberEnumPreference(LifeLineHighlightKey, defaultValue = LifeLineHighlight.DYNAMIC)
     val (lifeLineTranslation, onLifeLineTranslationChange) =
         rememberPreference(LifeLineTranslationKey, defaultValue = false)
+    val (lifeLineCustomColor, onLifeLineCustomColorChange) =
+        rememberPreference(LifeLineCustomColorKey, defaultValue = Color.White.toArgb())
     var showLifeLineHighlightDialog by rememberSaveable { mutableStateOf(false) }
+    var showLifeLineCustomColorDialog by rememberSaveable { mutableStateOf(false) }
     val (lyricsScroll, onLyricsScrollChange) = rememberPreference(
         LyricsScrollKey,
         defaultValue = true
@@ -392,6 +401,20 @@ highlightKey: String? = null) {
 
     var showLyricsLineSpacingDialog by rememberSaveable {
         mutableStateOf(false)
+    }
+
+    if (showLifeLineCustomColorDialog) {
+        ColorPickerDialog(
+            initialColor = Color(lifeLineCustomColor),
+            title = stringResource(R.string.life_line_custom_color),
+            onDismiss = { showLifeLineCustomColorDialog = false },
+            onConfirm = { color ->
+                onLifeLineCustomColorChange(color.toArgb())
+                showLifeLineCustomColorDialog = false
+            },
+            // El blanco es el valor de fabrica de LifeLineCustomColorKey.
+            defaultColor = Color.White,
+        )
     }
 
     if (showLifeLineHighlightDialog) {
@@ -1838,6 +1861,29 @@ highlightKey: String? = null) {
                         )
                     },
                     onClick = { showLifeLineHighlightDialog = true }
+                ) else null,
+                // Solo tiene sentido ofrecer el color cuando el modo elegido es
+                // el personalizado: en los demas el tono lo decide el tema o la
+                // caratula, y un selector ahi seria un boton que no hace nada.
+                if (lifeLineEnabled && lifeLineHighlight == LifeLineHighlight.CUSTOM) Material3SettingsItem(
+                    isHighlighted = (highlightKey == stringResource(R.string.life_line_custom_color)),
+                    icon = painterResource(R.drawable.palette),
+                    title = { Text(stringResource(R.string.life_line_custom_color)) },
+                    description = { Text(stringResource(R.string.life_line_custom_color_desc)) },
+                    trailingContent = {
+                        Box(
+                            modifier = Modifier
+                                .size(28.dp)
+                                .clip(CircleShape)
+                                .background(Color(lifeLineCustomColor))
+                                .border(
+                                    width = 1.dp,
+                                    color = MaterialTheme.colorScheme.outline,
+                                    shape = CircleShape,
+                                )
+                        )
+                    },
+                    onClick = { showLifeLineCustomColorDialog = true }
                 ) else null,
                 if (lifeLineEnabled) Material3SettingsItem(
                     isHighlighted = (highlightKey == stringResource(R.string.life_line_translation)),

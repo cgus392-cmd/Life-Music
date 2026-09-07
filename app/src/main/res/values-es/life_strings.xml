@@ -648,6 +648,8 @@
     <string name="life_line_highlight_white">Blanco sólido</string>
     <string name="life_line_highlight_edge">Blanco con filo de acento</string>
     <string name="life_line_highlight_custom">Color personalizado</string>
+    <string name="life_line_custom_color">Elegir color</string>
+    <string name="life_line_custom_color_desc">El color con el que se pintan las palabras ya cantadas</string>
     <string name="life_line_translation">Mostrar traducción</string>
     <string name="life_line_translation_desc">Añade la traducción bajo la línea original</string>
 </resources>
