@@ -117,6 +117,10 @@ fun NavGraphBuilder.navigationBuilder(
         AmbientModeScreen(navController)
     }
 
+    composable("karaoke") {
+        KaraokeScreen(navController)
+    }
+
     composable("local_songs") {
         LocalSongScreen(navController)
     }

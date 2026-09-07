@@ -652,6 +652,12 @@
     <string name="life_line_custom_color_desc">El color con el que se pintan las palabras ya cantadas</string>
     <string name="brand_title_alternate">Marca alterna en el encabezado</string>
     <string name="brand_title_alternate_desc">En Inicio, el título se releva con el logo de CG LABS</string>
+    <string name="karaoke_mode">Modo karaoke</string>
+    <string name="karaoke_exit">Salir del karaoke</string>
+    <string name="karaoke_no_lyrics">Esta canción no tiene letra sincronizada — el karaoke necesita tiempos por palabra</string>
+    <string name="karaoke_vocal_reduction">Bajar la voz principal</string>
+    <string name="karaoke_vocal_reduction_desc">Quita lo que está al centro de la mezcla, conservando bajo y platos</string>
+    <string name="karaoke_mono_warning">Grabación mono: no se puede separar la voz</string>
 
 
     <!-- La voz de Life Line -->

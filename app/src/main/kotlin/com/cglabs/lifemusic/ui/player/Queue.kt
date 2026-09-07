@@ -390,6 +390,26 @@ fun Queue(
                         playerBackground = playerBackground
                     )
 
+                    // Karaoke, justo al lado de la letra: es la misma idea
+                    // llevada al extremo, y quien busca una busca la otra.
+                    // Colapsa el reproductor antes de navegar, si no la hoja se
+                    // queda abierta debajo de la pantalla completa.
+                    PlayerQueueButton(
+                        icon = R.drawable.mic,
+                        onClick = {
+                            playerBottomSheetState.collapseSoft()
+                            navController.navigate("karaoke")
+                        },
+                        isActive = false,
+                        shape = middleShape,
+                        modifier = Modifier.size(buttonSize),
+                        textButtonColor = textButtonColor,
+                        iconButtonColor = iconButtonColor,
+                        iconSize = iconSize,
+                        textBackgroundColor = TextBackgroundColor,
+                        playerBackground = playerBackground
+                    )
+
                     if (showCommentButton) {
                         PlayerQueueButton(
                             icon = R.drawable.chat_msg,
