@@ -7,3 +7,17 @@
 # sdk.dir=C\:\\Users\\username\\AppData\\Local\\Android\\sdk
 
 sdk.dir=YOUR_ANDROID_SDK_PATH
+
+# ---------------------------------------------------------------------------
+# Firma de publicacion. Este fichero (local.properties) esta en .gitignore.
+# El keystore debe vivir FUERA del repositorio.
+#
+# Crear con:
+#   keytool -genkeypair -v -keystore <ruta>/lifemusic-release.keystore #           -alias lifemusic -keyalg RSA -keysize 4096 -validity 10000
+#
+# Si se pierde, ninguna version futura podra instalarse sobre la ya instalada.
+# ---------------------------------------------------------------------------
+# releaseKeystore=C:/Users/tu-usuario/ruta/fuera/del/repo/lifemusic-release.keystore
+# storePassword=
+# keyAlias=lifemusic
+# keyPassword=

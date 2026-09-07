@@ -124,10 +124,26 @@ android {
             keyPassword = "android"
         }
         create("release") {
-            storeFile = file("keystore/release.keystore")
+            // El keystore vive FUERA del repositorio, a proposito. Que este en
+            // .gitignore protege de un commit accidental, pero no de comprimir la
+            // carpeta, sincronizarla a la nube o copiarla a otro equipo. Quien
+            // tenga ese fichero y sus contrasenas puede firmar actualizaciones
+            // que Android aceptara como legitimas sobre la app instalada.
+            //
+            // Se busca por orden:
+            //   1. la variable de entorno LIFEMUSIC_KEYSTORE
+            //   2. la propiedad releaseKeystore de local.properties (ignorado)
+            //   3. app/keystore/release.keystore, por si alguien lo deja ahi
+            val rutaKeystore = System.getenv("LIFEMUSIC_KEYSTORE")
+                ?: localProperties.getProperty("releaseKeystore")
+                ?: "keystore/release.keystore"
+            storeFile = file(rutaKeystore)
             storePassword = System.getenv("STORE_PASSWORD")
+                ?: localProperties.getProperty("storePassword")
             keyAlias = System.getenv("KEY_ALIAS")
+                ?: localProperties.getProperty("keyAlias")
             keyPassword = System.getenv("KEY_PASSWORD")
+                ?: localProperties.getProperty("keyPassword")
         }
         getByName("debug") {
             keyAlias = "androiddebugkey"
