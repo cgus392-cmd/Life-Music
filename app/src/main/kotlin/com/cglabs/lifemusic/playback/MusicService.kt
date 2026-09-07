@@ -115,6 +115,8 @@ import com.cglabs.lifemusic.constants.ResumeOnBluetoothConnectKey
 import com.cglabs.lifemusic.constants.ScrobbleDelayPercentKey
 import com.cglabs.lifemusic.constants.ScrobbleDelaySecondsKey
 import com.cglabs.lifemusic.constants.ScrobbleMinSongDurationKey
+import com.cglabs.lifemusic.constants.KaraokeVocalReductionKey
+import com.cglabs.lifemusic.constants.KaraokeVocalStrengthKey
 import com.cglabs.lifemusic.constants.ShowLyricsKey
 import com.cglabs.lifemusic.constants.ShuffleModeKey
 import com.cglabs.lifemusic.constants.ShufflePlaylistFirstKey
@@ -141,6 +143,7 @@ import com.cglabs.lifemusic.di.DownloadCache
 import com.cglabs.lifemusic.di.PlayerCache
 import com.cglabs.lifemusic.eq.EqualizerService
 import com.cglabs.lifemusic.eq.audio.AutomixDuckAudioProcessor
+import com.cglabs.lifemusic.eq.audio.VocalReducerAudioProcessor
 import com.cglabs.lifemusic.eq.audio.CustomEqualizerAudioProcessor
 import com.cglabs.lifemusic.eq.data.EQProfileRepository
 import com.cglabs.lifemusic.extensions.SilentHandler
@@ -438,6 +441,14 @@ class MusicService :
     val playerFlow = _playerFlow.asStateFlow()
 
     private val playerSilenceProcessors = HashMap<Player, SilenceDetectorAudioProcessor>()
+
+    /**
+     * Procesador de reduccion de voz del modo karaoke. Publico porque la pantalla
+     * de karaoke necesita preguntarle si la grabacion que suena es mono, y eso
+     * solo lo sabe quien ve las muestras.
+     */
+    var vocalReducer: VocalReducerAudioProcessor? = null
+        private set
     private val playerDuckProcessors = HashMap<Player, AutomixDuckAudioProcessor>()
 
 
@@ -882,6 +893,18 @@ class MusicService :
             }
         }
 
+        // Karaoke: la preferencia manda y el procesador obedece. La fuerza entra
+        // suavizada muestra a muestra, asi que mover el control mientras suena no
+        // chasquea.
+        dataStore.data
+            .map {
+                val activo = (try { it[KaraokeVocalReductionKey] } catch (e: Exception) { null }) ?: false
+                val fuerza = (try { it[KaraokeVocalStrengthKey] } catch (e: Exception) { null }) ?: 85
+                if (activo) (fuerza.coerceIn(0, 100) / 100f) else 0f
+            }
+            .distinctUntilChanged()
+            .collect(scope) { fuerza -> vocalReducer?.setStrength(fuerza) }
+
         dataStore.data
             .map { ((try { it[SkipSilenceKey] } catch(e: Exception) { null }) ?: false) to ((try { it[SkipSilenceInstantKey] } catch(e: Exception) { null }) ?: false) }
             .distinctUntilChanged()
@@ -1115,6 +1138,9 @@ class MusicService :
 
         val duckProcessor = AutomixDuckAudioProcessor()
 
+        val vocalProcessor = VocalReducerAudioProcessor()
+        vocalReducer = vocalProcessor
+
         val silenceProcessor = SilenceDetectorAudioProcessor { handleLongSilenceDetected() }
 
         
@@ -1126,7 +1152,7 @@ class MusicService :
 
         val player = ExoPlayer.Builder(this)
             .setMediaSourceFactory(createMediaSourceFactory())
-            .setRenderersFactory(createRenderersFactory(eqProcessor, silenceProcessor, duckProcessor))
+            .setRenderersFactory(createRenderersFactory(eqProcessor, silenceProcessor, duckProcessor, vocalProcessor))
             .setLoadControl(
                 DefaultLoadControl.Builder()
                     .setBufferDurationsMs(50_000, 50_000, 750, 2_000)
@@ -3126,6 +3152,7 @@ class MusicService :
         eqProcessor: CustomEqualizerAudioProcessor,
         silenceProcessor: SilenceDetectorAudioProcessor,
         duckProcessor: AutomixDuckAudioProcessor,
+        vocalProcessor: VocalReducerAudioProcessor,
     ) =
         object : DefaultRenderersFactory(this) {
             override fun buildAudioSink(
@@ -3140,6 +3167,12 @@ class MusicService :
                     DefaultAudioSink.DefaultAudioProcessorChain(
 
                         arrayOf(
+                            // El primero de la cadena a proposito: la cancelacion
+                            // de centro necesita el estereo tal cual viene. Si el
+                            // ecualizador del usuario tocara antes el balance de
+                            // los canales, la voz dejaria de estar exactamente en
+                            // el centro y la resta ya no la cancelaria limpia.
+                            vocalProcessor,
                             eqProcessor,
                             duckProcessor,
                             silenceProcessor,

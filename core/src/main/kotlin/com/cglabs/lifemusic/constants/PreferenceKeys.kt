@@ -814,6 +814,16 @@ val LifeLineTranslationKey = booleanPreferencesKey("lifeLineTranslation")
  */
 val BrandTitleAlternateKey = booleanPreferencesKey("brandTitleAlternate")
 
+/** Modo karaoke: reduccion de la voz principal por cancelacion de centro en banda. */
+val KaraokeVocalReductionKey = booleanPreferencesKey("karaokeVocalReduction")
+
+/**
+ * Cuanta voz se quita, de 0 a 100. Por defecto 85 y no 100: el ultimo tramo casi
+ * no quita mas voz y en cambio se lleva por delante coros y reverb, con lo que la
+ * pista se queda plana. A 85 se nota que hay una mezcla debajo.
+ */
+val KaraokeVocalStrengthKey = intPreferencesKey("karaokeVocalStrength")
+
 /** Como se pinta la parte ya cantada de la linea. */
 enum class LifeLineHighlight {
     /** Acento de Material You: la letra se tine con el tema del sistema. Por defecto. */
