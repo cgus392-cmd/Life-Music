@@ -801,3 +801,24 @@ val LiquidGlassPlayerEnabledKey = booleanPreferencesKey("liquidGlassPlayerEnable
 val LiquidGlassMiniPlayerEnabledKey = booleanPreferencesKey("liquidGlassMiniPlayerEnabled")
 val LiquidGlassNavBarEnabledKey = booleanPreferencesKey("liquidGlassNavBarEnabled")
 val UseFloatingNavBarKey = booleanPreferencesKey("useFloatingNavBar")
+
+// --- Life Line: la linea de letra viva en la vista principal del reproductor ---
+val LifeLineEnabledKey = booleanPreferencesKey("lifeLineEnabled")
+val LifeLineHighlightKey = stringPreferencesKey("lifeLineHighlight")
+val LifeLineCustomColorKey = intPreferencesKey("lifeLineCustomColor")
+val LifeLineTranslationKey = booleanPreferencesKey("lifeLineTranslation")
+
+/** Como se pinta la parte ya cantada de la linea. */
+enum class LifeLineHighlight {
+    /** Acento de Material You: la letra se tine con el tema del sistema. Por defecto. */
+    DYNAMIC,
+
+    /** Blanco solido: maximo contraste sobre cualquier caratula. */
+    WHITE,
+
+    /** Blanco, pero el filo movil del barrido va en el color de acento. */
+    ACCENT_EDGE,
+
+    /** Color elegido por el usuario en Ajustes. */
+    CUSTOM,
+}

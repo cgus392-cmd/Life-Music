@@ -1025,4 +1025,15 @@
     <string name="lossless_audio_warning">Lossless audio requires a fast connection. It may consume more data and battery. Continue?</string>
     <string name="legacy_icon">Legacy Icon</string>
     <string name="legacy_icon_desc">Revert the app icon back to the original legacy design</string>
+
+    <!-- Life Line -->
+    <string name="life_line">Life Line</string>
+    <string name="life_line_desc">Show the lyric line that is playing, highlighted word by word</string>
+    <string name="life_line_highlight">Highlight colour</string>
+    <string name="life_line_highlight_dynamic">Material You</string>
+    <string name="life_line_highlight_white">Solid white</string>
+    <string name="life_line_highlight_edge">White with accent edge</string>
+    <string name="life_line_highlight_custom">Custom colour</string>
+    <string name="life_line_translation">Show translation</string>
+    <string name="life_line_translation_desc">Add the translated line under the original</string>
 </resources>

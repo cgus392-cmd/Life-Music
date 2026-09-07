@@ -639,4 +639,15 @@
     <string name="discord_activity_name_description">Nombre personalizado para la actividad (dejar vacío para el valor predeterminado)</string>
     <string name="discord_advanced_mode">Modo avanzado</string>
     <string name="discord_advanced_mode_description">Mostrar opciones de personalización adicionales para Rich Presence</string>
+
+    <!-- Life Line -->
+    <string name="life_line">Life Line</string>
+    <string name="life_line_desc">Muestra la línea de letra que suena, resaltada palabra por palabra</string>
+    <string name="life_line_highlight">Color del resaltado</string>
+    <string name="life_line_highlight_dynamic">Material You</string>
+    <string name="life_line_highlight_white">Blanco sólido</string>
+    <string name="life_line_highlight_edge">Blanco con filo de acento</string>
+    <string name="life_line_highlight_custom">Color personalizado</string>
+    <string name="life_line_translation">Mostrar traducción</string>
+    <string name="life_line_translation_desc">Añade la traducción bajo la línea original</string>
 </resources>

@@ -193,6 +193,7 @@ import com.cglabs.lifemusic.ui.component.BottomSheetState
 import com.cglabs.lifemusic.ui.component.CastButton
 import com.cglabs.lifemusic.ui.component.LocalBottomSheetPageState
 import com.cglabs.lifemusic.ui.component.LocalMenuState
+import com.cglabs.lifemusic.ui.component.LifeLineSection
 import com.cglabs.lifemusic.ui.component.Lyrics
 import com.cglabs.lifemusic.ui.component.PlayerSliderTrack
 import com.cglabs.lifemusic.ui.component.ResizableIconButton
@@ -1932,6 +1933,14 @@ fun BottomSheetPlayer(
                     }
                 }
             }
+
+            // Life Line: la letra viva, entre el artista y la barra de progreso.
+            // Se colapsa sola si la cancion no tiene letra sincronizada.
+            LifeLineSection(
+                positionMs = sliderPosition ?: effectivePosition,
+                baseColor = TextBackgroundColor,
+                onOpenLyrics = { showInlineLyrics = true },
+            )
 
             Spacer(Modifier.height(if (useNewPlayerDesign) 24.dp else 20.dp))
 

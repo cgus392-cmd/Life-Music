@@ -121,6 +121,10 @@ import com.cglabs.lifemusic.utils.rememberPreference
 import kotlinx.coroutines.launch
 import kotlin.math.roundToInt
 import com.cglabs.lifemusic.constants.LyricsClickKey
+import com.cglabs.lifemusic.constants.LifeLineEnabledKey
+import com.cglabs.lifemusic.constants.LifeLineHighlight
+import com.cglabs.lifemusic.constants.LifeLineHighlightKey
+import com.cglabs.lifemusic.constants.LifeLineTranslationKey
 import com.cglabs.lifemusic.constants.AppleMusicLyricsBlurKey
 import com.cglabs.lifemusic.constants.LyricsGlowEffectKey
 import com.cglabs.lifemusic.constants.LyricsLineSpacingKey
@@ -227,6 +231,15 @@ highlightKey: String? = null) {
         defaultValue = LyricsPosition.LEFT
     )
     val (lyricsClick, onLyricsClickChange) = rememberPreference(LyricsClickKey, defaultValue = true)
+
+    // --- Life Line: la linea de letra viva en el reproductor ---
+    val (lifeLineEnabled, onLifeLineEnabledChange) =
+        rememberPreference(LifeLineEnabledKey, defaultValue = true)
+    val (lifeLineHighlight, onLifeLineHighlightChange) =
+        rememberEnumPreference(LifeLineHighlightKey, defaultValue = LifeLineHighlight.DYNAMIC)
+    val (lifeLineTranslation, onLifeLineTranslationChange) =
+        rememberPreference(LifeLineTranslationKey, defaultValue = false)
+    var showLifeLineHighlightDialog by rememberSaveable { mutableStateOf(false) }
     val (lyricsScroll, onLyricsScrollChange) = rememberPreference(
         LyricsScrollKey,
         defaultValue = true
@@ -379,6 +392,27 @@ highlightKey: String? = null) {
 
     var showLyricsLineSpacingDialog by rememberSaveable {
         mutableStateOf(false)
+    }
+
+    if (showLifeLineHighlightDialog) {
+        EnumDialog(
+            onDismiss = { showLifeLineHighlightDialog = false },
+            onSelect = {
+                onLifeLineHighlightChange(it)
+                showLifeLineHighlightDialog = false
+            },
+            title = stringResource(R.string.life_line_highlight),
+            current = lifeLineHighlight,
+            values = LifeLineHighlight.values().toList(),
+            valueText = {
+                when (it) {
+                    LifeLineHighlight.DYNAMIC -> stringResource(R.string.life_line_highlight_dynamic)
+                    LifeLineHighlight.WHITE -> stringResource(R.string.life_line_highlight_white)
+                    LifeLineHighlight.ACCENT_EDGE -> stringResource(R.string.life_line_highlight_edge)
+                    LifeLineHighlight.CUSTOM -> stringResource(R.string.life_line_highlight_custom)
+                }
+            }
+        )
     }
 
     if (showLyricsPositionDialog) {
@@ -1763,7 +1797,76 @@ highlightKey: String? = null) {
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        Material3SettingsGroup(scrollState = scrollState, 
+        Material3SettingsGroup(
+            scrollState = scrollState,
+            title = stringResource(R.string.life_line),
+            items = listOfNotNull(
+                Material3SettingsItem(
+                    isHighlighted = (highlightKey == stringResource(R.string.life_line)),
+                    icon = painterResource(R.drawable.lyrics),
+                    title = { Text(stringResource(R.string.life_line)) },
+                    description = { Text(stringResource(R.string.life_line_desc)) },
+                    trailingContent = {
+                        Switch(
+                            checked = lifeLineEnabled,
+                            onCheckedChange = onLifeLineEnabledChange,
+                            thumbContent = {
+                                Icon(
+                                    painter = painterResource(
+                                        id = if (lifeLineEnabled) R.drawable.check else R.drawable.close
+                                    ),
+                                    contentDescription = null,
+                                    modifier = Modifier.size(SwitchDefaults.IconSize)
+                                )
+                            }
+                        )
+                    },
+                    onClick = { onLifeLineEnabledChange(!lifeLineEnabled) }
+                ),
+                if (lifeLineEnabled) Material3SettingsItem(
+                    isHighlighted = (highlightKey == stringResource(R.string.life_line_highlight)),
+                    icon = painterResource(R.drawable.palette),
+                    title = { Text(stringResource(R.string.life_line_highlight)) },
+                    description = {
+                        Text(
+                            when (lifeLineHighlight) {
+                                LifeLineHighlight.DYNAMIC -> stringResource(R.string.life_line_highlight_dynamic)
+                                LifeLineHighlight.WHITE -> stringResource(R.string.life_line_highlight_white)
+                                LifeLineHighlight.ACCENT_EDGE -> stringResource(R.string.life_line_highlight_edge)
+                                LifeLineHighlight.CUSTOM -> stringResource(R.string.life_line_highlight_custom)
+                            }
+                        )
+                    },
+                    onClick = { showLifeLineHighlightDialog = true }
+                ) else null,
+                if (lifeLineEnabled) Material3SettingsItem(
+                    isHighlighted = (highlightKey == stringResource(R.string.life_line_translation)),
+                    icon = painterResource(R.drawable.translate),
+                    title = { Text(stringResource(R.string.life_line_translation)) },
+                    description = { Text(stringResource(R.string.life_line_translation_desc)) },
+                    trailingContent = {
+                        Switch(
+                            checked = lifeLineTranslation,
+                            onCheckedChange = onLifeLineTranslationChange,
+                            thumbContent = {
+                                Icon(
+                                    painter = painterResource(
+                                        id = if (lifeLineTranslation) R.drawable.check else R.drawable.close
+                                    ),
+                                    contentDescription = null,
+                                    modifier = Modifier.size(SwitchDefaults.IconSize)
+                                )
+                            }
+                        )
+                    },
+                    onClick = { onLifeLineTranslationChange(!lifeLineTranslation) }
+                ) else null,
+            )
+        )
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        Material3SettingsGroup(scrollState = scrollState,
             title = stringResource(R.string.misc),
             items = listOf(
                 Material3SettingsItem(
