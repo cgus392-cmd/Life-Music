@@ -636,6 +636,24 @@ fun Queue(
 
                         }
                     }
+
+                    // Karaoke, al lado de la letra. Va tambien aqui y no solo en
+                    // el diseno nuevo: UseNewPlayerDesignKey es una preferencia,
+                    // y quien la tenga apagada se quedaba sin acceso a la funcion.
+                    TextButton(
+                        onClick = {
+                            playerBottomSheetState.collapseSoft()
+                            navController.navigate("karaoke")
+                        },
+                        modifier = Modifier.wrapContentWidth()
+                    ) {
+                        Icon(
+                            painter = painterResource(id = R.drawable.mic),
+                            contentDescription = stringResource(R.string.karaoke_mode),
+                            modifier = Modifier.size(30.dp),
+                            tint = TextBackgroundColor
+                        )
+                    }
                 }
             }
             if (showAudioDeviceBottomSheet) {
