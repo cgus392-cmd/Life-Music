@@ -56,11 +56,11 @@ import com.cglabs.lifemusic.ui.screens.settings.integrations.ListenTogetherSetti
 import com.cglabs.lifemusic.ui.screens.recognition.RecognitionScreen
 import com.cglabs.lifemusic.ui.screens.recognition.RecognitionHistoryScreen
 import com.cglabs.lifemusic.ui.screens.settings.UpdateSettings
-import com.cglabs.lifemusic.echomusic.updater.UpdateScreen
+import com.cglabs.lifemusic.appcore.updater.UpdateScreen
 import com.cglabs.lifemusic.utils.rememberEnumPreference
 import com.cglabs.lifemusic.utils.rememberPreference
-import com.cglabs.lifemusic.echomusic.changelog.ChangelogScreen
-import com.cglabs.lifemusic.echomusic.commitscreen.CommitScreen
+import com.cglabs.lifemusic.appcore.changelog.ChangelogScreen
+import com.cglabs.lifemusic.appcore.commitscreen.CommitScreen
 import com.cglabs.lifemusic.ui.screens.equalizer.axion.AxionEqScreen
 import com.cglabs.lifemusic.ui.screens.ambient.AmbientModeScreen
 

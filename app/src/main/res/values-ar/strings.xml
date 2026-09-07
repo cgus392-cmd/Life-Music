@@ -301,7 +301,7 @@
     <string name="restore_failed">فشلت استعادة النسخة الاحتياطية</string>
     <string name="options">الخيارات</string>
     <string name="preview">معاينة</string>
-    <string name="discord_information">يستخدم echomusic مكتبة KizzyRPC لتعيين حالة حسابك على Discord. يتضمن ذلك استخدام اتصال Discord Gateway، وهو ما قد يُعد انتهاكًا لشروط خدمة Discord. ومع ذلك، لا توجد حالات معروفة لتعليق حسابات المستخدمين لهذا السبب. استخدمه على مسؤوليتك الخاصة.\nسيستخرج chomusic رمز الوصول الخاص بك فقط، بينما تُخزن جميع البيانات الأخرى محليًا.</string>
+    <string name="discord_information">يستخدم Life Music مكتبة KizzyRPC لتعيين حالة حسابك على Discord. يتضمن ذلك استخدام اتصال Discord Gateway، وهو ما قد يُعد انتهاكًا لشروط خدمة Discord. ومع ذلك، لا توجد حالات معروفة لتعليق حسابات المستخدمين لهذا السبب. استخدمه على مسؤوليتك الخاصة.\nسيستخرج chomusic رمز الوصول الخاص بك فقط، بينما تُخزن جميع البيانات الأخرى محليًا.</string>
     <string name="dismiss">تجاهل</string>
     <string name="enable_discord_rpc">تفعيل Rich Presence</string>
     <string name="new_version_available">يتوفر إصدار جديد</string>
@@ -442,10 +442,10 @@
     <string name="recognition_notification_processing">جارٍ التعرف…</string>
     <string name="recognition_notification_no_match">لم يتم العثور على تطابق</string>
     <string name="recognition_notification_failed">فشل التعرف</string>
-    <string name="listen_on_echo_music">الاستماع على Life Music</string>
+    <string name="listen_on_life_music">الاستماع على Life Music</string>
     <string name="qs_tile_music_recognizer">التعرف على الموسيقى</string>
-    <string name="echo_brain_beta">Echo Brain (تجريبي)</string>
-    <string name="echo_brain_enable">تفعيل Echo Brain</string>
+    <string name="echo_brain_beta">Life Brain (تجريبي)</string>
+    <string name="echo_brain_enable">تفعيل Life Brain</string>
     <string name="echo_brain_enable_desc">إضافة توصيات الذكاء الاصطناعي تلقائيًا استنادًا إلى عادات استماعك</string>
     <string name="echo_brain_profile_statistics">إحصائيات الملف الشخصي</string>
     <string name="echo_brain_learning_level">مستوى التعلم</string>

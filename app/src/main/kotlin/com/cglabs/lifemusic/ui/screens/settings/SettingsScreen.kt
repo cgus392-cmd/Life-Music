@@ -53,7 +53,7 @@ import com.cglabs.lifemusic.ui.component.Material3SettingsGroup
 import com.cglabs.lifemusic.ui.component.Material3SettingsItem
 import com.cglabs.lifemusic.ui.screens.Screens
 import com.cglabs.lifemusic.ui.utils.backToMain
-import com.cglabs.lifemusic.echomusic.updater.getUpdateAvailableState
+import com.cglabs.lifemusic.appcore.updater.getUpdateAvailableState
 
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -65,7 +65,7 @@ highlightKey: String? = null) {
     val uriHandler = LocalUriHandler.current
     val context = LocalContext.current
     val isAndroid12OrLater = Build.VERSION.SDK_INT >= Build.VERSION_CODES.S
-    val isUpdateAvailable = getUpdateAvailableState(context) && com.cglabs.lifemusic.echomusic.updater.getAutoUpdateCheckSetting(context)
+    val isUpdateAvailable = getUpdateAvailableState(context) && com.cglabs.lifemusic.appcore.updater.getAutoUpdateCheckSetting(context)
 
     var searchQuery by rememberSaveable { mutableStateOf("") }
     val searchLower = searchQuery.lowercase()

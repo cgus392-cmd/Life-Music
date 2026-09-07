@@ -175,12 +175,12 @@ import com.cglabs.lifemusic.constants.MiniPlayerBottomSpacing
 import com.cglabs.lifemusic.constants.MiniPlayerHeight
 import com.cglabs.lifemusic.constants.NavigationBarAnimationSpec
 import com.cglabs.lifemusic.constants.NavigationBarHeight
-import com.cglabs.lifemusic.echomusic.updater.checkForUpdate
-import com.cglabs.lifemusic.echomusic.updater.getAutoUpdateCheckSetting
-import com.cglabs.lifemusic.echomusic.updater.isNewerVersion
-import com.cglabs.lifemusic.echomusic.updater.saveUpdateAvailableState
-import com.cglabs.lifemusic.echomusic.updater.getUpdateNotificationsSetting
-import com.cglabs.lifemusic.echomusic.UpdateNotificationHelper
+import com.cglabs.lifemusic.appcore.updater.checkForUpdate
+import com.cglabs.lifemusic.appcore.updater.getAutoUpdateCheckSetting
+import com.cglabs.lifemusic.appcore.updater.isNewerVersion
+import com.cglabs.lifemusic.appcore.updater.saveUpdateAvailableState
+import com.cglabs.lifemusic.appcore.updater.getUpdateNotificationsSetting
+import com.cglabs.lifemusic.appcore.UpdateNotificationHelper
 import android.util.Log
 import androidx.compose.ui.platform.LocalContext
 import com.cglabs.lifemusic.constants.PauseListenHistoryKey
@@ -214,7 +214,7 @@ import com.cglabs.lifemusic.ui.screens.settings.DarkMode
 import com.cglabs.lifemusic.ui.screens.settings.NavigationTab
 import com.cglabs.lifemusic.ui.theme.ColorSaver
 import com.cglabs.lifemusic.ui.theme.DefaultThemeColor
-import com.cglabs.lifemusic.ui.theme.echomusicTheme
+import com.cglabs.lifemusic.ui.theme.LifeMusicTheme
 import com.cglabs.lifemusic.ui.theme.extractThemeColor
 import com.cglabs.lifemusic.ui.utils.appBarScrollBehavior
 import com.cglabs.lifemusic.ui.utils.resetHeightOffset
@@ -418,7 +418,7 @@ class MainActivity : ComponentActivity() {
         }
 
         setContent {
-            echomusicApp(
+            LifeMusicApp(
                 playerConnection = playerConnection,
                 database = database,
                 downloadUtil = downloadUtil,
@@ -430,7 +430,7 @@ class MainActivity : ComponentActivity() {
     @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
     @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
     @Composable
-    private fun echomusicApp(
+    private fun LifeMusicApp(
         playerConnection: PlayerConnection?,
         database: MusicDatabase,
         downloadUtil: DownloadUtil,
@@ -441,7 +441,7 @@ class MainActivity : ComponentActivity() {
         val context = LocalContext.current
         var showUpdateDialog by remember { androidx.compose.runtime.mutableStateOf(false) }
         var availableUpdateVersion by remember { androidx.compose.runtime.mutableStateOf("") }
-        var availableUpdateChangelog by remember { androidx.compose.runtime.mutableStateOf<List<com.cglabs.lifemusic.echomusic.updater.ChangelogSection>>(emptyList()) }
+        var availableUpdateChangelog by remember { androidx.compose.runtime.mutableStateOf<List<com.cglabs.lifemusic.appcore.updater.ChangelogSection>>(emptyList()) }
         var availableUpdateDescription by remember { androidx.compose.runtime.mutableStateOf<String?>(null) }
 
         LaunchedEffect(Unit) {
@@ -569,7 +569,7 @@ class MainActivity : ComponentActivity() {
         val view = LocalView.current
         var lastScrollHapticTime by remember { mutableStateOf(0L) }
 
-        echomusicTheme(
+        LifeMusicTheme(
             darkTheme = useDarkTheme,
             pureBlack = pureBlack,
             themeColor = themeColor,
@@ -965,7 +965,7 @@ class MainActivity : ComponentActivity() {
                 }
 
                 val currentTitle = when (navBackStackEntry?.destination?.route) {
-                    Screens.Home.route -> "Echo Music"
+                    Screens.Home.route -> "Life Music"
                     Screens.Search.route -> stringResource(R.string.search)
                     Screens.Library.route -> stringResource(R.string.filter_library)
                     Screens.ListenTogether.route -> stringResource(R.string.together)

@@ -61,6 +61,7 @@ import com.cglabs.lifemusic.utils.makeTimeString
 import com.cglabs.lifemusic.utils.rememberEnumPreference
 import com.cglabs.lifemusic.utils.rememberPreference
 import timber.log.Timber
+import com.cglabs.lifemusic.constants.Repo
 
 enum class ActivitySource { ARTIST, ALBUM, SONG, APP }
 
@@ -267,7 +268,7 @@ fun DiscordSettings(
     val (button2Label) =
         rememberPreference(
             key = DiscordActivityButton2LabelKey,
-            defaultValue = "Go to Echo Music",
+            defaultValue = "Go to Life Music",
         )
     val (button2Enabled) =
         rememberPreference(
@@ -292,7 +293,7 @@ fun DiscordSettings(
     val (button2CustomUrl) =
         rememberPreference(
             key = DiscordActivityButton2CustomUrlKey,
-            defaultValue = "https://github.com/EchoMusicApp/Echo-Music",
+            defaultValue = Repo.HTML,
         )
 
     val (activityType, onActivityTypeChange) =
@@ -1187,10 +1188,10 @@ fun RichPresence(
     button1Enabled: Boolean = true,
     button1UrlSource: String = "songurl",
     button1CustomUrl: String = "",
-    button2Label: String = "Go to Echo Music",
+    button2Label: String = "Go to Life Music",
     button2Enabled: Boolean = true,
     button2UrlSource: String = "custom",
-    button2CustomUrl: String = "https://github.com/EchoMusicApp/Echo-Music",
+    button2CustomUrl: String = Repo.HTML,
     isPlaying: Boolean = false,
 ) {
     val context = LocalContext.current

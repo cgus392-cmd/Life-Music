@@ -936,7 +936,7 @@ fun Lyrics(
                         val isActiveByIndex = index == displayedCurrentLineIndex
                         val isActiveByTime = isLineAtSameTime && displayedCurrentLineIndex >= 0
 
-                        echomusicLyricsLine(
+                        LifeMusicLyricsLine(
                             entry = item,
                             nextEntryTime = lines.getOrNull(index + 1)?.time,
                             effectivePlaybackPosition = effectivePlaybackPosition,

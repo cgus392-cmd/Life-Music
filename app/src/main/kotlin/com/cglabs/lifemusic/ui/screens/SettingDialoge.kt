@@ -78,7 +78,7 @@ fun SettingDialoge(
         ) {
             // Header
             Text(
-                text = "Echo Music",
+                text = "Life Music",
                 style = MaterialTheme.typography.headlineSmall.copy(
                     fontWeight = FontWeight.Bold,
                     letterSpacing = 1.sp

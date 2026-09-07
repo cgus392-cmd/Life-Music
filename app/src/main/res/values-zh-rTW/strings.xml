@@ -255,7 +255,7 @@
     <string name="backup_create_failed">無法建立備份</string>
     <string name="restore_failed">無法還原備份</string>
     <string name="discord_integration">Discord 整合</string>
-    <string name="discord_information">echomusic使用KizzyRPC函式庫來設定您的Discord狀態。這會用到Discord Gateway連線，可能會違反Discord服務條款，但是目前沒有使用者為此被停用帳號。使用此功能需自行承擔此風險。\n\nechomusic只會提取你的token，所有東西都存在本機。</string>
+    <string name="discord_information">Life Music使用KizzyRPC函式庫來設定您的Discord狀態。這會用到Discord Gateway連線，可能會違反Discord服務條款，但是目前沒有使用者為此被停用帳號。使用此功能需自行承擔此風險。\n\nLife Music只會提取你的token，所有東西都存在本機。</string>
     <string name="dismiss">了解</string>
     <string name="options">選項</string>
     <string name="preview">預覽</string>
@@ -392,10 +392,10 @@
     <string name="recognition_notification_processing">正在辨識…</string>
     <string name="recognition_notification_no_match">找不到相符結果</string>
     <string name="recognition_notification_failed">辨識失敗</string>
-    <string name="listen_on_echo_music">在 Life Music 上聆聽</string>
+    <string name="listen_on_life_music">在 Life Music 上聆聽</string>
     <string name="qs_tile_music_recognizer">辨識音樂</string>
-    <string name="echo_brain_beta">Echo Brain（測試版）</string>
-    <string name="echo_brain_enable">啟用 Echo Brain</string>
+    <string name="echo_brain_beta">Life Brain（測試版）</string>
+    <string name="echo_brain_enable">啟用 Life Brain</string>
     <string name="echo_brain_enable_desc">根據您的聆聽習慣自動加入 AI 推薦內容</string>
     <string name="echo_brain_profile_statistics">個人檔案統計資料</string>
     <string name="echo_brain_learning_level">學習等級</string>

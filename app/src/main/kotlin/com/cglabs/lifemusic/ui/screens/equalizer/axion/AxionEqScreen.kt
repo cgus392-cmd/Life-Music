@@ -50,7 +50,7 @@ fun AxionEqScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text(stringResource(R.string.echo_equalizer)) },
+                title = { Text(stringResource(R.string.life_equalizer)) },
                 navigationIcon = {
                     com.cglabs.lifemusic.ui.component.IconButton(
                         onClick = onBackClick,
@@ -214,7 +214,7 @@ private fun SimpleEqMode(
 
     val echoPresets = listOf(
         R.string.eq_preset_flat to floatArrayOf(0f, 0f, 0f, 0f, 0f, 0f, 0f, 0f, 0f, 0f),
-        R.string.eq_preset_echo_signature to floatArrayOf(150f, 100f, 50f, 0f, -20f, 0f, 80f, 150f, 200f, 150f),
+        R.string.eq_preset_life_signature to floatArrayOf(150f, 100f, 50f, 0f, -20f, 0f, 80f, 150f, 200f, 150f),
         R.string.eq_preset_acoustic to floatArrayOf(150f, 150f, 50f, 75f, 100f, 75f, 125f, 175f, 150f, 75f),
 
         R.string.eq_preset_bass_boost to floatArrayOf(500f, 400f, 250f, 100f, 0f, -50f, 0f, 100f, 200f, 300f),
@@ -308,7 +308,7 @@ private fun SimpleEqMode(
 
         echoPresets.chunked(4).forEach { chunk ->
             PresetSection(
-                title = if (echoPresets.first() in chunk) stringResource(R.string.eq_label_echo) else "",
+                title = if (echoPresets.first() in chunk) stringResource(R.string.eq_label_life) else "",
                 presets = chunk,
                 enabled = enabled,
                 viewModel = viewModel,

@@ -266,7 +266,7 @@
     <string name="auto_load_more_desc">如果可能，在播放队列快结束时自动添加更多歌曲</string>
     <string name="auto_skip_next_on_error">发生错误时自动跳到下一首歌曲</string>
     <string name="stop_music_on_task_clear">任务清除时停止音乐</string>
-    <string name="discord_information">echomusic 使用 KizzyRPC 库来设置您的 Discord 账号的状态。这会用到 Discord 网关连接，可能会违反 Discord 的服务条款。不过，目前还没有因此原因暂停用户账号的情况。使用风险自负。 \n \nechomusic 只提取您的令牌，其他内容都存储在本地。</string>
+    <string name="discord_information">Life Music 使用 KizzyRPC 库来设置您的 Discord 账号的状态。这会用到 Discord 网关连接，可能会违反 Discord 的服务条款。不过，目前还没有因此原因暂停用户账号的情况。使用风险自负。 \n \nLife Music 只提取您的令牌，其他内容都存储在本地。</string>
     <string name="use_login_for_browse_desc">这可能会影响您看到的内容，例如，如果您使用会员账号登录，则会显示仅会员专辑</string>
     <string name="use_login_for_browse">登录账号浏览内容</string>
     <string name="action_login">登录</string>
@@ -392,10 +392,10 @@
     <string name="recognition_notification_processing">正在识别…</string>
     <string name="recognition_notification_no_match">未找到匹配项</string>
     <string name="recognition_notification_failed">识别失败</string>
-    <string name="listen_on_echo_music">在 Life Music 中收听</string>
+    <string name="listen_on_life_music">在 Life Music 中收听</string>
     <string name="qs_tile_music_recognizer">识别音乐</string>
-    <string name="echo_brain_beta">Echo Brain（测试版）</string>
-    <string name="echo_brain_enable">启用 Echo Brain</string>
+    <string name="echo_brain_beta">Life Brain（测试版）</string>
+    <string name="echo_brain_enable">启用 Life Brain</string>
     <string name="echo_brain_enable_desc">根据你的收听习惯自动加入 AI 推荐</string>
     <string name="echo_brain_profile_statistics">配置文件统计</string>
     <string name="echo_brain_learning_level">学习等级</string>

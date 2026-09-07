@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Upstream InnerTune strings --><!-- Do not add new features here --><!-- Try to re-use strings here, but be careful on its usage e.g. verb vs noun --><!-- "InnerTune" is replaced with "echomusic" --><!-- Translators: Do not modify this file for translations, use InnerTune's Weblate instead. --><resources>
+<!-- Upstream InnerTune strings --><!-- Do not add new features here --><!-- Try to re-use strings here, but be careful on its usage e.g. verb vs noun --><!-- "InnerTune" is replaced with "Life Music" --><!-- Translators: Do not modify this file for translations, use InnerTune's Weblate instead. --><resources>
     <!-- Bottom navigation -->
     <string name="home">خانه</string>
     <string name="music">موسیقی</string>
@@ -328,7 +328,7 @@
     <string name="backup_create_failed">ایجاد فایل پشتیبان ناموفق بود</string>
     <string name="restore_failed">بازگردانی فایل پشتیبان ناموفق بود</string>
     <string name="discord_integration">اتصال به دیسکورد</string>
-    <string name="discord_information">برنامه echomusic از کتابخانه KizzyRPC برای تنظیم وضعیت حساب دیسکورد شما استفاده می‌کند. این کار از طریق اتصال دیسکورد گیت‌وی انجام می‌شود که ممکن است نقض قوانین خدمات (TOS) دیسکورد تلقی شود. با این حال، تاکنون هیچ موردی از مسدود شدن حساب کاربران به این دلیل گزارش نشده است. مسئولیت استفاده بر عهده خودتان است.\n\nبرنامه echomusic فقط توکن شما را استخراج می‌کند و اطلاعات دیگر کاملاً به صورت محلی ذخیره می‌شوند.</string>
+    <string name="discord_information">برنامه Life Music از کتابخانه KizzyRPC برای تنظیم وضعیت حساب دیسکورد شما استفاده می‌کند. این کار از طریق اتصال دیسکورد گیت‌وی انجام می‌شود که ممکن است نقض قوانین خدمات (TOS) دیسکورد تلقی شود. با این حال، تاکنون هیچ موردی از مسدود شدن حساب کاربران به این دلیل گزارش نشده است. مسئولیت استفاده بر عهده خودتان است.\n\nبرنامه Life Music فقط توکن شما را استخراج می‌کند و اطلاعات دیگر کاملاً به صورت محلی ذخیره می‌شوند.</string>
     <string name="dismiss">بستن</string>
     <string name="options">گزینه‌ها</string>
     <string name="preview">پیش‌نمایش</string>
@@ -415,10 +415,10 @@
     <string name="recognition_notification_processing">در حال شناسایی…</string>
     <string name="recognition_notification_no_match">هیچ مورد منطبقی یافت نشد</string>
     <string name="recognition_notification_failed">تشخیص ناموفق بود</string>
-    <string name="listen_on_echo_music">در Life Music گوش دهید</string>
+    <string name="listen_on_life_music">در Life Music گوش دهید</string>
     <string name="qs_tile_music_recognizer">تشخیص موسیقی</string>
-    <string name="echo_brain_beta">Echo Brain (بتا)</string>
-    <string name="echo_brain_enable">فعال‌سازی Echo Brain</string>
+    <string name="echo_brain_beta">Life Brain (بتا)</string>
+    <string name="echo_brain_enable">فعال‌سازی Life Brain</string>
     <string name="echo_brain_enable_desc">پیشنهادهای هوش مصنوعی را بر اساس عادت‌های شنیداری شما به‌طور خودکار اضافه می‌کند</string>
     <string name="echo_brain_profile_statistics">آمار نمایه</string>
     <string name="echo_brain_learning_level">سطح یادگیری</string>

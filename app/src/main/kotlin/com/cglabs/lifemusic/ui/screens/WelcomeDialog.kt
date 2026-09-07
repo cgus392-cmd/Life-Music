@@ -308,7 +308,7 @@ private fun PasoCgLabs() {
         )
         Spacer(Modifier.height(12.dp))
         TarjetaAzulejo(
-            icono = R.drawable.license_echo,
+            icono = R.drawable.ic_license,
             colorAzulejo = Color(0xFFC5E1A5),
             titulo = "Licencia GPL-3.0",
             descripcion = "Heredada del proyecto original.",

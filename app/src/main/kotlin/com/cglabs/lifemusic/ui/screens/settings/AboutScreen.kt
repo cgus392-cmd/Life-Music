@@ -165,8 +165,17 @@ highlightKey: String? = null) {
                         onClick = { uriHandler.openUri("https://github.com/z-huang/InnerTune") },
                     )
                     AboutDivider()
+                    // Mantiene su copyright en los 18 archivos de la integracion
+                    // con Spotify, con aviso expreso segun GPL-3.0 secciones 4 y 5.
                     AboutActionRow(
-                        icon = painterResource(R.drawable.license_echo),
+                        icon = painterResource(R.drawable.person),
+                        title = "Chartreux Westia",
+                        subtitle = "Integracion con Spotify",
+                        onClick = { uriHandler.openUri("https://github.com/koiverse") },
+                    )
+                    AboutDivider()
+                    AboutActionRow(
+                        icon = painterResource(R.drawable.ic_license),
                         title = "Licencia GPL-3.0",
                         subtitle = "Heredada del proyecto original",
                         onClick = { uriHandler.openUri("https://www.gnu.org/licenses/gpl-3.0.html") },

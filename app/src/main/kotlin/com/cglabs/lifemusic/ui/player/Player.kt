@@ -184,10 +184,10 @@ import com.cglabs.lifemusic.extensions.toggleRepeatMode
 import com.cglabs.lifemusic.listentogether.RoomRole
 import com.cglabs.lifemusic.models.MediaMetadata
 import com.cglabs.lifemusic.playback.ExoDownloadService
-import com.cglabs.lifemusic.echomusic.getConnectedBluetoothDeviceName
-import com.cglabs.lifemusic.echomusic.isBuds
-import com.cglabs.lifemusic.echomusic.isSpeaker
-import com.cglabs.lifemusic.echomusic.AudioDeviceBottomSheet
+import com.cglabs.lifemusic.appcore.getConnectedBluetoothDeviceName
+import com.cglabs.lifemusic.appcore.isBuds
+import com.cglabs.lifemusic.appcore.isSpeaker
+import com.cglabs.lifemusic.appcore.AudioDeviceBottomSheet
 import com.cglabs.lifemusic.ui.component.BottomSheet
 import com.cglabs.lifemusic.ui.component.BottomSheetState
 import com.cglabs.lifemusic.ui.component.CastButton

@@ -155,7 +155,7 @@ import com.cglabs.lifemusic.extensions.toEnum
 import com.cglabs.lifemusic.extensions.toMediaItem
 import com.cglabs.lifemusic.playback.toPersistQueue
 import com.cglabs.lifemusic.playback.toQueue
-import com.cglabs.lifemusic.echomusic.updater.downloadmanager.EchoNotificationProvider
+import com.cglabs.lifemusic.appcore.updater.downloadmanager.UpdateNotificationProvider
 import com.cglabs.lifemusic.lyrics.LyricsHelper
 import com.cglabs.lifemusic.models.PersistPlayerState
 import com.cglabs.lifemusic.models.PersistQueue
@@ -177,7 +177,7 @@ import com.cglabs.lifemusic.utils.YTPlayerUtils
 import com.cglabs.lifemusic.utils.dataStore
 import com.cglabs.lifemusic.utils.get
 import com.cglabs.lifemusic.utils.reportException
-import com.cglabs.lifemusic.widget.EchoMusicWidgetManager
+import com.cglabs.lifemusic.widget.LifeMusicWidgetManager
 import com.cglabs.lifemusic.widget.MusicWidgetReceiver
 import dagger.hilt.android.AndroidEntryPoint
 import com.cglabs.lifemusic.utils.isLocalMediaId
@@ -243,7 +243,7 @@ class MusicService :
     lateinit var eqProfileRepository: EQProfileRepository
 
     @Inject
-    lateinit var widgetManager: com.cglabs.lifemusic.widget.EchoMusicWidgetManager
+    lateinit var widgetManager: com.cglabs.lifemusic.widget.LifeMusicWidgetManager
 
     @Inject
     lateinit var listenTogetherManager: com.cglabs.lifemusic.listentogether.ListenTogetherManager
@@ -619,7 +619,7 @@ class MusicService :
         }
 
         setMediaNotificationProvider(
-            EchoNotificationProvider(
+            UpdateNotificationProvider(
                 this,
                 { NOTIFICATION_ID },
                 CHANNEL_ID,

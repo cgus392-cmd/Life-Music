@@ -11,6 +11,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.Dispatchers
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
+import com.cglabs.lifemusic.constants.Repo
 
 @Serializable
 data class ListenTogetherServer(
@@ -21,7 +22,7 @@ data class ListenTogetherServer(
 )
 
 object ListenTogetherServers {
-    private const val SERVER_JSON_URL = "https://raw.githubusercontent.com/EchoMusicApp/Echo-Music/refs/heads/main/app/server.json"
+    private const val SERVER_JSON_URL = Repo.SERVER_JSON
 
     private val _servers = MutableStateFlow(
         listOf(

@@ -279,7 +279,7 @@
         <item quantity="other">%d godina</item>
     </plurals>
     <string name="playlist_imported">Playlista je uvezena</string>
-    <string name="discord_information">echomusic koristi KizzyRPC biblioteku za postavljanje vašeg Discord status. Ovo uključuje korištenje Discord Gateway spajanja, što bi se moglo smatrati prekršajem Discord-ovog TOS-a. Međutim nema poznatih slučajeva gdje su korisnički računi zbog toga bili suspendirani. Korisite na vlastiti rizik.\n\nechomusic će izdvojiti samo vaš žeton, sve drugo se sprema lokalno.</string>
+    <string name="discord_information">Life Music koristi KizzyRPC biblioteku za postavljanje vašeg Discord status. Ovo uključuje korištenje Discord Gateway spajanja, što bi se moglo smatrati prekršajem Discord-ovog TOS-a. Međutim nema poznatih slučajeva gdje su korisnički računi zbog toga bili suspendirani. Korisite na vlastiti rizik.\n\nLife Music će izdvojiti samo vaš žeton, sve drugo se sprema lokalno.</string>
     <string name="options">Opcije</string>
     <string name="preview">Pregled</string>
     <string name="login_failed">Prijava nije uspjela</string>
@@ -413,10 +413,10 @@
     <string name="recognition_notification_processing">Identificiranje…</string>
     <string name="recognition_notification_no_match">Nije pronađen nijedan rezultat</string>
     <string name="recognition_notification_failed">Prepoznavanje nije uspjelo</string>
-    <string name="listen_on_echo_music">Slušajte na Life Musicu</string>
+    <string name="listen_on_life_music">Slušajte na Life Musicu</string>
     <string name="qs_tile_music_recognizer">Prepoznaj glazbu</string>
-    <string name="echo_brain_beta">Echo Brain (Beta)</string>
-    <string name="echo_brain_enable">Omogući Echo Brain</string>
+    <string name="echo_brain_beta">Life Brain (Beta)</string>
+    <string name="echo_brain_enable">Omogući Life Brain</string>
     <string name="echo_brain_enable_desc">Automatski ubrizgajte preporuke umjetne inteligencije na temelju vaših navika slušanja</string>
     <string name="echo_brain_profile_statistics">Statistika profila</string>
     <string name="echo_brain_learning_level">Razina učenja</string>

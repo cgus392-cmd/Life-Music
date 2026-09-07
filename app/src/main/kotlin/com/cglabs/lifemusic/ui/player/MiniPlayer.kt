@@ -130,12 +130,12 @@ import com.cglabs.lifemusic.ui.component.liquidGlass
 import com.cglabs.lifemusic.ui.theme.PlayerColorExtractor
 import com.cglabs.lifemusic.utils.rememberEnumPreference
 import com.cglabs.lifemusic.utils.rememberPreference
-import com.cglabs.lifemusic.echomusic.AudioDeviceBottomSheet
+import com.cglabs.lifemusic.appcore.AudioDeviceBottomSheet
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlin.math.roundToInt
-import com.cglabs.lifemusic.echomusic.isBluetoothHeadphoneConnected
+import com.cglabs.lifemusic.appcore.isBluetoothHeadphoneConnected
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Headphones
 import androidx.compose.material.icons.filled.Speaker
