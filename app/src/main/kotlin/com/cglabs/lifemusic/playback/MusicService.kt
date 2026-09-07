@@ -831,17 +831,31 @@ class MusicService :
             updateWidgetUI(player.isPlaying)
         }
 
+        // Letra de la cancion EN CURSO, traida en segundo plano al cambiar de
+        // pista. El preload de mas abajo solo cubre las SIGUIENTES de la cola, y
+        // ademas se salta las que aun no estan en la base local, asi que no
+        // sirve para esto.
+        //
+        // Ojo con ShowLyricsKey: se lee aqui y no lo escribe nadie en todo el
+        // proyecto —el panel de letras usa un rememberSaveable local, no la
+        // preferencia—, de modo que esta rama nunca llegaba a ejecutarse. Se
+        // conserva por si algun dia se engancha, pero quien manda de hecho es
+        // LifeLineEnabledKey: Life Line necesita la letra nada mas empezar la
+        // cancion, sin que nadie abra nada.
+        //
+        // El ahorro de datos sigue teniendo la ultima palabra.
         combine(
             currentMediaMetadata.distinctUntilChangedBy { it?.id },
             dataStore.data.map { 
                 val showLyrics = (try { it[ShowLyricsKey] } catch(e: Exception) { null }) ?: false
+                val lifeLine = (try { it[com.cglabs.lifemusic.constants.LifeLineEnabledKey] } catch(e: Exception) { null }) ?: true
                 val dataSaver = it[com.cglabs.lifemusic.constants.DataSaverEnabledKey] ?: false
-                if (dataSaver) false else showLyrics
+                if (dataSaver) false else (showLyrics || lifeLine)
             }.distinctUntilChanged(),
-        ) { mediaMetadata, showLyrics ->
-            mediaMetadata to showLyrics
-        }.collectLatest(scope) { (mediaMetadata, showLyrics) ->
-            if (showLyrics && mediaMetadata != null && database.lyrics(mediaMetadata.id)
+        ) { mediaMetadata, necesitaLetra ->
+            mediaMetadata to necesitaLetra
+        }.collectLatest(scope) { (mediaMetadata, necesitaLetra) ->
+            if (necesitaLetra && mediaMetadata != null && database.lyrics(mediaMetadata.id)
                     .first() == null
             ) {
                 val lyricsWithProvider = lyricsHelper.getLyrics(mediaMetadata)
