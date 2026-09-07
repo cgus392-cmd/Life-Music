@@ -353,4 +353,7 @@ dependencies {
     implementation(libs.androidx.core.splashscreen)
     implementation(libs.ffmpeg.kit.audio)
 
+    // Spike de separacion de stems: mide si el telefono puede con MDX-Net.
+    implementation(libs.onnxruntime.android)
+
 }
