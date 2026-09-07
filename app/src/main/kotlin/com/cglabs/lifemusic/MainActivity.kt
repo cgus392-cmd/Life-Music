@@ -4,6 +4,7 @@ package com.cglabs.lifemusic
 import com.cglabs.lifemusic.R
 import com.cglabs.lifemusic.BuildConfig
 import com.cglabs.lifemusic.ui.screens.settings.RingtoneViewModel
+import com.cglabs.lifemusic.ui.component.BrandTitle
 import com.cglabs.lifemusic.ui.component.RingtoneTrimmerDialog
 import com.cglabs.lifemusic.ui.component.RingtoneProgressDialog
 import com.cglabs.lifemusic.ui.component.AppFloatingNavBar
@@ -965,7 +966,7 @@ class MainActivity : ComponentActivity() {
                 }
 
                 val currentTitle = when (navBackStackEntry?.destination?.route) {
-                    Screens.Home.route -> "Life Music"
+                    Screens.Home.route -> stringResource(R.string.app_name)
                     Screens.Search.route -> stringResource(R.string.search)
                     Screens.Library.route -> stringResource(R.string.filter_library)
                     Screens.ListenTogether.route -> stringResource(R.string.together)
@@ -1051,7 +1052,10 @@ class MainActivity : ComponentActivity() {
                                 Row {
                                     TopAppBar(
                                         title = {
-                                            Text(
+                                            // En Inicio se releva con el wordmark
+                                            // de CG LABS; en el resto es texto y
+                                            // ya. Lo decide BrandTitle.
+                                            BrandTitle(
                                                 text = currentTitle,
                                                 style = MaterialTheme.typography.titleLarge.copy(
                                                     fontWeight = FontWeight.Bold,
