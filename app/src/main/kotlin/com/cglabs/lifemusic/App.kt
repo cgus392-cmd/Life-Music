@@ -104,12 +104,6 @@ class App : Application(), SingletonImageLoader.Factory {
 
         if (BuildConfig.DEBUG) {
             Timber.plant(Timber.DebugTree())
-
-            // Spike de separacion de stems. No hace nada salvo que exista
-            // files/spike/mdx.onnx, empujado a mano por ADB: sin ese fichero ni
-            // se toca la libreria nativa. Mide y escribe a logcat, nada mas.
-            com.cglabs.lifemusic.separation.StemSeparationSpike
-                .lanzarSiHayModelo(this, applicationScope)
         }
 
         applicationScope.launch(Dispatchers.IO) {

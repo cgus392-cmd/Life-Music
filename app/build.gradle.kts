@@ -354,6 +354,9 @@ dependencies {
     implementation(libs.ffmpeg.kit.audio)
 
     // Spike de separacion de stems: mide si el telefono puede con MDX-Net.
-    implementation(libs.onnxruntime.android)
+    // debugImplementation y no implementation: son ~18 MB en el APK universal, y
+    // mientras la funcion este en pausa nada de produccion los usa. El spike vive
+    // en src/debug/kotlin justamente para que esto se pueda hacer.
+    debugImplementation(libs.onnxruntime.android)
 
 }

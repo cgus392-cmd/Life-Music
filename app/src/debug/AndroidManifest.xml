@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <application>
+        <!--
+            Arranca el spike de separacion de stems. Solo existe en builds de
+            depuracion, y el propio spike no hace nada si no esta el modelo en
+            files/spike/mdx.onnx.
+        -->
+        <provider
+            android:name="com.cglabs.lifemusic.separation.StemSpikeInitializer"
+            android:authorities="${applicationId}.stemspike"
+            android:exported="false" />
+    </application>
+
+</manifest>

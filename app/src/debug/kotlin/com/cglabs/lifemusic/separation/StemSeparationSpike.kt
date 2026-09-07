@@ -3,12 +3,13 @@ package com.cglabs.lifemusic.separation
 import ai.onnxruntime.OnnxTensor
 import ai.onnxruntime.OrtEnvironment
 import ai.onnxruntime.OrtSession
+import android.content.ContentProvider
+import android.content.ContentValues
 import android.content.Context
+import android.database.Cursor
+import android.net.Uri
 import android.os.SystemClock
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
-import timber.log.Timber
+import android.util.Log
 import java.io.File
 import java.nio.FloatBuffer
 
@@ -35,6 +36,8 @@ import java.nio.FloatBuffer
  */
 object StemSeparationSpike {
 
+    private const val TAG = "StemSpike"
+
     private const val CARPETA = "spike"
     private const val MODELO = "mdx.onnx"
 
@@ -49,15 +52,17 @@ object StemSeparationSpike {
 
     private const val REPETICIONES = 5
 
-    fun lanzarSiHayModelo(context: Context, scope: CoroutineScope) {
+    fun lanzarSiHayModelo(context: Context) {
         val modelo = File(File(context.filesDir, CARPETA), MODELO)
         if (!modelo.exists()) return
-        scope.launch(Dispatchers.Default) { medir(modelo) }
+        // Hilo propio y no el scope de App: este spike lo arranca un
+        // ContentProvider, que corre ANTES de Application.onCreate. Ni el scope
+        // ni Timber existen todavia a esas alturas.
+        Thread({ medir(modelo) }, "stem-spike").apply { isDaemon = true }.start()
     }
 
     private fun medir(modelo: File) {
-        val t = "StemSpike"
-        Timber.tag(t).i("modelo %.1f MB", modelo.length() / 1024.0 / 1024.0)
+        Log.i(TAG, "modelo %.1f MB".format(modelo.length() / 1024.0 / 1024.0))
 
         val entorno = OrtEnvironment.getEnvironment()
         val nucleos = Runtime.getRuntime().availableProcessors()
@@ -71,16 +76,17 @@ object StemSeparationSpike {
                 // XNNPACK acelera convoluciones en ARM. Si no esta disponible en
                 // este build de ONNX Runtime, se sigue con la CPU normal.
                 runCatching { addXnnpack(mapOf("intra_op_num_threads" to hilos.toString())) }
-                    .onFailure { Timber.tag(t).w("sin XNNPACK: %s", it.message) }
+                    .onFailure { Log.w(TAG, "sin XNNPACK: " + it.message) }
             }
 
             var sesion: OrtSession? = null
             try {
                 val abierta = SystemClock.elapsedRealtime()
                 sesion = entorno.createSession(modelo.absolutePath, opciones)
-                Timber.tag(t).i(
-                    "sesion abierta con %d hilos en %d ms",
-                    hilos, SystemClock.elapsedRealtime() - abierta
+                Log.i(
+                    TAG,
+                    "sesion abierta con %d hilos en %d ms"
+                        .format(hilos, SystemClock.elapsedRealtime() - abierta),
                 )
 
                 val n = CANALES.toLong() * DIM_F * DIM_T
@@ -105,18 +111,39 @@ object StemSeparationSpike {
                     val porBloque = (SystemClock.elapsedRealtime() - inicio) / REPETICIONES.toDouble()
 
                     val factor = SEGUNDOS_POR_BLOQUE / (porBloque / 1000.0)
-                    Timber.tag(t).i(
-                        "%d hilos: %.0f ms/bloque -> %.2fx tiempo real | cancion de 4 min en %.0f s",
-                        hilos, porBloque, factor, 240.0 / factor
+                    Log.i(
+                        TAG,
+                        "%d hilos: %.0f ms/bloque -> %.2fx tiempo real | cancion de 4 min en %.0f s"
+                            .format(hilos, porBloque, factor, 240.0 / factor),
                     )
                 }
             } catch (e: Throwable) {
-                Timber.tag(t).e(e, "fallo con %d hilos", hilos)
+                Log.e(TAG, "fallo con $hilos hilos", e)
             } finally {
                 runCatching { sesion?.close() }
                 runCatching { opciones.close() }
             }
         }
-        Timber.tag(t).i("fin de la medicion")
+        Log.i(TAG, "fin de la medicion")
     }
+}
+
+/**
+ * Arranca el spike sin que el codigo de produccion sepa que existe.
+ *
+ * Un ContentProvider declarado solo en el manifiesto de depuracion: Android lo
+ * instancia al abrir la app, y asi App.kt no tiene que referenciar una clase que
+ * en release no esta compilada. Es el mismo truco que usa LeakCanary.
+ */
+class StemSpikeInitializer : ContentProvider() {
+    override fun onCreate(): Boolean {
+        context?.let { StemSeparationSpike.lanzarSiHayModelo(it) }
+        return true
+    }
+
+    override fun query(u: Uri, p: Array<out String>?, s: String?, a: Array<out String>?, o: String?): Cursor? = null
+    override fun getType(u: Uri): String? = null
+    override fun insert(u: Uri, v: ContentValues?): Uri? = null
+    override fun delete(u: Uri, s: String?, a: Array<out String>?): Int = 0
+    override fun update(u: Uri, v: ContentValues?, s: String?, a: Array<out String>?): Int = 0
 }
