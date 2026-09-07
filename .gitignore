@@ -37,3 +37,12 @@ lastfm-empty/build/
 
 # Credenciales de Firebase - nunca se versionan (CG LABS)
 app/google-services.json
+
+# Firma de publicacion. NUNCA en un repositorio publico: quien tenga este fichero
+# y sus contrasenas puede firmar actualizaciones que Android aceptara como
+# legitimas sobre la app instalada.
+app/keystore/
+*.keystore
+*.jks
+!app/persistent-debug.keystore
+keystore.properties
