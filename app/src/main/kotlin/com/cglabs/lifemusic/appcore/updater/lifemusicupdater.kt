@@ -659,35 +659,91 @@ fun isNewerVersion(latestVersion: String, currentVersion: String): Boolean {
 }
 
 
+/**
+ * Descarga un JSON de la API de GitHub.
+ *
+ * Con limites de tiempo, que el original no tenia: usaba URL.openStream() a
+ * pelo, y una red que se queda a medias dejaba la comprobacion colgada sin
+ * limite. Y con User-Agent, que GitHub exige y sin el puede responder 403.
+ */
+private fun leerJsonDeGitHub(url: String): String {
+    val conexion = (URL(url).openConnection() as java.net.HttpURLConnection).apply {
+        connectTimeout = 10_000
+        readTimeout = 15_000
+        setRequestProperty("Accept", "application/vnd.github+json")
+        setRequestProperty("User-Agent", "LifeMusic/" + BuildConfig.VERSION_NAME)
+    }
+    return try {
+        conexion.inputStream.bufferedReader().use { it.readText() }
+    } finally {
+        conexion.disconnect()
+    }
+}
+
+/**
+ * Elige el APK de una publicacion.
+ *
+ * Prefiere el nombre declarado en [Repo.APK_ASSET]; si no esta, se queda con
+ * cualquier .apk que no sea de depuracion. Asi el sistema no se rompe si un dia
+ * el artefacto sale con otro nombre, pero el nombre canonico manda cuando existe.
+ */
+private fun elegirApk(assets: JSONArray): Pair<String, Long>? {
+    var respaldo: Pair<String, Long>? = null
+    for (j in 0 until assets.length()) {
+        val asset = assets.getJSONObject(j)
+        val nombre = asset.getString("name")
+        if (!nombre.endsWith(".apk", ignoreCase = true)) continue
+        if (nombre.contains("debug", ignoreCase = true)) continue
+        val par = asset.getString("browser_download_url") to asset.getLong("size")
+        if (nombre.equals(Repo.APK_ASSET, ignoreCase = true)) return par
+        if (respaldo == null) respaldo = par
+    }
+    return respaldo
+}
+
 suspend fun checkForUpdate(
     context: Context,
     onSuccess: (tag: String, isAvailable: Boolean, changelog: List<ChangelogSection>, size: String, date: String, description: String?, imageUrl: String?, apkUrl: String?) -> Unit,
     onError: () -> Unit,
 ) {
     withContext(Dispatchers.IO) {
+        val currentVersion = BuildConfig.VERSION_NAME
         try {
-            val url = URL(Repo.LATEST_RELEASE_API)
-            val json = url.openStream().bufferedReader().use { it.readText() }
-            val targetRelease = JSONObject(json)
-            
-            val currentVersion = BuildConfig.VERSION_NAME
+            // /releases/latest EXCLUYE las prepublicaciones, asi que el canal beta
+            // no puede usarlo: tiene que mirar la lista entera y quedarse con la
+            // primera no-borrador, que GitHub ya devuelve de mas nueva a mas vieja.
+            val targetRelease = if (getBetaUpdatesSetting(context)) {
+                val lista = JSONArray(leerJsonDeGitHub(Repo.RELEASES_API))
+                (0 until lista.length())
+                    .map { lista.getJSONObject(it) }
+                    .firstOrNull { !it.optBoolean("draft", false) }
+            } else {
+                JSONObject(leerJsonDeGitHub(Repo.LATEST_RELEASE_API))
+            }
+
+            if (targetRelease == null) {
+                withContext(Dispatchers.Main) {
+                    onSuccess(currentVersion, false, emptyList(), "", "", null, null, null)
+                }
+                return@withContext
+            }
+
             val targetTagName = targetRelease.getString("tag_name")
-            val currentClean = currentVersion.removePrefix("b").removePrefix("v").trim()
-            val targetClean = targetTagName.removePrefix("b").removePrefix("v").trim()
-            val shouldShow = currentClean != targetClean
 
-            if (shouldShow) {
-                val tagWithPrefix = targetRelease.getString("tag_name")
-                val displayTag = tagWithPrefix
+            // El fallo que traia esto de origen: comparaba si las versiones eran
+            // DISTINTAS, no si la publicada era mayor. Con eso, publicar una
+            // correccion sobre una rama vieja ofrecia instalar hacia atras, y
+            // Android rechaza esa instalacion despues de haberla descargado
+            // entera. isNewerVersion ya existia, bien escrita, y no la llamaba
+            // nadie.
+            val hayNueva = isNewerVersion(targetTagName, currentVersion)
 
-                
+            if (hayNueva) {
                 val changelogList = mutableListOf<ChangelogSection>()
                 var description: String? = null
                 var imageUrl: String? = null
                 try {
-                    val changelogUrl =
-                        URL(Repo.changelogUrl(tagWithPrefix))
-                    val changelogJson = changelogUrl.openStream().bufferedReader().use { it.readText() }
+                    val changelogJson = leerJsonDeGitHub(Repo.changelogUrl(targetTagName))
                     val changelogData = JSONObject(changelogJson)
 
                     description = changelogData.optString("description").takeIf { it.isNotEmpty() }
@@ -705,9 +761,11 @@ suspend fun checkForUpdate(
                         changelogList.add(ChangelogSection(title, itemsList))
                     }
                 } catch (e: Exception) {
+                    // Sin changelog.json se usa el cuerpo de la publicacion, que
+                    // es lo normal en Life Music: las notas salen del CHANGELOG y
+                    // no de un artefacto aparte que haya que acordarse de subir.
                     var body = targetRelease.optString("body", context.getString(R.string.no_changelog_available))
-                    
-                    val imageRegex = Regex("!\\[(.*?)\\]\\((.*?)\\)")
+                    val imageRegex = Regex("""!\[(.*?)\]\((.*?)\)""")
                     val match = imageRegex.find(body)
                     if (match != null) {
                         imageUrl = match.groupValues[2]
@@ -716,37 +774,27 @@ suspend fun checkForUpdate(
                     description = body
                 }
 
-                val publishedAt = targetRelease.getString("published_at")
-                val formattedReleaseDate = formatGitHubDate(publishedAt)
-                val assets = targetRelease.getJSONArray("assets")
+                val formattedReleaseDate = formatGitHubDate(targetRelease.getString("published_at"))
+                val apk = elegirApk(targetRelease.getJSONArray("assets"))
 
-                var apkSizeInMB = ""
-                var apkDownloadUrl = ""
-                for (j in 0 until assets.length()) {
-                    val asset = assets.getJSONObject(j)
-                    val assetName = asset.getString("name")
-                    if (assetName.endsWith(".apk", ignoreCase = true) && !assetName.lowercase().contains("debug")) {
-                        val apkSizeInBytes = asset.getLong("size")
-                        apkSizeInMB = String.format("%.1f", apkSizeInBytes / (1024.0 * 1024.0))
-                        apkDownloadUrl = asset.getString("browser_download_url")
-                        break
-                    }
-                }
-
-                if (apkDownloadUrl.isNotEmpty()) {
+                if (apk != null) {
+                    val (apkDownloadUrl, apkSizeInBytes) = apk
+                    val apkSizeInMB = String.format("%.1f", apkSizeInBytes / (1024.0 * 1024.0))
                     withContext(Dispatchers.Main) {
-                        onSuccess(displayTag, true, changelogList, apkSizeInMB, formattedReleaseDate, description, imageUrl, apkDownloadUrl)
+                        onSuccess(targetTagName, true, changelogList, apkSizeInMB, formattedReleaseDate, description, imageUrl, apkDownloadUrl)
                     }
                     return@withContext
                 }
+                // Publicacion nueva sin APK adjunto: no hay nada que instalar, asi
+                // que no se anuncia. Anunciarla llevaria a una pantalla sin boton.
+                Log.w("UpdateCheck", "La publicacion " + targetTagName + " no trae APK; se ignora")
             }
 
-            
             withContext(Dispatchers.Main) {
                 onSuccess(currentVersion, false, emptyList(), "", "", null, null, null)
             }
         } catch (e: Exception) {
-            Log.e("UpdateCheck", "Error checking for updates: ${e.message}", e)
+            Log.e("UpdateCheck", "Error al comprobar actualizaciones: " + e.message, e)
             withContext(Dispatchers.Main) { onError() }
         }
     }

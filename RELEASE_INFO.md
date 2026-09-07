@@ -54,9 +54,15 @@ gh release create v1.0.0 --title "Life Music 1.0.0" --notes-file notas.md app/bu
 
 Las notas de la publicación salen del `CHANGELOG.md`, no se escriben aparte.
 
-**El nombre del archivo importa:** el actualizador de la aplicación busca el
-recurso declarado en `constants/Repo.kt`. Si el nombre no coincide, la
-comprobación de versiones encuentra la publicación y no encuentra el archivo.
+**Sobre el nombre del archivo:** el actualizador prefiere el declarado en
+`constants/Repo.kt` (`lifemusic.apk`), pero si no lo encuentra se queda con
+cualquier `.apk` de la publicación que no lleve «debug» en el nombre. Así una
+publicación con el nombre cambiado sigue funcionando, y el nombre canónico manda
+cuando está.
+
+**Las notas salen del cuerpo de la publicación.** No hace falta subir un
+`changelog.json` aparte: el actualizador lo usa si existe, y si no, muestra el
+cuerpo del release. Una cosa menos que recordar.
 
 ## Después
 
