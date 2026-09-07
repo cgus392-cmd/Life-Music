@@ -14,7 +14,9 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.defaultMinSize
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -37,6 +39,7 @@ import androidx.compose.ui.text.TextLayoutResult
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.material3.Icon
@@ -73,20 +76,41 @@ private const val ANTICIPO_MS = 400L
 private const val DURACION_POR_DEFECTO_MS = 4000L
 
 /**
+ * Respiro que queda DEBAJO de la linea. Casi nada, y a proposito: el slider que
+ * viene despues ya trae unos 20dp de relleno propio antes de su pista. Si se
+ * repartiera la separacion a partes iguales, ese relleno contaria doble y la
+ * linea quedaria pegada al artista con un vacio debajo. Poniendo casi todo
+ * arriba, la linea cae centrada en el hueco: medido, 31.7dp de aire visible a
+ * cada lado.
+ */
+private val RESPIRO_INFERIOR = 4.dp
+
+/**
  * Envoltorio para el reproductor: lee las preferencias, saca la letra de la
- * cancion en curso y la deja parseada. Player.kt solo tiene que colocarlo.
+ * cancion en curso y la deja parseada.
+ *
+ * Tambien se hace cargo de la separacion que ya existia entre el bloque de
+ * titulo/artista y el slider —[separation]—, y ese es el punto: Life Line no
+ * anade una banda propia encima de un hueco vacio, se mete DENTRO del hueco. El
+ * reproductor no crece ni un dp por colocarla, y la linea deja de apretar al
+ * artista. Sin letra sincronizada solo se pinta la separacion, byte por byte la
+ * maqueta original.
  */
 @Composable
 fun LifeLineSection(
     positionMs: Long,
     baseColor: Color,
     onOpenLyrics: () -> Unit,
+    separation: Dp,
     modifier: Modifier = Modifier,
 ) {
     val activa by rememberPreference(LifeLineEnabledKey, defaultValue = true)
-    if (!activa) return
+    val conexion = LocalPlayerConnection.current
+    if (!activa || conexion == null) {
+        Spacer(Modifier.height(separation))
+        return
+    }
 
-    val conexion = LocalPlayerConnection.current ?: return
     val resaltado by rememberEnumPreference(LifeLineHighlightKey, LifeLineHighlight.DYNAMIC)
     val colorPropio by rememberPreference(LifeLineCustomColorKey, Color.White.toArgb())
     val traducir by rememberPreference(LifeLineTranslationKey, defaultValue = false)
@@ -101,6 +125,13 @@ fun LifeLineSection(
             ?.takeIf { lista -> lista.any { it.time > 0L } } // sin sincronia no hay barrido que valga
     }
 
+    if (entradas.isNullOrEmpty()) {
+        Spacer(Modifier.height(separation))
+        return
+    }
+
+    Spacer(Modifier.height((separation - RESPIRO_INFERIOR).coerceAtLeast(0.dp)))
+
     LifeLine(
         entries = entradas,
         positionMs = positionMs,
@@ -112,6 +143,8 @@ fun LifeLineSection(
         onOpenLyrics = onOpenLyrics,
         modifier = modifier,
     )
+
+    Spacer(Modifier.height(RESPIRO_INFERIOR))
 }
 
 @Composable
@@ -171,11 +204,11 @@ fun LifeLine(
     }
 
     Column(
-        // 32dp, no 48: medido en pantalla, el bloque titulo/artista respira a
-        // 13dp entre lineas, y con 48dp la letra quedaba a 20dp del artista y a
-        // 57dp del slider —flotando en medio de un hueco en vez de cerrando el
-        // bloque—. Con 32dp cae a 12dp del artista, el mismo ritmo, y sigue
-        // siendo una zona tactil comoda: ancho completo por 32dp de alto.
+        // 32dp, no 48: la linea son 14sp, unos 16dp de tinta, asi que 48dp
+        // metian 31dp de aire invisible dentro de la propia fila. Con 32dp la
+        // zona tactil sigue siendo comoda —ancho completo por 32dp— y el aire
+        // que rodea a la linea lo pone la separacion de LifeLineSection, donde
+        // se puede repartir a conciencia en vez de quedar atrapado aqui.
         modifier = modifier
             .fillMaxWidth()
             .clickable(onClick = onOpenLyrics)

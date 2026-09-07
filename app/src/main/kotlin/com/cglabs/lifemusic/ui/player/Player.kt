@@ -1935,17 +1935,23 @@ fun BottomSheetPlayer(
             }
 
             // Life Line: la letra viva, entre el artista y la barra de progreso.
-            // Se colapsa sola si la cancion no tiene letra sincronizada.
+            //
+            // Se lleva tambien la separacion que antes era un Spacer suelto aqui.
+            // No es un capricho de organizacion: asi la linea se coloca DENTRO de
+            // ese hueco —que estaba vacio— en vez de anadir una banda propia
+            // encima. El reproductor mide exactamente lo mismo con letra que sin
+            // ella salvo por la fila de la linea, y cuando no hay letra
+            // sincronizada la maqueta vuelve a ser la original.
+            //
             // El padding horizontal lo aplica cada hijo del reproductor por su
             // cuenta, no el contenedor: sin esto la linea se iria a los bordes.
             LifeLineSection(
                 positionMs = sliderPosition ?: effectivePosition,
                 baseColor = TextBackgroundColor,
                 onOpenLyrics = { showInlineLyrics = true },
+                separation = if (useNewPlayerDesign) 24.dp else 20.dp,
                 modifier = Modifier.padding(horizontal = PlayerHorizontalPadding),
             )
-
-            Spacer(Modifier.height(if (useNewPlayerDesign) 24.dp else 20.dp))
 
             when (sliderStyle) {
                 SliderStyle.DEFAULT -> {
