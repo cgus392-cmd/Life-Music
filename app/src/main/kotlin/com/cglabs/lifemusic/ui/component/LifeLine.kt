@@ -13,6 +13,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.defaultMinSize
@@ -53,6 +54,7 @@ import com.cglabs.lifemusic.constants.LifeLineEnabledKey
 import com.cglabs.lifemusic.constants.LifeLineHighlight
 import com.cglabs.lifemusic.constants.LifeLineHighlightKey
 import com.cglabs.lifemusic.constants.LifeLineTranslationKey
+import com.cglabs.lifemusic.db.entities.LyricsEntity
 import com.cglabs.lifemusic.lyrics.LyricsEntry
 import com.cglabs.lifemusic.lyrics.LyricsUtils
 import com.cglabs.lifemusic.utils.rememberEnumPreference
@@ -133,7 +135,35 @@ fun LifeLineSection(
             ?.takeIf { lista -> lista.any { it.time > 0L } } // sin sincronia no hay barrido que valga
     }
 
-    if (entradas.isNullOrEmpty()) {
+    val haySincronia = !entradas.isNullOrEmpty()
+    // Hay texto guardado y no es el marcador de "no encontrada": tocar la fila
+    // lleva a alguna parte.
+    val hayLetraGuardada = !crudo.isNullOrEmpty() && crudo != LyricsEntity.LYRICS_NOT_FOUND
+
+    // Antes, sin letra sincronizada, la fila desaparecia y dejaba un hueco mudo.
+    // Ahora habla la app: cuenta lo que esta pasando por dentro —un fundido, la
+    // red que se fue, la cancion despidiendose— y cuando no pasa nada, acompana.
+    val voz = recordarVozLifeLine(
+        positionMs = positionMs,
+        duracionMs = (cancionActual?.duration ?: 0).toLong() * 1000L,
+        tieneLetraSincronizada = haySincronia,
+        hayLetraSinSincronizar = hayLetraGuardada && !haySincronia,
+    )
+
+    if (voz != null) {
+        LifeLineVoiceRow(
+            voz = voz,
+            seedId = cancionActual?.id.orEmpty(),
+            positionMs = positionMs,
+            baseColor = baseColor,
+            canOpenLyrics = hayLetraGuardada,
+            onOpenLyrics = onOpenLyrics,
+            modifier = modifier,
+        )
+        return
+    }
+
+    if (!haySincronia) {
         Spacer(Modifier.height(separation))
         return
     }
@@ -207,18 +237,7 @@ fun LifeLine(
         cantado
     }
 
-    Column(
-        // 32dp es todo el alto que gasta la funcion, y es el unico aire que
-        // hay: la fila no lleva separacion ni encima ni debajo. La linea son
-        // 14sp —unos 16dp de tinta— asi que quedan 8dp por lado, justo el
-        // respiro que pide una tercera linea mas pequena que el artista. Con
-        // los 48dp de accesibilidad eran 16dp por lado y se veia el hueco.
-        modifier = modifier
-            .fillMaxWidth()
-            .clickable(onClick = onOpenLyrics)
-            .defaultMinSize(minHeight = 32.dp),
-        verticalArrangement = Arrangement.Center,
-    ) {
+    FilaLifeLine(onClick = onOpenLyrics, modifier = modifier) {
         AnimatedContent(
             targetState = entrada,
             transitionSpec = {
@@ -273,6 +292,35 @@ fun LifeLine(
             }
         }
     }
+}
+
+/**
+ * El contenedor de la fila, compartido por la letra y por la voz de la app.
+ *
+ * Que sea el mismo para las dos no es ahorro de lineas: es lo que garantiza que
+ * al pasar de una a otra no se mueva nada de sitio. Si cada una trajera su
+ * propio alto, cada cancion sin letra empujaria el reproductor.
+ *
+ * 32dp es todo el alto que gasta la funcion, y es el unico aire que hay: la fila
+ * no lleva separacion ni encima ni debajo. El texto son 14sp —unos 16dp de
+ * tinta— asi que quedan 8dp por lado, justo el respiro que pide una tercera
+ * linea mas pequena que el artista. Con los 48dp de accesibilidad eran 16dp por
+ * lado y se veia el hueco.
+ */
+@Composable
+internal fun FilaLifeLine(
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+    content: @Composable ColumnScope.() -> Unit,
+) {
+    Column(
+        modifier = modifier
+            .fillMaxWidth()
+            .clickable(onClick = onClick)
+            .defaultMinSize(minHeight = 32.dp),
+        verticalArrangement = Arrangement.Center,
+        content = content,
+    )
 }
 
 /**

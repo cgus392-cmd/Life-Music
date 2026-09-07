@@ -1036,6 +1036,47 @@
     <string name="life_line_highlight_custom">Custom colour</string>
     <string name="life_line_custom_color">Pick colour</string>
     <string name="life_line_custom_color_desc">The colour the sung words are painted with</string>
+
+
+    <!-- La voz de Life Line: lo que dice la app cuando no hay letra que cantar o cuando pasa algo por dentro que merece contarse. -->
+    <string name="life_line_voice_no_lyrics_1">This one you sing with your body</string>
+    <string name="life_line_voice_no_lyrics_2">No words — pure feeling</string>
+    <string name="life_line_voice_no_lyrics_3">Here the music does the talking</string>
+    <string name="life_line_voice_no_lyrics_4">Let the note carry you</string>
+    <string name="life_line_voice_no_lyrics_5">This one needs no words</string>
+    <string name="life_line_voice_no_lyrics_6">Close your eyes and listen</string>
+    <string name="life_line_voice_no_lyrics_7">Feel the rhythm</string>
+    <string name="life_line_voice_no_lyrics_8">It plays, and that’s enough</string>
+
+    <string name="life_line_voice_unsynced_1">Lyrics found, but not timed</string>
+    <string name="life_line_voice_unsynced_2">Lyrics available — tap to read</string>
+    <string name="life_line_voice_unsynced_3">This one isn’t synced</string>
+
+    <string name="life_line_voice_crossfade_1">Blending the notes…</string>
+    <string name="life_line_voice_crossfade_2">One fades, another rises</string>
+    <string name="life_line_voice_crossfade_3">Crossing over…</string>
+    <string name="life_line_voice_crossfade_4">Mixing…</string>
+
+    <string name="life_line_voice_automix_1">Lining up what comes next</string>
+    <string name="life_line_voice_automix_2">Picking the next one</string>
+    <string name="life_line_voice_automix_3">Following your rhythm</string>
+
+    <string name="life_line_voice_ending_1">Final bars</string>
+    <string name="life_line_voice_ending_2">Fading out…</string>
+    <string name="life_line_voice_ending_3">Almost there</string>
+
+    <string name="life_line_voice_buffering_1">Finding the signal…</string>
+    <string name="life_line_voice_buffering_2">Loading…</string>
+
+    <string name="life_line_voice_offline_1">No connection — waiting</string>
+    <string name="life_line_voice_offline_2">The internet stepped out</string>
+
+    <string name="life_line_voice_error_1">Something went wrong here</string>
+    <string name="life_line_voice_error_2">Couldn’t play this one</string>
+
+    <string name="life_line_voice_paused_1">Paused</string>
+    <string name="life_line_voice_paused_2">I’ll wait here</string>
+    <string name="life_line_voice_paused_3">Whenever you’re ready</string>
     <string name="life_line_translation">Show translation</string>
     <string name="life_line_translation_desc">Add the translated line under the original</string>
 </resources>

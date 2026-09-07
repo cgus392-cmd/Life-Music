@@ -650,6 +650,47 @@
     <string name="life_line_highlight_custom">Color personalizado</string>
     <string name="life_line_custom_color">Elegir color</string>
     <string name="life_line_custom_color_desc">El color con el que se pintan las palabras ya cantadas</string>
+
+
+    <!-- La voz de Life Line -->
+    <string name="life_line_voice_no_lyrics_1">Esta se canta con el cuerpo</string>
+    <string name="life_line_voice_no_lyrics_2">Sin letra: puro sentimiento</string>
+    <string name="life_line_voice_no_lyrics_3">Aquí solo manda la música</string>
+    <string name="life_line_voice_no_lyrics_4">Déjate llevar por la nota</string>
+    <string name="life_line_voice_no_lyrics_5">Esta no necesita palabras</string>
+    <string name="life_line_voice_no_lyrics_6">Cierra los ojos y escucha</string>
+    <string name="life_line_voice_no_lyrics_7">Siente el ritmo</string>
+    <string name="life_line_voice_no_lyrics_8">Suena, y con eso basta</string>
+
+    <string name="life_line_voice_unsynced_1">Hay letra, pero sin tiempos</string>
+    <string name="life_line_voice_unsynced_2">Letra disponible — tócala para leerla</string>
+    <string name="life_line_voice_unsynced_3">Esta letra no viene sincronizada</string>
+
+    <string name="life_line_voice_crossfade_1">Fundiendo las notas…</string>
+    <string name="life_line_voice_crossfade_2">Una se despide, otra entra</string>
+    <string name="life_line_voice_crossfade_3">Cruzando de una a la otra…</string>
+    <string name="life_line_voice_crossfade_4">Mezclando…</string>
+
+    <string name="life_line_voice_automix_1">Enlazando con lo que viene</string>
+    <string name="life_line_voice_automix_2">Eligiendo la que sigue</string>
+    <string name="life_line_voice_automix_3">Siguiendo tu ritmo</string>
+
+    <string name="life_line_voice_ending_1">Últimos compases</string>
+    <string name="life_line_voice_ending_2">Se va apagando…</string>
+    <string name="life_line_voice_ending_3">Ya casi</string>
+
+    <string name="life_line_voice_buffering_1">Buscando la señal…</string>
+    <string name="life_line_voice_buffering_2">Cargando…</string>
+
+    <string name="life_line_voice_offline_1">Sin conexión — esperando</string>
+    <string name="life_line_voice_offline_2">Se fue el internet</string>
+
+    <string name="life_line_voice_error_1">Algo falló con esta</string>
+    <string name="life_line_voice_error_2">No se pudo reproducir</string>
+
+    <string name="life_line_voice_paused_1">En pausa</string>
+    <string name="life_line_voice_paused_2">Aquí te espero</string>
+    <string name="life_line_voice_paused_3">Cuando quieras, seguimos</string>
     <string name="life_line_translation">Mostrar traducción</string>
     <string name="life_line_translation_desc">Añade la traducción bajo la línea original</string>
 </resources>
