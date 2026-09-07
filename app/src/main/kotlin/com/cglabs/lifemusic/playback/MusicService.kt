@@ -855,18 +855,29 @@ class MusicService :
         ) { mediaMetadata, necesitaLetra ->
             mediaMetadata to necesitaLetra
         }.collectLatest(scope) { (mediaMetadata, necesitaLetra) ->
-            if (necesitaLetra && mediaMetadata != null && database.lyrics(mediaMetadata.id)
-                    .first() == null
-            ) {
-                val lyricsWithProvider = lyricsHelper.getLyrics(mediaMetadata)
-                database.query {
-                    upsert(
-                        LyricsEntity(
-                            id = mediaMetadata.id,
-                            lyrics = lyricsWithProvider.lyrics ?: "",
-                            provider = lyricsWithProvider.providerName,
-                        ),
-                    )
+            if (necesitaLetra && mediaMetadata != null) {
+                // withContext(IO) es obligatorio aqui: 'scope' es
+                // CoroutineScope(Dispatchers.Main), asi que sin esto la consulta
+                // a la base y las peticiones a los cinco proveedores de letra
+                // corren en el HILO PRINCIPAL. Con proveedores lentos o caidos
+                // —paxsenix responde 403 ahora mismo— la interfaz se congela en
+                // cada cambio de cancion y se queda pintada la letra anterior.
+                //
+                // El bloque estuvo siempre en Main; no se notaba porque colgaba
+                // de ShowLyricsKey, que no escribe nadie, y nunca se ejecutaba.
+                withContext(Dispatchers.IO) {
+                    if (database.lyrics(mediaMetadata.id).first() == null) {
+                        val lyricsWithProvider = lyricsHelper.getLyrics(mediaMetadata)
+                        database.query {
+                            upsert(
+                                LyricsEntity(
+                                    id = mediaMetadata.id,
+                                    lyrics = lyricsWithProvider.lyrics ?: "",
+                                    provider = lyricsWithProvider.providerName,
+                                ),
+                            )
+                        }
+                    }
                 }
             }
         }

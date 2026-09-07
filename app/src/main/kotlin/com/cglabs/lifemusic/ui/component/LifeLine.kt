@@ -115,8 +115,16 @@ fun LifeLineSection(
     val colorPropio by rememberPreference(LifeLineCustomColorKey, Color.White.toArgb())
     val traducir by rememberPreference(LifeLineTranslationKey, defaultValue = false)
 
+    val cancionActual by conexion.mediaMetadata.collectAsState()
     val letraActual by conexion.currentLyrics.collectAsState(initial = null)
-    val crudo = letraActual?.lyrics?.trim()
+
+    // La letra solo vale si es LA DE ESTA CANCION. currentLyrics es un
+    // flatMapLatest sobre la base: al cambiar de pista, collectAsState conserva
+    // el valor anterior hasta que Room emite el nuevo, y en ese hueco se
+    // pintaba la linea de la cancion que acababa de terminar, avanzando encima
+    // con la posicion de la que ya sonaba. Comparar el id lo cierra de raiz, sin
+    // depender de lo que tarde la consulta.
+    val crudo = letraActual?.takeIf { it.id == cancionActual?.id }?.lyrics?.trim()
 
     // El parseo es caro y la letra solo cambia al cambiar de cancion.
     val entradas = remember(crudo) {

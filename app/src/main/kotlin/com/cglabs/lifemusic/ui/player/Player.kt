@@ -2928,10 +2928,13 @@ fun InlineLyricsView(
     LaunchedEffect(mediaMetadata?.id, currentLyrics) {
         if (mediaMetadata != null && currentLyrics == null) {
             delay(500)
-            coroutineScope.launch(Dispatchers.IO) {
+            // withContext y no coroutineScope.launch: aquel se escapaba del
+            // efecto y seguia vivo al cambiar de cancion, encadenando peticiones
+            // a los proveedores por cada pista que pasara. Asi muere con el.
+            withContext(Dispatchers.IO) {
                 try {
                     val existing = database.lyrics(mediaMetadata.id).firstOrNull()
-                    if (existing != null) return@launch
+                    if (existing != null) return@withContext
                     val entryPoint = EntryPointAccessors.fromApplication(
                         context.applicationContext,
                         com.cglabs.lifemusic.di.LyricsHelperEntryPoint::class.java
