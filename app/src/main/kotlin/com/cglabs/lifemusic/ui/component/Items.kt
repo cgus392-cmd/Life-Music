@@ -811,11 +811,16 @@ fun PlaylistListItem(
     subtitle = if (autoPlaylist) {
         ""
     } else {
-        if (playlist.songCount == 0 && playlist.playlist.remoteSongCount!! != null) {
+        // remoteSongCount es nulo en toda lista creada en el propio telefono. Leerlo
+        // con !! antes de compararlo con null reventaba justo en el caso que la
+        // comprobacion pretendia cubrir: lista local y vacia. El val local hace falta
+        // porque el smart cast no cruza modulos (PlaylistEntity vive en :core).
+        val remoteSongCount = playlist.playlist.remoteSongCount
+        if (playlist.songCount == 0 && remoteSongCount != null) {
             pluralStringResource(
                 R.plurals.n_song,
-                playlist.playlist.remoteSongCount!!!!,
-                playlist.playlist.remoteSongCount!!
+                remoteSongCount,
+                remoteSongCount
             )
         } else {
             pluralStringResource(
@@ -912,11 +917,16 @@ fun PlaylistGridItem(
         val subtitle = if (autoPlaylist) {
             ""
         } else {
-            if (playlist.songCount == 0 && playlist.playlist.remoteSongCount!! != null) {
+            // remoteSongCount es nulo en toda lista creada en el propio telefono. Leerlo
+            // con !! antes de compararlo con null reventaba justo en el caso que la
+            // comprobacion pretendia cubrir: lista local y vacia. El val local hace falta
+            // porque el smart cast no cruza modulos (PlaylistEntity vive en :core).
+            val remoteSongCount = playlist.playlist.remoteSongCount
+            if (playlist.songCount == 0 && remoteSongCount != null) {
                 pluralStringResource(
                     R.plurals.n_song,
-                    playlist.playlist.remoteSongCount!!!!,
-                    playlist.playlist.remoteSongCount!!
+                    remoteSongCount,
+                    remoteSongCount
                 )
             } else {
                 pluralStringResource(

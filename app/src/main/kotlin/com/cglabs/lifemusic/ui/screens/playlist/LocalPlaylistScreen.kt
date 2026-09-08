@@ -990,7 +990,7 @@ fun LocalPlaylistHeader(
         val uri = result.value ?: return@LaunchedEffect
         withContext(Dispatchers.IO) {
             when {
-                playlist.playlist.browseId!! == null -> {
+                playlist.playlist.browseId == null -> {
                     overrideThumbnail.value = uri.toString()
                     isCustomThumbnail = true
 
@@ -1067,7 +1067,7 @@ fun LocalPlaylistHeader(
                 },
                 onCancel = { showEditNoteDialog = false }
             ) {
-                if (playlist.playlist.browseId!! != null) {
+                if (playlist.playlist.browseId != null) {
                     Text(
                         text = stringResource(R.string.edit_playlist_cover_note),
                         style = MaterialTheme.typography.bodyMedium
@@ -1136,7 +1136,7 @@ fun LocalPlaylistHeader(
                                                 },
                                                 onRemove = {
                                                     when {
-                                                        playlist.playlist.browseId!! == null -> {
+                                                        playlist.playlist.browseId == null -> {
                                                             overrideThumbnail.value = null
                                                             database.query {
                                                                 update(playlist.playlist.copy(thumbnailUrl = null))
@@ -1205,7 +1205,7 @@ fun LocalPlaylistHeader(
                                                 },
                                                 onRemove = {
                                                     when {
-                                                        playlist.playlist.browseId!! == null -> {
+                                                        playlist.playlist.browseId == null -> {
                                                             overrideThumbnail.value = null
                                                             database.query {
                                                                 update(playlist.playlist.copy(thumbnailUrl = null))
@@ -1258,8 +1258,9 @@ fun LocalPlaylistHeader(
         Spacer(modifier = Modifier.height(12.dp))
 
         
-        val songCount = if (playlist.songCount == 0 && (playlist.playlist.remoteSongCount ?: 0) != null) {
-            (playlist.playlist.remoteSongCount ?: 0)
+        // (remoteSongCount ?: 0) != null era siempre cierto: un Int no es nulo.
+        val songCount = if (playlist.songCount == 0) {
+            playlist.playlist.remoteSongCount ?: 0
         } else {
             playlist.songCount
         }

@@ -15,6 +15,50 @@ esa base**; para la historia anterior, consulte el repositorio de origen.
 
 ---
 
+## [1.1.3] — 2026-09-07
+
+Lo encontró un probador con un moto g56 5G, no nosotros. La aplicación se cerraba
+al abrir la biblioteca, y el informe de fallo llegó ofuscado; la causa apareció al
+recomponer la traza contra el `mapping.txt` de esa misma compilación.
+
+### Corregido
+
+- **La biblioteca cerraba la aplicación si había una lista de reproducción vacía
+  creada en el propio teléfono.** El código comprobaba
+  `remoteSongCount!! != null`: el `!!` se evalúa **antes** que la comparación, así
+  que reventaba justo en el caso que la comprobación pretendía cubrir. Y ese caso
+  es de lo más corriente —una lista recién creada, todavía sin canciones—, porque
+  el contador remoto solo existe en las listas que vienen de YouTube.
+
+  Estaba en las dos presentaciones, lista y rejilla, así que caía igual con
+  cualquiera de las dos vistas de la biblioteca.
+
+- **Abrir una lista creada en el teléfono podía cerrar la aplicación por lo
+  mismo.** Cuatro comprobaciones de `browseId` con el mismo error, en la pantalla
+  de lista local: cambiar la portada, quitarla y el aviso que la acompaña.
+  `browseId` es nulo precisamente en las listas locales, que es donde esas
+  opciones tienen sentido.
+
+- Una condición que era siempre cierta —`(remoteSongCount ?: 0) != null`, y un
+  entero nunca es nulo— dejaba muerta su propia rama alternativa.
+
+### Cambiado
+
+- **Los restos de la marca ajena que quedaban fuera de la interfaz.** El informe
+  de fallo se titulaba «echomusic Crash Report» y se guardaba como
+  `echomusic_crash_*.txt` —así llegó el que originó esta versión—, y las imágenes
+  compartidas se archivaban en `Imágenes/echomusic`, una carpeta con nombre de
+  otro proyecto en la galería del usuario.
+
+### Nota sobre el método
+
+Los seis fallos son el mismo: un `!!` puesto en bloque sobre valores que sí podían
+ser nulos, que no arregla la nulabilidad sino que adelanta el error. Vienen de
+antes de la bifurcación. La búsqueda que los destapó —`!!` seguido de una
+comparación con `null`— ya no encuentra nada en el árbol.
+
+---
+
 ## [1.1.2] — 2026-09-07
 
 ### Cambiado
@@ -203,6 +247,7 @@ atribuirse un servicio ajeno.
 Los avisos de copyright de terceros presentes en el código se conservan intactos,
 tal como exige la GPL-3.0 en sus secciones 4 y 5.
 
+[1.1.3]: https://github.com/cgus392-cmd/Life-Music/releases/tag/v1.1.3
 [1.1.2]: https://github.com/cgus392-cmd/Life-Music/releases/tag/v1.1.2
 [1.1.1]: https://github.com/cgus392-cmd/Life-Music/releases/tag/v1.1.1
 [1.1.0]: https://github.com/cgus392-cmd/Life-Music/releases/tag/v1.1.0
