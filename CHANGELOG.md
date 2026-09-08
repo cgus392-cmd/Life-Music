@@ -15,6 +15,48 @@ esa base**; para la historia anterior, consulte el repositorio de origen.
 
 ---
 
+## [1.1.0] — 2026-09-07
+
+Limpieza de la infraestructura heredada. Life Music seguia mandando trafico
+—y usuarios— al proyecto de origen en sitios que no se habian encontrado antes.
+
+### Corregido
+
+- **Compartir una cancion abria el dominio del proyecto de origen.** Todos los
+  enlaces se construian contra `share.echomusic.fun`, en catorce ficheros: canciones,
+  listas, albumes y artistas. Ahora apuntan a YouTube Music directamente, que es
+  donde esta el contenido. Life Music no tiene servidores y no va a fingir que
+  los tiene.
+- **Los enlaces legales de Ajustes abrian la politica de privacidad y los
+  terminos de Echo Music.** La aplicacion mostraba documentos legales ajenos como
+  si fueran suyos. Ahora abren los propios, que estan en el repositorio.
+- **El dialogo de actualizacion mandaba a la web del proyecto de origen** en vez
+  de a nuestras publicaciones. Igual la notificacion de actualizacion disponible.
+- **La comprobacion de version no comparaba si la publicada era MAYOR**, solo si
+  era distinta: ofrecia instalar hacia atras, que Android rechaza despues de
+  haber descargado el APK entero. `isNewerVersion` ya existia y no la llamaba
+  nadie.
+- **La comprobacion no tenia limites de tiempo** —una red a medias la dejaba
+  colgada— ni enviaba `User-Agent`, que GitHub exige y sin el puede responder 403.
+- **El canal de versiones beta no funcionaba**: la consulta iba siempre a
+  `/releases/latest`, que excluye las prepublicaciones por definicion.
+
+### Cambiado
+
+- El servidor de Escuchar juntos, que pertenece al proyecto de origen, pasa a
+  estar declarado en `constants/Repo.kt` y **documentado en la politica de
+  privacidad**. Seguia siendo una dependencia real y no constaba en ninguna parte.
+- El keystore de publicacion se busca fuera del repositorio, por variable de
+  entorno o por `local.properties`.
+
+### Nota
+
+El manejador de enlaces entrantes sigue aceptando `share.echomusic.fun`: ahi la
+aplicacion no manda, recibe. Quitarlo romperia los enlaces que alguien ya haya
+compartido.
+
+---
+
 ## [1.0.0] — 2026-09-07
 
 Primera versión pública. Recoge dos fases de trabajo: dar identidad propia a la
@@ -113,4 +155,5 @@ atribuirse un servicio ajeno.
 Los avisos de copyright de terceros presentes en el código se conservan intactos,
 tal como exige la GPL-3.0 en sus secciones 4 y 5.
 
+[1.1.0]: https://github.com/cgus392-cmd/Life-Music/releases/tag/v1.1.0
 [1.0.0]: https://github.com/cgus392-cmd/Life-Music/releases/tag/v1.0.0

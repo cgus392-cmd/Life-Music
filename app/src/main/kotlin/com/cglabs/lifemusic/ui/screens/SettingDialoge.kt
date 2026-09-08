@@ -20,6 +20,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil3.compose.AsyncImage
 import com.music.innertube.utils.parseCookieString
+import com.cglabs.lifemusic.constants.Repo
 import com.cglabs.lifemusic.BuildConfig
 import com.cglabs.lifemusic.R
 import com.cglabs.lifemusic.constants.AccountEmailKey
@@ -212,14 +213,14 @@ fun SettingDialoge(
                     text = "Privacy Policy",
                     style = MaterialTheme.typography.bodySmall,
                     color = onSecondaryColor,
-                    modifier = Modifier.clickable { uriHandler.openUri("https://echomusic.fun/p/privacy-policy") }.padding(4.dp)
+                    modifier = Modifier.clickable { uriHandler.openUri(Repo.PRIVACY_POLICY) }.padding(4.dp)
                 )
                 Text(text = " • ", color = onSecondaryColor, style = MaterialTheme.typography.bodySmall)
                 Text(
                     text = "Terms of Service",
                     style = MaterialTheme.typography.bodySmall,
                     color = onSecondaryColor,
-                    modifier = Modifier.clickable { uriHandler.openUri("https://echomusic.fun/p/toc") }.padding(4.dp)
+                    modifier = Modifier.clickable { uriHandler.openUri(Repo.LEGAL_NOTICE) }.padding(4.dp)
                 )
             }
         }

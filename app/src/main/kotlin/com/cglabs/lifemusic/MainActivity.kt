@@ -1,6 +1,7 @@
 
 
 package com.cglabs.lifemusic
+import com.cglabs.lifemusic.constants.Repo
 import com.cglabs.lifemusic.R
 import com.cglabs.lifemusic.BuildConfig
 import com.cglabs.lifemusic.ui.screens.settings.RingtoneViewModel
@@ -628,7 +629,7 @@ class MainActivity : ComponentActivity() {
                 confirmButton = {
                     Button(onClick = {
                         showUpdateDialog = false
-                        val intent = Intent(Intent.ACTION_VIEW, android.net.Uri.parse("https://echomusic.fun"))
+                        val intent = Intent(Intent.ACTION_VIEW, android.net.Uri.parse(Repo.RELEASES_HTML))
                         context.startActivity(intent)
                     }) {
                         Text("Update")

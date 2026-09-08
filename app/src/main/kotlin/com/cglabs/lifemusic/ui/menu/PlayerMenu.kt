@@ -72,6 +72,7 @@ import androidx.media3.exoplayer.offline.DownloadRequest
 import androidx.media3.exoplayer.offline.DownloadService
 import androidx.navigation.NavController
 import com.music.innertube.YouTube
+import com.cglabs.lifemusic.constants.Repo
 import com.cglabs.lifemusic.LocalDatabase
 import com.cglabs.lifemusic.LocalDownloadUtil
 import com.cglabs.lifemusic.LocalListenTogetherManager
@@ -345,7 +346,7 @@ fun PlayerMenu(
                                 type = "text/plain"
                                 putExtra(
                                     android.content.Intent.EXTRA_TEXT,
-                                    "https://share.echomusic.fun/watch?v=${mediaMetadata.id}"
+                                    "https://music.youtube.com/watch?v=${mediaMetadata.id}"
                                 )
                             }
                             context.startActivity(android.content.Intent.createChooser(intent, null))

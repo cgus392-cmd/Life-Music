@@ -48,12 +48,16 @@ ocurre con cualquier aplicación conectada.
 | YouTube / YouTube Music | catálogo y reproducción | siempre |
 | LRCLIB, Kugou, YouLyPlus, PaxSenix, SimpMusic, Unison | letras | al reproducir, si están activados |
 | Apple Music, `canvas.echomusic.fun` | vídeos de fondo (*canvas*) | si activa la función |
+| `echomusic-listen-together.onrender.com` | salas de Escuchar juntos | si usa la función |
 | GitHub | comprobar si hay versión nueva | **desactivado por defecto** |
 | Discord | presencia enriquecida | si la activa usted |
 | Servicio de traducción, si lo configura | traducir letras | solo con clave propia |
 | Proveedor de IA, si lo configura | listas generadas | solo con clave propia |
 
-**Ninguno de estos servicios es nuestro.** Cada uno tiene su propia política de
+**Ninguno de estos servicios es nuestro.** Dos de ellos —el de *canvas* y el de
+Escuchar juntos— pertenecen al proyecto de origen, y así consta en
+`constants/Repo.kt` para que la dependencia esté a la vista y no escondida en
+una pantalla cualquiera. Cada uno tiene su propia política de
 privacidad y CG LABS no controla qué hacen con la petición.
 
 Si inicia sesión con su cuenta de Google, esa sesión va **directamente** a
@@ -89,4 +93,4 @@ Si esta política cambia, quedará reflejado en el
 
 ---
 
-*Última revisión: 7 de septiembre de 2026 · Life Music 1.0.0*
+*Última revisión: 7 de septiembre de 2026 · Life Music 1.1.0*

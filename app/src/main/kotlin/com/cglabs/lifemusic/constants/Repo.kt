@@ -38,6 +38,23 @@ object Repo {
     /** URL de descarga del APK de una release concreta. */
     fun apkUrl(tag: String): String = "$HTML/releases/download/$tag/$APK_ASSET"
 
+    /** Pagina de publicaciones, para "descargar la version nueva". */
+    const val RELEASES_HTML = "$HTML/releases"
+
+    /** Politica de privacidad. La nuestra, en el repositorio. */
+    const val PRIVACY_POLICY = "$HTML/blob/main/PRIVACY_POLICY.md"
+
+    /** Aviso legal: la seccion del README. */
+    const val LEGAL_NOTICE = "$HTML#aviso-legal"
+
+    /**
+     * Servidor de Escuchar juntos. NO es nuestro: pertenece al proyecto de
+     * origen. Se centraliza aqui para que la dependencia este a la vista y no
+     * escondida en dos pantallas, y esta declarada en PRIVACY_POLICY.md. Si
+     * algun dia Life Music monta el suyo, se cambia en este sitio.
+     */
+    const val LISTEN_TOGETHER_SERVER = "https://echomusic-listen-together.onrender.com"
+
     /** URL del changelog publicado junto a una release. */
     fun changelogUrl(tag: String): String = "$HTML/releases/download/$tag/changelog.json"
 }

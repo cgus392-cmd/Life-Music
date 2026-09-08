@@ -40,6 +40,7 @@ import androidx.compose.foundation.relocation.bringIntoViewRequester
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import com.cglabs.lifemusic.constants.Repo
 import com.cglabs.lifemusic.ui.component.DefaultDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -743,7 +744,7 @@ private fun RoomStatusCard(
             if (isHost) {
                 Spacer(modifier = Modifier.height(16.dp))
                 val inviteLink = remember(roomCode) {
-                    "https://echomusic-listen-together.onrender.com/listen?code=$roomCode"
+                    "${Repo.LISTEN_TOGETHER_SERVER}/listen?code=$roomCode"
                 }
                 Row(
                     verticalAlignment = Alignment.CenterVertically,

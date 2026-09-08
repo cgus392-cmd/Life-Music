@@ -12,6 +12,7 @@ import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import androidx.core.content.ContextCompat
 import androidx.core.net.toUri
+import com.cglabs.lifemusic.constants.Repo
 import com.cglabs.lifemusic.R
 
 object UpdateNotificationHelper {
@@ -31,7 +32,7 @@ object UpdateNotificationHelper {
         }
 
         
-        val apkUrl = "https://echomusic.fun"
+        val apkUrl = Repo.RELEASES_HTML
         val intent = Intent(Intent.ACTION_VIEW, apkUrl.toUri())
 
         val flags = PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
