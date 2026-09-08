@@ -15,6 +15,68 @@ esa base**; para la historia anterior, consulte el repositorio de origen.
 
 ---
 
+## [1.1.4] — 2026-09-07
+
+### Corregido
+
+- **Pulsar «Instalar» en la pantalla de actualización cerraba la aplicación.**
+  La variante FOSS borraba del manifiesto el permiso `REQUEST_INSTALL_PACKAGES`
+  —el proyecto de origen lo hacía porque F-Droid prohíbe que una aplicación se
+  actualice a sí misma—, pero el actualizador seguía ahí y seguía llamando a
+  `canRequestPackageInstalls()`, que lanza `SecurityException` cuando el permiso
+  no está declarado.
+
+  El resultado era el peor posible: la edición que se publica es justamente la
+  FOSS, así que la función estrella del proyecto se estrellaba en el último paso,
+  después de descargar los 66 MB.
+
+  Life Music no está en F-Droid: se distribuye por GitHub y su actualizador es
+  parte del proyecto. El permiso se conserva ahora también en la edición FOSS, y
+  el comentario del sabor, que seguía prometiendo compatibilidad con F-Droid, dice
+  ya lo que hay. Aquí «FOSS» significa «sin servicios de Google», nada más.
+
+- Instalar ya nunca cierra la aplicación aunque el sistema se niegue: si algo
+  falla se avisa y el APK descargado sigue donde estaba, listo para reintentar.
+
+- **El logotipo de CG LABS podía quedar invisible.** Venía por recursos —negro en
+  `drawable/`, blanco en `drawable-night/`— y Android elige esa variante según el
+  tema del **sistema**. Con la aplicación en oscuro y el sistema en claro salía
+  negro sobre negro. Ahora se tiñe con el color de contenido del tema real.
+
+### Cambiado
+
+- **Rediseño de la introducción de bienvenida.** Deja de ser una sucesión de
+  pantallas quietas:
+
+  - **Las barras del sistema ya no salen grises.** Un diálogo abre su propia
+    ventana y esa ventana no heredaba el borde a borde de la aplicación. Ahora el
+    color llega hasta el borde, y el tono de los iconos se decide por la
+    luminancia del fondo real de la aplicación, no por el tema del sistema.
+  - **Fondo con dos manchas de luz que derivan despacio**, tomadas del color del
+    tema: con color dinámico activado, la bienvenida ya es del color del teléfono
+    de cada uno.
+  - **Insignia animada** en el saludo: dos estrellas blandas girando en sentidos
+    opuestos con el icono encima. El giro contrario es lo que da profundidad.
+  - **Entrada escalonada**: cada bloque llega un poco después del anterior.
+  - Nada de esto se mueve si el sistema tiene las animaciones desactivadas.
+
+- **Paso nuevo de preajustes.** Tema, color dinámico, fondo del reproductor y
+  nuevo diseño del reproductor, elegibles sin salir de la introducción. Son los
+  ajustes que se tocan el primer día, y mandar a buscarlos a un menú que todavía
+  no se conoce es pedirle a alguien que se pierda antes de empezar. Escriben las
+  mismas preferencias que Ajustes → Apariencia, así que no hay dos verdades.
+
+- El chip de edición ya no dice «FOSS» a mano: lo lee del sabor compilado, así que
+  una compilación GMS deja de mentir sobre lo que es.
+
+### Conocido
+
+- Los textos de la introducción siguen escritos en español dentro del código, sin
+  pasar por recursos. Se hereda así y no se ha tocado en esta versión: traducirlo
+  son unas cuarenta cadenas por idioma y merece su propio cambio.
+
+---
+
 ## [1.1.3] — 2026-09-07
 
 Lo encontró un probador con un moto g56 5G, no nosotros. La aplicación se cerraba
@@ -247,6 +309,7 @@ atribuirse un servicio ajeno.
 Los avisos de copyright de terceros presentes en el código se conservan intactos,
 tal como exige la GPL-3.0 en sus secciones 4 y 5.
 
+[1.1.4]: https://github.com/cgus392-cmd/Life-Music/releases/tag/v1.1.4
 [1.1.3]: https://github.com/cgus392-cmd/Life-Music/releases/tag/v1.1.3
 [1.1.2]: https://github.com/cgus392-cmd/Life-Music/releases/tag/v1.1.2
 [1.1.1]: https://github.com/cgus392-cmd/Life-Music/releases/tag/v1.1.1
