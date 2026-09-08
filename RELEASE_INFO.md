@@ -64,9 +64,31 @@ cuando está.
 `changelog.json` aparte: el actualizador lo usa si existe, y si no, muestra el
 cuerpo del release. Una cosa menos que recordar.
 
+## Guardar el mapping antes de que se pierda
+
+`app/build/outputs/mapping/<variante>/mapping.txt` traduce las trazas ofuscadas de
+esa compilación **y solo de esa**. La siguiente compilación lo sobrescribe, y un
+`clean` lo borra. Sin él, un informe de fallo de una versión ya publicada es
+ilegible para siempre.
+
+Se guarda fuera del repositorio —pesa unos 170 MB, y comprimido baja a 11— junto
+al keystore:
+
+```bash
+mkdir -p "../../_Mappings/v1.1.3"
+gzip -c app/build/outputs/mapping/universalFossRelease/mapping.txt > "../../_Mappings/v1.1.3/universalFossRelease-mapping.txt.gz"
+```
+
+Para leer un informe: `python tools/retrace.py informe.txt mapping.txt`.
+
+**Antes de creerse el resultado**, comprobar que el `pg_map_id` de la cabecera del
+mapping es el mismo que aparece en la traza. Si no coinciden, el mapping es de otra
+compilación y lo que salga será ficción con aspecto de respuesta.
+
 ## Después
 
 - [ ] Instalar el APK publicado **sobre una versión anterior**, no en limpio.
       Es la única forma de comprobar que las migraciones de Room y el código de
       versión están bien.
 - [ ] Comprobar que la pantalla «Acerca de» muestra la versión nueva.
+- [ ] **`mapping.txt` archivado** para la etiqueta recién publicada.
