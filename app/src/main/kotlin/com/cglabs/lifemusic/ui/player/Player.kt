@@ -166,6 +166,7 @@ import com.cglabs.lifemusic.constants.HideStatusBarOnFullscreenKey
 import com.cglabs.lifemusic.constants.EnableLyricsThumbnailPlayPauseKey
 import com.cglabs.lifemusic.constants.KeepScreenOn
 import com.cglabs.lifemusic.constants.PlayerBackgroundStyle
+import com.cglabs.lifemusic.constants.PlayerBackgroundStyleDefault
 import com.cglabs.lifemusic.constants.PlayerBackgroundStyleKey
 import com.cglabs.lifemusic.constants.PlayerButtonsStyle
 import com.cglabs.lifemusic.constants.PlayerButtonsStyleKey
@@ -316,7 +317,7 @@ fun BottomSheetPlayer(
 
     val playerBackgroundPref by rememberEnumPreference(
         key = PlayerBackgroundStyleKey,
-        defaultValue = PlayerBackgroundStyle.GRADIENT
+        defaultValue = PlayerBackgroundStyleDefault
     )
     val playerBackground = if (isLocalMedia) PlayerBackgroundStyle.DEFAULT else playerBackgroundPref
     val playerButtonsStyle by rememberEnumPreference(

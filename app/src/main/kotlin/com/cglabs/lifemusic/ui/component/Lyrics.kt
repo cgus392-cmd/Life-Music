@@ -156,6 +156,7 @@ import com.cglabs.lifemusic.constants.TranslateLanguageKey
 import com.cglabs.lifemusic.constants.TranslateModeKey
 import com.cglabs.lifemusic.constants.AutoTranslateKey
 import com.cglabs.lifemusic.constants.DeeplFormalityKey
+import com.cglabs.lifemusic.constants.PlayerBackgroundStyleDefault
 import com.cglabs.lifemusic.constants.PlayerBackgroundStyleKey
 import com.cglabs.lifemusic.db.entities.LyricsEntity.Companion.LYRICS_NOT_FOUND
 import com.cglabs.lifemusic.lyrics.LyricsEntry
@@ -254,7 +255,7 @@ fun Lyrics(
 
     val playerBackground by rememberEnumPreference(
         key = PlayerBackgroundStyleKey,
-        defaultValue = PlayerBackgroundStyle.GRADIENT
+        defaultValue = PlayerBackgroundStyleDefault
     )
 
     val darkTheme by rememberEnumPreference(DarkModeKey, defaultValue = DarkMode.AUTO)

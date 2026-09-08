@@ -445,6 +445,17 @@ enum class PlayerBackgroundStyle {
     LIQUID_GLASS,
 }
 
+/**
+ * Fondo del reproductor por defecto.
+ *
+ * Se declara aqui y no en cada pantalla porque el valor estaba escrito a mano en
+ * CUATRO sitios —Player, Thumbnail, Lyrics y la propia pantalla de Ajustes— y
+ * basta con cambiar tres para que Ajustes muestre una cosa y el reproductor
+ * pinte otra. Un defecto repetido no es un defecto: son cuatro esperando a
+ * separarse.
+ */
+val PlayerBackgroundStyleDefault = PlayerBackgroundStyle.APPLE_MUSIC
+
 val TopSize = stringPreferencesKey("topSize")
 val HistoryDuration = floatPreferencesKey("historyDuration")
 

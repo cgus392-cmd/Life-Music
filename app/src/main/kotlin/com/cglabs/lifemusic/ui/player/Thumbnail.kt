@@ -85,6 +85,7 @@ import com.cglabs.lifemusic.R
 import com.cglabs.lifemusic.constants.CropAlbumArtKey
 import com.cglabs.lifemusic.constants.HidePlayerThumbnailKey
 import com.cglabs.lifemusic.constants.PlayerBackgroundStyle
+import com.cglabs.lifemusic.constants.PlayerBackgroundStyleDefault
 import com.cglabs.lifemusic.constants.PlayerBackgroundStyleKey
 import com.cglabs.lifemusic.constants.PlayerHorizontalPadding
 import com.cglabs.lifemusic.constants.RotatingThumbnailKey
@@ -278,7 +279,7 @@ fun Thumbnail(
     val cropAlbumArt by rememberPreference(CropAlbumArtKey, false)
     val playerBackground by rememberEnumPreference(
         key = PlayerBackgroundStyleKey,
-        defaultValue = PlayerBackgroundStyle.GRADIENT
+        defaultValue = PlayerBackgroundStyleDefault
     )
     val thumbnailCornerRadius by rememberPreference(ThumbnailCornerRadiusKey, defaultValue = 3f)
     

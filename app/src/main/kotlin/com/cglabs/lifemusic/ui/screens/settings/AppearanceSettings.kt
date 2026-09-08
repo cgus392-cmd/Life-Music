@@ -80,6 +80,7 @@ import com.cglabs.lifemusic.constants.LyricsStandardBlurKey
 import com.cglabs.lifemusic.constants.LyricsTextPositionKey
 import com.cglabs.lifemusic.constants.LyricsTextSizeKey
 import com.cglabs.lifemusic.constants.PlayerBackgroundStyle
+import com.cglabs.lifemusic.constants.PlayerBackgroundStyleDefault
 import com.cglabs.lifemusic.constants.PlayerBackgroundStyleKey
 import com.cglabs.lifemusic.constants.PlayerButtonsStyle
 import com.cglabs.lifemusic.constants.PlayerButtonsStyleKey
@@ -217,7 +218,7 @@ highlightKey: String? = null) {
     val (playerBackground, onPlayerBackgroundChange) =
         rememberEnumPreference(
             PlayerBackgroundStyleKey,
-            defaultValue = PlayerBackgroundStyle.GRADIENT,
+            defaultValue = PlayerBackgroundStyleDefault,
         )
     val (miniPlayerBackground, onMiniPlayerBackgroundChange) =
         rememberEnumPreference(

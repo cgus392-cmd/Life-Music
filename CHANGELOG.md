@@ -15,6 +15,27 @@ esa base**; para la historia anterior, consulte el repositorio de origen.
 
 ---
 
+## [1.1.2] — 2026-09-07
+
+### Cambiado
+
+- **El fondo del reproductor viene ahora en estilo Apple Music por defecto**, en
+  lugar de Degradado. A peticion de CG. Sigue siendo un ajuste: Apariencia ->
+  Reproductor -> Fondo del reproductor ofrece las siete opciones de siempre.
+
+### Interno
+
+- El valor por defecto de ese ajuste estaba escrito a mano en **cuatro sitios**:
+  el reproductor, la caratula, la pantalla de letras y la propia pantalla de
+  Ajustes. Bastaba cambiar tres para que Ajustes mostrara una cosa y el
+  reproductor pintara otra. Ahora se declara una sola vez, junto a la clave, y
+  los cuatro lo leen de ahi.
+
+  Es la misma leccion de la 1.1.1 —arreglar dos de cuatro sitios y dar el trabajo
+  por hecho— aplicada antes de que muerda.
+
+---
+
 ## [1.1.1] — 2026-09-07
 
 La limpieza de la 1.1.0 se quedo corta. CG lo encontro usando la app: la pantalla
@@ -182,6 +203,7 @@ atribuirse un servicio ajeno.
 Los avisos de copyright de terceros presentes en el código se conservan intactos,
 tal como exige la GPL-3.0 en sus secciones 4 y 5.
 
+[1.1.2]: https://github.com/cgus392-cmd/Life-Music/releases/tag/v1.1.2
 [1.1.1]: https://github.com/cgus392-cmd/Life-Music/releases/tag/v1.1.1
 [1.1.0]: https://github.com/cgus392-cmd/Life-Music/releases/tag/v1.1.0
 [1.0.0]: https://github.com/cgus392-cmd/Life-Music/releases/tag/v1.0.0
