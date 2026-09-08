@@ -1,7 +1,22 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
-    <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES" tools:node="remove" />
+
+    <!--
+        REQUEST_INSTALL_PACKAGES se CONSERVA tambien en la edicion FOSS.
+
+        El proyecto de origen lo quitaba aqui porque F-Droid prohibe que una
+        aplicacion se actualice a si misma. Life Music no se publica en F-Droid:
+        se distribuye por GitHub y su actualizador es una funcion central.
+
+        Quitarlo dejaba el boton «Instalar» en pantalla y hacia que
+        canRequestPackageInstalls() lanzara SecurityException al pulsarlo. Ese es
+        exactamente el cierre reportado en la 1.1.2, y solo afectaba a la edicion
+        FOSS, que es justamente la que se publica.
+
+        Si algun dia Life Music entra en F-Droid, lo que hay que retirar no es
+        este permiso: es el actualizador entero.
+    -->
 
     <application>
         <!-- Remove Cast provider in FOSS build since GMS is not available -->

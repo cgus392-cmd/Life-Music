@@ -77,7 +77,12 @@ android {
 
     flavorDimensions += listOf("abi", "variant")
     productFlavors {
-        // FOSS variant (default) - F-Droid compatible, no Google Play Services
+        // Variante FOSS (por defecto): sin Google Play Services.
+        //
+        // NO es una compilacion apta para F-Droid, aunque el comentario heredado
+        // lo decia: conserva REQUEST_INSTALL_PACKAGES porque Life Music se
+        // actualiza sola desde GitHub, y F-Droid no admite eso. Aqui «FOSS»
+        // significa «sin servicios de Google», nada mas.
         create("foss") {
             dimension = "variant"
             isDefault = true

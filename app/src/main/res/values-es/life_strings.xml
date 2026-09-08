@@ -702,4 +702,5 @@
     <string name="life_line_voice_paused_3">Cuando quieras, seguimos</string>
     <string name="life_line_translation">Mostrar traducción</string>
     <string name="life_line_translation_desc">Añade la traducción bajo la línea original</string>
+    <string name="update_install_failed">No se pudo abrir el instalador. Permite instalar aplicaciones desde Life Music en los ajustes de Android y vuelve a intentarlo.</string>
 </resources>

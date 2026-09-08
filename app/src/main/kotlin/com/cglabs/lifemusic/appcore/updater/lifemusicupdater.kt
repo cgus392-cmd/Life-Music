@@ -7,6 +7,7 @@ import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import android.os.Build
+import android.widget.Toast
 import android.util.Log
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
@@ -317,24 +318,7 @@ fun UpdateScreen(navController: NavHostController) {
                                                 downloadProgress = 0f
                                                 return@AnimatedActionButton
                                             }
-                                            file.let { f ->
-                                                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                                                    if (!context.packageManager.canRequestPackageInstalls()) {
-                                                        val intent = Intent(android.provider.Settings.ACTION_MANAGE_UNKNOWN_APP_SOURCES).apply {
-                                                            data = Uri.parse("package:${context.packageName}")
-                                                        }
-                                                        context.startActivity(intent)
-                                                        return@let
-                                                    }
-                                                }
-                                                val uri = FileProvider.getUriForFile(context, "${context.packageName}.FileProvider", file)
-                                                val installIntent = Intent(Intent.ACTION_VIEW).apply {
-                                                    setDataAndType(uri, "application/vnd.android.package-archive")
-                                                    addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
-                                                    addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-                                                }
-                                                ContextCompat.startActivity(context, installIntent, null)
-                                            }
+                                            instalarApk(context, file)
                                         } else {
                                             val urlToDownload = currentStatus.apkUrl ?: Repo.apkUrl(currentStatus.version)
                                             
@@ -699,6 +683,41 @@ private fun elegirApk(assets: JSONArray): Pair<String, Long>? {
         if (respaldo == null) respaldo = par
     }
     return respaldo
+}
+
+/**
+ * Lanza el instalador del sistema para [apk].
+ *
+ * canRequestPackageInstalls() lanza SecurityException si REQUEST_INSTALL_PACKAGES
+ * no esta declarado en el manifiesto, y la pantalla de origenes desconocidos no
+ * existe en todos los equipos. Ninguna de las dos cosas justifica cerrar la
+ * aplicacion encima de una descarga que ya termino: el APK sigue ahi y se puede
+ * reintentar. El permiso se declara ahora tambien en la edicion FOSS, pero la
+ * red de seguridad se queda: un fallo al instalar se avisa, no se estrella.
+ */
+private fun instalarApk(context: Context, apk: File) {
+    try {
+        val puedeInstalar = Build.VERSION.SDK_INT < Build.VERSION_CODES.O ||
+            context.packageManager.canRequestPackageInstalls()
+        if (!puedeInstalar) {
+            context.startActivity(
+                Intent(android.provider.Settings.ACTION_MANAGE_UNKNOWN_APP_SOURCES).apply {
+                    data = Uri.parse("package:${context.packageName}")
+                }
+            )
+            return
+        }
+        val uri = FileProvider.getUriForFile(context, "${context.packageName}.FileProvider", apk)
+        context.startActivity(
+            Intent(Intent.ACTION_VIEW).apply {
+                setDataAndType(uri, "application/vnd.android.package-archive")
+                addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+            }
+        )
+    } catch (e: Exception) {
+        Toast.makeText(context, R.string.update_install_failed, Toast.LENGTH_LONG).show()
+    }
 }
 
 suspend fun checkForUpdate(

@@ -1364,7 +1364,7 @@ fun LocalPlaylistHeader(
                             onEdit = onShowEditDialog,
                             onSync = {
                                 scope.launch(Dispatchers.IO) {
-                                    val playlistPage = YouTube.playlist(playlist.playlist.browseId!!!!)
+                                    val playlistPage = YouTube.playlist(playlist.playlist.browseId!!)
                                         .completed()
                                         .getOrNull() ?: return@launch
                                     database.transaction {

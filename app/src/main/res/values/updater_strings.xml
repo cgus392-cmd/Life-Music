@@ -80,4 +80,5 @@
     <string name="new_update">New update</string>
     <string name="release_date_v">Released on: %1$s</string>
     <string name="update_size_v">Size: %1$s MB</string>
+    <string name="update_install_failed">Could not open the installer. Allow installing apps from Life Music in Android settings, then try again.</string>
 </resources>
