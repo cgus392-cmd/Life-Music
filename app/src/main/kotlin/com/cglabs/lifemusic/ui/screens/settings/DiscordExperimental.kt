@@ -19,6 +19,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
+import com.cglabs.lifemusic.constants.Repo
 import com.cglabs.lifemusic.R
 import com.cglabs.lifemusic.constants.DiscordActivityButton1CustomUrlKey
 import com.cglabs.lifemusic.constants.DiscordActivityButton1EnabledKey
@@ -80,7 +81,7 @@ fun DiscordExperimental(navController: NavController) {
     val (button2CustomUrl, onButton2CustomUrlChange) =
         rememberPreference(
             key = DiscordActivityButton2CustomUrlKey,
-            defaultValue = "https://echomusic.fun",
+            defaultValue = Repo.HTML,
         )
 
     Scaffold { inner ->

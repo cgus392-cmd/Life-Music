@@ -15,6 +15,33 @@ esa base**; para la historia anterior, consulte el repositorio de origen.
 
 ---
 
+## [1.1.1] — 2026-09-07
+
+La limpieza de la 1.1.0 se quedo corta. CG lo encontro usando la app: la pantalla
+de actualizacion seguia abriendo la web del proyecto de origen.
+
+### Corregido
+
+- **Ajustes -> Actualizaciones -> «System update» abria echomusic.fun en el
+  navegador.** Ni era nuestra web ni era una pantalla de actualizacion. Ahora
+  lleva a la pantalla de actualizacion de la propia aplicacion, que consulta las
+  publicaciones de este repositorio, muestra las notas y descarga el APK.
+- **Los enlaces de compartir seguian apuntando al dominio del proyecto de
+  origen.** La correccion de la 1.1.0 solo alcanzo los menus del modulo `app`,
+  pero la propiedad `shareLink` que usa toda la aplicacion vive en el modulo
+  `innertube`, y ahi seguia intacta. Tambien en `core`, para las listas
+  guardadas. Cinco enlaces mas.
+- El boton de Discord traia por defecto la web del proyecto de origen.
+- La ultima URL del servidor de Escuchar juntos que quedaba escrita a mano.
+
+### Nota sobre el metodo
+
+El fallo de la 1.1.0 fue buscar solo en los modulos `app` y `core`. Este proyecto
+tiene dieciocho modulos, y la marca ajena estaba repartida en cuatro de ellos.
+Buscar en el arbol entero cuesta lo mismo y no deja huecos.
+
+---
+
 ## [1.1.0] — 2026-09-07
 
 Limpieza de la infraestructura heredada. Life Music seguia mandando trafico
@@ -155,5 +182,6 @@ atribuirse un servicio ajeno.
 Los avisos de copyright de terceros presentes en el código se conservan intactos,
 tal como exige la GPL-3.0 en sus secciones 4 y 5.
 
+[1.1.1]: https://github.com/cgus392-cmd/Life-Music/releases/tag/v1.1.1
 [1.1.0]: https://github.com/cgus392-cmd/Life-Music/releases/tag/v1.1.0
 [1.0.0]: https://github.com/cgus392-cmd/Life-Music/releases/tag/v1.0.0

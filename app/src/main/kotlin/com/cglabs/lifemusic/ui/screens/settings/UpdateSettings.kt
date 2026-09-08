@@ -114,8 +114,12 @@ fun UpdateSettings(
                         }
                     },
                     onClick = {
-                        val intent = Intent(Intent.ACTION_VIEW, Uri.parse("https://echomusic.fun"))
-                        context.startActivity(intent)
+                        // A la pantalla de actualizacion de la propia app, que
+                        // consulta nuestras publicaciones de GitHub, muestra las
+                        // notas y descarga el APK. Antes abria el navegador en la
+                        // web del proyecto de origen: ni era nuestra, ni era una
+                        // pantalla de actualizacion.
+                        navController.navigate("update")
                     }
                 ),
                 Material3SettingsItem(

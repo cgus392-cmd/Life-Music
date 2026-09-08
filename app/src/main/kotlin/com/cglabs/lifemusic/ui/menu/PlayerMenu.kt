@@ -1389,7 +1389,7 @@ fun ListenTogetherDialog(
                             if (isHost) {
                                 Spacer(modifier = Modifier.height(12.dp))
                                 val inviteLink = remember(room.roomCode) {
-                                    "https://echomusic-listen-together.onrender.com/listen?code=${room.roomCode}"
+                                    "${Repo.LISTEN_TOGETHER_SERVER}/listen?code=${room.roomCode}"
                                 }
                                 Row(
                                     verticalAlignment = Alignment.CenterVertically,
