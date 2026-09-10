@@ -56,24 +56,7 @@ object AppModule {
         @ApplicationContext context: Context,
     ): InternalDatabase = Room
         .databaseBuilder(context, InternalDatabase::class.java, InternalDatabase.DB_NAME)
-        .addMigrations(
-            com.cglabs.lifemusic.db.MIGRATION_1_2,
-            com.cglabs.lifemusic.db.MIGRATION_21_24,
-            com.cglabs.lifemusic.db.MIGRATION_22_24,
-            com.cglabs.lifemusic.db.MIGRATION_24_25,
-            com.cglabs.lifemusic.db.MIGRATION_27_28,
-            com.cglabs.lifemusic.db.MIGRATION_28_29,
-            com.cglabs.lifemusic.db.MIGRATION_29_30,
-            com.cglabs.lifemusic.db.MIGRATION_31_32,
-            com.cglabs.lifemusic.db.MIGRATION_36_37,
-            com.cglabs.lifemusic.db.MIGRATION_37_38,
-            com.cglabs.lifemusic.db.MIGRATION_38_39,
-            com.cglabs.lifemusic.db.MIGRATION_39_40,
-            com.cglabs.lifemusic.db.MIGRATION_40_41,
-            com.cglabs.lifemusic.db.MIGRATION_41_42,
-            com.cglabs.lifemusic.db.MIGRATION_42_43,
-            com.cglabs.lifemusic.db.MIGRATION_43_44,
-        )
+        .addMigrations(*com.cglabs.lifemusic.db.MIGRACIONES)
         .setJournalMode(androidx.room.RoomDatabase.JournalMode.WRITE_AHEAD_LOGGING)
         .setTransactionExecutor(java.util.concurrent.Executors.newFixedThreadPool(4))
         .setQueryExecutor(java.util.concurrent.Executors.newFixedThreadPool(4))

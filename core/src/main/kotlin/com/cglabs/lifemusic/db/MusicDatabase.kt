@@ -163,25 +163,7 @@ abstract class InternalDatabase : RoomDatabase() {
                 delegate =
                     Room
                         .databaseBuilder(context, InternalDatabase::class.java, DB_NAME)
-                        .addMigrations(
-                            MIGRATION_1_2,
-                            MIGRATION_21_24,
-                            MIGRATION_22_24,
-                            MIGRATION_24_25,
-                            MIGRATION_27_28,
-                            MIGRATION_28_29,
-                            MIGRATION_29_30,
-                            MIGRATION_31_32,
-                            MIGRATION_36_37,
-                            MIGRATION_37_38,
-                            MIGRATION_38_39,
-                            MIGRATION_39_40,
-                            MIGRATION_40_41,
-                            MIGRATION_41_42,
-                            MIGRATION_42_43,
-                            MIGRATION_43_44,
-                            MIGRATION_44_45,
-                        )
+                        .addMigrations(*MIGRACIONES)
                         .setJournalMode(RoomDatabase.JournalMode.WRITE_AHEAD_LOGGING)
                         .setTransactionExecutor(java.util.concurrent.Executors.newFixedThreadPool(4))
                         .setQueryExecutor(java.util.concurrent.Executors.newFixedThreadPool(4))
@@ -204,6 +186,36 @@ abstract class InternalDatabase : RoomDatabase() {
 }
 
 
+
+/**
+ * TODAS las migraciones, en un solo sitio. Hay dos constructores de la base de
+ * datos —este y el de Hilt en app/di/AppModule.kt— y cada uno llevaba su propia
+ * lista escrita a mano. Al anadir la 44→45 se actualizo una y no la otra, y la
+ * app se cerro al arrancar con «A migration from 44 to 45 was required but not
+ * found». Una lista repetida no es una lista: son dos esperando a separarse.
+ */
+val MIGRACIONES: Array<Migration>
+    // Getter y no valor: las migraciones se declaran mas abajo en este mismo
+    // fichero, y un val de nivel superior las evaluaria antes de existir.
+    get() = arrayOf(
+    MIGRATION_1_2,
+    MIGRATION_21_24,
+    MIGRATION_22_24,
+    MIGRATION_24_25,
+    MIGRATION_27_28,
+    MIGRATION_28_29,
+    MIGRATION_29_30,
+    MIGRATION_31_32,
+    MIGRATION_36_37,
+    MIGRATION_37_38,
+    MIGRATION_38_39,
+    MIGRATION_39_40,
+    MIGRATION_40_41,
+    MIGRATION_41_42,
+    MIGRATION_42_43,
+    MIGRATION_43_44,
+    MIGRATION_44_45,
+)
 
 val MIGRATION_1_2 =
     object : Migration(1, 2) {
