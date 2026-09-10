@@ -856,6 +856,13 @@ val GreetingEnabledKey = booleanPreferencesKey("greetingEnabled")
  */
 val LastColdStartAtKey = longPreferencesKey("lastColdStartAt")
 
+/**
+ * Claves estables de las ultimas frases del saludo, separadas por comas
+ * («t_1,g_8,n_2»). El saludo no repite ninguna de ellas: abrir la app cinco
+ * veces en una tarde tiene que sonar a cinco frases, no a un contestador.
+ */
+val RecentGreetingsKey = stringPreferencesKey("recentGreetings")
+
 /** Modo karaoke: reduccion de la voz principal por cancelacion de centro en banda. */
 val KaraokeVocalReductionKey = booleanPreferencesKey("karaokeVocalReduction")
 

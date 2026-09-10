@@ -51,10 +51,10 @@ Interfaz primero, español por defecto, y un arreglo que tocaba desde la 1.1.4.
   antes si tocas; nunca bloquea la reproducción, que arranca detrás. Es la voz de
   Life Line saliendo del reproductor: la app habla también en la puerta.
 
-  Veintiséis frases en español con su par en inglés. La misma en todos los
-  arranques de un día y distinta al siguiente. Con su interruptor en Apariencia, y
-  no se muestra si el sistema tiene las animaciones desactivadas ni cuando va a
-  salir la bienvenida de primer arranque.
+  Veintiséis frases en español con su par en inglés, distinta en cada arranque y
+  sin repetir ninguna de las tres últimas. Con su interruptor en Apariencia, y no
+  se muestra si el sistema tiene las animaciones desactivadas ni cuando va a salir
+  la bienvenida de primer arranque.
 
 ### Automix: de fundido de radio a transición de DJ
 
