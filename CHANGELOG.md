@@ -15,6 +15,64 @@ esa base**; para la historia anterior, consulte el repositorio de origen.
 
 ---
 
+## [1.1.5] — 2026-09-10
+
+Primera versión después del vídeo de presentación, con 53 descargas nuevas mirando.
+Interfaz primero, español por defecto, y un arreglo que tocaba desde la 1.1.4.
+
+### Corregido
+
+- **«Apple Music Inspired» venía apagado en toda instalación nueva.** En Ajustes ese
+  interruptor hace dos cosas —cambia el diseño del reproductor y fija el fondo
+  Apple Music— y su valor por defecto estaba escrito a mano en **cuatro sitios**,
+  todos en el sentido contrario al que CG pidió. Quien lo tenía encendido era
+  porque lo había activado él. Ahora se declara una vez, junto a la clave, y viene
+  encendido de serie. Quien ya eligió no nota nada: solo cambia el defecto para
+  quien no ha elegido.
+
+- **El interruptor de la bienvenida hacía otra cosa con otro nombre.** Se llamaba
+  «Nuevo diseño del reproductor», escribía la preferencia al revés y no tocaba el
+  fondo. Ahora es el mismo «Apple Music Inspired» que en Apariencia, con el mismo
+  icono y las mismas dos acciones. Sin dos verdades. Error de la 1.1.4; lo
+  encontró CG usando la app.
+
+- **El texto del reproductor era ilegible sobre carátulas claras.** Los fondos que
+  salen de la portada —Apple Music, degradado, difuminado— no llevan velo, y el
+  texto era blanco fijo: con una portada blanca daba gris sobre gris, y lo pendiente
+  de Life Line, al 42 %, desaparecía. Ahora el color del texto se decide por la
+  luminancia real de los colores extraídos de la carátula. Afecta a todo el texto
+  del reproductor, no solo a Life Line, porque el problema era de todos.
+
+### Añadido
+
+- **Saludo de entrada.** Al arrancar en frío, antes de Inicio, la aplicación te
+  recibe con una frase: sabe la hora —«Buenos días», «Buenas noches»— y cuánto hace
+  que no abres, y nada más, sin nombre ni cuenta. Se va sola en 1,6 segundos o
+  antes si tocas; nunca bloquea la reproducción, que arranca detrás. Es la voz de
+  Life Line saliendo del reproductor: la app habla también en la puerta.
+
+  Veintiséis frases en español con su par en inglés. La misma en todos los
+  arranques de un día y distinta al siguiente. Con su interruptor en Apariencia, y
+  no se muestra si el sistema tiene las animaciones desactivadas ni cuando va a
+  salir la bienvenida de primer arranque.
+
+### Automix
+
+- **Ahora se sabe por qué una transición sonó como sonó.** Automix solo mezcla al
+  beat cuando las dos pistas tienen análisis con confianza suficiente; si falta
+  una, cae a un fundido plano, todo o nada. Antes no había forma de saber cuántas
+  veces pasaba ni por qué. Ahora cada transición queda registrada —al beat o
+  fundido, y el motivo— en el teléfono, y la pantalla de depuración de Automix
+  resume las últimas cincuenta. Es el paso previo a mejorarlo con datos y no a
+  ciegas, que va en la 1.1.6.
+
+- **Life Line ya no dice «Mezclando…» cuando no está mezclando.** Durante un
+  fundido plano decía lo mismo que durante una mezcla al beat. Ahora distingue:
+  «Fundiendo las notas…» solo cuando hay plan, y «Cambiando de pista…» cuando no.
+  Una voz que promete algo que no pasa es peor que ninguna.
+
+---
+
 ## [1.1.4] — 2026-09-07
 
 ### Corregido
@@ -309,6 +367,7 @@ atribuirse un servicio ajeno.
 Los avisos de copyright de terceros presentes en el código se conservan intactos,
 tal como exige la GPL-3.0 en sus secciones 4 y 5.
 
+[1.1.5]: https://github.com/cgus392-cmd/Life-Music/releases/tag/v1.1.5
 [1.1.4]: https://github.com/cgus392-cmd/Life-Music/releases/tag/v1.1.4
 [1.1.3]: https://github.com/cgus392-cmd/Life-Music/releases/tag/v1.1.3
 [1.1.2]: https://github.com/cgus392-cmd/Life-Music/releases/tag/v1.1.2

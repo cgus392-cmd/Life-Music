@@ -117,6 +117,7 @@ import com.cglabs.lifemusic.constants.ListItemHeight
 import com.cglabs.lifemusic.constants.PlayerBackgroundStyle
 import com.cglabs.lifemusic.constants.QueueEditLockKey
 import com.cglabs.lifemusic.constants.ShowCommentButtonKey
+import com.cglabs.lifemusic.constants.UseNewPlayerDesignDefault
 import com.cglabs.lifemusic.constants.UseNewPlayerDesignKey
 import com.cglabs.lifemusic.extensions.metadata
 import com.cglabs.lifemusic.extensions.move
@@ -274,7 +275,7 @@ fun Queue(
 
     val (useNewPlayerDesign, onUseNewPlayerDesignChange) = rememberPreference(
         UseNewPlayerDesignKey,
-        defaultValue = true
+        defaultValue = UseNewPlayerDesignDefault
     )
     val (showCommentButton) = rememberPreference(
         ShowCommentButtonKey,

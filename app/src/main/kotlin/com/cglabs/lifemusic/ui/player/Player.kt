@@ -110,6 +110,7 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.BlendMode
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.ColorMatrix
 import androidx.compose.ui.graphics.CompositingStrategy
@@ -177,6 +178,7 @@ import com.cglabs.lifemusic.constants.SliderStyleKey
 import com.cglabs.lifemusic.constants.SquigglySliderKey
 import com.cglabs.lifemusic.constants.SwipeLyricsKey
 import com.cglabs.lifemusic.constants.ThumbnailCornerRadius
+import com.cglabs.lifemusic.constants.UseNewPlayerDesignDefault
 import com.cglabs.lifemusic.constants.UseNewPlayerDesignKey
 import com.cglabs.lifemusic.db.entities.LyricsEntity
 import com.cglabs.lifemusic.extensions.SwipeGesture
@@ -306,7 +308,7 @@ fun BottomSheetPlayer(
 
     val (useNewPlayerDesign, onUseNewPlayerDesignChange) = rememberPreference(
         UseNewPlayerDesignKey,
-        defaultValue = true
+        defaultValue = UseNewPlayerDesignDefault
     )
     val showCodecOnPlayer by rememberPreference(com.cglabs.lifemusic.constants.ShowCodecOnPlayerKey, false)
     val hidePlayerSlider by rememberPreference(com.cglabs.lifemusic.constants.HidePlayerSliderKey, false)
@@ -345,6 +347,7 @@ fun BottomSheetPlayer(
     val isCrossfading by playerConnection.isCrossfading.collectAsState()
     val isAutomixing by playerConnection.isAutomixing.collectAsState()
     val automixDebug by playerConnection.automixDebugInfo.collectAsState()
+    val transiciones by playerConnection.transicionesAutomix.collectAsState()
     val automixDebugOverlayEnabled by rememberPreference(com.cglabs.lifemusic.constants.AutomixDebugOverlayKey, false)
 
     var currentAudioFormat by remember { mutableStateOf<androidx.media3.common.Format?>(null) }
@@ -481,6 +484,19 @@ fun BottomSheetPlayer(
                         .padding(6.dp)
                 ) {
                     Text("AUTOMIX  ${dbg.status}", style = mono, color = Color.White)
+                    // Resumen de lo que ha pasado de verdad, no de lo que va a pasar.
+                    if (transiciones.isNotEmpty()) {
+                        val beat = transiciones.count { it.alBeat }
+                        val motivos = transiciones.filter { !it.alBeat }
+                            .groupingBy { it.motivo }.eachCount()
+                            .entries.sortedByDescending { it.value }
+                            .joinToString("  ") { "${it.value} ${it.key}" }
+                        Text(
+                            "ultimas ${transiciones.size}: $beat al beat, ${transiciones.size - beat} fundido" +
+                                (if (motivos.isNotEmpty()) "  ($motivos)" else ""),
+                            style = mono, color = Color(0xFF10B981)
+                        )
+                    }
                     Text(
                         "out: ${dbg.outBpm?.let { "%.1f bpm".format(it) } ?: "—"}" +
                             (dbg.outConfidence?.let { "  conf %.2f".format(it) } ?: "") +
@@ -632,10 +648,22 @@ fun BottomSheetPlayer(
         }
     }
 
+    // Los fondos que salen de la caratula —Apple Music, degradado, difuminado— no
+    // llevan velo: el texto va directo sobre la portada difuminada. Con una portada
+    // blanca, texto blanco fijo daba gris sobre gris, y lo pendiente de Life Line
+    // al 42 % desaparecia. Se decide por la luminancia media de los colores
+    // extraidos, que es lo que de verdad hay detras. Umbral en 0,45 y no en 0,5
+    // porque lo que mas contraste necesita es lo atenuado, no lo pleno.
+    val fondoClaro = remember(gradientColors, playerBackground) {
+        playerBackground != PlayerBackgroundStyle.DEFAULT &&
+            gradientColors.isNotEmpty() &&
+            gradientColors.map { it.luminance() }.average() > 0.45
+    }
     val TextBackgroundColor by animateColorAsState(
         targetValue = when {
             isLocalMedia -> Color.White
             playerBackground == PlayerBackgroundStyle.DEFAULT -> MaterialTheme.colorScheme.onBackground
+            fondoClaro -> Color(0xFF141414)
             else -> Color.White
         },
         label = "TextBackgroundColor"

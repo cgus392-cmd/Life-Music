@@ -46,7 +46,8 @@ import com.cglabs.lifemusic.R
  *   ERROR          error                        fallo de reproduccion
  *   SIN_RED        waitingForNetworkConnection  esperando conexion
  *   CARGANDO       playbackState                STATE_BUFFERING
- *   MEZCLANDO      isCrossfading                fundido entre pistas
+ *   MEZCLANDO      isCrossfading + isAutomixing mezcla al beat
+ *   CAMBIANDO      isCrossfading, sin plan      fundido plano entre pistas
  *   AUTOMIX        isAutomixing                 la app encadena la siguiente
  *   PAUSADO        isPlaying
  *   DESPIDIENDO    posicion contra duracion     ultimos segundos
@@ -63,6 +64,7 @@ enum class LifeLineVoz(val esInterrupcion: Boolean) {
     SIN_RED(true),
     CARGANDO(true),
     MEZCLANDO(true),
+    CAMBIANDO(true),
     AUTOMIX(false),
     PAUSADO(false),
     DESPIDIENDO(false),
@@ -104,7 +106,11 @@ fun recordarVozLifeLine(
         error != null -> LifeLineVoz.ERROR
         sinRed -> LifeLineVoz.SIN_RED
         estado == Player.STATE_BUFFERING -> LifeLineVoz.CARGANDO
-        mezclando -> LifeLineVoz.MEZCLANDO
+        // «Mezclando» solo cuando de verdad hay plan al beat. Si Automix cayo a un
+        // fundido plano —analisis pendiente, confianza baja— decirlo con otra frase:
+        // una voz que promete una mezcla que no esta pasando es peor que ninguna.
+        mezclando && automix -> LifeLineVoz.MEZCLANDO
+        mezclando -> LifeLineVoz.CAMBIANDO
 
         // De aqui en adelante, la cancion manda: si hay letra sincronizada se
         // calla y la deja pasar.
@@ -229,6 +235,11 @@ private fun frasesDe(voz: LifeLineVoz): IntArray = when (voz) {
         R.string.life_line_voice_crossfade_2,
         R.string.life_line_voice_crossfade_3,
         R.string.life_line_voice_crossfade_4,
+    )
+    LifeLineVoz.CAMBIANDO -> intArrayOf(
+        R.string.life_line_voice_switching_1,
+        R.string.life_line_voice_switching_2,
+        R.string.life_line_voice_switching_3,
     )
     LifeLineVoz.AUTOMIX -> intArrayOf(
         R.string.life_line_voice_automix_1,

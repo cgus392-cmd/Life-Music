@@ -66,6 +66,7 @@ import com.cglabs.lifemusic.constants.DynamicThemeKey
 import com.cglabs.lifemusic.constants.PlayerBackgroundStyle
 import com.cglabs.lifemusic.constants.PlayerBackgroundStyleDefault
 import com.cglabs.lifemusic.constants.PlayerBackgroundStyleKey
+import com.cglabs.lifemusic.constants.UseNewPlayerDesignDefault
 import com.cglabs.lifemusic.constants.UseNewPlayerDesignKey
 import com.cglabs.lifemusic.ui.screens.settings.DarkMode
 import com.cglabs.lifemusic.utils.rememberEnumPreference
@@ -452,7 +453,13 @@ private fun ColumnScope.PasoPreajustes(animar: Boolean) {
         PlayerBackgroundStyleKey,
         defaultValue = PlayerBackgroundStyleDefault,
     )
-    var nuevoDiseno by rememberPreference(UseNewPlayerDesignKey, defaultValue = true)
+    // Mismo interruptor que Ajustes -> Apariencia -> «Apple Music Inspired», con
+    // sus dos acciones: la clave va INVERTIDA (encendido = false) y encenderlo
+    // fija ademas el fondo Apple Music. Antes esto era un interruptor propio que
+    // escribia el booleano crudo: al reves y sin el fondo. Hacia otra cosa con
+    // otro nombre. Ver UseNewPlayerDesignDefault.
+    var nuevoDiseno by rememberPreference(UseNewPlayerDesignKey, defaultValue = UseNewPlayerDesignDefault)
+    val appleMusicInspired = !nuevoDiseno
 
     Spacer(Modifier.height(40.dp))
 
@@ -519,12 +526,15 @@ private fun ColumnScope.PasoPreajustes(animar: Boolean) {
 
     Escalonado(4, animar) {
         FilaInterruptor(
-            icono = R.drawable.tune,
-            colorAzulejo = Color(0xFF90CAF9),
-            titulo = "Nuevo diseno del reproductor",
-            descripcion = "Controles mas amplios y caratula a pantalla completa.",
-            activo = nuevoDiseno,
-            onCambio = { nuevoDiseno = it },
+            icono = R.drawable.apple_music_me,
+            colorAzulejo = Color(0xFFF8BBD0),
+            titulo = "Apple Music Inspired",
+            descripcion = "El reproductor con el estilo de Apple Music. El mismo ajuste que en Apariencia.",
+            activo = appleMusicInspired,
+            onCambio = { encendido ->
+                nuevoDiseno = !encendido
+                if (encendido) fondoReproductor = PlayerBackgroundStyle.APPLE_MUSIC
+            },
         )
     }
 

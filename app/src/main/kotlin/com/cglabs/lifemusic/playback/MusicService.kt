@@ -342,6 +342,43 @@ class MusicService :
 
     val automixDebugInfo = MutableStateFlow<AutomixDebugInfo?>(null)
 
+    /**
+     * Resultado de una transicion ya ocurrida: si fue al beat o un fundido plano,
+     * y por que. Es lo que falta para mejorar Automix con datos y no a ciegas:
+     * el motor decide bien cuando tiene analisis de las dos pistas, y lo que se
+     * nota es cuantas veces NO lo tiene. Se guardan las ultimas 50, en el
+     * telefono, sin salir de el.
+     */
+    data class TransicionAutomix(val enMs: Long, val alBeat: Boolean, val motivo: String)
+
+    val transicionesAutomix = MutableStateFlow<List<TransicionAutomix>>(emptyList())
+
+    private fun registrarTransicion(alBeat: Boolean) {
+        val motivo = if (alBeat) "beat"
+        else automixDebugInfo.value?.status?.removePrefix("fallback: ")?.ifBlank { null } ?: "sin plan"
+        val lista = (transicionesAutomix.value + TransicionAutomix(System.currentTimeMillis(), alBeat, motivo))
+            .takeLast(MAX_TRANSICIONES)
+        transicionesAutomix.value = lista
+        scope.launch(Dispatchers.IO) {
+            runCatching {
+                filesDir.resolve(TRANSICIONES_FILE).writeText(
+                    lista.joinToString("\n") { "${it.enMs}|${if (it.alBeat) 1 else 0}|${it.motivo}" }
+                )
+            }
+        }
+    }
+
+    private fun cargarTransiciones() {
+        runCatching {
+            val f = filesDir.resolve(TRANSICIONES_FILE)
+            if (!f.exists()) return
+            transicionesAutomix.value = f.readLines().mapNotNull { linea ->
+                val t = linea.split('|', limit = 3)
+                if (t.size < 3) null else TransicionAutomix(t[0].toLong(), t[1] == "1", t[2])
+            }.takeLast(MAX_TRANSICIONES)
+        }
+    }
+
     private val secondaryPlayerListener = object : Player.Listener {
         override fun onPlayerError(error: PlaybackException) {
             Timber.tag(TAG).e(error, "Secondary player error")
@@ -1060,6 +1097,7 @@ class MusicService :
                 }
             }
 
+            cargarTransiciones()
             val automixFile = filesDir.resolve(PERSISTENT_AUTOMIX_FILE)
             if (automixFile.exists()) {
                 runCatching {
@@ -3971,6 +4009,7 @@ class MusicService :
     private fun performCrossfadeSwap() {
         isCrossfading.value = true
         isAutomixing.value = activeAutomixPlan != null
+        registrarTransicion(alBeat = activeAutomixPlan != null)
         if (activeAutomixPlan != null) {
             automixDebugInfo.value = automixDebugInfo.value?.copy(status = "automixing now")
         }
@@ -4175,6 +4214,8 @@ class MusicService :
         const val CHUNK_LENGTH = 512 * 1024L
         const val PERSISTENT_QUEUE_FILE = "persistent_queue.data"
         const val PERSISTENT_AUTOMIX_FILE = "persistent_automix.data"
+        const val TRANSICIONES_FILE = "automix_transiciones.txt"
+        const val MAX_TRANSICIONES = 50
         /** How far ahead of the crossfade trigger to start buffering the incoming track. */
         const val PREBUFFER_LEAD_MS = 3000L
         const val PERSISTENT_PLAYER_STATE_FILE = "persistent_player_state.data"

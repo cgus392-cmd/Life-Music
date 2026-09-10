@@ -211,6 +211,8 @@ import com.cglabs.lifemusic.ui.player.BottomSheetPlayer
 import com.cglabs.lifemusic.ui.screens.Screens
 import com.cglabs.lifemusic.ui.screens.SettingDialoge
 import com.cglabs.lifemusic.ui.screens.WelcomeDialog
+import com.cglabs.lifemusic.ui.component.SaludoDeEntrada
+import com.cglabs.lifemusic.ui.component.SaludoEntrada
 import com.cglabs.lifemusic.ui.screens.navigationBuilder
 import com.cglabs.lifemusic.ui.screens.settings.DarkMode
 import com.cglabs.lifemusic.ui.screens.settings.NavigationTab
@@ -930,6 +932,10 @@ class MainActivity : ComponentActivity() {
 
                 val (lastOpenedVersionCode, setLastOpenedVersionCode) = rememberPreference(com.cglabs.lifemusic.constants.LastOpenedVersionCodeKey, -1)
                 var showWelcomeDialog by remember { mutableStateOf(false) }
+                // Saludo de entrada: una vez por arranque en frio, y nunca encima de la
+                // bienvenida de primer arranque. Dos intros seguidas es una de mas.
+                var mostrarSaludo by remember { mutableStateOf(SaludoEntrada.reclamarArranqueEnFrio()) }
+                val esPrimerArranque = lastOpenedVersionCode < BuildConfig.VERSION_CODE
 
                 LaunchedEffect(lastOpenedVersionCode) {
                     if (lastOpenedVersionCode < BuildConfig.VERSION_CODE) {
@@ -1485,6 +1491,11 @@ class MainActivity : ComponentActivity() {
                                 setLastOpenedVersionCode(BuildConfig.VERSION_CODE)
                             }
                         )
+                    }
+
+                    // Ultimo hijo del BoxWithConstraints raiz: queda encima de todo.
+                    if (mostrarSaludo && !esPrimerArranque) {
+                        SaludoDeEntrada(onTerminado = { mostrarSaludo = false })
                     }
 
                 }

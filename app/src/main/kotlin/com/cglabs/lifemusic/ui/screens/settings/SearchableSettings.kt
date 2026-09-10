@@ -311,6 +311,8 @@ fun getAllSearchableSettings(): List<SearchableSetting> {
             SearchableSetting("YouLyPlus", null, "Content", "settings/content"),
             SearchableSetting("PaxSenix", null, "Content", "settings/content"),
             SearchableSetting("Apple Music Inspired", null, "Appearance", "settings/appearance"),
+            SearchableSetting(stringResource(R.string.greeting_enabled), stringResource(R.string.greeting_enabled_desc), "Appearance", "settings/appearance"),
+            SearchableSetting(stringResource(R.string.brand_title_alternate), stringResource(R.string.brand_title_alternate_desc), "Appearance", "settings/appearance"),
             SearchableSetting(stringResource(R.string.version, BuildConfig.VERSION_NAME), stringResource(R.string.version_desc), "System Update", "settings/update"),
             SearchableSetting(stringResource(R.string.discord_integration), stringResource(R.string.discord_integration_desc), "Account", "settings/account"),
             SearchableSetting(stringResource(R.string.lastfm_integration), stringResource(R.string.lastfm_integration_desc), "Account", "settings/account"),

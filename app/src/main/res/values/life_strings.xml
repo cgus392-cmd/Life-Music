@@ -1065,6 +1065,9 @@
     <string name="life_line_voice_crossfade_2">One fades, another rises</string>
     <string name="life_line_voice_crossfade_3">Crossing over…</string>
     <string name="life_line_voice_crossfade_4">Mixing…</string>
+    <string name="life_line_voice_switching_1">Switching tracks…</string>
+    <string name="life_line_voice_switching_2">On to the next…</string>
+    <string name="life_line_voice_switching_3">Next…</string>
 
     <string name="life_line_voice_automix_1">Lining up what comes next</string>
     <string name="life_line_voice_automix_2">Picking the next one</string>
@@ -1088,4 +1091,32 @@
     <string name="life_line_voice_paused_3">Whenever you’re ready</string>
     <string name="life_line_translation">Show translation</string>
     <string name="life_line_translation_desc">Add the translated line under the original</string>
+
+    <!-- Saludo de entrada -->
+    <string name="greeting_enabled">Greeting on launch</string>
+    <string name="greeting_enabled_desc">A short line from the app before Home, on cold start</string>
+    <string name="greeting_morning">Good morning</string>
+    <string name="greeting_afternoon">Good afternoon</string>
+    <string name="greeting_evening">Good evening</string>
+    <string name="greeting_back">Welcome back</string>
+    <string name="greeting_m_1">What do we start with?</string>
+    <string name="greeting_m_2">Slowly. Today begins with music.</string>
+    <string name="greeting_m_3">The day has not started until something plays.</string>
+    <string name="greeting_t_1">Ready for today’s session?</string>
+    <string name="greeting_t_2">Who are you dedicating them to today?</string>
+    <string name="greeting_t_3">A moment for you.</string>
+    <string name="greeting_n_1">Volume down, feeling up.</string>
+    <string name="greeting_n_2">The kind you listen to in the dark.</string>
+    <string name="greeting_n_3">Close the day properly.</string>
+    <string name="greeting_v_1">Good to see you again.</string>
+    <string name="greeting_v_2">No rush. The music waited for you.</string>
+    <string name="greeting_v_3">It has been a while. Catch up with what is playing.</string>
+    <string name="greeting_g_1">Today calls for the ones you sing with your body.</string>
+    <string name="greeting_g_2">Turn it up. Or not. You decide.</string>
+    <string name="greeting_g_3">The usual, or something new.</string>
+    <string name="greeting_g_4">Every song has its moment. This is one.</string>
+    <string name="greeting_g_5">No ads here. Just yours.</string>
+    <string name="greeting_g_6">What is on today?</string>
+    <string name="greeting_g_7">Let us go.</string>
+    <string name="greeting_g_8">Seeing you again is a pleasure.</string>
 </resources>

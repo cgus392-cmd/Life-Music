@@ -103,6 +103,7 @@ import com.cglabs.lifemusic.constants.SwipeToRemoveSongKey
 import com.cglabs.lifemusic.constants.SwipeToSongKey
 import com.cglabs.lifemusic.constants.ThumbnailCornerRadiusKey
 
+import com.cglabs.lifemusic.constants.UseNewPlayerDesignDefault
 import com.cglabs.lifemusic.constants.UseNewPlayerDesignKey
 import com.cglabs.lifemusic.ui.component.ThumbnailCornerRadiusModal
 import com.cglabs.lifemusic.ui.component.DefaultDialog
@@ -123,6 +124,7 @@ import kotlinx.coroutines.launch
 import kotlin.math.roundToInt
 import com.cglabs.lifemusic.constants.LyricsClickKey
 import com.cglabs.lifemusic.constants.BrandTitleAlternateKey
+import com.cglabs.lifemusic.constants.GreetingEnabledKey
 import com.cglabs.lifemusic.constants.LifeLineCustomColorKey
 import com.cglabs.lifemusic.constants.LifeLineEnabledKey
 import com.cglabs.lifemusic.constants.LifeLineHighlight
@@ -197,7 +199,7 @@ highlightKey: String? = null) {
 
     val (useNewPlayerDesign, onUseNewPlayerDesignChange) = rememberPreference(
         UseNewPlayerDesignKey,
-        defaultValue = true
+        defaultValue = UseNewPlayerDesignDefault
     )
     val (showCodecOnPlayer, onShowCodecOnPlayerChange) = rememberPreference(
         com.cglabs.lifemusic.constants.ShowCodecOnPlayerKey,
@@ -243,6 +245,8 @@ highlightKey: String? = null) {
     // --- Life Line: la linea de letra viva en el reproductor ---
     val (brandTitleAlternate, onBrandTitleAlternateChange) =
         rememberPreference(BrandTitleAlternateKey, defaultValue = true)
+    val (greetingEnabled, onGreetingEnabledChange) =
+        rememberPreference(GreetingEnabledKey, defaultValue = true)
     val (lifeLineEnabled, onLifeLineEnabledChange) =
         rememberPreference(LifeLineEnabledKey, defaultValue = true)
     val (lifeLineHighlight, onLifeLineHighlightChange) =
@@ -1187,6 +1191,33 @@ highlightKey: String? = null) {
                             )
                         },
                         onClick = { onBrandTitleAlternateChange(!brandTitleAlternate) }
+                    )
+                )
+                // Saludo de entrada: la voz de Life Line en la puerta. Va junto a la
+                // marca alterna porque son de la misma familia: cosas propias que se
+                // pueden apagar.
+                add(
+                    Material3SettingsItem(
+                        isHighlighted = (highlightKey == stringResource(R.string.greeting_enabled)),
+                        icon = painterResource(R.drawable.chat_msg),
+                        title = { Text(stringResource(R.string.greeting_enabled)) },
+                        description = { Text(stringResource(R.string.greeting_enabled_desc)) },
+                        trailingContent = {
+                            Switch(
+                                checked = greetingEnabled,
+                                onCheckedChange = onGreetingEnabledChange,
+                                thumbContent = {
+                                    Icon(
+                                        painter = painterResource(
+                                            id = if (greetingEnabled) R.drawable.check else R.drawable.close
+                                        ),
+                                        contentDescription = null,
+                                        modifier = Modifier.size(SwitchDefaults.IconSize)
+                                    )
+                                }
+                            )
+                        },
+                        onClick = { onGreetingEnabledChange(!greetingEnabled) }
                     )
                 )
             }

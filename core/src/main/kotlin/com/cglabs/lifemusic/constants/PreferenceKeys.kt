@@ -53,7 +53,24 @@ val SliderStyleKey = stringPreferencesKey("sliderStyle")
 val SquigglySliderKey = booleanPreferencesKey("squigglySlider")
 val SwipeToSongKey = booleanPreferencesKey("SwipeToSong")
 val SwipeToRemoveSongKey = booleanPreferencesKey("SwipeToRemoveSong")
-val UseNewPlayerDesignKey= booleanPreferencesKey("useNewPlayerDesign")
+val UseNewPlayerDesignKey = booleanPreferencesKey("useNewPlayerDesign")
+
+/**
+ * Valor por defecto de [UseNewPlayerDesignKey], declarado una sola vez.
+ *
+ * Ojo con el sentido: la pantalla de Ajustes lo presenta como «Apple Music
+ * Inspired», y ese interruptor esta ENCENDIDO cuando esta clave vale FALSE. El
+ * nombre de la clave viene del proyecto de origen y no se cambia para no romper
+ * las preferencias ya guardadas; el sentido invertido se documenta aqui y no
+ * se vuelve a deducir en cada pantalla.
+ *
+ * FALSE = Apple Music Inspired encendido de serie, que es lo que CG pidio para
+ * toda instalacion nueva. Estaba escrito a mano en cuatro sitios, todos en
+ * TRUE: Apple Music Inspired apagado para quien acababa de instalar, y solo
+ * encendido para quien lo activaba a mano. Misma leccion que
+ * [PlayerBackgroundStyleDefault].
+ */
+val UseNewPlayerDesignDefault = false
 val UseNewMiniPlayerDesignKey = booleanPreferencesKey("useNewMiniPlayerDesign")
 val ShowCodecOnPlayerKey = booleanPreferencesKey("showCodecOnPlayer")
 val HidePlayerSliderKey = booleanPreferencesKey("hidePlayerSlider")
@@ -824,6 +841,20 @@ val LifeLineTranslationKey = booleanPreferencesKey("lifeLineTranslation")
  * defecto: es identidad de marca, y apagarlo deja el titulo quieto y ya.
  */
 val BrandTitleAlternateKey = booleanPreferencesKey("brandTitleAlternate")
+
+/**
+ * Saludo de entrada: una frase a pantalla completa al arrancar en frio, antes de
+ * Inicio. Es la voz de Life Line saliendo del reproductor. Activado por defecto
+ * y con su interruptor en Apariencia, como todo lo propio.
+ */
+val GreetingEnabledKey = booleanPreferencesKey("greetingEnabled")
+
+/**
+ * Instante del ultimo arranque en frio, en milisegundos. Sirve para que el saludo
+ * sepa cuanto hace que no abres —una semana sin entrar merece otra frase— sin
+ * necesitar cuenta ni nombre.
+ */
+val LastColdStartAtKey = longPreferencesKey("lastColdStartAt")
 
 /** Modo karaoke: reduccion de la voz principal por cancelacion de centro en banda. */
 val KaraokeVocalReductionKey = booleanPreferencesKey("karaokeVocalReduction")

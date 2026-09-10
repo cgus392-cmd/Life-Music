@@ -160,6 +160,7 @@ class PlayerConnection(
     val isCrossfading: kotlinx.coroutines.flow.StateFlow<Boolean> = service.isCrossfading
     val isAutomixing: kotlinx.coroutines.flow.StateFlow<Boolean> = service.isAutomixing
     val automixDebugInfo: kotlinx.coroutines.flow.StateFlow<MusicService.AutomixDebugInfo?> = service.automixDebugInfo
+    val transicionesAutomix: kotlinx.coroutines.flow.StateFlow<List<MusicService.TransicionAutomix>> = service.transicionesAutomix
 
     
     var shouldBlockPlaybackChanges: (() -> Boolean)? = null

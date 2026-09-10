@@ -679,6 +679,9 @@
     <string name="life_line_voice_crossfade_2">Una se despide, otra entra</string>
     <string name="life_line_voice_crossfade_3">Cruzando de una a la otra…</string>
     <string name="life_line_voice_crossfade_4">Mezclando…</string>
+    <string name="life_line_voice_switching_1">Cambiando de pista…</string>
+    <string name="life_line_voice_switching_2">Pasando a la siguiente…</string>
+    <string name="life_line_voice_switching_3">Siguiente…</string>
 
     <string name="life_line_voice_automix_1">Enlazando con lo que viene</string>
     <string name="life_line_voice_automix_2">Eligiendo la que sigue</string>
@@ -703,4 +706,32 @@
     <string name="life_line_translation">Mostrar traducción</string>
     <string name="life_line_translation_desc">Añade la traducción bajo la línea original</string>
     <string name="update_install_failed">No se pudo abrir el instalador. Permite instalar aplicaciones desde Life Music en los ajustes de Android y vuelve a intentarlo.</string>
+
+    <!-- Saludo de entrada -->
+    <string name="greeting_enabled">Saludo de entrada</string>
+    <string name="greeting_enabled_desc">Una frase de la app antes de Inicio, al arrancar en frío</string>
+    <string name="greeting_morning">Buenos días</string>
+    <string name="greeting_afternoon">Buenas tardes</string>
+    <string name="greeting_evening">Buenas noches</string>
+    <string name="greeting_back">Qué bueno verte</string>
+    <string name="greeting_m_1">¿Con qué arrancamos?</string>
+    <string name="greeting_m_2">Despacio. Hoy empieza con música.</string>
+    <string name="greeting_m_3">El día no ha empezado hasta que suena algo.</string>
+    <string name="greeting_t_1">¿Listo para la sesión de hoy?</string>
+    <string name="greeting_t_2">¿A quién se las vas a dedicar hoy?</string>
+    <string name="greeting_t_3">Un rato para ti.</string>
+    <string name="greeting_n_1">Baja el volumen, sube el sentimiento.</string>
+    <string name="greeting_n_2">De las que se escuchan a oscuras.</string>
+    <string name="greeting_n_3">Cierra el día como se debe.</string>
+    <string name="greeting_v_1">Qué bueno verte de nuevo.</string>
+    <string name="greeting_v_2">Sin prisa. La música te esperó.</string>
+    <string name="greeting_v_3">Ha pasado un tiempo. Ponte al día con lo que suena.</string>
+    <string name="greeting_g_1">Hoy toca de las que se cantan con el cuerpo.</string>
+    <string name="greeting_g_2">Sube el volumen. O no. Tú mandas.</string>
+    <string name="greeting_g_3">Lo de siempre, o algo nuevo.</string>
+    <string name="greeting_g_4">Cada canción tiene su momento. Este es uno.</string>
+    <string name="greeting_g_5">Aquí no hay anuncios. Solo lo tuyo.</string>
+    <string name="greeting_g_6">¿Qué toca hoy?</string>
+    <string name="greeting_g_7">Vamos a darle.</string>
+    <string name="greeting_g_8">Verte de nuevo es un gusto.</string>
 </resources>
