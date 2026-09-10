@@ -39,7 +39,9 @@ import kotlin.math.sin
  * Cambiar los coeficientes de un IIR en caliente, con la linea de retardo
  * cargada de estado del filtro anterior, produce chasquidos. La fuerza se aplica
  * como mezcla lineal entre seco y procesado, suavizada muestra a muestra, que es
- * la misma solucion que ya usa [AutomixDuckAudioProcessor].
+ * la misma solucion que usaba el low-shelf de Automix del proyecto de origen
+ * (sustituido en la 1.1.6 por [TransitionFilterAudioProcessor], que desliza el
+ * corte geometricamente por el mismo motivo).
  */
 @UnstableApi
 class VocalReducerAudioProcessor : AudioProcessor {

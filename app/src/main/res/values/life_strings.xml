@@ -1068,6 +1068,9 @@
     <string name="life_line_voice_switching_1">Switching tracks…</string>
     <string name="life_line_voice_switching_2">On to the next…</string>
     <string name="life_line_voice_switching_3">Next…</string>
+    <string name="life_line_voice_filter_1">Closing the filter…</string>
+    <string name="life_line_voice_filter_2">Sweeping across…</string>
+    <string name="life_line_voice_filter_3">Making room…</string>
 
     <string name="life_line_voice_automix_1">Lining up what comes next</string>
     <string name="life_line_voice_automix_2">Picking the next one</string>

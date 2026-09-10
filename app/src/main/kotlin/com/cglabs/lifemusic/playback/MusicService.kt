@@ -142,7 +142,10 @@ import com.cglabs.lifemusic.db.entities.Song
 import com.cglabs.lifemusic.di.DownloadCache
 import com.cglabs.lifemusic.di.PlayerCache
 import com.cglabs.lifemusic.eq.EqualizerService
-import com.cglabs.lifemusic.eq.audio.AutomixDuckAudioProcessor
+import com.cglabs.lifemusic.eq.audio.TransitionFilterAudioProcessor
+import com.cglabs.lifemusic.playback.audio.ConduccionAutomix
+import com.cglabs.lifemusic.playback.audio.EstiloTransicion
+import com.cglabs.lifemusic.playback.audio.NivelTransicion
 import com.cglabs.lifemusic.eq.audio.VocalReducerAudioProcessor
 import com.cglabs.lifemusic.eq.audio.CustomEqualizerAudioProcessor
 import com.cglabs.lifemusic.eq.data.EQProfileRepository
@@ -319,6 +322,10 @@ class MusicService :
         val pitchRatio: Float = 1f,
         /** DJ blend length: 16 beats of the outgoing track, clamped to sane bounds. */
         val overlapMs: Long,
+        /** Cuanto se atrevio el planificador con este par. */
+        val nivel: NivelTransicion = NivelTransicion.AL_BEAT,
+        /** Como se ejecuta: lo elige el material, no el usuario. */
+        val estilo: EstiloTransicion = EstiloTransicion.BLEND,
     )
 
     private data class AutomixPlanResult(
@@ -338,9 +345,13 @@ class MusicService :
         val triggerTimeMs: Long? = null,
         val incomingStartMs: Long? = null,
         val tempoRatio: Float? = null,
+        val estilo: String? = null,
     )
 
     val automixDebugInfo = MutableStateFlow<AutomixDebugInfo?>(null)
+
+    /** Estilo de la transicion en curso, o null fuera de una. Lo lee la voz de Life Line. */
+    val automixEstilo = MutableStateFlow<EstiloTransicion?>(null)
 
     /**
      * Resultado de una transicion ya ocurrida: si fue al beat o un fundido plano,
@@ -353,8 +364,8 @@ class MusicService :
 
     val transicionesAutomix = MutableStateFlow<List<TransicionAutomix>>(emptyList())
 
-    private fun registrarTransicion(alBeat: Boolean) {
-        val motivo = if (alBeat) "beat"
+    private fun registrarTransicion(alBeat: Boolean, estilo: EstiloTransicion?) {
+        val motivo = if (alBeat) (estilo?.name?.lowercase() ?: "beat")
         else automixDebugInfo.value?.status?.removePrefix("fallback: ")?.ifBlank { null } ?: "sin plan"
         val lista = (transicionesAutomix.value + TransicionAutomix(System.currentTimeMillis(), alBeat, motivo))
             .takeLast(MAX_TRANSICIONES)
@@ -486,7 +497,7 @@ class MusicService :
      */
     var vocalReducer: VocalReducerAudioProcessor? = null
         private set
-    private val playerDuckProcessors = HashMap<Player, AutomixDuckAudioProcessor>()
+    private val playerFilters = HashMap<Player, TransitionFilterAudioProcessor>()
 
 
     private val instantSilenceSkipEnabled = MutableStateFlow(false)
@@ -1174,7 +1185,7 @@ class MusicService :
         val eqProcessor = CustomEqualizerAudioProcessor()
         equalizerService.addAudioProcessor(eqProcessor)
 
-        val duckProcessor = AutomixDuckAudioProcessor()
+        val filtro = TransitionFilterAudioProcessor()
 
         val vocalProcessor = VocalReducerAudioProcessor()
         vocalReducer = vocalProcessor
@@ -1190,7 +1201,7 @@ class MusicService :
 
         val player = ExoPlayer.Builder(this)
             .setMediaSourceFactory(createMediaSourceFactory())
-            .setRenderersFactory(createRenderersFactory(eqProcessor, silenceProcessor, duckProcessor, vocalProcessor))
+            .setRenderersFactory(createRenderersFactory(eqProcessor, silenceProcessor, filtro, vocalProcessor))
             .setLoadControl(
                 DefaultLoadControl.Builder()
                     .setBufferDurationsMs(50_000, 50_000, 750, 2_000)
@@ -1211,7 +1222,7 @@ class MusicService :
             .build()
 
         playerSilenceProcessors[player] = silenceProcessor
-        playerDuckProcessors[player] = duckProcessor
+        playerFilters[player] = filtro
 
         player.apply {
                 runBlocking {
@@ -3189,7 +3200,7 @@ class MusicService :
     private fun createRenderersFactory(
         eqProcessor: CustomEqualizerAudioProcessor,
         silenceProcessor: SilenceDetectorAudioProcessor,
-        duckProcessor: AutomixDuckAudioProcessor,
+        filtro: TransitionFilterAudioProcessor,
         vocalProcessor: VocalReducerAudioProcessor,
     ) =
         object : DefaultRenderersFactory(this) {
@@ -3212,7 +3223,11 @@ class MusicService :
                             // el centro y la resta ya no la cancelaria limpia.
                             vocalProcessor,
                             eqProcessor,
-                            duckProcessor,
+                            // El filtro de transicion sustituye al low-shelf del
+                            // proyecto de origen: un paso alto de 24 dB/oct hace de
+                            // corte de graves de verdad, y el paso bajo permite el
+                            // barrido cuando los tempos no casan.
+                            filtro,
                             silenceProcessor,
                         ),
                         SilenceSkippingAudioProcessor(2_000_000, 20_000, 256),
@@ -3644,27 +3659,23 @@ class MusicService :
             outBpm = outBeat?.bpm, outConfidence = outBeat?.confidence, outMixOutMs = outBeat?.mixOutPointMs,
             inBpm = inBeat?.bpm, inConfidence = inBeat?.confidence, inMixInMs = inBeat?.mixInPointMs,
         )
-        if (outBeat == null || inBeat == null) {
-            Timber.tag(TAG).d(
-                "Automix fallback: beat info missing (current=%s next=%s)",
-                outBeat != null, inBeat != null
-            )
-            automixDebugInfo.value = partialDebug.copy(
-                status = "fallback: analysis pending (" +
-                    (if (outBeat == null) "current" else "") +
-                    (if (outBeat == null && inBeat == null) "+" else "") +
-                    (if (inBeat == null) "next" else "") + ")"
-            )
+        // Sin rejilla de la SALIENTE no hay nada a lo que anclar: fundido plano.
+        // La entrante es otra historia, mas abajo.
+        if (outBeat == null) {
+            Timber.tag(TAG).d("Automix fallback: outgoing beat info missing")
+            automixDebugInfo.value = partialDebug.copy(status = "fallback: analysis pending (current)")
             return AutomixPlanResult(plan = null, pairAnalyzed = false)
         }
-        if (outBeat.confidence < 0.3f || inBeat.confidence < 0.3f || outBeat.bpm <= 0f || inBeat.bpm <= 0f) {
-            Timber.tag(TAG).d(
-                "Automix fallback: low confidence (out=%.2f/%.0fbpm in=%.2f/%.0fbpm)",
-                outBeat.confidence, outBeat.bpm, inBeat.confidence, inBeat.bpm
-            )
-            automixDebugInfo.value = partialDebug.copy(status = "fallback: low confidence")
+        if (outBeat.confidence < 0.3f || outBeat.bpm <= 0f) {
+            Timber.tag(TAG).d("Automix fallback: outgoing low confidence (%.2f/%.0fbpm)", outBeat.confidence, outBeat.bpm)
+            automixDebugInfo.value = partialDebug.copy(status = "fallback: low confidence (current)")
             return AutomixPlanResult(plan = null, pairAnalyzed = true)
         }
+        // Antes, si la entrante faltaba o era poco fiable, se tiraba el plan entero y
+        // se caia a fundido plano: todo o nada. Ahora se degrada: no se estira el
+        // tempo ni se alinea el beat, pero SI se ancla la salida a frase de la
+        // saliente y se conduce un barrido de filtro. Sigue sonando a DJ.
+        val entranteFiable = inBeat != null && inBeat.confidence >= 0.3f && inBeat.bpm > 0f
 
         val periodMs = (60_000f / outBeat.bpm).toDouble()
 
@@ -3700,11 +3711,29 @@ class MusicService :
             return AutomixPlanResult(plan = null, pairAnalyzed = true)
         }
 
-        // Fold octave errors, then cap pitch-preserving stretch at ±8%.
-        var tempoRatio = outBeat.bpm / inBeat.bpm
-        while (tempoRatio > 1.5f) tempoRatio /= 2f
-        while (tempoRatio < 0.667f) tempoRatio *= 2f
-        if (tempoRatio !in 0.92f..1.08f) tempoRatio = 1f
+        // Tres niveles en vez de dos, y el estilo lo decide la distancia de tempo:
+        //   <= 4 %  AL_BEAT + BLEND   estirar es transparente; los graves cambian de mano
+        //   <= 8 %  AL_BEAT + FILTRO  se estira aun, pero el filtro tapa la deriva
+        //   >  8 %  ASISTIDO + FILTRO sin estirar; el barrido hace la transicion
+        // El 4 % sale de BitChord (MAX_STRETCH_DEVIATION); el 8 % era el tope de Echo
+        // y se conserva como limite de estiramiento.
+        val nivel: NivelTransicion
+        val estilo: EstiloTransicion
+        var tempoRatio = 1f
+        if (entranteFiable) {
+            tempoRatio = outBeat.bpm / inBeat!!.bpm
+            while (tempoRatio > 1.5f) tempoRatio /= 2f
+            while (tempoRatio < 0.667f) tempoRatio *= 2f
+            val desvio = kotlin.math.abs(tempoRatio - 1f)
+            when {
+                desvio <= 0.04f -> { nivel = NivelTransicion.AL_BEAT; estilo = EstiloTransicion.BLEND }
+                desvio <= 0.08f -> { nivel = NivelTransicion.AL_BEAT; estilo = EstiloTransicion.FILTRO }
+                else -> { nivel = NivelTransicion.ASISTIDO; estilo = EstiloTransicion.FILTRO; tempoRatio = 1f }
+            }
+        } else {
+            nivel = NivelTransicion.ASISTIDO
+            estilo = EstiloTransicion.FILTRO
+        }
 
         // Harmonic correction: compare keys via their relative-major pitch class (a minor
         // key's relative major sits 3 semitones up), then pitch-shift the incoming track
@@ -3713,10 +3742,10 @@ class MusicService :
         // the clash it's fixing (>3 semitones).
         var pitchRatio = 1f
         val outKeyClass = outBeat.keyPitchClass
-        val inKeyClass = inBeat.keyPitchClass
+        val inKeyClass = inBeat?.keyPitchClass
         if (outKeyClass != null && inKeyClass != null) {
             val outEffective = if (outBeat.keyIsMinor == true) (outKeyClass + 3) % 12 else outKeyClass
-            val inEffective = if (inBeat.keyIsMinor == true) (inKeyClass + 3) % 12 else inKeyClass
+            val inEffective = if (inBeat?.keyIsMinor == true) (inKeyClass + 3) % 12 else inKeyClass
             var semitoneShift = (outEffective - inEffective) % 12
             if (semitoneShift > 6) semitoneShift -= 12
             if (semitoneShift < -6) semitoneShift += 12
@@ -3726,11 +3755,17 @@ class MusicService :
         }
 
         // Dynamic mix-in: skip the incoming track's intro, snapped onto its own 8-beat grid.
-        val inPeriodMs = (60_000f / inBeat.bpm).toDouble()
-        val rawStart = inBeat.mixInPointMs?.takeIf { it > 0 } ?: inBeat.firstBeatOffsetMs
-        val inPhraseMs = inPeriodMs * 8
-        val inK = kotlin.math.ceil((rawStart - inBeat.firstBeatOffsetMs) / inPhraseMs).toLong().coerceAtLeast(0)
-        val incomingStart = (inBeat.firstBeatOffsetMs + inK * inPhraseMs).toLong()
+        val incomingStart = if (entranteFiable) {
+            val inPeriodMs = (60_000f / inBeat!!.bpm).toDouble()
+            val rawStart = inBeat.mixInPointMs?.takeIf { it > 0 } ?: inBeat.firstBeatOffsetMs
+            val inPhraseMs = inPeriodMs * 8
+            val inK = kotlin.math.ceil((rawStart - inBeat.firstBeatOffsetMs) / inPhraseMs).toLong().coerceAtLeast(0)
+            (inBeat.firstBeatOffsetMs + inK * inPhraseMs).toLong()
+        } else {
+            // Sin rejilla fiable no hay frase a la que ajustar: se entra donde el
+            // analisis parcial diga, o al principio.
+            inBeat?.mixInPointMs?.takeIf { it > 0 } ?: 0L
+        }
 
         val plan = AutomixPlan(
             currentId = currentId,
@@ -3740,13 +3775,16 @@ class MusicService :
             tempoRatio = tempoRatio,
             pitchRatio = pitchRatio,
             overlapMs = effectiveOverlapMs,
+            nivel = nivel,
+            estilo = estilo,
         )
         Timber.tag(TAG).d(
             "Automix plan: trigger=%dms incomingStart=%dms tempoRatio=%.3f pitchRatio=%.3f overlap=%dms",
             plan.triggerTimeMs, plan.incomingStartMs, plan.tempoRatio, plan.pitchRatio, plan.overlapMs
         )
         automixDebugInfo.value = partialDebug.copy(
-            status = "plan ready",
+            status = "plan ready: ${nivel.name.lowercase()} / ${estilo.name.lowercase()}",
+            estilo = estilo.name.lowercase(),
             triggerTimeMs = plan.triggerTimeMs,
             incomingStartMs = plan.incomingStartMs,
             tempoRatio = plan.tempoRatio,
@@ -3898,7 +3936,7 @@ class MusicService :
     private fun releasePrebuffered() {
         val pb = prebuffered ?: return
         prebuffered = null
-        playerDuckProcessors.remove(pb.player)
+        playerFilters.remove(pb.player)
         playerSilenceProcessors.remove(pb.player)
         try {
             pb.player.removeListener(secondaryPlayerListener)
@@ -4009,7 +4047,8 @@ class MusicService :
     private fun performCrossfadeSwap() {
         isCrossfading.value = true
         isAutomixing.value = activeAutomixPlan != null
-        registrarTransicion(alBeat = activeAutomixPlan != null)
+        automixEstilo.value = activeAutomixPlan?.estilo ?: EstiloTransicion.PLANO
+        registrarTransicion(alBeat = activeAutomixPlan != null, estilo = activeAutomixPlan?.estilo)
         if (activeAutomixPlan != null) {
             automixDebugInfo.value = automixDebugInfo.value?.copy(status = "automixing now")
         }
@@ -4116,11 +4155,10 @@ class MusicService :
             val stepTime = duration / steps
             val startVolume = try { fadingPlayer?.volume ?: 1f } catch (e: Exception) { 1f }
 
-            // Bass-swap ducking (DJ blend only): cut the outgoing track's low end as it
-            // drops and hold the incoming track's low end back until it takes over, so
-            // two full basslines don't sum into mud during the overlap.
-            val outDuck = fadingPlayer?.let { playerDuckProcessors[it] }
-            val inDuck = playerDuckProcessors[player]
+            // Filtros de transicion por plato: los cortes los decide el estilo del plan
+            val filtroSaliente = fadingPlayer?.let { playerFilters[it] }
+            val filtroEntrante = playerFilters[player]
+            val estilo = djPlan?.estilo ?: EstiloTransicion.PLANO
 
             // Equal-power curve: sin/cos gains keep combined signal energy ~constant
             // through the blend, so linearly summing two tracks doesn't dip in
@@ -4156,12 +4194,13 @@ class MusicService :
                         fadingPlayer?.volume = startVolume * fadeOut
                     } catch (e: Exception) { break }
 
-                    if (djPlan != null) {
-                        // Outgoing bass cuts through the same 0.45-1.0 window it fades
-                        // out in; incoming bass fills back in through 0-0.55.
-                        outDuck?.setMix(equalPowerIn(0.45f, 1f, progress))
-                        inDuck?.setMix(1f - equalPowerIn(0f, 0.55f, progress))
-                    }
+                    // Los cortes los decide el estilo, no el plan a mano: BLEND cambia
+                    // los graves de mano en un beat; FILTRO cierra la saliente y abre la
+                    // entrante; PLANO deja los filtros abiertos. Mismo progreso que las
+                    // ganancias, asi que una pausa aparca el filtro donde aparca el fundido.
+                    val cortes = ConduccionAutomix.cortes(estilo, progress)
+                    filtroSaliente?.setCutoffs(cortes.salienteLowPassHz, cortes.salienteHighPassHz)
+                    filtroEntrante?.setCutoffs(cortes.entranteLowPassHz, cortes.entranteHighPassHz)
 
                     delay(stepTime)
                 }
@@ -4172,8 +4211,9 @@ class MusicService :
                 } catch (e: Exception) {
                     Timber.tag(TAG).d(e, "Crossfade volume reset skipped, player likely released")
                 }
-                outDuck?.resetGain()
-                inDuck?.resetGain()
+                filtroSaliente?.open()
+                filtroEntrante?.open()
+                automixEstilo.value = null
                 cleanupCrossfade()
                 activeAutomixPlan = null
             }
@@ -4188,7 +4228,7 @@ class MusicService :
         } finally {
             fadingLoudnessEnhancer = null
         }
-        fadingPlayer?.let { playerDuckProcessors.remove(it) }
+        fadingPlayer?.let { playerFilters.remove(it) }
         fadingPlayer?.stop()
         fadingPlayer?.clearMediaItems()
         fadingPlayer?.release()

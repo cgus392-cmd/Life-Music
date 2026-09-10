@@ -56,20 +56,45 @@ Interfaz primero, español por defecto, y un arreglo que tocaba desde la 1.1.4.
   no se muestra si el sistema tiene las animaciones desactivadas ni cuando va a
   salir la bienvenida de primer arranque.
 
-### Automix
+### Automix: de fundido de radio a transición de DJ
 
-- **Ahora se sabe por qué una transición sonó como sonó.** Automix solo mezcla al
-  beat cuando las dos pistas tienen análisis con confianza suficiente; si falta
-  una, cae a un fundido plano, todo o nada. Antes no había forma de saber cuántas
-  veces pasaba ni por qué. Ahora cada transición queda registrada —al beat o
-  fundido, y el motivo— en el teléfono, y la pantalla de depuración de Automix
-  resume las últimas cincuenta. Es el paso previo a mejorarlo con datos y no a
-  ciegas, que va en la 1.1.6.
+- **Un filtro de verdad en cada plato.** Automix ejecutaba toda transición como
+  un fundido de volúmenes con un shelf de graves de −10 dB. Ahora cada plato
+  lleva un filtro de estado variable de **24 dB por octava**, paso bajo y paso
+  alto, con el corte deslizándose geométricamente para que nunca se oiga un
+  salto. Es el efecto que hace que una mezcla suene a DJ, y no lo teníamos.
+  Portado de BitChord, con su copyright intacto, bajo la misma GPL-3.0.
 
-- **Life Line ya no dice «Mezclando…» cuando no está mezclando.** Durante un
-  fundido plano decía lo mismo que durante una mezcla al beat. Ahora distingue:
-  «Fundiendo las notas…» solo cuando hay plan, y «Cambiando de pista…» cuando no.
-  Una voz que promete algo que no pasa es peor que ninguna.
+- **Dos estilos de transición, elegidos por el material.** Con tempos a menos del
+  4 % de distancia, **blend**: mezcla al beat y los graves cambian de mano una sola
+  vez, en el 70 % del solape. Con tempos más lejanos, **barrido**: el paso bajo se
+  cierra sobre la saliente hasta una cama de 300 Hz mientras la entrante entra
+  pasada por alto y se va abriendo. Nadie elige el efecto: lo decide la distancia
+  de tempo entre las dos pistas.
+
+- **Tres niveles en vez de dos, y ya no es todo o nada.** Antes, si la pista
+  entrante no tenía análisis o su confianza era baja, se tiraba el plan entero y
+  caía a un fundido plano —ese era «a veces suena brusco»—. Ahora hay un nivel
+  intermedio, **asistido**: no estira el tempo ni alinea el beat, pero ancla la
+  salida a frase de la saliente y conduce el barrido de filtro. Sigue sonando a
+  DJ aunque falte la mitad de la información.
+
+- **Life Line cuenta el estilo, no solo que hay transición.** «Fundiendo las
+  notas…» solo en blend; «Cerrando el filtro…» en barrido; «Cambiando de
+  pista…» en fundido plano. Antes decía «Mezclando…» en cualquier caso.
+
+- **Cada transición queda registrada** —estilo, o motivo del fundido plano— en el
+  teléfono, y la pantalla de depuración de Automix resume las últimas cincuenta.
+  Es lo que permite seguir mejorándolo con datos.
+
+- **Medido, no supuesto.** El filtro se verificó con tonos en pruebas de JVM: 0 dB
+  en la banda de paso, −48 dB a dos octavas del corte. Las curvas de conducción
+  tienen sus propias pruebas en los puntos que importan.
+
+### Interno
+
+- Se retira `AutomixDuckAudioProcessor`, el shelf de graves del proyecto de
+  origen: el paso alto del filtro nuevo hace su trabajo, mejor.
 
 ---
 

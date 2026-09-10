@@ -32,6 +32,7 @@ import androidx.compose.ui.unit.sp
 import androidx.media3.common.Player
 import com.cglabs.lifemusic.LocalPlayerConnection
 import com.cglabs.lifemusic.R
+import com.cglabs.lifemusic.playback.audio.EstiloTransicion
 
 /**
  * La voz de Life Line: lo que dice la app cuando no hay letra que cantar, o
@@ -46,7 +47,8 @@ import com.cglabs.lifemusic.R
  *   ERROR          error                        fallo de reproduccion
  *   SIN_RED        waitingForNetworkConnection  esperando conexion
  *   CARGANDO       playbackState                STATE_BUFFERING
- *   MEZCLANDO      isCrossfading + isAutomixing mezcla al beat
+ *   MEZCLANDO      automixEstilo == BLEND       mezcla al beat, graves cambiando de mano
+ *   FILTRANDO      automixEstilo == FILTRO      barrido de filtro entre pistas
  *   CAMBIANDO      isCrossfading, sin plan      fundido plano entre pistas
  *   AUTOMIX        isAutomixing                 la app encadena la siguiente
  *   PAUSADO        isPlaying
@@ -64,6 +66,7 @@ enum class LifeLineVoz(val esInterrupcion: Boolean) {
     SIN_RED(true),
     CARGANDO(true),
     MEZCLANDO(true),
+    FILTRANDO(true),
     CAMBIANDO(true),
     AUTOMIX(false),
     PAUSADO(false),
@@ -100,6 +103,7 @@ fun recordarVozLifeLine(
     val estado by conexion.playbackState.collectAsState()
     val mezclando by conexion.isCrossfading.collectAsState()
     val automix by conexion.isAutomixing.collectAsState()
+    val estilo by conexion.automixEstilo.collectAsState()
     val sonando by conexion.isPlaying.collectAsState()
 
     return when {
@@ -109,7 +113,11 @@ fun recordarVozLifeLine(
         // «Mezclando» solo cuando de verdad hay plan al beat. Si Automix cayo a un
         // fundido plano —analisis pendiente, confianza baja— decirlo con otra frase:
         // una voz que promete una mezcla que no esta pasando es peor que ninguna.
-        mezclando && automix -> LifeLineVoz.MEZCLANDO
+        // El estilo lo decide el planificador por el material, y la voz lo cuenta
+        // tal cual: una mezcla al beat, un barrido de filtro o un fundido plano son
+        // tres cosas distintas y merecen tres frases distintas.
+        mezclando && estilo == EstiloTransicion.BLEND -> LifeLineVoz.MEZCLANDO
+        mezclando && estilo == EstiloTransicion.FILTRO -> LifeLineVoz.FILTRANDO
         mezclando -> LifeLineVoz.CAMBIANDO
 
         // De aqui en adelante, la cancion manda: si hay letra sincronizada se
@@ -235,6 +243,11 @@ private fun frasesDe(voz: LifeLineVoz): IntArray = when (voz) {
         R.string.life_line_voice_crossfade_2,
         R.string.life_line_voice_crossfade_3,
         R.string.life_line_voice_crossfade_4,
+    )
+    LifeLineVoz.FILTRANDO -> intArrayOf(
+        R.string.life_line_voice_filter_1,
+        R.string.life_line_voice_filter_2,
+        R.string.life_line_voice_filter_3,
     )
     LifeLineVoz.CAMBIANDO -> intArrayOf(
         R.string.life_line_voice_switching_1,

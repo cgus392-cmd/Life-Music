@@ -682,6 +682,9 @@
     <string name="life_line_voice_switching_1">Cambiando de pista…</string>
     <string name="life_line_voice_switching_2">Pasando a la siguiente…</string>
     <string name="life_line_voice_switching_3">Siguiente…</string>
+    <string name="life_line_voice_filter_1">Cerrando el filtro…</string>
+    <string name="life_line_voice_filter_2">Barriendo…</string>
+    <string name="life_line_voice_filter_3">Abriendo paso…</string>
 
     <string name="life_line_voice_automix_1">Enlazando con lo que viene</string>
     <string name="life_line_voice_automix_2">Eligiendo la que sigue</string>
