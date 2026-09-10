@@ -36,6 +36,8 @@ object BeatAnalyzer {
         /** 0=C, 1=C#, ... 11=B. Null when the chroma signal was too weak to call a key. */
         val keyPitchClass: Int? = null,
         val keyIsMinor: Boolean? = null,
+        /** Ultimo instante audible. Null si no se pudo medir la cola. */
+        val contentEndMs: Long? = null,
     )
 
     private const val TAG = "BeatAnalyzer"
@@ -50,7 +52,10 @@ object BeatAnalyzer {
 
     /** Energy-scan windows for dynamic mix points. */
     private const val HEAD_WINDOW_US = 16_000_000L
-    private const val TAIL_WINDOW_US = 24_000_000L
+    // 60 s y no 24: un mambo de salsa o la coda de un vallenato duran mas que
+    // eso, y con una ventana corta la referencia de volumen salia de la propia
+    // cola —baja— y todo parecia «fuerte hasta el final».
+    private const val TAIL_WINDOW_US = 60_000_000L
 
     /** Canonical BPM range; octave-fold estimates into it (61.9 -> 123.8, 160 -> 80...). */
     private const val MIN_CANONICAL_BPM = 70f
@@ -58,6 +63,8 @@ object BeatAnalyzer {
     private const val ENERGY_BLOCK_MS = 500
     private const val MAX_INTRO_SKIP_MS = 20_000L
     private const val MAX_OUTRO_CUT_MS = 45_000L
+    /** Por debajo de esta fraccion del cuerpo, un bloque cuenta como silencio. */
+    private const val AUDIBLE_FRACTION = 0.10f
 
     /** Hard cap on bytes fetched for analysis. Keeps automix responsive on slow streams. */
     private const val MAX_FETCH_BYTES = 5L * 1024 * 1024
@@ -175,6 +182,9 @@ object BeatAnalyzer {
             if (pcm.samples.size < FFT_SIZE * 8) return null
 
             if (shouldCancel()) return null
+            // Referencia de volumen del CUERPO de la cancion, no de su cola. Es
+            // contra lo que se mide donde acaba la musica de verdad.
+            val bodyRef = percentile(energyEnvelope(pcm.samples, pcm.sampleRate), 0.75f)
             val key = estimateKey(pcm.samples, pcm.sampleRate)
 
             if (shouldCancel()) return null
@@ -219,21 +229,20 @@ object BeatAnalyzer {
             // Tail pass: detect where the body of the song ends (outro starts) so the
             // transition can begin there instead of a fixed distance from the end.
             var mixOutPointMs: Long? = null
+            var contentEndMs: Long? = null
             val durationMs = durationUs / 1000
             if (durationUs > TAIL_WINDOW_US) {
                 val tailStartUs = durationUs - TAIL_WINDOW_US
                 extractor.seekTo(tailStartUs, MediaExtractor.SEEK_TO_PREVIOUS_SYNC)
                 val tailActualStartMs = max(0L, extractor.sampleTime) / 1000
                 decodeMono(extractor, format, TAIL_WINDOW_US, shouldCancel)?.let { tail ->
-                    mixOutPointMs = detectMixOut(
-                        energyEnvelope(tail.samples, tail.sampleRate),
-                        tailActualStartMs,
-                        durationMs,
-                    )
+                    val env = energyEnvelope(tail.samples, tail.sampleRate)
+                    contentEndMs = detectContentEnd(env, tailActualStartMs, durationMs, bodyRef)
+                    mixOutPointMs = detectMixOut(env, tailActualStartMs, durationMs, bodyRef)
                 }
             }
 
-            return Result(bpm, firstBeatOffsetMs, confidence, mixInPointMs, mixOutPointMs, key?.first, key?.second)
+            return Result(bpm, firstBeatOffsetMs, confidence, mixInPointMs, mixOutPointMs, key?.first, key?.second, contentEndMs)
         } catch (e: Exception) {
             Timber.tag(TAG).w(e, "Beat analysis failed")
             return null
@@ -383,25 +392,43 @@ object BeatAnalyzer {
      * Last moment the tail window is still at body loudness; everything after is outro.
      * Null when the track stays loud to the end (no early mix-out warranted).
      */
-    private fun detectMixOut(env: FloatArray, windowStartMs: Long, durationMs: Long): Long? {
-        if (env.size < 8 || durationMs <= 0) return null
-        val ref = percentile(env, 0.75f)
-        if (ref <= 0f) return null
+    internal fun detectMixOut(env: FloatArray, windowStartMs: Long, durationMs: Long, bodyRef: Float): Long? {
+        if (env.size < 8 || durationMs <= 0 || bodyRef <= 0f) return null
 
+        // Contra el cuerpo, no contra la cola: asi un outro largo y flojo cuenta
+        // como outro aunque sea lo unico que hay en la ventana.
         var lastLoudBlock = -1
         for (i in env.indices.reversed()) {
-            if (env[i] >= 0.5f * ref) {
+            if (env[i] >= 0.5f * bodyRef) {
                 lastLoudBlock = i
                 break
             }
         }
-        if (lastLoudBlock < 0) return null
-
-        val mixOutMs = windowStartMs + (lastLoudBlock + 1).toLong() * ENERGY_BLOCK_MS
-        // Loud almost to the end: nothing to cut.
+        // Toda la ventana es mas floja que medio cuerpo: el outro empieza antes de
+        // donde alcanzamos a ver. Se entra al principio de la ventana, con tope.
+        val mixOutMs = if (lastLoudBlock < 0) windowStartMs
+        else windowStartMs + (lastLoudBlock + 1).toLong() * ENERGY_BLOCK_MS
+        // Fuerte casi hasta el final: no hay outro que cortar.
         if (durationMs - mixOutMs < 3_000) return null
-        // Never butcher more than MAX_OUTRO_CUT_MS.
         return max(mixOutMs, durationMs - MAX_OUTRO_CUT_MS)
+    }
+
+    /**
+     * Ultimo bloque en que todavia se oye musica: el 10 % del cuerpo es el umbral
+     * de «audible». Todo lo que queda despues —fade agotado, silencio digital— no
+     * es pista, y una transicion que llegue hasta ahi esta mezclando con nada.
+     */
+    internal fun detectContentEnd(env: FloatArray, windowStartMs: Long, durationMs: Long, bodyRef: Float): Long? {
+        if (env.isEmpty() || durationMs <= 0 || bodyRef <= 0f) return null
+        var lastAudible = -1
+        for (i in env.indices.reversed()) {
+            if (env[i] >= AUDIBLE_FRACTION * bodyRef) {
+                lastAudible = i
+                break
+            }
+        }
+        if (lastAudible < 0) return null
+        return (windowStartMs + (lastAudible + 1).toLong() * ENERGY_BLOCK_MS).coerceAtMost(durationMs)
     }
 
     /** Half-wave-rectified spectral flux per hop, log-compressed magnitudes. */

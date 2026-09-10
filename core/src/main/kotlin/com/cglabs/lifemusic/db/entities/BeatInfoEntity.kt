@@ -17,4 +17,12 @@ data class BeatInfoEntity(
     /** 0=C, 1=C#, ... 11=B. Null when the track's chroma signal was too weak to call a key. */
     val keyPitchClass: Int? = null,
     val keyIsMinor: Boolean? = null,
+    /**
+     * Donde la musica deja de oirse de verdad, excluyendo fade y silencio final.
+     * La transicion tiene que TERMINAR aqui, no en la duracion del fichero: en
+     * generos con cola larga —salsa, vallenato, tropical— la diferencia son
+     * 20 o 30 segundos, y sin esto el filtro actuaba sobre nada. -1 = escaneado,
+     * no encontrado; null = fila anterior a este campo, se reanaliza una vez.
+     */
+    val contentEndMs: Long? = null,
 )

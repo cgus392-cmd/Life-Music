@@ -3613,7 +3613,18 @@ class MusicService :
             }
             val plan = planResult.plan
             if (automixEnabled && planResult.pairAnalyzed) analyzeUpcomingTracks()
-            val triggerTime = plan?.triggerTimeMs ?: baseTriggerTime
+            // Sin plan —saliente sin analisis o con confianza baja— el fundido plano
+            // se programaba contra la duracion del fichero. Si el analisis al menos
+            // sabe donde acaba la musica, que acabe ahi: en generos con cola larga la
+            // diferencia es mezclar con la cancion o mezclar con su silencio.
+            val triggerTime = plan?.triggerTimeMs ?: run {
+                val contentEnd = targetMediaId?.let { id ->
+                    withContext(Dispatchers.IO) { database.beatInfo(id) }
+                        ?.contentEndMs?.takeIf { it > 0 && it < trackDuration }
+                }
+                if (contentEnd != null) (contentEnd - crossfadeDuration.toLong()).coerceAtLeast(player.currentPosition + 1000)
+                else baseTriggerTime
+            }
             if (triggerTime - player.currentPosition <= 0) return@launch
 
             // Poll playback position instead of a wall-clock delay: position freezes on
@@ -3684,7 +3695,11 @@ class MusicService :
 
         // Dynamic mix-out: start the transition where the song's body ends (outro begins)
         // rather than a fixed distance from the end. Sentinel <= 0 means "no outro found".
-        val latestTrigger = trackDuration - overlapMs
+        // La transicion tiene que TERMINAR donde acaba la musica, no donde acaba el
+        // fichero. En una salsa o un vallenato la diferencia son 20 o 30 segundos de
+        // fade y silencio, y sin esto el filtro actuaba sobre nada.
+        val contentEnd = outBeat.contentEndMs?.takeIf { it > 0 && it <= trackDuration } ?: trackDuration
+        val latestTrigger = contentEnd - overlapMs
         val mixOut = outBeat.mixOutPointMs?.takeIf { it > 0 }
         val effectiveTrigger = mixOut?.coerceAtMost(latestTrigger) ?: latestTrigger
 
@@ -3696,6 +3711,13 @@ class MusicService :
         val k = ((anchor - outBeat.firstBeatOffsetMs) / phraseMs).toLong()
         var triggerTime = (outBeat.firstBeatOffsetMs + k * phraseMs).toLong()
         if (triggerTime < anchor) triggerTime = (outBeat.firstBeatOffsetMs + (k + 1) * phraseMs).toLong()
+        // Ajustar hacia delante puede empujar el fundido mas alla de donde se oye
+        // musica. Si pasa, se prefiere la frase ANTERIOR mientras siga por delante de
+        // la posicion actual: mejor entrar un poco antes que mezclar con silencio.
+        if (triggerTime + overlapMs > contentEnd) {
+            val previa = (triggerTime - phraseMs).toLong()
+            if (previa > player.currentPosition + 1000) triggerTime = previa
+        }
         // Phrase-snapping can push triggerTime past latestTrigger by up to ~1 phrase.
         // The outgoing player keeps its own playlist and keeps advancing in real time
         // during the fade, so the full overlap must fit before its natural end or it
@@ -3866,8 +3888,12 @@ class MusicService :
 
     private suspend fun runBeatAnalysis(mediaId: String, priority: BeatAnalysisPriority) {
         val existing = database.beatInfo(mediaId)
-        // Skip when analyzed with mix points (null mixOut = pre-mix-point row, rescan once).
-        if (existing != null && !(existing.bpm > 0f && existing.mixOutPointMs == null)) return
+        // Se salta si ya esta analizada con todo. Una fila con bpm pero sin mixOut o
+        // sin contentEnd es de una version anterior del analizador: se reanaliza una
+        // vez y ya. Asi las canciones ya analizadas ganan el fin de contenido solas.
+        val incompleta = existing != null && existing.bpm > 0f &&
+            (existing.mixOutPointMs == null || existing.contentEndMs == null)
+        if (existing != null && !incompleta) return
         Timber.tag(TAG).d("Beat analysis starting for %s (%s)", mediaId, priority)
 
         val result: BeatAnalyzer.Result?
@@ -3911,8 +3937,9 @@ class MusicService :
                 mixOutPointMs = it.mixOutPointMs ?: -1L,
                 keyPitchClass = it.keyPitchClass,
                 keyIsMinor = it.keyIsMinor,
+                contentEndMs = it.contentEndMs ?: -1L,
             )
-        } ?: BeatInfoEntity(mediaId, 0f, 0L, 0f, mixInPointMs = -1L, mixOutPointMs = -1L)
+        } ?: BeatInfoEntity(mediaId, 0f, 0L, 0f, mixInPointMs = -1L, mixOutPointMs = -1L, contentEndMs = -1L)
         withContext(Dispatchers.IO) { database.upsert(entity) }
 
         // Fresh data may unlock a beat-aligned plan for the ongoing transition:
