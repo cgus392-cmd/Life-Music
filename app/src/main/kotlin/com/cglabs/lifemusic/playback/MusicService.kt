@@ -3698,8 +3698,14 @@ class MusicService :
 
         val periodMs = (60_000f / outBeat.bpm).toDouble()
 
-        // DJ blend: 16 beats of the outgoing track (4 bars), 6-16s bounds.
-        val overlapMs = (16 * periodMs).toLong().coerceIn(6_000L, 16_000L)
+        // DJ blend: 16 beats of the outgoing track (4 bars), 6-16s bounds. Un cierre
+        // es otra cosa: nadie suena debajo, asi que 16 beats de graves apagandose
+        // se hacen eternos. 8 beats, 3-6 s: lo que tarda un DJ en cerrar un filtro.
+        val overlapMs = if (estiloPedido == AutomixEstilo.CIERRE) {
+            (8 * periodMs).toLong().coerceIn(3_000L, 6_000L)
+        } else {
+            (16 * periodMs).toLong().coerceIn(6_000L, 16_000L)
+        }
 
         // Dynamic mix-out: start the transition where the song's body ends (outro begins)
         // rather than a fixed distance from the end. Sentinel <= 0 means "no outro found".
@@ -4143,12 +4149,17 @@ class MusicService :
             val duration = plan.overlapMs
             val steps = (duration / 15L).toInt().coerceIn(50, 800)
             val stepTime = duration / steps
-            val startVolume = try { saliente.volume } catch (e: Exception) { 1f }
+            val startVolume = volumenNominal()
             var deshacer = false
             try {
                 for (i in 0..steps) {
                     if (!isActive) break
                     while (!saliente.isPlaying && isActive) delay(100)
+                    // Si el usuario adelanto y la saliente se acaba antes de que el
+                    // cierre termine, se releva ya: mejor que dejar que el reproductor
+                    // principal avance solo con la entrante todavia esperando.
+                    val duracion = saliente.duration
+                    if (duracion != C.TIME_UNSET && saliente.currentPosition >= duracion - 400) break
                     if (saliente.currentMediaItem?.mediaId != plan.currentId ||
                         saliente.currentPosition < plan.triggerTimeMs - 1500 ||
                         secondaryPlayer !== entrante
@@ -4315,7 +4326,10 @@ class MusicService :
             // near-free, so the extra steps cost nothing meaningful.
             val steps = (duration / 15L).toInt().coerceIn(50, 800)
             val stepTime = duration / steps
-            val startVolume = try { fadingPlayer?.volume ?: 1f } catch (e: Exception) { 1f }
+            // En un arranque limpio la saliente ya esta a cero —se la bajo el cierre—,
+            // asi que su volumen no sirve de referencia: el objetivo es el nominal.
+            val startVolume = if (arranqueLimpio) volumenNominal()
+            else try { fadingPlayer?.volume ?: 1f } catch (e: Exception) { 1f }
 
             // Filtros de transicion por plato: los cortes los decide el estilo del plan
             val filtroSaliente = fadingPlayer?.let { playerFilters[it] }
@@ -4399,8 +4413,20 @@ class MusicService :
         fadingPlayer = null
         isCrossfading.value = false
         isAutomixing.value = false
+        // Red de seguridad: ninguna transicion puede dejar al reproductor principal
+        // mudo. Si no esta silenciado y quedo a cero, vuelve al volumen del usuario.
+        // El flujo de volumen solo reaplica cuando cambia, asi que un cero olvidado
+        // aqui seria un silencio hasta reiniciar la app.
+        try {
+            if (!isMuted.value && player.volume <= 0f) player.volume = playerVolume.value
+        } catch (e: Exception) {
+            Timber.tag(TAG).d(e, "Volume safety net skipped")
+        }
         sleepTimer.notifySongTransition()
     }
+
+    /** Volumen que el usuario espera oir: el suyo, o cero si silencio. */
+    private fun volumenNominal(): Float = if (isMuted.value) 0f else playerVolume.value
 
     companion object {
         const val ROOT = "root"
