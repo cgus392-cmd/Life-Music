@@ -381,6 +381,7 @@ fun getAllSearchableSettings(): List<SearchableSetting> {
             SearchableSetting(stringResource(R.string.automix_debug), stringResource(R.string.automix_debug_desc), "Player and audio", "settings/player"),
             SearchableSetting(stringResource(R.string.automix_modo), stringResource(R.string.automix_modo_desc), "Player and audio", "settings/player"),
             SearchableSetting(stringResource(R.string.automix_estilo), stringResource(R.string.automix_estilo_desc), "Player and audio", "settings/player"),
+            SearchableSetting(stringResource(R.string.automix_cierre_entrada), stringResource(R.string.automix_cierre_entrada_desc), "Player and audio", "settings/player"),
             SearchableSetting(stringResource(R.string.liquid_glass), stringResource(R.string.liquid_glass_desc), "Appearance", "settings/appearance"),
             SearchableSetting(stringResource(R.string.enable_haptics), stringResource(R.string.enable_haptics_desc), "Appearance", "settings/appearance"),
             SearchableSetting(stringResource(R.string.listen_together_username), stringResource(R.string.listen_together_username_desc), "Listen Together", "settings/integrations/listen_together"),

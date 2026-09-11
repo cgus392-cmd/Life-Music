@@ -80,6 +80,8 @@ import com.cglabs.lifemusic.constants.AudioQualityKey
 import com.cglabs.lifemusic.constants.AutoDownloadOnLikeKey
 import com.cglabs.lifemusic.constants.AutoLoadMoreKey
 import com.cglabs.lifemusic.constants.AutoSkipNextOnErrorKey
+import com.cglabs.lifemusic.constants.AutomixCierreEntradaDefault
+import com.cglabs.lifemusic.constants.AutomixCierreEntradaKey
 import com.cglabs.lifemusic.constants.AutomixCrossfadeKey
 import com.cglabs.lifemusic.constants.AutomixEstilo
 import com.cglabs.lifemusic.constants.AutomixEstiloKey
@@ -4126,14 +4128,15 @@ class MusicService :
     }
 
     /**
-     * Estilo CIERRE, en dos tiempos. Primero la saliente se cierra sola —filtro
-     * hasta el suelo de cierre, ganancia a cero— mientras la entrante espera
-     * preparada y en pausa. El reproductor principal sigue siendo la saliente, asi
-     * que la notificacion, la pausa y la barra de progreso cuentan la verdad
-     * mientras dura. Cuando calla, el relevo: la siguiente arranca por su
-     * principio, entera, con un fundido de un cuarto de segundo que solo evita el
-     * clic. Si el usuario cambia de pista o rebobina a mitad del cierre, se deshace
-     * y no hay relevo.
+     * Estilo CIERRE, en dos tiempos. Primero la saliente se cierra —filtro hasta
+     * el suelo de cierre, ganancia a cero— con la entrante preparada y en pausa;
+     * cuando el cierre va por [AutomixCierreEntradaKey], la entrante arranca por
+     * su principio y sube limpia debajo hasta estar entera justo cuando la
+     * saliente calla. El reproductor principal sigue siendo la saliente mientras
+     * dura, asi que notificacion, pausa y barra cuentan la verdad; pausar la
+     * saliente pausa tambien a la entrante. Al acabar, el relevo: se cambia de
+     * reproductor sin tocar ganancias, porque ya estan donde deben. Si el usuario
+     * cambia de pista o rebobina a mitad del cierre, se deshace y no hay relevo.
      */
     private fun cerrarYArrancar(plan: AutomixPlan, aleatorio: Boolean) {
         val saliente = player
@@ -4150,11 +4153,19 @@ class MusicService :
             val steps = (duration / 15L).toInt().coerceIn(50, 800)
             val stepTime = duration / steps
             val startVolume = volumenNominal()
+            val entradaEn = dataStore.get(AutomixCierreEntradaKey, AutomixCierreEntradaDefault).coerceIn(0f, 1f)
+            var entranteEnMarcha = false
             var deshacer = false
             try {
                 for (i in 0..steps) {
                     if (!isActive) break
-                    while (!saliente.isPlaying && isActive) delay(100)
+                    if (!saliente.isPlaying) {
+                        // Pausa: la entrante, si ya sonaba, se para con la saliente y
+                        // vuelve con ella. Nadie sigue sonando detras de un «pausado».
+                        if (entranteEnMarcha) entrante.playWhenReady = false
+                        while (!saliente.isPlaying && isActive) delay(100)
+                        if (entranteEnMarcha && isActive) entrante.playWhenReady = true
+                    }
                     // Si el usuario adelanto y la saliente se acaba antes de que el
                     // cierre termine, se releva ya: mejor que dejar que el reproductor
                     // principal avance solo con la entrante todavia esperando.
@@ -4173,6 +4184,15 @@ class MusicService :
                     } catch (e: Exception) { deshacer = true; break }
                     val cortes = ConduccionAutomix.cortes(EstiloTransicion.CIERRE, progress)
                     filtro?.setCutoffs(cortes.salienteLowPassHz, cortes.salienteHighPassHz)
+                    if (progress >= entradaEn) {
+                        if (!entranteEnMarcha) {
+                            entrante.playWhenReady = true
+                            entranteEnMarcha = true
+                        }
+                        try {
+                            entrante.volume = startVolume * ConduccionAutomix.entradaDeCierre(progress, entradaEn)
+                        } catch (e: Exception) { deshacer = true; break }
+                    }
                     delay(stepTime)
                 }
             } finally {
@@ -4188,8 +4208,8 @@ class MusicService :
                     scheduleCrossfade()
                 } else {
                     try { entrante.volume = startVolume } catch (e: Exception) { }
-                    entrante.playWhenReady = true
-                    performCrossfadeSwap(arranqueLimpio = true)
+                    if (!entranteEnMarcha) entrante.playWhenReady = true
+                    performCrossfadeSwap(relevo = true)
                     reaplicarOrdenAleatorio(aleatorio)
                 }
             }
@@ -4211,14 +4231,14 @@ class MusicService :
     }
 
     /**
-     * [arranqueLimpio]: segundo tiempo de un cierre. La saliente ya callo y la
-     * transicion quedo registrada; aqui solo se hace el relevo con un fundido de
-     * [ARRANQUE_LIMPIO_MS] y los filtros abiertos.
+     * [relevo]: segundo tiempo de un cierre. La saliente ya callo, la entrante ya
+     * suena a su volumen y la transicion quedo registrada; aqui solo se cambia de
+     * reproductor y se limpia tras [RELEVO_MS], sin tocar ganancias ni filtros.
      */
-    private fun performCrossfadeSwap(arranqueLimpio: Boolean = false) {
+    private fun performCrossfadeSwap(relevo: Boolean = false) {
         isCrossfading.value = true
         isAutomixing.value = activeAutomixPlan != null
-        if (!arranqueLimpio) {
+        if (!relevo) {
             automixEstilo.value = activeAutomixPlan?.estilo ?: EstiloTransicion.PLANO
             registrarTransicion(alBeat = activeAutomixPlan != null, estilo = activeAutomixPlan?.estilo)
         }
@@ -4319,22 +4339,22 @@ class MusicService :
 
         crossfadeJob = scope.launch {
             val djPlan = activeAutomixPlan
-            val duration = if (arranqueLimpio) ARRANQUE_LIMPIO_MS else djPlan?.overlapMs ?: crossfadeDuration.toLong()
+            val duration = if (relevo) RELEVO_MS else djPlan?.overlapMs ?: crossfadeDuration.toLong()
             // Fine-grained ramp: aim for ~15ms per volume step so each gain increment is
             // below the threshold of audibility. Coarse steps (the old 100ms) make the fade
             // a stepped "zipper"/click; at 15ms the ramp sounds continuous. Volume writes are
             // near-free, so the extra steps cost nothing meaningful.
             val steps = (duration / 15L).toInt().coerceIn(50, 800)
             val stepTime = duration / steps
-            // En un arranque limpio la saliente ya esta a cero —se la bajo el cierre—,
-            // asi que su volumen no sirve de referencia: el objetivo es el nominal.
-            val startVolume = if (arranqueLimpio) volumenNominal()
+            // En un relevo la saliente ya esta a cero —se la bajo el cierre—, asi
+            // que su volumen no sirve de referencia: el objetivo es el nominal.
+            val startVolume = if (relevo) volumenNominal()
             else try { fadingPlayer?.volume ?: 1f } catch (e: Exception) { 1f }
 
             // Filtros de transicion por plato: los cortes los decide el estilo del plan
             val filtroSaliente = fadingPlayer?.let { playerFilters[it] }
             val filtroEntrante = playerFilters[player]
-            val estilo = if (arranqueLimpio) EstiloTransicion.PLANO else djPlan?.estilo ?: EstiloTransicion.PLANO
+            val estilo = if (relevo) EstiloTransicion.PLANO else djPlan?.estilo ?: EstiloTransicion.PLANO
 
             // Equal-power curve: sin/cos gains keep combined signal energy ~constant
             // through the blend, so linearly summing two tracks doesn't dip in
@@ -4362,10 +4382,10 @@ class MusicService :
                     // so they overlap only through the middle where both sit well below full.
                     // Old track leaves, new one arrives — no sudden level match, no boost.
                     // Both curves are cosine/sine eased, so the ramp stays click-free.
-                    val fadeOut = equalPowerOut(0f, 0.6f, progress)
-                    // En un arranque limpio la entrante sube entera en el cuarto de
-                    // segundo: no hay nadie con quien repartirse el medio.
-                    val fadeIn = if (arranqueLimpio) equalPowerIn(0f, 1f, progress) else equalPowerIn(0.4f, 1f, progress)
+                    // En un relevo las ganancias ya estan donde deben: saliente muda,
+                    // entrante entera. No se tocan.
+                    val fadeOut = if (relevo) 0f else equalPowerOut(0f, 0.6f, progress)
+                    val fadeIn = if (relevo) 1f else equalPowerIn(0.4f, 1f, progress)
 
                     try {
                         player.volume = startVolume * fadeIn
@@ -4448,8 +4468,8 @@ class MusicService :
         const val MAX_TRANSICIONES = 50
         /** How far ahead of the crossfade trigger to start buffering the incoming track. */
         const val PREBUFFER_LEAD_MS = 3000L
-        /** Fundido del relevo tras un cierre: lo justo para que la entrante no entre con un clic. */
-        const val ARRANQUE_LIMPIO_MS = 250L
+        /** Gracia del relevo tras un cierre antes de soltar la saliente, ya muda. */
+        const val RELEVO_MS = 250L
         const val PERSISTENT_PLAYER_STATE_FILE = "persistent_player_state.data"
         const val MAX_CONSECUTIVE_ERR = 5
         const val MAX_RETRY_COUNT = 10

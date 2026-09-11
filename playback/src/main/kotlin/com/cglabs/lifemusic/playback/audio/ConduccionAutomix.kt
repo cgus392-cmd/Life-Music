@@ -110,6 +110,18 @@ object ConduccionAutomix {
     }
 
     /**
+     * Ganancia de la entrante durante un cierre: cero hasta [desde], luego sube en
+     * seno hasta entera cuando el cierre acaba. Complementa a [gananciaDeCierre]:
+     * la saliente se apaga filtrada mientras la siguiente crece limpia debajo,
+     * desde su primer segundo. Con [desde] en 1 espera a que la saliente calle.
+     */
+    fun entradaDeCierre(progreso: Float, desde: Float): Float {
+        if (desde >= 1f) return if (progreso >= 1f) 1f else 0f
+        val t = ((progreso - desde) / (1.0 - desde)).coerceIn(0.0, 1.0)
+        return kotlin.math.sin(t * Math.PI / 2.0).toFloat()
+    }
+
+    /**
      * Lo que hace un DJ cuando dos tempos no casan: entregar el medio en vez de
      * doblarlo. La saliente empieza a perder el agudo en cuanto arranca la mezcla
      * y la entrante entra pasada por alto —platos y presencia, sin cuerpo de voz—

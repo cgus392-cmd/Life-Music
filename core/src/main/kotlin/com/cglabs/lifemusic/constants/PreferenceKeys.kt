@@ -182,6 +182,15 @@ val AutomixModoKey = stringPreferencesKey("automixModo")
 enum class AutomixEstilo { AUTOMATICO, BLEND, FILTRO, PLANO, CIERRE }
 val AutomixEstiloKey = stringPreferencesKey("automixEstilo")
 
+/**
+ * En un cierre, fraccion del cierre (0..1) a partir de la cual la siguiente
+ * empieza a subir, desde su principio. 0 entra con el cierre; 1 espera a que la
+ * saliente calle, que deja un hueco y un golpe. Medio, de serie: lo pidio CG
+ * de oido. Unico sitio donde vive el defecto.
+ */
+val AutomixCierreEntradaKey = floatPreferencesKey("automixCierreEntrada")
+const val AutomixCierreEntradaDefault = 0.5f
+
 
 val MaxImageCacheSizeKey = intPreferencesKey("maxImageCacheSize")
 val MaxSongCacheSizeKey = intPreferencesKey("maxSongCacheSize")

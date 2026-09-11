@@ -100,6 +100,19 @@ class ConduccionAutomixTest {
     }
 
     @Test
+    fun entrada_de_cierre_calla_hasta_su_punto_y_esta_entera_al_final() {
+        assertEquals(0f, ConduccionAutomix.entradaDeCierre(0f, 0.5f), 1e-6f)
+        assertEquals(0f, ConduccionAutomix.entradaDeCierre(0.49f, 0.5f), 1e-6f)
+        assertEquals(1f, ConduccionAutomix.entradaDeCierre(1f, 0.5f), 1e-6f)
+        // A tres cuartos del cierre, con entrada a la mitad, va por sin(45°).
+        assertEquals(sqrt(0.5).toFloat(), ConduccionAutomix.entradaDeCierre(0.75f, 0.5f), 1e-5f)
+        // Con 0 entra desde el principio; con 1 espera al final sin dividir por cero.
+        assertTrue(ConduccionAutomix.entradaDeCierre(0.1f, 0f) > 0f)
+        assertEquals(0f, ConduccionAutomix.entradaDeCierre(0.99f, 1f), 0f)
+        assertEquals(1f, ConduccionAutomix.entradaDeCierre(1f, 1f), 0f)
+    }
+
+    @Test
     fun blend_el_paso_bajo_de_salida_es_suave_y_tardio() {
         val temprano = ConduccionAutomix.cortes(EstiloTransicion.BLEND, ConduccionAutomix.BLEND_SALIDA_DESDE.toFloat() - 0.05f)
         val fin = ConduccionAutomix.cortes(EstiloTransicion.BLEND, 1f)

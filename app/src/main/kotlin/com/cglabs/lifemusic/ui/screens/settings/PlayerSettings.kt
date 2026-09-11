@@ -40,6 +40,8 @@ import com.cglabs.lifemusic.constants.AudioOffload
 import com.cglabs.lifemusic.constants.AudioQuality
 import com.cglabs.lifemusic.constants.AudioQualityKey
 import com.cglabs.lifemusic.constants.AutoDownloadOnLikeKey
+import com.cglabs.lifemusic.constants.AutomixCierreEntradaDefault
+import com.cglabs.lifemusic.constants.AutomixCierreEntradaKey
 import com.cglabs.lifemusic.constants.AutomixCrossfadeKey
 import com.cglabs.lifemusic.constants.AutomixDebugOverlayKey
 import com.cglabs.lifemusic.constants.AutomixEstilo
@@ -124,6 +126,10 @@ highlightKey: String? = null) {
     val (automixEstilo, onAutomixEstiloChange) = rememberEnumPreference(
         AutomixEstiloKey,
         defaultValue = AutomixEstilo.AUTOMATICO
+    )
+    val (automixCierreEntrada, onAutomixCierreEntradaChange) = rememberPreference(
+        AutomixCierreEntradaKey,
+        defaultValue = AutomixCierreEntradaDefault
     )
     var showAutomixModoDialog by remember { mutableStateOf(false) }
     var showAutomixEstiloDialog by remember { mutableStateOf(false) }
@@ -616,6 +622,25 @@ highlightKey: String? = null) {
                             description = { Text(stringResource(textoEstiloAutomix(automixEstilo))) },
                             onClick = { showAutomixEstiloDialog = true }
                         ))
+                        if (automixEstilo == AutomixEstilo.CIERRE) {
+                            val porcentaje = (automixCierreEntrada * 100).toInt()
+                            add(Material3SettingsItem(
+                                isHighlighted = highlightKey == stringResource(R.string.automix_cierre_entrada),
+                                icon = painterResource(R.drawable.linear_scale),
+                                title = { Text(stringResource(R.string.automix_cierre_entrada)) },
+                                description = {
+                                    Column {
+                                        Text(stringResource(R.string.automix_cierre_entrada_valor, porcentaje))
+                                        Slider(
+                                            value = automixCierreEntrada,
+                                            onValueChange = onAutomixCierreEntradaChange,
+                                            valueRange = 0f..1f,
+                                            steps = 9
+                                        )
+                                    }
+                                }
+                            ))
+                        }
                         add(Material3SettingsItem(
                             isHighlighted = highlightKey == stringResource(R.string.automix_debug),
                             icon = painterResource(R.drawable.bug_report),
