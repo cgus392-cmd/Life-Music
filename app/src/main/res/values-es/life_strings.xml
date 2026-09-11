@@ -765,4 +765,28 @@
     <string name="automix_cierre_entrada">Entrada de la siguiente</string>
     <string name="automix_cierre_entrada_desc">Cuándo empieza a subir la siguiente durante un cierre</string>
     <string name="automix_cierre_entrada_valor">Empieza a subir cuando el cierre va por el %1$d %%. Al 100 %% espera a que la saliente calle.</string>
+    <!-- Boletín de versión: lo nuevo, la primera vez que arranca una versión -->
+    <string name="boletin_novedades">Novedades de esta versión</string>
+    <string name="boletin_eyebrow">Life Music %1$s · Novedades</string>
+    <string name="boletin_entendido">Entendido</string>
+    <string name="boletin_ver_ajustes">Ver ajustes</string>
+    <string name="boletin_ademas">Además en esta versión</string>
+    <!-- 1.1.5 -->
+    <string name="boletin_v115_titulo_1">Presentamos</string>
+    <string name="boletin_v115_titulo_2">Automix</string>
+    <string name="boletin_v115_intro">Un DJ algorítmico que encadena tus canciones sin cortes. Analiza el ritmo, la tonalidad y dónde empieza y acaba de verdad la música de cada pista, y elige la transición que toca.</string>
+    <string name="boletin_v115_modos_t">Dos modos de mezcla</string>
+    <string name="boletin_v115_modos">«Canción completa», de serie: respeta intros y finales, solo salta el silencio. «Modo DJ»: entra al cuerpo de la siguiente y sale en el outro, como en cabina.</string>
+    <string name="boletin_v115_estilos_t">Estilos de transición a tu gusto</string>
+    <string name="boletin_v115_estilos">Automático elige por distancia de tempo. Blend superpone las dos y cambia los graves de mano. Barrido de filtro cierra la saliente mientras abre la otra. Cierre y arranque: la saliente se cierra y la siguiente arranca entera desde su principio. Plano: fundido clásico.</string>
+    <string name="boletin_v115_musica_t">Sabe dónde está la música</string>
+    <string name="boletin_v115_musica">El análisis encuentra el primer y el último instante audible de cada pista. En salsa, vallenato y tropical la transición ya no cae en el silencio del final.</string>
+    <string name="boletin_v115_lifeline_t">Life Line lo cuenta</string>
+    <string name="boletin_v115_lifeline">«Fundiendo las notas…», «Cerrando el filtro…», «Cambiando de pista…»: la app te dice qué está haciendo en cada transición.</string>
+    <string name="boletin_v115_donde_t">Dónde está</string>
+    <string name="boletin_v115_donde">Ajustes → Reproductor → Transición suave → Automix (Beta). O escribe «Automix» en el buscador de Ajustes.</string>
+    <string name="boletin_v115_ademas_1">Saludo de entrada: una frase al abrir la app, distinta cada vez. Con su interruptor en Apariencia.</string>
+    <string name="boletin_v115_ademas_2">«Apple Music Inspired» viene activado de serie, y la bienvenida lo muestra tal cual.</string>
+    <string name="boletin_v115_ademas_3">El texto del reproductor se lee sobre carátulas claras: el color se decide por la luminancia real.</string>
+    <string name="boletin_v115_ademas_4">El bloque de Automix de Ajustes, ya en español.</string>
 </resources>

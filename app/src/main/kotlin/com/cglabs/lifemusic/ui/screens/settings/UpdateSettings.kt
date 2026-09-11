@@ -54,6 +54,8 @@ import com.cglabs.lifemusic.appcore.updater.saveBetaUpdatesSetting
 import com.cglabs.lifemusic.appcore.updater.autoClearOldApks
 import androidx.compose.material3.MaterialTheme
 import com.cglabs.lifemusic.BuildConfig
+import com.cglabs.lifemusic.ui.screens.BoletinDeVersionDialog
+import com.cglabs.lifemusic.ui.screens.Boletines
 
 
 
@@ -84,6 +86,17 @@ fun UpdateSettings(
 
     if (showInfoDialog) {
         UpdateInfoDialog(onDismiss = { showInfoDialog = false })
+    }
+
+    // El boletin de lo nuevo de esta version, para volver a leerlo cuando se quiera.
+    val boletinActual = remember { Boletines.ultimoHasta(BuildConfig.VERSION_CODE) }
+    var mostrarBoletin by remember { mutableStateOf(false) }
+    if (mostrarBoletin && boletinActual != null) {
+        BoletinDeVersionDialog(
+            boletin = boletinActual,
+            onCerrar = { mostrarBoletin = false },
+            onAbrirAjustes = { ruta -> mostrarBoletin = false; navController.navigate(ruta) },
+        )
     }
 
     Column(
@@ -127,7 +140,13 @@ fun UpdateSettings(
                     icon = painterResource(R.drawable.info),
                     title = {
                         Text(stringResource(R.string.version, BuildConfig.VERSION_NAME))
-                    }
+                    },
+                    description = if (boletinActual != null) {
+                        { Text(stringResource(R.string.boletin_novedades)) }
+                    } else null,
+                    onClick = if (boletinActual != null) {
+                        { mostrarBoletin = true }
+                    } else null
                 ),
                 
                 Material3SettingsItem(

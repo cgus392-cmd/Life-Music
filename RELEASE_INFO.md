@@ -13,6 +13,13 @@ publicación de CG LABS, adaptada a Android.
       programa.
 - [ ] **`README.md` refleja el estado real** — que no prometa funciones que no
       están, ni calle las que sí.
+- [ ] **Boletín de la versión**, si hay algo que contar: cadenas
+      `boletin_vXYZ_*` en `values/life_strings.xml` y `values-es/`, y una
+      entrada en `ui/screens/Boletines.kt` con el `versionCode` nuevo. Sale
+      encima de Inicio la primera vez que arranca la versión tras actualizar
+      (la bienvenida solo sale en instalaciones nuevas) y se puede releer en
+      Ajustes → Actualizaciones → Versión. Una versión sin entrada no
+      interrumpe a nadie.
 - [ ] **Compilación limpia en modo publicación**, sin avisos nuevos sin revisar.
 - [ ] **Pruebas en verde**: `./gradlew :playback:testFossDebugUnitTest`.
 - [ ] **Historial escaneado por secretos**. El repositorio es público: nunca dar

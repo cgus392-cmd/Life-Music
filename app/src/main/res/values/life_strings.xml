@@ -1144,4 +1144,28 @@
     <string name="automix_cierre_entrada">Next track entry</string>
     <string name="automix_cierre_entrada_desc">When the next track starts rising during a close</string>
     <string name="automix_cierre_entrada_valor">Starts rising when the close is %1$d%% through. At 100%% it waits for the outgoing to go quiet.</string>
+    <!-- Version bulletin: what is new, the first time a version starts -->
+    <string name="boletin_novedades">What\'s new in this version</string>
+    <string name="boletin_eyebrow">Life Music %1$s · What\'s new</string>
+    <string name="boletin_entendido">Got it</string>
+    <string name="boletin_ver_ajustes">Open settings</string>
+    <string name="boletin_ademas">Also in this version</string>
+    <!-- 1.1.5 -->
+    <string name="boletin_v115_titulo_1">Introducing</string>
+    <string name="boletin_v115_titulo_2">Automix</string>
+    <string name="boletin_v115_intro">An algorithmic DJ that chains your songs without gaps. It analyses tempo, key and where the music of each track really starts and ends, and picks the right transition.</string>
+    <string name="boletin_v115_modos_t">Two mix modes</string>
+    <string name="boletin_v115_modos">“Full song”, the default: intros and endings are respected, only silence is skipped. “DJ mode”: into the body of the next track and out on the outro, like in a booth.</string>
+    <string name="boletin_v115_estilos_t">Transition styles your way</string>
+    <string name="boletin_v115_estilos">Automatic picks by tempo distance. Blend overlaps both and swaps the bass. Filter sweep closes the outgoing while the next opens up. Close and start: the outgoing closes and the next one starts whole from the top. Plain: the classic crossfade.</string>
+    <string name="boletin_v115_musica_t">It knows where the music is</string>
+    <string name="boletin_v115_musica">The analysis finds the first and last audible moment of each track. In salsa, vallenato and tropical music the transition no longer lands in the silence at the end.</string>
+    <string name="boletin_v115_lifeline_t">Life Line tells you</string>
+    <string name="boletin_v115_lifeline">“Blending the notes…”, “Closing the filter…”, “Switching tracks…”: the app tells you what it is doing in every transition.</string>
+    <string name="boletin_v115_donde_t">Where it lives</string>
+    <string name="boletin_v115_donde">Settings → Player → Crossfade → Automix (Beta). Or type “Automix” in the Settings search.</string>
+    <string name="boletin_v115_ademas_1">Greeting on launch: a line from the app when you open it, different every time. With its switch in Appearance.</string>
+    <string name="boletin_v115_ademas_2">“Apple Music Inspired” is on by default, and the welcome shows it as it is.</string>
+    <string name="boletin_v115_ademas_3">Player text stays readable on light artwork: its colour follows the real luminance.</string>
+    <string name="boletin_v115_ademas_4">The Automix block in Settings, now in Spanish too.</string>
 </resources>

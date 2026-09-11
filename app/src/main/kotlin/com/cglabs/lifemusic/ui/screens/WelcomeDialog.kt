@@ -126,7 +126,7 @@ fun WelcomeDialog(
  * con el sistema en claro, y al reves.
  */
 @Composable
-private fun VentanaAPantallaCompleta() {
+internal fun VentanaAPantallaCompleta() {
     val vista = LocalView.current
     val fondoClaro = MaterialTheme.colorScheme.background.luminance() > 0.5f
 
@@ -213,7 +213,7 @@ private fun Contenido(onDismissRequest: () -> Unit) {
  * ajuste no es vistoso, es maleducado.
  */
 @Composable
-private fun recordarSiAnimar(): Boolean {
+internal fun recordarSiAnimar(): Boolean {
     val contexto = LocalContext.current
     return remember(contexto) {
         Settings.Global.getFloat(
@@ -232,7 +232,7 @@ private fun recordarSiAnimar(): Boolean {
  * activado, el fondo de la introduccion ya es el del telefono de cada uno.
  */
 @Composable
-private fun FondoVivo(animar: Boolean) {
+internal fun FondoVivo(animar: Boolean) {
     val primario = MaterialTheme.colorScheme.primary
     val terciario = MaterialTheme.colorScheme.tertiary
 
@@ -377,7 +377,7 @@ private fun InsigniaHero(animar: Boolean) {
  * que separa una pantalla que «se muestra» de una que «llega».
  */
 @Composable
-private fun Escalonado(
+internal fun Escalonado(
     indice: Int,
     animar: Boolean,
     content: @Composable () -> Unit,
@@ -739,7 +739,7 @@ private fun ColumnScope.PasoCgLabs(animar: Boolean) {
 
 /** Titular a dos tonos, en cursiva: la segunda linea va en el color de acento. */
 @Composable
-private fun TituloDisplay(primeraLinea: String, segundaLinea: String) {
+internal fun TituloDisplay(primeraLinea: String, segundaLinea: String) {
     Column {
         Text(
             text = primeraLinea,
@@ -761,7 +761,7 @@ private fun TituloDisplay(primeraLinea: String, segundaLinea: String) {
 }
 
 @Composable
-private fun Chip(icono: Int, texto: String) {
+internal fun Chip(icono: Int, texto: String) {
     Surface(
         shape = RoundedCornerShape(50),
         color = MaterialTheme.colorScheme.surfaceContainerHigh,
@@ -923,7 +923,7 @@ private fun AzulejoIcono(icono: Int, color: Color) {
  * visto, a false una cruz, y a null no muestra indicador (la fila es informativa).
  */
 @Composable
-private fun TarjetaAzulejo(
+internal fun TarjetaAzulejo(
     icono: Int,
     colorAzulejo: Color,
     titulo: String,

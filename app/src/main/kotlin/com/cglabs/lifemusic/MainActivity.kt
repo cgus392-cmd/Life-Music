@@ -211,6 +211,8 @@ import com.cglabs.lifemusic.ui.player.BottomSheetPlayer
 import com.cglabs.lifemusic.ui.screens.Screens
 import com.cglabs.lifemusic.ui.screens.SettingDialoge
 import com.cglabs.lifemusic.ui.screens.WelcomeDialog
+import com.cglabs.lifemusic.ui.screens.BoletinDeVersionDialog
+import com.cglabs.lifemusic.ui.screens.Boletines
 import com.cglabs.lifemusic.ui.component.SaludoDeEntrada
 import com.cglabs.lifemusic.ui.component.SaludoEntrada
 import com.cglabs.lifemusic.ui.screens.navigationBuilder
@@ -932,14 +934,23 @@ class MainActivity : ComponentActivity() {
 
                 val (lastOpenedVersionCode, setLastOpenedVersionCode) = rememberPreference(com.cglabs.lifemusic.constants.LastOpenedVersionCodeKey, -1)
                 var showWelcomeDialog by remember { mutableStateOf(false) }
+                var mostrarBoletin by remember { mutableStateOf(false) }
                 // Saludo de entrada: una vez por arranque en frio, y nunca encima de la
-                // bienvenida de primer arranque. Dos intros seguidas es una de mas.
+                // bienvenida ni del boletin. Dos intros seguidas es una de mas.
                 var mostrarSaludo by remember { mutableStateOf(SaludoEntrada.reclamarArranqueEnFrio()) }
                 val esPrimerArranque = lastOpenedVersionCode < BuildConfig.VERSION_CODE
 
+                // Instalacion nueva: la bienvenida. Actualizacion: el boletin de lo
+                // nuevo, si esta version tiene algo que contar; si no, nada, y se
+                // anota la version en silencio. Antes la bienvenida salia en cada
+                // actualizacion, como si el usuario no la hubiera visto ya.
                 LaunchedEffect(lastOpenedVersionCode) {
-                    if (lastOpenedVersionCode < BuildConfig.VERSION_CODE) {
-                        showWelcomeDialog = true
+                    when {
+                        lastOpenedVersionCode < 0 -> showWelcomeDialog = true
+                        lastOpenedVersionCode < BuildConfig.VERSION_CODE -> {
+                            if (Boletines.para(BuildConfig.VERSION_CODE) != null) mostrarBoletin = true
+                            else setLastOpenedVersionCode(BuildConfig.VERSION_CODE)
+                        }
                     }
                 }
 
@@ -1491,6 +1502,23 @@ class MainActivity : ComponentActivity() {
                                 setLastOpenedVersionCode(BuildConfig.VERSION_CODE)
                             }
                         )
+                    }
+
+                    if (mostrarBoletin) {
+                        Boletines.para(BuildConfig.VERSION_CODE)?.let { boletin ->
+                            BoletinDeVersionDialog(
+                                boletin = boletin,
+                                onCerrar = {
+                                    mostrarBoletin = false
+                                    setLastOpenedVersionCode(BuildConfig.VERSION_CODE)
+                                },
+                                onAbrirAjustes = { ruta ->
+                                    mostrarBoletin = false
+                                    setLastOpenedVersionCode(BuildConfig.VERSION_CODE)
+                                    navController.navigate(ruta)
+                                },
+                            )
+                        }
                     }
 
                     // Ultimo hijo del BoxWithConstraints raiz: queda encima de todo.

@@ -56,6 +56,13 @@ Interfaz primero, español por defecto, y un arreglo que tocaba desde la 1.1.4.
   se muestra si el sistema tiene las animaciones desactivadas ni cuando va a salir
   la bienvenida de primer arranque.
 
+- **Boletín de versión.** La primera vez que arranca una versión tras
+  actualizar, un boletín a pantalla completa cuenta lo nuevo —en esta, «Presentamos
+  Automix»: modos, estilos, dónde está— y se puede releer en Ajustes →
+  Actualizaciones → Versión. Va dentro de la app, en español e inglés, sin
+  depender de la red. La bienvenida ya solo sale en instalaciones nuevas: antes
+  salía también en cada actualización, como si el usuario no la hubiera visto.
+
 ### Automix: de fundido de radio a transición de DJ
 
 - **Un filtro de verdad en cada plato.** Automix ejecutaba toda transición como
