@@ -112,7 +112,7 @@ class MusicDatabase(
         SortedSongAlbumMap::class,
         PlaylistSongMapPreview::class,
     ],
-    version = 45,
+    version = 46,
     exportSchema = true,
     autoMigrations = [
         AutoMigration(from = 2, to = 3),
@@ -215,6 +215,7 @@ val MIGRACIONES: Array<Migration>
     MIGRATION_42_43,
     MIGRATION_43_44,
     MIGRATION_44_45,
+    MIGRATION_45_46,
 )
 
 val MIGRATION_1_2 =
@@ -979,6 +980,13 @@ val MIGRATION_42_43 = object : Migration(42, 43) {
         db.execSQL("ALTER TABLE `_new_playlist` RENAME TO `playlist`")
     }
 }
+
+val MIGRATION_45_46 =
+    object : Migration(45, 46) {
+        override fun migrate(db: SupportSQLiteDatabase) {
+            db.execSQL("ALTER TABLE beat_info ADD COLUMN contentStartMs INTEGER DEFAULT NULL")
+        }
+    }
 
 val MIGRATION_44_45 =
     object : Migration(44, 45) {

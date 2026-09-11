@@ -38,6 +38,8 @@ object BeatAnalyzer {
         val keyIsMinor: Boolean? = null,
         /** Ultimo instante audible. Null si no se pudo medir la cola. */
         val contentEndMs: Long? = null,
+        /** Primer instante audible. Null si no se pudo medir la cabeza. */
+        val contentStartMs: Long? = null,
     )
 
     private const val TAG = "BeatAnalyzer"
@@ -215,14 +217,13 @@ object BeatAnalyzer {
             // Head pass: skip low-energy intros; start the incoming track on the first
             // sustained-energy downbeat instead.
             var mixInPointMs: Long? = null
+            var contentStartMs: Long? = null
             if (durationUs > HEAD_WINDOW_US) {
                 extractor.seekTo(0, MediaExtractor.SEEK_TO_PREVIOUS_SYNC)
                 decodeMono(extractor, format, HEAD_WINDOW_US, shouldCancel)?.let { head ->
-                    mixInPointMs = detectMixIn(
-                        energyEnvelope(head.samples, head.sampleRate),
-                        firstBeatOffsetMs,
-                        periodMs,
-                    )
+                    val env = energyEnvelope(head.samples, head.sampleRate)
+                    mixInPointMs = detectMixIn(env, firstBeatOffsetMs, periodMs)
+                    contentStartMs = detectContentStart(env, bodyRef)
                 }
             }
 
@@ -242,7 +243,7 @@ object BeatAnalyzer {
                 }
             }
 
-            return Result(bpm, firstBeatOffsetMs, confidence, mixInPointMs, mixOutPointMs, key?.first, key?.second, contentEndMs)
+            return Result(bpm, firstBeatOffsetMs, confidence, mixInPointMs, mixOutPointMs, key?.first, key?.second, contentEndMs, contentStartMs)
         } catch (e: Exception) {
             Timber.tag(TAG).w(e, "Beat analysis failed")
             return null
@@ -411,6 +412,19 @@ object BeatAnalyzer {
         // Fuerte casi hasta el final: no hay outro que cortar.
         if (durationMs - mixOutMs < 3_000) return null
         return max(mixOutMs, durationMs - MAX_OUTRO_CUT_MS)
+    }
+
+    /**
+     * Primer bloque en que se oye musica, contra el mismo umbral que [detectContentEnd].
+     * Es lo unico que se salta en modo «cancion completa»: el silencio digital con
+     * que empiezan muchas subidas, nunca una intro floja. Una intro de acordeon o
+     * de metales es mas baja que el coro y aun asi es la cancion.
+     */
+    internal fun detectContentStart(env: FloatArray, bodyRef: Float): Long? {
+        if (env.isEmpty() || bodyRef <= 0f) return null
+        val primero = env.indexOfFirst { it >= AUDIBLE_FRACTION * bodyRef }
+        if (primero < 0) return null
+        return primero.toLong() * ENERGY_BLOCK_MS
     }
 
     /**

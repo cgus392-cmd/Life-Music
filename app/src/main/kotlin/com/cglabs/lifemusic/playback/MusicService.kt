@@ -81,6 +81,10 @@ import com.cglabs.lifemusic.constants.AutoDownloadOnLikeKey
 import com.cglabs.lifemusic.constants.AutoLoadMoreKey
 import com.cglabs.lifemusic.constants.AutoSkipNextOnErrorKey
 import com.cglabs.lifemusic.constants.AutomixCrossfadeKey
+import com.cglabs.lifemusic.constants.AutomixEstilo
+import com.cglabs.lifemusic.constants.AutomixEstiloKey
+import com.cglabs.lifemusic.constants.AutomixModo
+import com.cglabs.lifemusic.constants.AutomixModoKey
 import com.cglabs.lifemusic.constants.CrossfadeDurationKey
 import com.cglabs.lifemusic.constants.CrossfadeEnabledKey
 import com.cglabs.lifemusic.constants.CrossfadeGaplessKey
@@ -3688,6 +3692,10 @@ class MusicService :
         // saliente y se conduce un barrido de filtro. Sigue sonando a DJ.
         val entranteFiable = inBeat != null && inBeat.confidence >= 0.3f && inBeat.bpm > 0f
 
+        // Lo que el usuario decidio en Ajustes: cuanto se recorta y con que estilo.
+        val modo = dataStore.get(AutomixModoKey).toEnum(AutomixModo.CANCION_COMPLETA)
+        val estiloPedido = dataStore.get(AutomixEstiloKey).toEnum(AutomixEstilo.AUTOMATICO)
+
         val periodMs = (60_000f / outBeat.bpm).toDouble()
 
         // DJ blend: 16 beats of the outgoing track (4 bars), 6-16s bounds.
@@ -3700,7 +3708,9 @@ class MusicService :
         // fade y silencio, y sin esto el filtro actuaba sobre nada.
         val contentEnd = outBeat.contentEndMs?.takeIf { it > 0 && it <= trackDuration } ?: trackDuration
         val latestTrigger = contentEnd - overlapMs
-        val mixOut = outBeat.mixOutPointMs?.takeIf { it > 0 }
+        // Salir en el outro es cosa de DJ. En «cancion completa» la salsa se lleva
+        // su mambo entero y la transicion ocupa solo los ultimos compases audibles.
+        val mixOut = outBeat.mixOutPointMs?.takeIf { it > 0 && modo == AutomixModo.DJ }
         val effectiveTrigger = mixOut?.coerceAtMost(latestTrigger) ?: latestTrigger
 
         // Snap the fade start onto an 8-beat phrase boundary of the outgoing track's grid.
@@ -3740,7 +3750,7 @@ class MusicService :
         // El 4 % sale de BitChord (MAX_STRETCH_DEVIATION); el 8 % era el tope de Echo
         // y se conserva como limite de estiramiento.
         val nivel: NivelTransicion
-        val estilo: EstiloTransicion
+        val estiloAutomatico: EstiloTransicion
         var tempoRatio = 1f
         if (entranteFiable) {
             tempoRatio = outBeat.bpm / inBeat!!.bpm
@@ -3748,13 +3758,22 @@ class MusicService :
             while (tempoRatio < 0.667f) tempoRatio *= 2f
             val desvio = kotlin.math.abs(tempoRatio - 1f)
             when {
-                desvio <= 0.04f -> { nivel = NivelTransicion.AL_BEAT; estilo = EstiloTransicion.BLEND }
-                desvio <= 0.08f -> { nivel = NivelTransicion.AL_BEAT; estilo = EstiloTransicion.FILTRO }
-                else -> { nivel = NivelTransicion.ASISTIDO; estilo = EstiloTransicion.FILTRO; tempoRatio = 1f }
+                desvio <= 0.04f -> { nivel = NivelTransicion.AL_BEAT; estiloAutomatico = EstiloTransicion.BLEND }
+                desvio <= 0.08f -> { nivel = NivelTransicion.AL_BEAT; estiloAutomatico = EstiloTransicion.FILTRO }
+                else -> { nivel = NivelTransicion.ASISTIDO; estiloAutomatico = EstiloTransicion.FILTRO; tempoRatio = 1f }
             }
         } else {
             nivel = NivelTransicion.ASISTIDO
-            estilo = EstiloTransicion.FILTRO
+            estiloAutomatico = EstiloTransicion.FILTRO
+        }
+        // El nivel (estirar o no, alinear o no) lo sigue decidiendo el material; el
+        // estilo lo puede fijar el usuario. Un blend forzado con tempos lejanos no
+        // se estira: cambian de mano los graves y ya.
+        val estilo = when (estiloPedido) {
+            AutomixEstilo.AUTOMATICO -> estiloAutomatico
+            AutomixEstilo.BLEND -> EstiloTransicion.BLEND
+            AutomixEstilo.FILTRO -> EstiloTransicion.FILTRO
+            AutomixEstilo.PLANO -> EstiloTransicion.PLANO
         }
 
         // Harmonic correction: compare keys via their relative-major pitch class (a minor
@@ -3776,17 +3795,32 @@ class MusicService :
             }
         }
 
-        // Dynamic mix-in: skip the incoming track's intro, snapped onto its own 8-beat grid.
-        val incomingStart = if (entranteFiable) {
-            val inPeriodMs = (60_000f / inBeat!!.bpm).toDouble()
-            val rawStart = inBeat.mixInPointMs?.takeIf { it > 0 } ?: inBeat.firstBeatOffsetMs
-            val inPhraseMs = inPeriodMs * 8
-            val inK = kotlin.math.ceil((rawStart - inBeat.firstBeatOffsetMs) / inPhraseMs).toLong().coerceAtLeast(0)
-            (inBeat.firstBeatOffsetMs + inK * inPhraseMs).toLong()
-        } else {
-            // Sin rejilla fiable no hay frase a la que ajustar: se entra donde el
-            // analisis parcial diga, o al principio.
-            inBeat?.mixInPointMs?.takeIf { it > 0 } ?: 0L
+        // Donde arranca la entrante.
+        //  - DJ: pasada la intro, en su propia rejilla de 8 beats.
+        //  - Cancion completa: en el primer bloque audible —solo se salta el silencio
+        //    digital de la subida— y, si hay rejilla, en el beat siguiente para que
+        //    los golpes caigan juntos. Nunca una frase entera: eso es lo que se
+        //    comia 14 s de acordeon.
+        val incomingStart = when (modo) {
+            AutomixModo.DJ -> if (entranteFiable) {
+                val inPeriodMs = (60_000f / inBeat!!.bpm).toDouble()
+                val rawStart = inBeat.mixInPointMs?.takeIf { it > 0 } ?: inBeat.firstBeatOffsetMs
+                val inPhraseMs = inPeriodMs * 8
+                val inK = kotlin.math.ceil((rawStart - inBeat.firstBeatOffsetMs) / inPhraseMs).toLong().coerceAtLeast(0)
+                (inBeat.firstBeatOffsetMs + inK * inPhraseMs).toLong()
+            } else {
+                // Sin rejilla fiable no hay frase a la que ajustar: se entra donde el
+                // analisis parcial diga, o al principio.
+                inBeat?.mixInPointMs?.takeIf { it > 0 } ?: 0L
+            }
+            AutomixModo.CANCION_COMPLETA -> {
+                val audible = inBeat?.contentStartMs?.takeIf { it > 0 } ?: 0L
+                if (entranteFiable && nivel == NivelTransicion.AL_BEAT) {
+                    val inPeriodMs = (60_000f / inBeat!!.bpm).toDouble()
+                    val inK = kotlin.math.ceil((audible - inBeat.firstBeatOffsetMs) / inPeriodMs).toLong().coerceAtLeast(0)
+                    (inBeat.firstBeatOffsetMs + inK * inPeriodMs).toLong()
+                } else audible
+            }
         }
 
         val plan = AutomixPlan(
@@ -3805,7 +3839,7 @@ class MusicService :
             plan.triggerTimeMs, plan.incomingStartMs, plan.tempoRatio, plan.pitchRatio, plan.overlapMs
         )
         automixDebugInfo.value = partialDebug.copy(
-            status = "plan ready: ${nivel.name.lowercase()} / ${estilo.name.lowercase()}",
+            status = "plan ready: ${nivel.name.lowercase()} / ${estilo.name.lowercase()} / ${modo.name.lowercase()}",
             estilo = estilo.name.lowercase(),
             triggerTimeMs = plan.triggerTimeMs,
             incomingStartMs = plan.incomingStartMs,
@@ -3892,7 +3926,7 @@ class MusicService :
         // sin contentEnd es de una version anterior del analizador: se reanaliza una
         // vez y ya. Asi las canciones ya analizadas ganan el fin de contenido solas.
         val incompleta = existing != null && existing.bpm > 0f &&
-            (existing.mixOutPointMs == null || existing.contentEndMs == null)
+            (existing.mixOutPointMs == null || existing.contentEndMs == null || existing.contentStartMs == null)
         if (existing != null && !incompleta) return
         Timber.tag(TAG).d("Beat analysis starting for %s (%s)", mediaId, priority)
 
@@ -3938,8 +3972,9 @@ class MusicService :
                 keyPitchClass = it.keyPitchClass,
                 keyIsMinor = it.keyIsMinor,
                 contentEndMs = it.contentEndMs ?: -1L,
+                contentStartMs = it.contentStartMs ?: -1L,
             )
-        } ?: BeatInfoEntity(mediaId, 0f, 0L, 0f, mixInPointMs = -1L, mixOutPointMs = -1L, contentEndMs = -1L)
+        } ?: BeatInfoEntity(mediaId, 0f, 0L, 0f, mixInPointMs = -1L, mixOutPointMs = -1L, contentEndMs = -1L, contentStartMs = -1L)
         withContext(Dispatchers.IO) { database.upsert(entity) }
 
         // Fresh data may unlock a beat-aligned plan for the ongoing transition:

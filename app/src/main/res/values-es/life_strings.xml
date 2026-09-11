@@ -737,4 +737,27 @@
     <string name="greeting_g_6">¿Qué toca hoy?</string>
     <string name="greeting_g_7">Vamos a darle.</string>
     <string name="greeting_g_8">Verte de nuevo es un gusto.</string>
+    <!-- Automix: bloque de Ajustes en español (antes se veía en inglés) -->
+    <string name="automix">Automix (Beta)</string>
+    <string name="automixing">Mezclando</string>
+    <string name="automix_desc">Transiciones al ritmo: alinea los golpes y el tempo de las canciones durante el fundido</string>
+    <string name="automix_debug">Superposición de depuración de Automix</string>
+    <string name="automix_debug_desc">Muestra en el reproductor el análisis de ritmo y el plan de transición en vivo</string>
+    <!-- Automix: modo de mezcla y estilo de transición -->
+    <string name="automix_modo">Modo de mezcla</string>
+    <string name="automix_modo_desc">Cuánto de cada canción puede recortar Automix: nada, o intros y salidas como un DJ</string>
+    <string name="automix_modo_completa">Canción completa</string>
+    <string name="automix_modo_completa_desc">Se respetan intros y finales; solo se salta el silencio. La siguiente arranca desde su primer golpe audible.</string>
+    <string name="automix_modo_dj">Modo DJ</string>
+    <string name="automix_modo_dj_desc">Salta las intros flojas y sale en el outro, como en cabina. Ideal para pop, electrónica y listas de fiesta.</string>
+    <string name="automix_estilo">Estilo de transición</string>
+    <string name="automix_estilo_desc">Automático según la distancia de tempo, o forzar blend, barrido de filtro o fundido plano</string>
+    <string name="automix_estilo_auto">Automático</string>
+    <string name="automix_estilo_auto_desc">Blend cuando los tempos coinciden, barrido de filtro cuando están lejos.</string>
+    <string name="automix_estilo_blend">Blend</string>
+    <string name="automix_estilo_blend_desc">Las dos canciones se superponen y los graves cambian de mano una vez. Solo se estira el tempo si la diferencia es pequeña.</string>
+    <string name="automix_estilo_filtro">Barrido de filtro</string>
+    <string name="automix_estilo_filtro_desc">La saliente se cierra por un filtro de graves mientras la siguiente se abre.</string>
+    <string name="automix_estilo_plano">Plano</string>
+    <string name="automix_estilo_plano_desc">Fundido clásico: solo volumen, sin filtro ni cambio de graves.</string>
 </resources>

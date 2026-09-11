@@ -42,6 +42,10 @@ import com.cglabs.lifemusic.constants.AudioQualityKey
 import com.cglabs.lifemusic.constants.AutoDownloadOnLikeKey
 import com.cglabs.lifemusic.constants.AutomixCrossfadeKey
 import com.cglabs.lifemusic.constants.AutomixDebugOverlayKey
+import com.cglabs.lifemusic.constants.AutomixEstilo
+import com.cglabs.lifemusic.constants.AutomixEstiloKey
+import com.cglabs.lifemusic.constants.AutomixModo
+import com.cglabs.lifemusic.constants.AutomixModoKey
 import com.cglabs.lifemusic.constants.CrossfadeDurationKey
 import com.cglabs.lifemusic.constants.CrossfadeEnabledKey
 import com.cglabs.lifemusic.constants.CrossfadeGaplessKey
@@ -113,6 +117,16 @@ highlightKey: String? = null) {
         AutomixDebugOverlayKey,
         defaultValue = false
     )
+    val (automixModo, onAutomixModoChange) = rememberEnumPreference(
+        AutomixModoKey,
+        defaultValue = AutomixModo.CANCION_COMPLETA
+    )
+    val (automixEstilo, onAutomixEstiloChange) = rememberEnumPreference(
+        AutomixEstiloKey,
+        defaultValue = AutomixEstilo.AUTOMATICO
+    )
+    var showAutomixModoDialog by remember { mutableStateOf(false) }
+    var showAutomixEstiloDialog by remember { mutableStateOf(false) }
     val (crossfadeGapless, onCrossfadeGaplessChange) = rememberPreference(
         CrossfadeGaplessKey,
         defaultValue = true
@@ -285,6 +299,46 @@ highlightKey: String? = null) {
                     com.cglabs.lifemusic.constants.DownloadQuality.YOUTUBE -> "YouTube Music (AAC/Default)"
                     else -> ""
                 }
+            }
+        )
+    }
+
+    if (showAutomixModoDialog) {
+        EnumDialog(
+            onDismiss = { showAutomixModoDialog = false },
+            onSelect = { onAutomixModoChange(it); showAutomixModoDialog = false },
+            title = stringResource(R.string.automix_modo),
+            current = automixModo,
+            values = AutomixModo.entries,
+            valueText = { stringResource(textoModoAutomix(it)) },
+            valueDescription = {
+                stringResource(
+                    when (it) {
+                        AutomixModo.CANCION_COMPLETA -> R.string.automix_modo_completa_desc
+                        AutomixModo.DJ -> R.string.automix_modo_dj_desc
+                    }
+                )
+            }
+        )
+    }
+
+    if (showAutomixEstiloDialog) {
+        EnumDialog(
+            onDismiss = { showAutomixEstiloDialog = false },
+            onSelect = { onAutomixEstiloChange(it); showAutomixEstiloDialog = false },
+            title = stringResource(R.string.automix_estilo),
+            current = automixEstilo,
+            values = AutomixEstilo.entries,
+            valueText = { stringResource(textoEstiloAutomix(it)) },
+            valueDescription = {
+                stringResource(
+                    when (it) {
+                        AutomixEstilo.AUTOMATICO -> R.string.automix_estilo_auto_desc
+                        AutomixEstilo.BLEND -> R.string.automix_estilo_blend_desc
+                        AutomixEstilo.FILTRO -> R.string.automix_estilo_filtro_desc
+                        AutomixEstilo.PLANO -> R.string.automix_estilo_plano_desc
+                    }
+                )
             }
         )
     }
@@ -547,6 +601,20 @@ highlightKey: String? = null) {
                         onClick = { onAutomixCrossfadeChange(!automixCrossfade) }
                     ))
                     if (automixCrossfade) {
+                        add(Material3SettingsItem(
+                            isHighlighted = highlightKey == stringResource(R.string.automix_modo),
+                            icon = painterResource(R.drawable.tune),
+                            title = { Text(stringResource(R.string.automix_modo)) },
+                            description = { Text(stringResource(textoModoAutomix(automixModo))) },
+                            onClick = { showAutomixModoDialog = true }
+                        ))
+                        add(Material3SettingsItem(
+                            isHighlighted = highlightKey == stringResource(R.string.automix_estilo),
+                            icon = painterResource(R.drawable.discover_tune),
+                            title = { Text(stringResource(R.string.automix_estilo)) },
+                            description = { Text(stringResource(textoEstiloAutomix(automixEstilo))) },
+                            onClick = { showAutomixEstiloDialog = true }
+                        ))
                         add(Material3SettingsItem(
                             isHighlighted = highlightKey == stringResource(R.string.automix_debug),
                             icon = painterResource(R.drawable.bug_report),
@@ -1173,4 +1241,16 @@ highlightKey: String? = null) {
             }
         }
     )
+}
+
+private fun textoModoAutomix(modo: AutomixModo) = when (modo) {
+    AutomixModo.CANCION_COMPLETA -> R.string.automix_modo_completa
+    AutomixModo.DJ -> R.string.automix_modo_dj
+}
+
+private fun textoEstiloAutomix(estilo: AutomixEstilo) = when (estilo) {
+    AutomixEstilo.AUTOMATICO -> R.string.automix_estilo_auto
+    AutomixEstilo.BLEND -> R.string.automix_estilo_blend
+    AutomixEstilo.FILTRO -> R.string.automix_estilo_filtro
+    AutomixEstilo.PLANO -> R.string.automix_estilo_plano
 }

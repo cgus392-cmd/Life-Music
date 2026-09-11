@@ -1122,4 +1122,21 @@
     <string name="greeting_g_6">What is on today?</string>
     <string name="greeting_g_7">Let us go.</string>
     <string name="greeting_g_8">Seeing you again is a pleasure.</string>
+    <!-- Automix: mix mode and transition style -->
+    <string name="automix_modo">Mix mode</string>
+    <string name="automix_modo_desc">How much of each song Automix may trim: none, or intros and outros like a DJ</string>
+    <string name="automix_modo_completa">Full song</string>
+    <string name="automix_modo_completa_desc">Intros and endings are respected; only silence is skipped. The next track starts from its first audible beat.</string>
+    <string name="automix_modo_dj">DJ mode</string>
+    <string name="automix_modo_dj_desc">Skips quiet intros and leaves on the outro, like in a booth. Best for pop, electronic and party playlists.</string>
+    <string name="automix_estilo">Transition style</string>
+    <string name="automix_estilo_desc">Automatic by tempo distance, or force blend, filter sweep or plain crossfade</string>
+    <string name="automix_estilo_auto">Automatic</string>
+    <string name="automix_estilo_auto_desc">Blend when tempos match, filter sweep when they are far apart.</string>
+    <string name="automix_estilo_blend">Blend</string>
+    <string name="automix_estilo_blend_desc">Both songs overlap and the bass changes hands once. Tempo is only stretched when the difference is small.</string>
+    <string name="automix_estilo_filtro">Filter sweep</string>
+    <string name="automix_estilo_filtro_desc">The outgoing song closes through a low-pass filter while the next one opens up.</string>
+    <string name="automix_estilo_plano">Plain</string>
+    <string name="automix_estilo_plano_desc">Classic crossfade: volumes only, no filter or bass swap.</string>
 </resources>

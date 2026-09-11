@@ -79,6 +79,17 @@ Interfaz primero, español por defecto, y un arreglo que tocaba desde la 1.1.4.
   salida a frase de la saliente y conduce el barrido de filtro. Sigue sonando a
   DJ aunque falte la mitad de la información.
 
+- **Modo de mezcla: «Canción completa» de serie, «Modo DJ» a elección.** El
+  motor saltaba la intro de la pista entrante —7, 14 segundos— porque solo mide
+  energía, y una intro de acordeón o de metales es más floja que el coro. Eso es
+  criterio de cabina, no de quien escucha una salsa entera. Ahora el análisis
+  guarda también dónde **empieza** a oírse la música (antes solo dónde acaba), y
+  en «Canción completa» la entrante arranca ahí: se salta el silencio digital de
+  la subida y nada más, y la saliente se lleva su mambo entero. «Modo DJ» es lo
+  de antes: entra al cuerpo y sale en el outro. Y por si alguien quiere mandar,
+  **Estilo de transición**: automático, blend, barrido de filtro o plano. Todo
+  en el bloque de Automix (Beta) de Ajustes, que además ya está en español.
+
 - **Life Line cuenta el estilo, no solo que hay transición.** «Fundiendo las
   notas…» solo en blend; «Cerrando el filtro…» en barrido; «Cambiando de
   pista…» en fundido plano. Antes decía «Mezclando…» en cualquier caso.
@@ -95,6 +106,8 @@ Interfaz primero, español por defecto, y un arreglo que tocaba desde la 1.1.4.
 
 - Se retira `AutomixDuckAudioProcessor`, el shelf de graves del proyecto de
   origen: el paso alto del filtro nuevo hace su trabajo, mejor.
+- Base de datos 44 → 46: `beat_info` gana `contentEndMs` y `contentStartMs`. Las
+  filas antiguas se reanalizan una vez, solas, la primera vez que suena la pista.
 
 ---
 

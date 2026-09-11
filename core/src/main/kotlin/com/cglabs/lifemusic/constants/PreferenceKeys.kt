@@ -161,6 +161,25 @@ val CrossfadeGaplessKey = booleanPreferencesKey("crossfadeGapless")
 val AutomixCrossfadeKey = booleanPreferencesKey("automixCrossfade")
 val AutomixDebugOverlayKey = booleanPreferencesKey("automixDebugOverlay")
 
+/**
+ * Cuanta musica puede recortar Automix en cada extremo de la pista.
+ *  - CANCION_COMPLETA: se respeta la intro y la salida; solo se salta el silencio.
+ *    Es lo que quiere quien escucha una salsa con su mambo o un disco entero.
+ *    Es el defecto: un motor que se come 14 s de acordeon «porque suena flojo»
+ *    no esta mezclando, esta editando.
+ *  - DJ: entra al cuerpo de la siguiente (salta intros flojas) y sale donde
+ *    empieza el outro, como en cabina.
+ */
+enum class AutomixModo { CANCION_COMPLETA, DJ }
+val AutomixModoKey = stringPreferencesKey("automixModo")
+
+/**
+ * Estilo de transicion. AUTOMATICO lo decide la distancia de tempo (blend con
+ * tempos iguales, barrido de filtro con lejanos); los demas lo fuerzan.
+ */
+enum class AutomixEstilo { AUTOMATICO, BLEND, FILTRO, PLANO }
+val AutomixEstiloKey = stringPreferencesKey("automixEstilo")
+
 
 val MaxImageCacheSizeKey = intPreferencesKey("maxImageCacheSize")
 val MaxSongCacheSizeKey = intPreferencesKey("maxSongCacheSize")

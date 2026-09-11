@@ -25,4 +25,11 @@ data class BeatInfoEntity(
      * no encontrado; null = fila anterior a este campo, se reanaliza una vez.
      */
     val contentEndMs: Long? = null,
+    /**
+     * Donde empieza a oirse la musica. En modo «cancion completa» la entrante
+     * arranca aqui —se salta el silencio digital de la subida y nada mas—, en vez
+     * de en [mixInPointMs], que se come la intro. Misma convencion: -1 escaneado
+     * sin hallar; null fila vieja, se reanaliza una vez.
+     */
+    val contentStartMs: Long? = null,
 )
