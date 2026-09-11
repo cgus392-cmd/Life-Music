@@ -34,7 +34,7 @@ enum class NivelTransicion {
     PLANO,
 }
 
-/** Como se ejecuta la transicion. Lo elige el material, no el usuario. */
+/** Como se ejecuta la transicion. Lo elige el material, o el usuario desde Ajustes. */
 enum class EstiloTransicion {
     /** Fundido equal-power sin filtrar. Lo unico que permite el nivel PLANO. */
     PLANO,
@@ -44,6 +44,14 @@ enum class EstiloTransicion {
 
     /** Barrido de filtro. Para tempos demasiado lejanos para mezclar en plano, o cuando falta analisis de una pista. */
     FILTRO,
+
+    /**
+     * Sin superposicion: la saliente se cierra con el filtro hasta callarse y
+     * solo entonces arranca la entrante, por su principio y entera. Lo pidio
+     * CG para tropical: ahi la intro de la siguiente es cancion, no relleno
+     * sobre el que mezclar. Nunca lo elige el material; siempre el usuario.
+     */
+    CIERRE,
 }
 
 /** Los cuatro cortes que el bucle del fundido reapunta en cada paso. */
@@ -71,6 +79,34 @@ object ConduccionAutomix {
         EstiloTransicion.PLANO -> CortesDeFiltro.ABIERTOS
         EstiloTransicion.FILTRO -> barridoDeFiltro(progreso)
         EstiloTransicion.BLEND -> cambioDeGraves(progreso)
+        EstiloTransicion.CIERRE -> cierre(progreso)
+    }
+
+    /**
+     * El cierre: mismo barrido que [barridoDeFiltro] pero sin suelo que lo pare
+     * —baja hasta [SUELO_CIERRE_HZ], donde ya solo queda el bombo— porque aqui
+     * la saliente no tiene que seguir sonando debajo de nadie: tiene que irse.
+     * La entrante no se toca: esta en pausa esperando su turno.
+     */
+    private fun cierre(progreso: Float): CortesDeFiltro {
+        val corte = deslizar(ENTRADA_FILTRO_HZ, SUELO_CIERRE_HZ, progreso.toDouble().pow(FORMA_BARRIDO))
+        return CortesDeFiltro(
+            salienteLowPassHz = corte.toFloat(),
+            salienteHighPassHz = OFF_HZ,
+            entranteLowPassHz = OPEN_HZ,
+            entranteHighPassHz = OFF_HZ,
+        )
+    }
+
+    /**
+     * Ganancia de la saliente durante un cierre. Entera hasta
+     * [CIERRE_GANANCIA_DESDE]: la primera mitad la hace el filtro solo, que es lo
+     * que se oye como «se cierra». Despues cae en coseno hasta cero, para que el
+     * bombo que sobrevive al filtro no acabe cortado a tajo sino apagandose.
+     */
+    fun gananciaDeCierre(progreso: Float): Float {
+        val t = ((progreso - CIERRE_GANANCIA_DESDE) / (1.0 - CIERRE_GANANCIA_DESDE)).coerceIn(0.0, 1.0)
+        return kotlin.math.cos(t * Math.PI / 2.0).toFloat()
     }
 
     /**
@@ -169,6 +205,14 @@ object ConduccionAutomix {
 
     /** Exponente del progreso. Menor que 1 adelanta el barrido: el agudo se va en la primera decima. */
     const val FORMA_BARRIDO = 0.75
+
+    // ---- Cierre y arranque ------------------------------------------------
+
+    /** Hasta donde baja el cierre: por debajo queda el bombo y poco mas. */
+    const val SUELO_CIERRE_HZ = 80.0
+
+    /** Fraccion del cierre a partir de la cual la ganancia acompana al filtro hasta cero. */
+    const val CIERRE_GANANCIA_DESDE = 0.5
 
     /** Paso alto de entrada en el barrido: platos y presencia, sin cuerpo. */
     const val ENTRADA_PASO_ALTO_HZ = 1_200.0

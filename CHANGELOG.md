@@ -87,8 +87,12 @@ Interfaz primero, español por defecto, y un arreglo que tocaba desde la 1.1.4.
   en «Canción completa» la entrante arranca ahí: se salta el silencio digital de
   la subida y nada más, y la saliente se lleva su mambo entero. «Modo DJ» es lo
   de antes: entra al cuerpo y sale en el outro. Y por si alguien quiere mandar,
-  **Estilo de transición**: automático, blend, barrido de filtro o plano. Todo
-  en el bloque de Automix (Beta) de Ajustes, que además ya está en español.
+  **Estilo de transición**: automático, blend, barrido de filtro, plano o
+  **«Cierre y arranque»**, el único sin superposición: la saliente se cierra con
+  el filtro hasta callarse y solo entonces la siguiente arranca por su principio,
+  entera. Mientras se cierra, la notificación y la barra siguen contando la
+  verdad, porque el relevo ocurre al final y no al empezar. Todo en el bloque
+  de Automix (Beta) de Ajustes, que además ya está en español.
 
 - **Life Line cuenta el estilo, no solo que hay transición.** «Fundiendo las
   notas…» solo en blend; «Cerrando el filtro…» en barrido; «Cambiando de

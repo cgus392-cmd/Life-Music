@@ -117,7 +117,7 @@ fun recordarVozLifeLine(
         // tal cual: una mezcla al beat, un barrido de filtro o un fundido plano son
         // tres cosas distintas y merecen tres frases distintas.
         mezclando && estilo == EstiloTransicion.BLEND -> LifeLineVoz.MEZCLANDO
-        mezclando && estilo == EstiloTransicion.FILTRO -> LifeLineVoz.FILTRANDO
+        mezclando && (estilo == EstiloTransicion.FILTRO || estilo == EstiloTransicion.CIERRE) -> LifeLineVoz.FILTRANDO
         mezclando -> LifeLineVoz.CAMBIANDO
 
         // De aqui en adelante, la cancion manda: si hay letra sincronizada se

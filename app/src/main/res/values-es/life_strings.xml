@@ -760,4 +760,6 @@
     <string name="automix_estilo_filtro_desc">La saliente se cierra por un filtro de graves mientras la siguiente se abre.</string>
     <string name="automix_estilo_plano">Plano</string>
     <string name="automix_estilo_plano_desc">Fundido clásico: solo volumen, sin filtro ni cambio de graves.</string>
+    <string name="automix_estilo_cierre">Cierre y arranque</string>
+    <string name="automix_estilo_cierre_desc">La saliente se cierra con el filtro hasta callarse y la siguiente arranca desde su inicio. Sin superposición: cada canción entera.</string>
 </resources>

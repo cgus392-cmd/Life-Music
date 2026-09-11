@@ -337,6 +337,7 @@ highlightKey: String? = null) {
                         AutomixEstilo.BLEND -> R.string.automix_estilo_blend_desc
                         AutomixEstilo.FILTRO -> R.string.automix_estilo_filtro_desc
                         AutomixEstilo.PLANO -> R.string.automix_estilo_plano_desc
+                        AutomixEstilo.CIERRE -> R.string.automix_estilo_cierre_desc
                     }
                 )
             }
@@ -1253,4 +1254,5 @@ private fun textoEstiloAutomix(estilo: AutomixEstilo) = when (estilo) {
     AutomixEstilo.BLEND -> R.string.automix_estilo_blend
     AutomixEstilo.FILTRO -> R.string.automix_estilo_filtro
     AutomixEstilo.PLANO -> R.string.automix_estilo_plano
+    AutomixEstilo.CIERRE -> R.string.automix_estilo_cierre
 }

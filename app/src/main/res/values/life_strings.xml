@@ -1139,4 +1139,6 @@
     <string name="automix_estilo_filtro_desc">The outgoing song closes through a low-pass filter while the next one opens up.</string>
     <string name="automix_estilo_plano">Plain</string>
     <string name="automix_estilo_plano_desc">Classic crossfade: volumes only, no filter or bass swap.</string>
+    <string name="automix_estilo_cierre">Close and start</string>
+    <string name="automix_estilo_cierre_desc">The outgoing song closes through the filter until it goes quiet, then the next one starts from the top. No overlap: every song whole.</string>
 </resources>

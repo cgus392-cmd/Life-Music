@@ -175,9 +175,11 @@ val AutomixModoKey = stringPreferencesKey("automixModo")
 
 /**
  * Estilo de transicion. AUTOMATICO lo decide la distancia de tempo (blend con
- * tempos iguales, barrido de filtro con lejanos); los demas lo fuerzan.
+ * tempos iguales, barrido de filtro con lejanos); los demas lo fuerzan. CIERRE
+ * es el unico sin superposicion: la saliente se cierra con el filtro y la
+ * siguiente arranca entera desde su principio.
  */
-enum class AutomixEstilo { AUTOMATICO, BLEND, FILTRO, PLANO }
+enum class AutomixEstilo { AUTOMATICO, BLEND, FILTRO, PLANO, CIERRE }
 val AutomixEstiloKey = stringPreferencesKey("automixEstilo")
 
 

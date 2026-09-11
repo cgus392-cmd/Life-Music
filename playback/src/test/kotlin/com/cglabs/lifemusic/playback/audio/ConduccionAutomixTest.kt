@@ -71,6 +71,35 @@ class ConduccionAutomixTest {
     }
 
     @Test
+    fun cierre_baja_hasta_el_suelo_de_cierre_y_deja_la_entrante_en_paz() {
+        val inicio = ConduccionAutomix.cortes(EstiloTransicion.CIERRE, 0f)
+        val fin = ConduccionAutomix.cortes(EstiloTransicion.CIERRE, 1f)
+        assertEquals(ConduccionAutomix.ENTRADA_FILTRO_HZ.toFloat(), inicio.salienteLowPassHz, 1f)
+        assertEquals(ConduccionAutomix.SUELO_CIERRE_HZ.toFloat(), fin.salienteLowPassHz, 1f)
+        assertTrue("el cierre baja mas que el barrido", fin.salienteLowPassHz < ConduccionAutomix.SUELO_FILTRO_HZ)
+        // La entrante espera en pausa: sus cortes quedan abiertos de principio a fin.
+        for (p in listOf(0f, 0.5f, 1f)) {
+            val c = ConduccionAutomix.cortes(EstiloTransicion.CIERRE, p)
+            assertEquals(OPEN_HZ, c.entranteLowPassHz, 0f)
+            assertEquals(OFF_HZ, c.entranteHighPassHz, 0f)
+        }
+    }
+
+    @Test
+    fun ganancia_de_cierre_entera_hasta_la_mitad_y_cero_al_final() {
+        assertEquals(1f, ConduccionAutomix.gananciaDeCierre(0f), 1e-6f)
+        assertEquals(1f, ConduccionAutomix.gananciaDeCierre(ConduccionAutomix.CIERRE_GANANCIA_DESDE.toFloat()), 1e-6f)
+        assertEquals(0f, ConduccionAutomix.gananciaDeCierre(1f), 1e-6f)
+        // Monotona: nunca vuelve a subir.
+        var previa = 1f
+        for (i in 0..100) {
+            val g = ConduccionAutomix.gananciaDeCierre(i / 100f)
+            assertTrue("la ganancia sube en $i", g <= previa + 1e-6f)
+            previa = g
+        }
+    }
+
+    @Test
     fun blend_el_paso_bajo_de_salida_es_suave_y_tardio() {
         val temprano = ConduccionAutomix.cortes(EstiloTransicion.BLEND, ConduccionAutomix.BLEND_SALIDA_DESDE.toFloat() - 0.05f)
         val fin = ConduccionAutomix.cortes(EstiloTransicion.BLEND, 1f)
