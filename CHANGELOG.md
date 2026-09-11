@@ -15,7 +15,7 @@ esa base**; para la historia anterior, consulte el repositorio de origen.
 
 ---
 
-## [1.1.5] — 2026-09-10
+## [1.1.5] — 2026-09-11
 
 Primera versión después del vídeo de presentación, con 53 descargas nuevas mirando.
 Interfaz primero, español por defecto, y un arreglo que tocaba desde la 1.1.4.
