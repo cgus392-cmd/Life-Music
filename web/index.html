@@ -12,6 +12,7 @@
   // del CSS, para que la pagina no parpadee de oscuro a claro al cargar.
   try { var t = localStorage.getItem("tema"); if (t === "light" || t === "dark") document.documentElement.setAttribute("data-theme", t); } catch (e) {}
 </script>
+<link rel="canonical" href="https://lifemusic.pages.dev/">
 <link rel="icon" type="image/png" href="/img/lifemusic.png">
 <link rel="apple-touch-icon" href="/img/lifemusic.png">
 
@@ -29,6 +30,30 @@
 <meta name="twitter:title" content="Life Music — la app que habla">
 <meta name="twitter:description" content="Música sin cortes, con Automix y Life Line. Gratis, sin anuncios, para Android.">
 <meta name="twitter:image" content="https://lifemusic.pages.dev/img/og.jpg">
+
+<!-- Datos estructurados: ficha de aplicacion en los resultados de busqueda -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "SoftwareApplication",
+  "name": "Life Music",
+  "alternateName": "Life Music by CG LABS",
+  "description": "Cliente de música para Android con Automix (transiciones de DJ), Life Line, letras sincronizadas y sin anuncios. Gratis y de código abierto.",
+  "applicationCategory": "MusicApplication",
+  "operatingSystem": "Android 8.0+",
+  "softwareVersion": "1.1.6",
+  "url": "https://lifemusic.pages.dev/",
+  "downloadUrl": "https://lifemusic.pages.dev/apk",
+  "installUrl": "https://lifemusic.pages.dev/apk",
+  "image": "https://lifemusic.pages.dev/img/og.jpg",
+  "inLanguage": "es",
+  "isAccessibleForFree": true,
+  "license": "https://www.gnu.org/licenses/gpl-3.0.html",
+  "offers": { "@type": "Offer", "price": "0", "priceCurrency": "COP" },
+  "author": { "@type": "Organization", "name": "CG LABS", "url": "https://github.com/cgus392-cmd" },
+  "sameAs": ["https://github.com/cgus392-cmd/Life-Music"]
+}
+</script>
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -59,6 +84,7 @@
     --aurora-c:rgba(144,202,249,.16);
     --grano:.05;
     --telefono-marco:#0E1411;
+    --logo-claro:none;--logo-oscuro:block;
     --radio:24px;
     --display:"Plus Jakarta Sans",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
     --mono:"JetBrains Mono",ui-monospace,SFMono-Regular,Menlo,monospace;
@@ -71,21 +97,22 @@
       --fondo:#F4F8F6;--superficie:#FFFFFF;--superficie-2:#E9F1EC;--borde:rgba(10,30,20,.09);
       --texto:#0F1512;--texto-2:#4B5751;--texto-3:#7A867F;--verde-texto:#0B8A5F;
       --aurora-a:rgba(52,211,153,.30);--aurora-b:rgba(248,187,208,.40);--aurora-c:rgba(144,202,249,.28);
-      --grano:.035;color-scheme:light;
+      --grano:.035;color-scheme:light;--logo-claro:block;--logo-oscuro:none;
     }
   }
   :root[data-theme="light"]{
     --fondo:#F4F8F6;--superficie:#FFFFFF;--superficie-2:#E9F1EC;--borde:rgba(10,30,20,.09);
     --texto:#0F1512;--texto-2:#4B5751;--texto-3:#7A867F;--verde-texto:#0B8A5F;
     --aurora-a:rgba(52,211,153,.30);--aurora-b:rgba(248,187,208,.40);--aurora-c:rgba(144,202,249,.28);
-    --grano:.035;color-scheme:light;
+    --grano:.035;color-scheme:light;--logo-claro:block;--logo-oscuro:none;
   }
   :root[data-theme="dark"]{
     --fondo:#0B0F0D;--superficie:#131A16;--superficie-2:#1A231E;--borde:rgba(255,255,255,.08);
     --texto:#F2F5F3;--texto-2:#A9B4AE;--texto-3:#6F7B75;--verde-texto:#34D399;
     --aurora-a:rgba(52,211,153,.45);--aurora-b:rgba(248,187,208,.28);--aurora-c:rgba(144,202,249,.16);
-    --grano:.05;color-scheme:dark;
+    --grano:.05;color-scheme:dark;--logo-claro:none;--logo-oscuro:block;
   }
+  .logo-claro{display:var(--logo-claro)}.logo-oscuro{display:var(--logo-oscuro)}
   body{transition:background-color .35s ease,color .35s ease}
   *{box-sizing:border-box}
   html{scroll-behavior:smooth}
@@ -115,7 +142,8 @@
   .marca{display:flex;align-items:center;gap:12px;text-decoration:none}
   .marca img{width:40px;height:40px;border-radius:12px}
   .marca b{font-weight:800;letter-spacing:-.01em;font-size:18px}
-  .marca small{display:block;font-size:11px;color:var(--texto-3);letter-spacing:.14em;text-transform:uppercase;font-weight:600;margin-top:-2px}
+  .marca small{display:flex;align-items:center;gap:6px;font-size:11px;color:var(--texto-3);letter-spacing:.14em;text-transform:uppercase;font-weight:600;margin-top:-2px}
+  .marca small img{width:14px;height:14px;border-radius:50%;opacity:.9}
   nav{display:flex;justify-content:space-between;align-items:center;gap:16px}
   nav .enlaces{display:flex;gap:22px;font-size:14px;color:var(--texto-2)}
   nav .enlaces a{text-decoration:none}
@@ -215,6 +243,9 @@
   /* ───────────── pie ───────────── */
   footer{padding:40px 0 60px;border-top:1px solid var(--borde);margin-top:30px;font-size:13.5px;color:var(--texto-3)}
   footer .fila{display:flex;flex-wrap:wrap;justify-content:space-between;gap:14px 24px;align-items:center}
+  footer .cglabs{display:flex;align-items:center;gap:14px;margin-top:26px;padding-top:22px;border-top:1px solid var(--borde)}
+  footer .cglabs img{height:28px;width:auto;opacity:.85}
+  footer .cglabs span{font-size:12.5px;color:var(--texto-3)}
   footer a{color:var(--texto-2);text-decoration:none}
   footer a:hover{color:var(--texto)}
   footer p{max-width:72ch;margin:14px 0 0}
@@ -241,7 +272,7 @@
   <nav>
     <a class="marca" href="/">
       <img src="/img/lifemusic.png" alt="">
-      <span><b>Life Music</b><small>Un desarrollo de CG LABS</small></span>
+      <span><b>Life Music</b><small><img class="logo-oscuro" src="/img/cglabs_avatar_blanco.webp" alt=""><img class="logo-claro" src="/img/cglabs_avatar_negro.webp" alt="">Un desarrollo de CG LABS</small></span>
     </a>
     <div class="derecha">
       <div class="enlaces">
@@ -342,6 +373,13 @@
       </div>
     </div>
     <p>Software libre bajo GPL-3.0, heredada de Echo Music, Metrolist e InnerTune. Sin telemetría, sin publicidad, sin venta. YouTube y YouTube Music son marcas de Google; AirPods es marca de Apple. Ninguno tiene relación con este proyecto.</p>
+    <div class="cglabs">
+      <a href="https://github.com/cgus392-cmd" rel="noopener" aria-label="CG LABS en GitHub">
+        <img class="logo-oscuro" src="/img/cglabs_lockup_blanco.webp" alt="CG LABS" height="28">
+        <img class="logo-claro" src="/img/cglabs_lockup_negro.webp" alt="CG LABS" height="28">
+      </a>
+      <span>Life Music by CG · CG LABS · © 2026</span>
+    </div>
   </div>
 </footer>
 

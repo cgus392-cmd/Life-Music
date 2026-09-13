@@ -1,0 +1,6 @@
+User-agent: *
+Allow: /
+Disallow: /apk
+Disallow: /apk-arm64
+
+Sitemap: https://lifemusic.pages.dev/sitemap.xml

@@ -5,6 +5,8 @@
 
   <p><b>Cliente de música para Android. Un desarrollo de CG LABS.</b></p>
 
+  <p><a href="https://lifemusic.pages.dev"><b>lifemusic.pages.dev</b></a> — descarga y presentación</p>
+
   <p>
     <img alt="Licencia" src="https://img.shields.io/badge/licencia-GPL--3.0-blue"/>
     <img alt="Plataforma" src="https://img.shields.io/badge/Android-8.0%2B-green"/>
