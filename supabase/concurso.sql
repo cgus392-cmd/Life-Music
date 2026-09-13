@@ -18,7 +18,9 @@
 --     apuntan aparte en `retroactivos`, para poder verificar al ganador.
 -- ---------------------------------------------------------------------------
 
-create extension if not exists pgcrypto;
+-- pgcrypto viene instalado en Supabase, en el esquema `extensions`; por eso las
+-- funciones lo incluyen en su search_path y llaman a extensions.digest.
+create extension if not exists pgcrypto with schema extensions;
 
 -- ─── Configuración (una sola fila) ─────────────────────────────────────────
 create table if not exists public.concurso_config (
@@ -75,7 +77,7 @@ create or replace function public.concurso_estado()
 returns jsonb
 language sql
 security definer
-set search_path = public
+set search_path = public, extensions
 stable
 as $$
   select jsonb_build_object(
@@ -95,7 +97,7 @@ create or replace function public.concurso_hoy()
 returns date
 language sql
 security definer
-set search_path = public
+set search_path = public, extensions
 stable
 as $$
   select (timezone((select zona from public.concurso_config where id = 1), now()))::date;
@@ -109,14 +111,14 @@ create or replace function public.concurso_registrar(
 returns jsonb
 language plpgsql
 security definer
-set search_path = public
+set search_path = public, extensions
 as $$
 declare
   cfg       public.concurso_config;
   v_apodo   text := btrim(p_apodo);
   v_nombre  text := btrim(p_nombre);
   v_correo  text := lower(btrim(p_correo));
-  v_hash    text := encode(digest(coalesce(p_secreto, ''), 'sha256'), 'hex');
+  v_hash    text := encode(extensions.digest(coalesce(p_secreto, ''), 'sha256'), 'hex');
   existente public.concurso_participantes;
 begin
   select * into cfg from public.concurso_config where id = 1;
@@ -166,7 +168,7 @@ create or replace function public.concurso_reportar(p_id uuid, p_secreto text, p
 returns jsonb
 language plpgsql
 security definer
-set search_path = public
+set search_path = public, extensions
 as $$
 declare
   cfg        public.concurso_config;
@@ -184,12 +186,14 @@ declare
   aumento_reciente integer := 0;
   transcurrido_min integer;
   dia_registro date;
+  minutos_antes_registro integer;
+  primer_envio boolean;
   puesto     integer;
   cuantos    integer;
 begin
   select * into cfg from public.concurso_config where id = 1;
   select * into fila from public.concurso_participantes where id = p_id;
-  if not found or fila.secreto_hash <> encode(digest(p_secreto, 'sha256'), 'hex') then
+  if not found or fila.secreto_hash <> encode(extensions.digest(p_secreto, 'sha256'), 'hex') then
     return jsonb_build_object('ok', false, 'error', 'no_registrado');
   end if;
 
@@ -197,6 +201,11 @@ begin
   ahora_zona := timezone(cfg.zona, now());
   dia_registro := (timezone(cfg.zona, fila.registrado_en))::date;
   transcurrido_min := greatest(0, floor(extract(epoch from (now() - fila.actualizado_en)) / 60))::integer;
+  -- Minutos del dia de inscripcion que ya habian pasado al inscribirse: el
+  -- primer envio puede traerlos (quien se inscribe de noche con la tarde
+  -- escuchada). Siguen limitados por la hora real y por el tope.
+  minutos_antes_registro := greatest(0, floor(extract(epoch from (timezone(cfg.zona, fila.registrado_en) - dia_registro::timestamp)) / 60))::integer;
+  primer_envio := (fila.minutos_por_dia = '{}'::jsonb);
   nuevos := fila.minutos_por_dia;
 
   for clave, valor in
@@ -237,7 +246,8 @@ begin
     nuevos := jsonb_set(nuevos, array[clave], to_jsonb(valor), true);
   end loop;
 
-  if aumento_reciente > transcurrido_min + cfg.tolerancia_min then
+  if aumento_reciente > transcurrido_min + cfg.tolerancia_min
+                        + (case when primer_envio then minutos_antes_registro else 0 end) then
     -- Envio implausible: se ignora entero, y el reloj no avanza, para que
     -- no se pueda «trocear» la trampa en envios pequenos.
     return jsonb_build_object('ok', false, 'error', 'implausible',
@@ -246,8 +256,11 @@ begin
 
   select coalesce(sum(least((value)::text::integer, cfg.tope_min_dia)), 0) into total
     from jsonb_each(nuevos);
+  -- Retroactivos: dias anteriores a la inscripcion, mas lo del dia de
+  -- inscripcion que ya habia pasado al inscribirse. Para verificar al ganador.
   select coalesce(sum(least((value)::text::integer, cfg.tope_min_dia)), 0) into retro
     from jsonb_each(nuevos) where key::date < dia_registro;
+  retro := retro + least(coalesce((nuevos ->> dia_registro::text)::integer, 0), minutos_antes_registro);
 
   update public.concurso_participantes p
     set minutos_por_dia = nuevos,
@@ -268,11 +281,11 @@ create or replace function public.concurso_abandonar(p_id uuid, p_secreto text)
 returns jsonb
 language plpgsql
 security definer
-set search_path = public
+set search_path = public, extensions
 as $$
 begin
   delete from public.concurso_participantes
-    where id = p_id and secreto_hash = encode(digest(p_secreto, 'sha256'), 'hex');
+    where id = p_id and secreto_hash = encode(extensions.digest(p_secreto, 'sha256'), 'hex');
   return jsonb_build_object('ok', found);
 end;
 $$;
