@@ -1,0 +1,8 @@
+# Enlaces cortos de Life Music. El de GitHub "latest" apunta siempre al APK de
+# la ultima version publicada: no hay que tocar esto en cada publicacion.
+/apk         https://github.com/cgus392-cmd/Life-Music/releases/latest/download/lifemusic.apk        302
+/apk-arm64   https://github.com/cgus392-cmd/Life-Music/releases/latest/download/lifemusic-arm64.apk  302
+/descargar   /apk                                                                                     302
+/github      https://github.com/cgus392-cmd/Life-Music                                                302
+/novedades   https://github.com/cgus392-cmd/Life-Music/releases/latest                                302
+/privacidad  https://github.com/cgus392-cmd/Life-Music/blob/main/PRIVACY_POLICY.md                    302

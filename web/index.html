@@ -1,0 +1,352 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Life Music — la app que habla</title>
+<meta name="description" content="Música sin cortes para Android: Automix con transiciones de DJ, Life Line que te cuenta lo que hace, letras sincronizadas y sin anuncios. Gratis, de código abierto, un desarrollo de CG LABS.">
+<meta name="theme-color" content="#0B0F0D">
+<link rel="icon" type="image/png" href="/img/lifemusic.png">
+<link rel="apple-touch-icon" href="/img/lifemusic.png">
+
+<!-- Vista previa en WhatsApp, Instagram, X -->
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Life Music">
+<meta property="og:title" content="Life Music — la app que habla">
+<meta property="og:description" content="Música sin cortes, con Automix y Life Line. Gratis, sin anuncios, para Android. Descárgala aquí.">
+<meta property="og:image" content="https://lifemusic.pages.dev/img/og.jpg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:url" content="https://lifemusic.pages.dev/">
+<meta property="og:locale" content="es_CO">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Life Music — la app que habla">
+<meta name="twitter:description" content="Música sin cortes, con Automix y Life Line. Gratis, sin anuncios, para Android.">
+<meta name="twitter:image" content="https://lifemusic.pages.dev/img/og.jpg">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,400;0,500;0,600;0,700;0,800;1,500;1,700;1,800&family=JetBrains+Mono:wght@400;500&display=swap">
+
+<style>
+  /* ───────────── tokens: la app en oscuro, con el verde de la campaña ───────────── */
+  :root{
+    --fondo:#0B0F0D;
+    --fondo-2:#10161300;
+    --superficie:#131A16;
+    --superficie-2:#1A231E;
+    --borde:rgba(255,255,255,.08);
+    --texto:#F2F5F3;
+    --texto-2:#A9B4AE;
+    --texto-3:#6F7B75;
+    --verde:#34D399;
+    --verde-oscuro:#0F5C43;
+    --rosa:#F8BBD0;
+    --azul:#90CAF9;
+    --lila:#CE93D8;
+    --menta:#80CBC4;
+    --melon:#FFAB91;
+    --amarillo:#FFE082;
+    --radio:24px;
+    --display:"Plus Jakarta Sans",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+    --mono:"JetBrains Mono",ui-monospace,SFMono-Regular,Menlo,monospace;
+  }
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{
+    margin:0;background:var(--fondo);color:var(--texto);
+    font-family:var(--display);font-size:16px;line-height:1.55;
+    -webkit-font-smoothing:antialiased;overflow-x:hidden;
+  }
+  a{color:inherit}
+  img{max-width:100%;display:block}
+  .contenedor{width:min(1100px,100% - 40px);margin-inline:auto}
+  @media (max-width:640px){.contenedor{width:min(1100px,100% - 32px)}}
+
+  /* ───────────── fondo vivo: dos manchas de luz que derivan (como en la app) ───────────── */
+  .aurora{position:fixed;inset:0;z-index:-1;overflow:hidden;pointer-events:none;background:var(--fondo)}
+  .aurora i{position:absolute;border-radius:50%;filter:blur(60px);opacity:.55;will-change:transform}
+  .aurora .a{width:70vmax;height:70vmax;left:-20vmax;top:-25vmax;background:radial-gradient(circle,rgba(52,211,153,.45),transparent 60%);animation:derivaA 26s ease-in-out infinite alternate}
+  .aurora .b{width:60vmax;height:60vmax;right:-22vmax;bottom:-20vmax;background:radial-gradient(circle,rgba(248,187,208,.28),transparent 60%);animation:derivaB 31s ease-in-out infinite alternate}
+  .aurora .c{width:40vmax;height:40vmax;left:35vw;top:40vh;background:radial-gradient(circle,rgba(144,202,249,.16),transparent 60%);animation:derivaA 38s ease-in-out infinite alternate-reverse}
+  @keyframes derivaA{from{transform:translate(0,0) scale(1)}to{transform:translate(14vw,8vh) scale(1.12)}}
+  @keyframes derivaB{from{transform:translate(0,0) scale(1)}to{transform:translate(-12vw,-10vh) scale(1.08)}}
+  .grano{position:fixed;inset:0;z-index:-1;pointer-events:none;opacity:.05;
+    background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/></filter><rect width='160' height='160' filter='url(%23n)' opacity='.8'/></svg>")}
+
+  /* ───────────── cabecera ───────────── */
+  header{padding:22px 0}
+  .marca{display:flex;align-items:center;gap:12px;text-decoration:none}
+  .marca img{width:40px;height:40px;border-radius:12px}
+  .marca b{font-weight:800;letter-spacing:-.01em;font-size:18px}
+  .marca small{display:block;font-size:11px;color:var(--texto-3);letter-spacing:.14em;text-transform:uppercase;font-weight:600;margin-top:-2px}
+  nav{display:flex;justify-content:space-between;align-items:center;gap:16px}
+  nav .enlaces{display:flex;gap:22px;font-size:14px;color:var(--texto-2)}
+  nav .enlaces a{text-decoration:none}
+  nav .enlaces a:hover{color:var(--texto)}
+  @media (max-width:640px){nav .enlaces{display:none}}
+
+  /* ───────────── héroe ───────────── */
+  .heroe{display:grid;grid-template-columns:1.1fr .9fr;gap:40px;align-items:center;padding:36px 0 56px;min-height:0}
+  @media (max-width:860px){.heroe{grid-template-columns:1fr;gap:28px;padding-top:14px}}
+  .eyebrow{display:inline-flex;align-items:center;gap:10px;padding:8px 14px;border-radius:999px;background:var(--superficie);border:1px solid var(--borde);font-size:13px;color:var(--texto-2);font-weight:600}
+  .eyebrow .punto{width:8px;height:8px;border-radius:50%;background:var(--verde);animation:late 1.6s ease-in-out infinite alternate}
+  @keyframes late{from{opacity:.35}to{opacity:1}}
+  h1{font-size:clamp(44px,8vw,78px);line-height:1;letter-spacing:-.03em;margin:22px 0 14px;font-weight:500;font-style:italic;text-wrap:balance}
+  h1 b{display:block;font-weight:800;color:var(--verde)}
+  .linea-viva{min-height:28px;font-size:clamp(16px,2.2vw,20px);color:var(--texto-2);font-style:italic}
+  .linea-viva span{display:inline-block;animation:entra .5s ease both}
+  @keyframes entra{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+  .subtitulo{font-size:clamp(16px,2vw,18px);color:var(--texto-2);max-width:52ch;margin:18px 0 26px}
+
+  .acciones{display:flex;flex-wrap:wrap;gap:12px;align-items:center}
+  .boton{--g:0 0 0 0 rgba(52,211,153,0);
+    display:inline-flex;align-items:center;gap:12px;padding:18px 26px;border-radius:999px;
+    background:var(--verde);color:#062017;text-decoration:none;font-weight:800;font-size:17px;
+    border:0;cursor:pointer;transition:transform .15s ease,box-shadow .3s ease;
+    box-shadow:0 0 0 0 rgba(52,211,153,.55);animation:pulso 2.6s ease-out infinite}
+  .boton:hover{transform:translateY(-2px)}
+  .boton:active{transform:translateY(0) scale(.99)}
+  .boton svg{width:22px;height:22px}
+  @keyframes pulso{0%{box-shadow:0 0 0 0 rgba(52,211,153,.55)}70%{box-shadow:0 0 0 18px rgba(52,211,153,0)}100%{box-shadow:0 0 0 0 rgba(52,211,153,0)}}
+  .boton.secundario{background:transparent;color:var(--texto);border:1px solid var(--borde);animation:none;box-shadow:none;font-weight:600}
+  .meta{width:100%;display:flex;flex-wrap:wrap;gap:8px 18px;margin-top:6px;font-family:var(--mono);font-size:12px;color:var(--texto-3)}
+  .meta b{color:var(--texto-2);font-weight:500}
+
+  /* teléfono */
+  .telefono-caja{display:flex;justify-content:center;perspective:1200px}
+  .telefono{width:min(300px,72vw);aspect-ratio:9/19.2;border-radius:44px;padding:10px;background:#0E1411;
+    border:1px solid rgba(255,255,255,.12);box-shadow:0 40px 80px -30px rgba(0,0,0,.8),0 0 0 6px rgba(255,255,255,.03),0 30px 60px -20px rgba(52,211,153,.25);
+    animation:flota 7s ease-in-out infinite;transform-origin:center}
+  .telefono .pantalla{width:100%;height:100%;border-radius:36px;overflow:hidden;background:#dedede;position:relative}
+  .telefono .pantalla img{width:100%;height:100%;object-fit:cover;object-position:top}
+  .telefono .isla{position:absolute;top:12px;left:50%;transform:translateX(-50%);width:26%;height:22px;border-radius:999px;background:#0E1411}
+  @keyframes flota{0%,100%{transform:translateY(0) rotateY(-8deg) rotateX(2deg)}50%{transform:translateY(-14px) rotateY(-5deg) rotateX(3deg)}}
+  .voz{position:absolute;left:10px;right:10px;bottom:18px;padding:12px 14px;border-radius:16px;background:rgba(14,20,17,.88);backdrop-filter:blur(8px);color:#fff;font-size:12.5px;line-height:1.35;border:1px solid rgba(255,255,255,.08);box-shadow:0 10px 30px rgba(0,0,0,.4)}
+  .voz small{display:block;color:var(--verde);font-weight:700;letter-spacing:.12em;text-transform:uppercase;font-size:9.5px;margin-bottom:4px}
+  .voz .ola{display:inline-flex;gap:2px;align-items:flex-end;height:12px;margin-left:6px;vertical-align:middle}
+  .voz .ola i{width:2px;background:var(--verde);border-radius:1px;animation:ola 1s ease-in-out infinite}
+  .voz .ola i:nth-child(1){height:5px}.voz .ola i:nth-child(2){height:11px;animation-delay:.15s}.voz .ola i:nth-child(3){height:7px;animation-delay:.3s}.voz .ola i:nth-child(4){height:10px;animation-delay:.45s}
+  @keyframes ola{0%,100%{transform:scaleY(.4)}50%{transform:scaleY(1)}}
+
+  /* ───────────── reto ───────────── */
+  .seccion{padding:56px 0}
+  .titulo-seccion{font-size:12px;letter-spacing:.16em;text-transform:uppercase;font-weight:700;color:var(--verde);margin:0 0 14px}
+  h2{font-size:clamp(28px,4.4vw,44px);line-height:1.08;letter-spacing:-.02em;margin:0 0 12px;font-weight:800;text-wrap:balance}
+  h2 i{font-weight:500;color:var(--texto-2)}
+  .reto{display:grid;grid-template-columns:1fr 1fr;gap:28px;align-items:center;background:var(--superficie);border:1px solid var(--borde);border-radius:var(--radio);padding:22px;overflow:hidden}
+  @media (max-width:860px){.reto{grid-template-columns:1fr}}
+  .reto .imagen{border-radius:18px;overflow:hidden;aspect-ratio:1200/896;background:#000}
+  .reto .imagen img{width:100%;height:100%;object-fit:cover;animation:kenburns 14s ease-in-out infinite alternate}
+  @keyframes kenburns{from{transform:scale(1)}to{transform:scale(1.07)}}
+  .reto p{color:var(--texto-2);margin:0 0 14px}
+  .reglas{display:grid;gap:8px;margin:0 0 18px;padding:0;list-style:none;font-size:14.5px;color:var(--texto-2)}
+  .reglas li{display:flex;gap:10px;align-items:flex-start}
+  .reglas li::before{content:"";flex:none;width:7px;height:7px;border-radius:50%;background:var(--verde);margin-top:8px}
+  .cuenta{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:18px}
+  .cuenta div{padding:10px 14px;border-radius:14px;background:var(--superficie-2);border:1px solid var(--borde);min-width:74px;text-align:center}
+  .cuenta b{display:block;font-size:24px;font-weight:800;line-height:1;font-variant-numeric:tabular-nums}
+  .cuenta small{font-size:11px;color:var(--texto-3);letter-spacing:.08em;text-transform:uppercase;font-weight:600}
+
+  /* ───────────── funciones ───────────── */
+  .rejilla{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+  @media (max-width:860px){.rejilla{grid-template-columns:repeat(2,1fr)}}
+  @media (max-width:560px){.rejilla{grid-template-columns:1fr}}
+  .azulejo{background:var(--superficie);border:1px solid var(--borde);border-radius:20px;padding:20px;display:flex;gap:16px;align-items:flex-start;transition:transform .2s ease,border-color .2s ease}
+  .azulejo:hover{transform:translateY(-3px);border-color:rgba(255,255,255,.16)}
+  .azulejo .icono{flex:none;width:48px;height:48px;border-radius:14px;display:grid;place-items:center;color:#1B1B1B}
+  .azulejo .icono svg{width:24px;height:24px}
+  .azulejo h3{margin:0 0 4px;font-size:16.5px;font-weight:700}
+  .azulejo p{margin:0;font-size:14px;color:var(--texto-2);line-height:1.45}
+
+  /* ───────────── instalar ───────────── */
+  .pasos{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;counter-reset:paso}
+  @media (max-width:860px){.pasos{grid-template-columns:repeat(2,1fr)}}
+  @media (max-width:480px){.pasos{grid-template-columns:1fr}}
+  .paso{position:relative;background:var(--superficie);border:1px solid var(--borde);border-radius:20px;padding:22px 20px 20px}
+  .paso::before{counter-increment:paso;content:counter(paso,decimal-leading-zero);font-family:var(--mono);font-size:12px;color:var(--verde);letter-spacing:.1em}
+  .paso h3{margin:10px 0 6px;font-size:16px;font-weight:700}
+  .paso p{margin:0;font-size:14px;color:var(--texto-2)}
+  .aviso{margin-top:16px;font-size:13.5px;color:var(--texto-3);max-width:70ch}
+
+  /* ───────────── pie ───────────── */
+  footer{padding:40px 0 60px;border-top:1px solid var(--borde);margin-top:30px;font-size:13.5px;color:var(--texto-3)}
+  footer .fila{display:flex;flex-wrap:wrap;justify-content:space-between;gap:14px 24px;align-items:center}
+  footer a{color:var(--texto-2);text-decoration:none}
+  footer a:hover{color:var(--texto)}
+  footer p{max-width:72ch;margin:14px 0 0}
+
+  /* ───────────── entradas escalonadas ───────────── */
+  .escalonado{opacity:0;transform:translateY(18px);animation:sube .6s cubic-bezier(.2,.7,.2,1) forwards}
+  .escalonado:nth-child(1){animation-delay:.05s}.escalonado:nth-child(2){animation-delay:.15s}.escalonado:nth-child(3){animation-delay:.25s}.escalonado:nth-child(4){animation-delay:.35s}.escalonado:nth-child(5){animation-delay:.45s}.escalonado:nth-child(6){animation-delay:.55s}
+  @keyframes sube{to{opacity:1;transform:none}}
+  .revela{opacity:0;transform:translateY(22px);transition:opacity .7s ease,transform .7s cubic-bezier(.2,.7,.2,1)}
+  .revela.visto{opacity:1;transform:none}
+
+  @media (prefers-reduced-motion:reduce){
+    *,*::before,*::after{animation:none!important;transition:none!important}
+    .escalonado,.revela{opacity:1;transform:none}
+  }
+  a:focus-visible,button:focus-visible{outline:2px solid var(--verde);outline-offset:3px}
+</style>
+</head>
+<body>
+<div class="aurora" aria-hidden="true"><i class="a"></i><i class="b"></i><i class="c"></i></div>
+<div class="grano" aria-hidden="true"></div>
+
+<header class="contenedor">
+  <nav>
+    <a class="marca" href="/">
+      <img src="/img/lifemusic.png" alt="">
+      <span><b>Life Music</b><small>Un desarrollo de CG LABS</small></span>
+    </a>
+    <div class="enlaces">
+      <a href="#reto">Reto de la semana</a>
+      <a href="#funciones">Qué hace</a>
+      <a href="#instalar">Cómo instalar</a>
+      <a href="/github" rel="noopener">Código</a>
+    </div>
+  </nav>
+</header>
+
+<main class="contenedor">
+  <section class="heroe">
+    <div>
+      <div class="escalonado"><span class="eyebrow"><i class="punto"></i> Gratis · Sin anuncios · Android</span></div>
+      <h1 class="escalonado">La música que te habla,<b>sin cortes.</b></h1>
+      <div class="linea-viva escalonado" id="lineaViva" aria-live="polite"><span>«¿Listo para la sesión de hoy?»</span></div>
+      <p class="subtitulo escalonado">Life Music encadena tus canciones como un DJ, te cuenta lo que está haciendo y se viste con los colores de tu teléfono. Todo el catálogo de YouTube Music, sin publicidad y sin rastrearte.</p>
+      <div class="acciones escalonado">
+        <a class="boton" href="/apk" id="botonDescarga">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v13"/><path d="m7 11 5 5 5-5"/><path d="M4 21h16"/></svg>
+          Descargar Life Music
+        </a>
+        <a class="boton secundario" href="#instalar">Cómo se instala</a>
+        <div class="meta"><span>Versión <b id="version">1.1.6</b></span><span>APK <b id="tamano">67 MB</b></span><span>Android 8 o superior</span><span><a href="/apk-arm64" style="color:var(--texto-2)">Versión ligera (arm64, 38 MB)</a></span></div>
+      </div>
+    </div>
+    <div class="telefono-caja escalonado">
+      <div class="telefono">
+        <div class="pantalla">
+          <div class="isla" aria-hidden="true"></div>
+          <img src="/img/reproductor.webp" alt="Reproductor de Life Music con letra sincronizada y Life Line" width="720" height="1494" fetchpriority="high">
+          <div class="voz" aria-hidden="true"><small>Life Line</small>Fundiendo las notas… <span class="ola"><i></i><i></i><i></i><i></i></span></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="seccion" id="reto">
+    <p class="titulo-seccion revela">Reto de la semana · 13 al 19 de septiembre</p>
+    <div class="reto revela">
+      <div class="imagen"><img src="/img/reto.webp" alt="Life Music y unos AirPods Pro" width="1200" height="896" loading="lazy"></div>
+      <div>
+        <h2>Gana unos <i>AirPods Pro</i><br>escuchando música.</h2>
+        <p>Quien más minutos escuche en Life Music esta semana se los lleva. Cuenta solo la reproducción real, con tope de 6 horas al día: gana la constancia.</p>
+        <div class="cuenta" id="cuenta" aria-label="Tiempo restante"></div>
+        <ul class="reglas">
+          <li>Descarga la app, toca el trofeo de Inicio y pulsa <b>Participar</b>. Tus minutos desde el día 13 ya cuentan.</li>
+          <li>Pausa no cuenta; una canción cuenta si suena más de 30 s. Una participación por persona.</li>
+          <li>El premio se entrega únicamente en el departamento del Atlántico.</li>
+          <li>El ganador se anuncia el 20 de septiembre en Instagram y en los canales de WhatsApp de Life Music.</li>
+        </ul>
+        <a class="boton" href="/apk">Descargar y participar</a>
+      </div>
+    </div>
+  </section>
+
+  <section class="seccion" id="funciones">
+    <p class="titulo-seccion revela">Qué hace</p>
+    <h2 class="revela">Lo que la hace <i>Life Music</i>.</h2>
+    <div class="rejilla">
+      <div class="azulejo revela"><div class="icono" style="background:var(--azul)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 12c4 0 4-7 8-7s4 14 8 14 4-7 4-7"/></svg></div><div><h3>Automix</h3><p>Un DJ algorítmico: analiza ritmo y tonalidad, sabe dónde empieza y acaba la música de verdad, y mezcla con filtro como en cabina. Cinco estilos, dos modos.</p></div></div>
+      <div class="azulejo revela"><div class="icono" style="background:var(--melon)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5h16v11H9l-5 4z"/></svg></div><div><h3>Life Line</h3><p>La app que habla: te cuenta qué está haciendo —«Fundiendo las notas…», «Cerrando el filtro…»— y te saluda al abrirla con una frase distinta cada vez.</p></div></div>
+      <div class="azulejo revela"><div class="icono" style="background:var(--lila)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 6h16M4 12h10M4 18h13"/></svg></div><div><h3>Letras sincronizadas</h3><p>Palabra por palabra, con traducción opcional, en el reproductor y en modo karaoke.</p></div></div>
+      <div class="azulejo revela"><div class="icono" style="background:var(--menta)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12"/><path d="m8 11 4 4 4-4"/><path d="M5 20h14"/></svg></div><div><h3>Sin conexión</h3><p>Descarga y escucha donde no hay señal. Tu biblioteca, tus listas y tu historial viven en tu teléfono.</p></div></div>
+      <div class="azulejo revela"><div class="icono" style="background:var(--rosa)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 3a9 9 0 0 1 0 18"/></svg></div><div><h3>Diseño a tu gusto</h3><p>Reproductor «Apple Music Inspired», colores de Material You tomados de tu fondo de pantalla, y texto que siempre se lee sobre la carátula.</p></div></div>
+      <div class="azulejo revela"><div class="icono" style="background:var(--amarillo)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2 4 6v6c0 5 3.5 8.5 8 10 4.5-1.5 8-5 8-10V6z"/></svg></div><div><h3>Sin rastreo</h3><p>Nada de analítica, ni publicidad, ni cuentas con nosotros. Código abierto bajo GPL-3.0: se puede comprobar.</p></div></div>
+    </div>
+  </section>
+
+  <section class="seccion" id="instalar">
+    <p class="titulo-seccion revela">Cómo instalar</p>
+    <h2 class="revela">Un minuto, <i>de verdad</i>.</h2>
+    <div class="pasos">
+      <div class="paso revela"><h3>Descarga</h3><p>Toca «Descargar Life Music». El archivo <code>lifemusic.apk</code> baja a tu carpeta de descargas.</p></div>
+      <div class="paso revela"><h3>Ábrelo</h3><p>Toca la notificación de descarga, o búscalo en la app Archivos.</p></div>
+      <div class="paso revela"><h3>Permite instalar</h3><p>Si el teléfono pregunta, activa «Permitir instalar apps de esta fuente». Es normal: no viene de Play Store.</p></div>
+      <div class="paso revela"><h3>Listo</h3><p>Abre Life Music. Las actualizaciones te llegan desde la propia app.</p></div>
+    </div>
+    <p class="aviso revela">Life Music es un proyecto educativo y sin ánimo de lucro de CG LABS, basado en Echo Music. Reproduce el catálogo de YouTube Music; no está en Play Store porque ese tipo de aplicación no cumple sus normas, no porque tenga nada raro. Puedes leer el código completo.</p>
+  </section>
+</main>
+
+<footer>
+  <div class="contenedor">
+    <div class="fila">
+      <a class="marca" href="/"><img src="/img/lifemusic.png" alt=""><span><b>Life Music</b><small>Un desarrollo de CG LABS</small></span></a>
+      <div style="display:flex;gap:20px;flex-wrap:wrap">
+        <a href="/github" rel="noopener">Código en GitHub</a>
+        <a href="/privacidad" rel="noopener">Política de privacidad</a>
+        <a href="/novedades" rel="noopener">Novedades</a>
+      </div>
+    </div>
+    <p>Software libre bajo GPL-3.0, heredada de Echo Music, Metrolist e InnerTune. Sin telemetría, sin publicidad, sin venta. YouTube y YouTube Music son marcas de Google; AirPods es marca de Apple. Ninguno tiene relación con este proyecto.</p>
+  </div>
+</footer>
+
+<script>
+  // ── Life Line: la app que habla, también aquí ──
+  const frases = [
+    "«¿Listo para la sesión de hoy?»",
+    "«Fundiendo las notas…»",
+    "«Cerrando el filtro…»",
+    "«¿A quién se las vas a dedicar hoy?»",
+    "«Cambiando de pista…»",
+    "«Verte de nuevo es un gusto.»",
+  ];
+  const linea = document.getElementById("lineaViva");
+  let i = 0;
+  const reducido = matchMedia("(prefers-reduced-motion: reduce)").matches;
+  if (!reducido) setInterval(() => {
+    i = (i + 1) % frases.length;
+    const s = document.createElement("span"); s.textContent = frases[i];
+    linea.replaceChildren(s);
+  }, 3600);
+
+  // ── Revelado al hacer scroll ──
+  const revelables = document.querySelectorAll(".revela");
+  if ("IntersectionObserver" in window) {
+    const io = new IntersectionObserver((es) => es.forEach(e => { if (e.isIntersecting) { e.target.classList.add("visto"); io.unobserve(e.target); } }), { threshold: .12 });
+    revelables.forEach(el => io.observe(el));
+  }
+  // Red de seguridad: pase lo que pase, a los tres segundos se ve todo.
+  setTimeout(() => revelables.forEach(el => el.classList.add("visto")), 3000);
+
+  // ── Cuenta atrás del reto (hora de Colombia) ──
+  const fin = new Date("2026-09-20T00:00:00-05:00");
+  const inicio = new Date("2026-09-13T00:00:00-05:00");
+  const cuenta = document.getElementById("cuenta");
+  function pintarCuenta() {
+    const ahora = new Date();
+    const seccion = document.getElementById("reto");
+    if (ahora > new Date("2026-09-23T00:00:00-05:00")) { seccion.hidden = true; return; }
+    if (ahora >= fin) { cuenta.innerHTML = "<div><b>Terminó</b><small>ganador el 20</small></div>"; return; }
+    const ms = Math.max(0, (ahora < inicio ? inicio : fin) - ahora);
+    const d = Math.floor(ms / 864e5), h = Math.floor(ms % 864e5 / 36e5), m = Math.floor(ms % 36e5 / 6e4);
+    cuenta.innerHTML = `<div><b>${d}</b><small>días</small></div><div><b>${h}</b><small>horas</small></div><div><b>${m}</b><small>min</small></div>`;
+  }
+  pintarCuenta(); setInterval(pintarCuenta, 30000);
+
+  // ── Versión y tamaño reales, desde la última publicación ──
+  fetch("https://api.github.com/repos/cgus392-cmd/Life-Music/releases/latest", { headers: { Accept: "application/vnd.github+json" } })
+    .then(r => r.ok ? r.json() : null)
+    .then(rel => {
+      if (!rel) return;
+      document.getElementById("version").textContent = (rel.tag_name || "").replace(/^v/, "") || "1.1.6";
+      const apk = (rel.assets || []).find(a => a.name === "lifemusic.apk");
+      if (apk) document.getElementById("tamano").textContent = Math.round(apk.size / 1048576) + " MB";
+    }).catch(() => {});
+</script>
+</body>
+</html>
