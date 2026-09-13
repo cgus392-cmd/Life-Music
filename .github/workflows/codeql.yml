@@ -41,10 +41,15 @@ jobs:
         languages: ${{ matrix.language }}
         build-mode: manual
 
+    - name: Keystore de depuracion desechable
+      run: |
+        mkdir -p ~/.android
+        keytool -genkeypair -v -keystore ~/.android/debug.keystore -storepass android           -alias androiddebugkey -keypass android -keyalg RSA -keysize 2048 -validity 10000           -dname "CN=Android Debug,O=Android,C=US"
+
     - name: Build project
       run: |
         chmod +x gradlew
-        ./gradlew assembleDebug
+        ./gradlew assembleArm64FossDebug --no-daemon
 
     - name: Perform CodeQL Analysis
       uses: github/codeql-action/analyze@v3

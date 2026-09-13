@@ -35,6 +35,14 @@ jobs:
       - name: Cache de Gradle
         uses: gradle/actions/setup-gradle@v4
 
+      - name: Keystore de depuracion desechable
+        # AGP ya no lo genera solo en un runner limpio, y sin el la firma de la
+        # variante debug falla. Es el mismo keystore "android/android" de siempre;
+        # solo firma el APK de comprobacion, que no se publica.
+        run: |
+          mkdir -p ~/.android
+          keytool -genkeypair -v -keystore ~/.android/debug.keystore -storepass android             -alias androiddebugkey -keypass android -keyalg RSA -keysize 2048 -validity 10000             -dname "CN=Android Debug,O=Android,C=US"
+
       - name: Pruebas del motor de reproduccion
         run: |
           chmod +x gradlew
