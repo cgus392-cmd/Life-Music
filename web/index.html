@@ -5,7 +5,13 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Life Music — la app que habla</title>
 <meta name="description" content="Música sin cortes para Android: Automix con transiciones de DJ, Life Line que te cuenta lo que hace, letras sincronizadas y sin anuncios. Gratis, de código abierto, un desarrollo de CG LABS.">
-<meta name="theme-color" content="#0B0F0D">
+<meta name="theme-color" content="#0B0F0D" media="(prefers-color-scheme: dark)">
+<meta name="theme-color" content="#F4F8F6" media="(prefers-color-scheme: light)">
+<script>
+  // Tema: la eleccion guardada manda; si no hay, el del sistema. Va aqui, antes
+  // del CSS, para que la pagina no parpadee de oscuro a claro al cargar.
+  try { var t = localStorage.getItem("tema"); if (t === "light" || t === "dark") document.documentElement.setAttribute("data-theme", t); } catch (e) {}
+</script>
 <link rel="icon" type="image/png" href="/img/lifemusic.png">
 <link rel="apple-touch-icon" href="/img/lifemusic.png">
 
@@ -47,10 +53,40 @@
     --menta:#80CBC4;
     --melon:#FFAB91;
     --amarillo:#FFE082;
+    --verde-texto:#34D399;
+    --aurora-a:rgba(52,211,153,.45);
+    --aurora-b:rgba(248,187,208,.28);
+    --aurora-c:rgba(144,202,249,.16);
+    --grano:.05;
+    --telefono-marco:#0E1411;
     --radio:24px;
     --display:"Plus Jakarta Sans",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
     --mono:"JetBrains Mono",ui-monospace,SFMono-Regular,Menlo,monospace;
+    color-scheme:dark;
   }
+  /* Modo claro: por el sistema (si no se ha elegido nada) y por eleccion. Mismos
+     tokens, otro juego de valores; el verde de texto se oscurece para que se lea. */
+  @media (prefers-color-scheme:light){
+    :root:not([data-theme="dark"]){
+      --fondo:#F4F8F6;--superficie:#FFFFFF;--superficie-2:#E9F1EC;--borde:rgba(10,30,20,.09);
+      --texto:#0F1512;--texto-2:#4B5751;--texto-3:#7A867F;--verde-texto:#0B8A5F;
+      --aurora-a:rgba(52,211,153,.30);--aurora-b:rgba(248,187,208,.40);--aurora-c:rgba(144,202,249,.28);
+      --grano:.035;color-scheme:light;
+    }
+  }
+  :root[data-theme="light"]{
+    --fondo:#F4F8F6;--superficie:#FFFFFF;--superficie-2:#E9F1EC;--borde:rgba(10,30,20,.09);
+    --texto:#0F1512;--texto-2:#4B5751;--texto-3:#7A867F;--verde-texto:#0B8A5F;
+    --aurora-a:rgba(52,211,153,.30);--aurora-b:rgba(248,187,208,.40);--aurora-c:rgba(144,202,249,.28);
+    --grano:.035;color-scheme:light;
+  }
+  :root[data-theme="dark"]{
+    --fondo:#0B0F0D;--superficie:#131A16;--superficie-2:#1A231E;--borde:rgba(255,255,255,.08);
+    --texto:#F2F5F3;--texto-2:#A9B4AE;--texto-3:#6F7B75;--verde-texto:#34D399;
+    --aurora-a:rgba(52,211,153,.45);--aurora-b:rgba(248,187,208,.28);--aurora-c:rgba(144,202,249,.16);
+    --grano:.05;color-scheme:dark;
+  }
+  body{transition:background-color .35s ease,color .35s ease}
   *{box-sizing:border-box}
   html{scroll-behavior:smooth}
   body{
@@ -66,12 +102,12 @@
   /* ───────────── fondo vivo: dos manchas de luz que derivan (como en la app) ───────────── */
   .aurora{position:fixed;inset:0;z-index:-1;overflow:hidden;pointer-events:none;background:var(--fondo)}
   .aurora i{position:absolute;border-radius:50%;filter:blur(60px);opacity:.55;will-change:transform}
-  .aurora .a{width:70vmax;height:70vmax;left:-20vmax;top:-25vmax;background:radial-gradient(circle,rgba(52,211,153,.45),transparent 60%);animation:derivaA 26s ease-in-out infinite alternate}
-  .aurora .b{width:60vmax;height:60vmax;right:-22vmax;bottom:-20vmax;background:radial-gradient(circle,rgba(248,187,208,.28),transparent 60%);animation:derivaB 31s ease-in-out infinite alternate}
-  .aurora .c{width:40vmax;height:40vmax;left:35vw;top:40vh;background:radial-gradient(circle,rgba(144,202,249,.16),transparent 60%);animation:derivaA 38s ease-in-out infinite alternate-reverse}
+  .aurora .a{width:70vmax;height:70vmax;left:-20vmax;top:-25vmax;background:radial-gradient(circle,var(--aurora-a),transparent 60%);animation:derivaA 26s ease-in-out infinite alternate}
+  .aurora .b{width:60vmax;height:60vmax;right:-22vmax;bottom:-20vmax;background:radial-gradient(circle,var(--aurora-b),transparent 60%);animation:derivaB 31s ease-in-out infinite alternate}
+  .aurora .c{width:40vmax;height:40vmax;left:35vw;top:40vh;background:radial-gradient(circle,var(--aurora-c),transparent 60%);animation:derivaA 38s ease-in-out infinite alternate-reverse}
   @keyframes derivaA{from{transform:translate(0,0) scale(1)}to{transform:translate(14vw,8vh) scale(1.12)}}
   @keyframes derivaB{from{transform:translate(0,0) scale(1)}to{transform:translate(-12vw,-10vh) scale(1.08)}}
-  .grano{position:fixed;inset:0;z-index:-1;pointer-events:none;opacity:.05;
+  .grano{position:fixed;inset:0;z-index:-1;pointer-events:none;opacity:var(--grano);
     background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/></filter><rect width='160' height='160' filter='url(%23n)' opacity='.8'/></svg>")}
 
   /* ───────────── cabecera ───────────── */
@@ -85,6 +121,13 @@
   nav .enlaces a{text-decoration:none}
   nav .enlaces a:hover{color:var(--texto)}
   @media (max-width:640px){nav .enlaces{display:none}}
+  @media (max-width:480px){.marca small{display:none}}
+  .tema{display:inline-flex;gap:2px;padding:3px;border-radius:999px;background:var(--superficie);border:1px solid var(--borde)}
+  .tema button{appearance:none;border:0;background:transparent;color:var(--texto-3);width:34px;height:30px;border-radius:999px;display:grid;place-items:center;cursor:pointer;transition:background .2s ease,color .2s ease}
+  .tema button svg{width:16px;height:16px}
+  .tema button[aria-pressed="true"]{background:var(--superficie-2);color:var(--texto)}
+  .tema button:hover{color:var(--texto)}
+  nav .derecha{display:flex;align-items:center;gap:18px}
 
   /* ───────────── héroe ───────────── */
   .heroe{display:grid;grid-template-columns:1.1fr .9fr;gap:40px;align-items:center;padding:36px 0 56px;min-height:0}
@@ -93,7 +136,7 @@
   .eyebrow .punto{width:8px;height:8px;border-radius:50%;background:var(--verde);animation:late 1.6s ease-in-out infinite alternate}
   @keyframes late{from{opacity:.35}to{opacity:1}}
   h1{font-size:clamp(44px,8vw,78px);line-height:1;letter-spacing:-.03em;margin:22px 0 14px;font-weight:500;font-style:italic;text-wrap:balance}
-  h1 b{display:block;font-weight:800;color:var(--verde)}
+  h1 b{display:block;font-weight:800;color:var(--verde-texto)}
   .linea-viva{min-height:28px;font-size:clamp(16px,2.2vw,20px);color:var(--texto-2);font-style:italic}
   .linea-viva span{display:inline-block;animation:entra .5s ease both}
   @keyframes entra{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
@@ -115,12 +158,12 @@
 
   /* teléfono */
   .telefono-caja{display:flex;justify-content:center;perspective:1200px}
-  .telefono{width:min(300px,72vw);aspect-ratio:9/19.2;border-radius:44px;padding:10px;background:#0E1411;
+  .telefono{width:min(300px,72vw);aspect-ratio:9/19.2;border-radius:44px;padding:10px;background:var(--telefono-marco);
     border:1px solid rgba(255,255,255,.12);box-shadow:0 40px 80px -30px rgba(0,0,0,.8),0 0 0 6px rgba(255,255,255,.03),0 30px 60px -20px rgba(52,211,153,.25);
     animation:flota 7s ease-in-out infinite;transform-origin:center}
   .telefono .pantalla{width:100%;height:100%;border-radius:36px;overflow:hidden;background:#dedede;position:relative}
   .telefono .pantalla img{width:100%;height:100%;object-fit:cover;object-position:top}
-  .telefono .isla{position:absolute;top:12px;left:50%;transform:translateX(-50%);width:26%;height:22px;border-radius:999px;background:#0E1411}
+  .telefono .isla{position:absolute;top:12px;left:50%;transform:translateX(-50%);width:26%;height:22px;border-radius:999px;background:var(--telefono-marco)}
   @keyframes flota{0%,100%{transform:translateY(0) rotateY(-8deg) rotateX(2deg)}50%{transform:translateY(-14px) rotateY(-5deg) rotateX(3deg)}}
   .voz{position:absolute;left:10px;right:10px;bottom:18px;padding:12px 14px;border-radius:16px;background:rgba(14,20,17,.88);backdrop-filter:blur(8px);color:#fff;font-size:12.5px;line-height:1.35;border:1px solid rgba(255,255,255,.08);box-shadow:0 10px 30px rgba(0,0,0,.4)}
   .voz small{display:block;color:var(--verde);font-weight:700;letter-spacing:.12em;text-transform:uppercase;font-size:9.5px;margin-bottom:4px}
@@ -131,7 +174,7 @@
 
   /* ───────────── reto ───────────── */
   .seccion{padding:56px 0}
-  .titulo-seccion{font-size:12px;letter-spacing:.16em;text-transform:uppercase;font-weight:700;color:var(--verde);margin:0 0 14px}
+  .titulo-seccion{font-size:12px;letter-spacing:.16em;text-transform:uppercase;font-weight:700;color:var(--verde-texto);margin:0 0 14px}
   h2{font-size:clamp(28px,4.4vw,44px);line-height:1.08;letter-spacing:-.02em;margin:0 0 12px;font-weight:800;text-wrap:balance}
   h2 i{font-weight:500;color:var(--texto-2)}
   .reto{display:grid;grid-template-columns:1fr 1fr;gap:28px;align-items:center;background:var(--superficie);border:1px solid var(--borde);border-radius:var(--radio);padding:22px;overflow:hidden}
@@ -164,7 +207,7 @@
   @media (max-width:860px){.pasos{grid-template-columns:repeat(2,1fr)}}
   @media (max-width:480px){.pasos{grid-template-columns:1fr}}
   .paso{position:relative;background:var(--superficie);border:1px solid var(--borde);border-radius:20px;padding:22px 20px 20px}
-  .paso::before{counter-increment:paso;content:counter(paso,decimal-leading-zero);font-family:var(--mono);font-size:12px;color:var(--verde);letter-spacing:.1em}
+  .paso::before{counter-increment:paso;content:counter(paso,decimal-leading-zero);font-family:var(--mono);font-size:12px;color:var(--verde-texto);letter-spacing:.1em}
   .paso h3{margin:10px 0 6px;font-size:16px;font-weight:700}
   .paso p{margin:0;font-size:14px;color:var(--texto-2)}
   .aviso{margin-top:16px;font-size:13.5px;color:var(--texto-3);max-width:70ch}
@@ -200,11 +243,18 @@
       <img src="/img/lifemusic.png" alt="">
       <span><b>Life Music</b><small>Un desarrollo de CG LABS</small></span>
     </a>
-    <div class="enlaces">
-      <a href="#reto">Reto de la semana</a>
-      <a href="#funciones">Qué hace</a>
-      <a href="#instalar">Cómo instalar</a>
-      <a href="/github" rel="noopener">Código</a>
+    <div class="derecha">
+      <div class="enlaces">
+        <a href="#reto">Reto de la semana</a>
+        <a href="#funciones">Qué hace</a>
+        <a href="#instalar">Cómo instalar</a>
+        <a href="/github" rel="noopener">Código</a>
+      </div>
+      <div class="tema" role="group" aria-label="Tema">
+        <button type="button" data-tema="system" title="Como el sistema" aria-label="Como el sistema"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="12" rx="2"/><path d="M8 20h8M12 16v4"/></svg></button>
+        <button type="button" data-tema="light" title="Claro" aria-label="Claro"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M2 12h2M20 12h2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg></button>
+        <button type="button" data-tema="dark" title="Oscuro" aria-label="Oscuro"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg></button>
+      </div>
     </div>
   </nav>
 </header>
@@ -296,6 +346,19 @@
 </footer>
 
 <script>
+  // ── Tema: sistema / claro / oscuro, con memoria ──
+  const botonesTema = document.querySelectorAll(".tema button");
+  function aplicarTema(t) {
+    if (t === "light" || t === "dark") document.documentElement.setAttribute("data-theme", t);
+    else document.documentElement.removeAttribute("data-theme");
+    try { if (t === "system") localStorage.removeItem("tema"); else localStorage.setItem("tema", t); } catch (e) {}
+    botonesTema.forEach(b => b.setAttribute("aria-pressed", String(b.dataset.tema === t)));
+  }
+  let temaGuardado = "system";
+  try { temaGuardado = localStorage.getItem("tema") || "system"; } catch (e) {}
+  aplicarTema(temaGuardado);
+  botonesTema.forEach(b => b.addEventListener("click", () => aplicarTema(b.dataset.tema)));
+
   // ── Life Line: la app que habla, también aquí ──
   const frases = [
     "«¿Listo para la sesión de hoy?»",
