@@ -35,6 +35,8 @@ data class BoletinDeVersion(
     val rutaAjustes: String? = null,
     val textoBoton: Int = R.string.boletin_ver_ajustes,
     val hero: HeroBoletin = HeroBoletin.NINGUNO,
+    /** Imagen de cabecera (drawable); si esta, manda sobre [hero]. */
+    val heroImagen: Int? = null,
 )
 
 /**
@@ -97,7 +99,7 @@ object Boletines {
         ),
         rutaAjustes = "concurso",
         textoBoton = R.string.concurso_participar,
-        hero = HeroBoletin.TROFEO,
+        heroImagen = R.drawable.reto_airpods,
     )
 
     val todos: List<BoletinDeVersion> = listOf(v115, v116)

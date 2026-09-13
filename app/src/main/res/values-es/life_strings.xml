@@ -807,7 +807,7 @@
     <string name="concurso_apodo_ayuda">Es lo que verán los demás en el ranking</string>
     <string name="concurso_nombre">Nombre</string>
     <string name="concurso_correo">Correo</string>
-    <string name="concurso_consentimiento">Tu nombre y tu correo se usan solo para contactarte si ganas; nadie más los ve, y se borran al terminar el reto. Puedes abandonar cuando quieras y se borra todo. Al pulsar Participar aceptas las reglas y este uso de tus datos.</string>
+    <string name="concurso_consentimiento">El premio se entrega solo en el departamento del Atlántico. Tu nombre y tu correo se usan únicamente para contactarte si ganas; nadie más los ve, y se borran al terminar el reto. Puedes abandonar cuando quieras y se borra todo. Al pulsar Participar aceptas las reglas y este uso de tus datos.</string>
     <string name="concurso_error_apodo">Ese apodo ya lo usa alguien. Prueba otro.</string>
     <string name="concurso_error_cerrado">El reto ya cerró las inscripciones.</string>
     <string name="concurso_error_datos">Revisa los datos: apodo de 2 a 24 letras y un correo válido.</string>
@@ -826,6 +826,7 @@
     <string name="concurso_regla_4">Una participación por persona y teléfono. Duplicados y trampas descalifican.</string>
     <string name="concurso_regla_5">Empate: gana quien llegó antes a esa cifra.</string>
     <string name="concurso_regla_6">El ganador se anuncia en Instagram y en los canales de WhatsApp de Life Music, y se contacta por correo. Si no responde en 48 h, pasa al siguiente.</string>
+    <string name="concurso_regla_7">El premio se entrega únicamente en el departamento del Atlántico (Colombia). No hay envíos fuera de él: si no vives ahí, mejor no participes.</string>
     <string name="concurso_privacidad">Lo único que sale de tu teléfono son tus minutos por día, tu apodo y, para contactarte, tu nombre y correo. Nada más: ni lo que escuchas ni ningún otro dato.</string>
     <string name="concurso_abandonar">Abandonar el reto</string>
     <string name="concurso_abandonar_confirmacion">Se borran tu inscripción, tus minutos, tu nombre y tu correo del servidor. ¿Seguro?</string>
@@ -837,7 +838,7 @@
     <string name="boletin_v116_como_t">Cómo participar</string>
     <string name="boletin_v116_como">Toca Participar, elige un apodo y deja tu nombre y correo para que podamos avisarte si ganas. Tus minutos desde el día 13 ya cuentan, aunque te inscribas después.</string>
     <string name="boletin_v116_reglas_t">Las reglas</string>
-    <string name="boletin_v116_reglas">Pausa no cuenta; una canción cuenta si suena más de 30 s. Tope de 6 h al día. Una participación por persona. Empate: quien llegó antes.</string>
+    <string name="boletin_v116_reglas">Pausa no cuenta; una canción cuenta si suena más de 30 s. Tope de 6 h al día. Una participación por persona. Empate: quien llegó antes. El premio se entrega solo en el departamento del Atlántico.</string>
     <string name="boletin_v116_ganador_t">El ganador</string>
     <string name="boletin_v116_ganador">Se anuncia el 20 de septiembre en Instagram y en los canales de WhatsApp de Life Music. Mira tu puesto cuando quieras en el trofeo de Inicio, y comparte tu tarjeta.</string>
     <string name="boletin_v116_privacidad_t">Tus datos</string>

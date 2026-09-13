@@ -8,8 +8,10 @@ import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -42,6 +44,7 @@ import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -128,7 +131,10 @@ private fun ContenidoBoletin(
 
                     Spacer(Modifier.height(20.dp))
 
-                    when (boletin.hero) {
+                    val imagen = boletin.heroImagen
+                    if (imagen != null) {
+                        Escalonado(2, animar) { HeroImagen(imagen, animar) }
+                    } else when (boletin.hero) {
                         HeroBoletin.CRUCE -> Escalonado(2, animar) { HeroCruce(animar) }
                         HeroBoletin.TROFEO -> Escalonado(2, animar) { HeroTrofeo(animar) }
                         HeroBoletin.NINGUNO -> {}
@@ -266,6 +272,35 @@ private fun HeroCruce(animar: Boolean) {
             drawCircle(saliente, radius = 5.dp.toPx(), center = Offset(x, alto - fuera(progreso) * alto))
             drawCircle(entrante, radius = 5.dp.toPx(), center = Offset(x, alto - dentro(progreso) * alto))
         }
+    }
+}
+
+/** Una imagen de cabecera con un zoom lentisimo, para que no parezca una foto pegada. */
+@Composable
+private fun HeroImagen(recurso: Int, animar: Boolean) {
+    val zoom = if (animar) {
+        val t = rememberInfiniteTransition(label = "heroImagen")
+        val z by t.animateFloat(
+            initialValue = 1f, targetValue = 1.06f,
+            animationSpec = infiniteRepeatable(tween(12_000, easing = LinearEasing), RepeatMode.Reverse),
+            label = "zoom",
+        )
+        z
+    } else 1f
+    Surface(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(20.dp),
+        color = Color(0xFF07100C),
+    ) {
+        Image(
+            painter = painterResource(recurso),
+            contentDescription = null,
+            contentScale = ContentScale.Crop,
+            modifier = Modifier
+                .fillMaxWidth()
+                .aspectRatio(1200f / 896f)
+                .graphicsLayer { scaleX = zoom; scaleY = zoom },
+        )
     }
 }
 

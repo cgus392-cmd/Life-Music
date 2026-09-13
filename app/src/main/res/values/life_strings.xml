@@ -1186,7 +1186,7 @@
     <string name="concurso_apodo_ayuda">What others see in the ranking</string>
     <string name="concurso_nombre">Name</string>
     <string name="concurso_correo">Email</string>
-    <string name="concurso_consentimiento">Your name and email are used only to contact you if you win; nobody else sees them, and they are deleted when the challenge ends. You can leave at any time and everything is deleted. By tapping Join you accept the rules and this use of your data.</string>
+    <string name="concurso_consentimiento">The prize is delivered only within the department of Atlántico. Your name and email are used only to contact you if you win; nobody else sees them, and they are deleted when the challenge ends. You can leave at any time and everything is deleted. By tapping Join you accept the rules and this use of your data.</string>
     <string name="concurso_error_apodo">That nickname is taken. Try another.</string>
     <string name="concurso_error_cerrado">Sign-ups for the challenge are closed.</string>
     <string name="concurso_error_datos">Check the fields: a nickname of 2 to 24 characters and a valid email.</string>
@@ -1205,6 +1205,7 @@
     <string name="concurso_regla_4">One entry per person and phone. Duplicates and cheating disqualify.</string>
     <string name="concurso_regla_5">Tie: whoever reached that figure first wins.</string>
     <string name="concurso_regla_6">The winner is announced on Instagram and on the Life Music WhatsApp channels, and contacted by email. No reply in 48 h moves it to the next one.</string>
+    <string name="concurso_regla_7">The prize is delivered only within the department of Atlántico (Colombia). No shipping outside it: if you do not live there, better not to take part.</string>
     <string name="concurso_privacidad">The only things that leave your phone are your minutes per day, your nickname and, to reach you, your name and email. Nothing else: not what you listen to, not any other data.</string>
     <string name="concurso_abandonar">Leave the challenge</string>
     <string name="concurso_abandonar_confirmacion">Your entry, minutes, name and email are deleted from the server. Are you sure?</string>
@@ -1216,7 +1217,7 @@
     <string name="boletin_v116_como_t">How to join</string>
     <string name="boletin_v116_como">Tap Join, pick a nickname and leave your name and email so we can reach you if you win. Your minutes since the 13th already count, even if you sign up later.</string>
     <string name="boletin_v116_reglas_t">The rules</string>
-    <string name="boletin_v116_reglas">Pause does not count; a song counts after 30 s. Cap of 6 h a day. One entry per person. Tie: whoever got there first.</string>
+    <string name="boletin_v116_reglas">Pause does not count; a song counts after 30 s. Cap of 6 h a day. One entry per person. Tie: whoever got there first. The prize is delivered only within the department of Atlántico.</string>
     <string name="boletin_v116_ganador_t">The winner</string>
     <string name="boletin_v116_ganador">Announced on September 20 on Instagram and on the Life Music WhatsApp channels. Check your rank any time from the trophy on Home, and share your card.</string>
     <string name="boletin_v116_privacidad_t">Your data</string>
