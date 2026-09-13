@@ -99,3 +99,16 @@ compilación y lo que salga será ficción con aspecto de respuesta.
       versión están bien.
 - [ ] Comprobar que la pantalla «Acerca de» muestra la versión nueva.
 - [ ] **`mapping.txt` archivado** para la etiqueta recién publicada.
+
+## La landing de descarga (lifemusic.pages.dev)
+
+El enlace que se reparte es **https://lifemusic.pages.dev** (y `/apk` para la
+descarga directa). Vive en `web/` y se publica en Cloudflare Pages desde este PC:
+
+```bash
+npx wrangler pages deploy web --project-name lifemusic --branch main --commit-dirty=true
+```
+
+`/apk` redirige al «latest» de GitHub, así que **no hay que tocar nada al
+publicar una versión**: el botón descarga siempre la última. La sección del reto
+se esconde sola el 23 de septiembre; cuando pase, quitarla de `index.html`.
