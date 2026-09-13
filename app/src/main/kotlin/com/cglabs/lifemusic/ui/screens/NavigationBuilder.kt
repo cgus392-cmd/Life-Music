@@ -129,6 +129,10 @@ fun NavGraphBuilder.navigationBuilder(
         StatsScreen(navController)
     }
 
+    composable("concurso") {
+        com.cglabs.lifemusic.concurso.ConcursoScreen(navController, scrollBehavior)
+    }
+
     composable("mood_and_genres") {
         MoodAndGenresScreen(navController, scrollBehavior)
     }

@@ -14,11 +14,15 @@ data class ApartadoBoletin(
     val texto: Int,
 )
 
+/** La imagen de cabecera del boletin. */
+enum class HeroBoletin { CRUCE, TROFEO, NINGUNO }
+
 /**
  * Lo que se cuenta de una version la primera vez que arranca tras actualizar.
  *
  * [rutaAjustes] es a donde lleva el boton secundario —normalmente la pantalla de
  * Ajustes donde vive lo nuevo, con su fila resaltada— o null si no hay a donde ir.
+ * [textoBoton] es su rotulo; [hero] la imagen de cabecera.
  */
 data class BoletinDeVersion(
     val versionCode: Int,
@@ -29,6 +33,8 @@ data class BoletinDeVersion(
     val apartados: List<ApartadoBoletin>,
     val ademas: List<Int> = emptyList(),
     val rutaAjustes: String? = null,
+    val textoBoton: Int = R.string.boletin_ver_ajustes,
+    val hero: HeroBoletin = HeroBoletin.NINGUNO,
 )
 
 /**
@@ -70,9 +76,31 @@ object Boletines {
             R.string.boletin_v115_ademas_4,
         ),
         rutaAjustes = "settings/player?highlightKey=" + android.net.Uri.encode("Automix (Beta)"),
+        hero = HeroBoletin.CRUCE,
     )
 
-    val todos: List<BoletinDeVersion> = listOf(v115)
+    private val v116 = BoletinDeVersion(
+        versionCode = 8,
+        versionName = "1.1.6",
+        tituloLinea1 = R.string.boletin_v116_titulo_1,
+        tituloLinea2 = R.string.boletin_v116_titulo_2,
+        intro = R.string.boletin_v116_intro,
+        apartados = listOf(
+            ApartadoBoletin(R.drawable.trophy, Color(0xFFFFE082),
+                R.string.boletin_v116_como_t, R.string.boletin_v116_como),
+            ApartadoBoletin(R.drawable.timer, Color(0xFF90CAF9),
+                R.string.boletin_v116_reglas_t, R.string.boletin_v116_reglas),
+            ApartadoBoletin(R.drawable.share, Color(0xFFCE93D8),
+                R.string.boletin_v116_ganador_t, R.string.boletin_v116_ganador),
+            ApartadoBoletin(R.drawable.info, Color(0xFFA5D6A7),
+                R.string.boletin_v116_privacidad_t, R.string.boletin_v116_privacidad),
+        ),
+        rutaAjustes = "concurso",
+        textoBoton = R.string.concurso_participar,
+        hero = HeroBoletin.TROFEO,
+    )
+
+    val todos: List<BoletinDeVersion> = listOf(v115, v116)
 
     /** El boletin de una version, o null si esa version no tiene nada que contar. */
     fun para(versionCode: Int): BoletinDeVersion? = todos.firstOrNull { it.versionCode == versionCode }

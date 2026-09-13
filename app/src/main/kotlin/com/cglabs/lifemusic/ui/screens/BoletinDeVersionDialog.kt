@@ -1,5 +1,6 @@
 package com.cglabs.lifemusic.ui.screens
 
+import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.animateFloat
@@ -7,6 +8,7 @@ import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -24,6 +26,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Surface
@@ -38,6 +41,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -123,7 +128,11 @@ private fun ContenidoBoletin(
 
                     Spacer(Modifier.height(20.dp))
 
-                    Escalonado(2, animar) { HeroCruce(animar) }
+                    when (boletin.hero) {
+                        HeroBoletin.CRUCE -> Escalonado(2, animar) { HeroCruce(animar) }
+                        HeroBoletin.TROFEO -> Escalonado(2, animar) { HeroTrofeo(animar) }
+                        HeroBoletin.NINGUNO -> {}
+                    }
 
                     Spacer(Modifier.height(20.dp))
 
@@ -174,6 +183,7 @@ private fun ContenidoBoletin(
 
                 BarraBoletin(
                     conAjustes = boletin.rutaAjustes != null && onAbrirAjustes != null,
+                    textoBoton = boletin.textoBoton,
                     onAjustes = { boletin.rutaAjustes?.let { onAbrirAjustes?.invoke(it) } },
                     onCerrar = onCerrar,
                 )
@@ -259,6 +269,55 @@ private fun HeroCruce(animar: Boolean) {
     }
 }
 
+/**
+ * El trofeo del reto: un disco de color con el trofeo encima, respirando
+ * despacio. Sin mas: el premio ya lo dice el titulo.
+ */
+@Composable
+private fun HeroTrofeo(animar: Boolean) {
+    val escala = if (animar) {
+        val transicion = rememberInfiniteTransition(label = "trofeo")
+        val v by transicion.animateFloat(
+            initialValue = 0.96f,
+            targetValue = 1.04f,
+            animationSpec = infiniteRepeatable(
+                animation = tween(2_400, easing = FastOutSlowInEasing),
+                repeatMode = RepeatMode.Reverse,
+            ),
+            label = "respira",
+        )
+        v
+    } else 1f
+
+    Surface(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(20.dp),
+        color = MaterialTheme.colorScheme.surfaceContainerLow,
+    ) {
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(160.dp),
+            contentAlignment = Alignment.Center,
+        ) {
+            Box(
+                modifier = Modifier
+                    .size(112.dp)
+                    .graphicsLayer { scaleX = escala; scaleY = escala }
+                    .background(MaterialTheme.colorScheme.primary, CircleShape),
+                contentAlignment = Alignment.Center,
+            ) {
+                Icon(
+                    painter = painterResource(R.drawable.trophy),
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.onPrimary,
+                    modifier = Modifier.size(56.dp),
+                )
+            }
+        }
+    }
+}
+
 @Composable
 private fun Vineta(texto: String) {
     Row(
@@ -289,6 +348,7 @@ private fun Vineta(texto: String) {
 @Composable
 private fun BarraBoletin(
     conAjustes: Boolean,
+    textoBoton: Int,
     onAjustes: () -> Unit,
     onCerrar: () -> Unit,
 ) {
@@ -306,7 +366,7 @@ private fun BarraBoletin(
                     .height(64.dp),
                 shape = RoundedCornerShape(50),
             ) {
-                Text(stringResource(R.string.boletin_ver_ajustes), fontSize = 17.sp, fontWeight = FontWeight.Medium)
+                Text(stringResource(textoBoton), fontSize = 17.sp, fontWeight = FontWeight.Medium)
             }
         }
         Button(

@@ -15,6 +15,38 @@ esa base**; para la historia anterior, consulte el repositorio de origen.
 
 ---
 
+## [1.1.6] — 2026-09-12
+
+Una versión para una semana concreta: el **Reto de la semana**, del 13 al 19 de
+septiembre. Todo lo demás sigue igual que en la 1.1.5.
+
+### Añadido
+
+- **Reto de la semana.** Quien más minutos escuche en Life Music entre el 13 y
+  el 19 de septiembre gana unos AirPods Pro. Los minutos son los que la app ya
+  contaba para Estadísticas —reproducción real, sin pausas, canciones de más de
+  30 s—, así que cuentan desde el día 13 aunque uno se inscriba después. Tope de
+  6 horas al día, para que gane la constancia y no el teléfono sonando de noche.
+
+  Participar es **opcional y explícito**: un boletín al actualizar lo presenta,
+  y solo quien pulsa Participar y se inscribe (apodo público; nombre y correo
+  privados, para contactar al ganador) envía algo. Sin inscripción, la app no
+  hace ni una petición al servidor del reto. Se puede abandonar cuando se
+  quiera y se borra todo. Es la única excepción, temporal, a «no hay servidores
+  de CG LABS», y está documentada en la política de privacidad.
+
+  El servidor —una base de datos en Supabase con funciones que validan cada
+  envío— decide qué minutos son plausibles: nunca más de los transcurridos del
+  día, nunca más del tope, y para los días desde la inscripción el aumento
+  entre envíos no puede superar el tiempo real. Una app modificada que diga
+  «9000 minutos» no cuela.
+
+  En la app: un trofeo en Inicio mientras dura el reto, pantalla con tu semana
+  (minutos, tope de hoy, puesto), ranking en vivo con apodos, reglas, y una
+  tarjeta compartible para Instagram y WhatsApp.
+
+---
+
 ## [1.1.5] — 2026-09-11
 
 Primera versión después del vídeo de presentación, con 53 descargas nuevas mirando.

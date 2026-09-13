@@ -63,6 +63,27 @@ privacidad y CG LABS no controla qué hacen con la petición.
 Si inicia sesión con su cuenta de Google, esa sesión va **directamente** a
 YouTube. Life Music no la ve, no la copia y no la envía a ningún otro sitio.
 
+## Reto de la semana (concurso, 13–19 de septiembre de 2026)
+
+La única excepción a «no hay servidores de CG LABS», y es **opcional, temporal
+y explícita**. Durante el concurso, y solo si usted pulsa **Participar** y
+rellena la inscripción, la aplicación envía a una base de datos de CG LABS
+alojada en Supabase:
+
+- sus **minutos de escucha por día** dentro de las fechas del concurso (la
+  misma cifra de la pantalla de Estadísticas: solo el total, nunca qué canciones);
+- el **apodo** que elija, que es lo único que ven los demás participantes;
+- su **nombre y correo**, que solo sirven para contactar al ganador. No se
+  muestran a nadie, no se usan para otra cosa y **se borran al terminar el
+  concurso**.
+
+Sin inscripción no se envía nada: la aplicación no hace ni una sola petición a
+ese servidor. Puede **abandonar el reto** desde su pantalla cuando quiera, y en
+ese momento se borra su fila entera —minutos, apodo, nombre y correo—. La
+inscripción constituye su autorización previa, expresa e informada para ese
+tratamiento (Ley 1581 de 2012, Colombia), limitada a la finalidad y al plazo
+descritos. Al terminar el concurso el módulo se desactiva y la tabla se elimina.
+
 ## Modo de ahorro de datos
 
 Activarlo reduce las peticiones a terceros: entre otras cosas, deja de

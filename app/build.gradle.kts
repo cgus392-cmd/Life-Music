@@ -38,8 +38,8 @@ android {
         // dia: Android no permite instalar un versionCode menor que el ya
         // instalado, asi que un 152 publicado como primera version dejaria sin
         // camino a cualquier version posterior que empezara a contar desde 1.
-        versionCode = 7
-        versionName = "1.1.5"
+        versionCode = 8
+        versionName = "1.1.6"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables.useSupportLibrary = true
@@ -56,6 +56,13 @@ android {
         val githubClientSecret = localProperties.getProperty("GH_CLIENT_SECRET") ?: System.getenv("GH_CLIENT_SECRET") ?: ""
         buildConfigField("String", "GH_CLIENT_ID", "\"$githubClientId\"")
         buildConfigField("String", "GH_CLIENT_SECRET", "\"$githubClientSecret\"")
+
+        // Reto de la semana (Supabase). La clave anon esta pensada para ir en el
+        // APK; sin URL y clave el modulo del concurso no existe en la app.
+        val concursoUrl = localProperties.getProperty("CONCURSO_URL") ?: System.getenv("CONCURSO_URL") ?: ""
+        val concursoAnonKey = localProperties.getProperty("CONCURSO_ANON_KEY") ?: System.getenv("CONCURSO_ANON_KEY") ?: ""
+        buildConfigField("String", "CONCURSO_URL", "\"$concursoUrl\"")
+        buildConfigField("String", "CONCURSO_ANON_KEY", "\"$concursoAnonKey\"")
 
         buildConfigField("String", "FLOW_NEURO_BASE_URL", project.findProperty("FLOW_NEURO_BASE_URL")?.toString()?.let { "\"$it\"" } ?: "\"https://api.flowneuroengine.com\"")
         buildConfigField("String", "FLOW_NEURO_API_KEY", project.findProperty("FLOW_NEURO_API_KEY")?.toString()?.let { "\"$it\"" } ?: "\"\"")

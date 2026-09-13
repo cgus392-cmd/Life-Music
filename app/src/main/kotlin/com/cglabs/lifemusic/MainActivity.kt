@@ -954,6 +954,12 @@ class MainActivity : ComponentActivity() {
                     }
                 }
 
+                // Reto de la semana: al abrir, si participa, manda sus minutos. Sin
+                // registro esta llamada no hace nada, ni toca la red.
+                LaunchedEffect(Unit) {
+                    com.cglabs.lifemusic.concurso.ConcursoRepository.sincronizar(this@MainActivity, database)
+                }
+
                 LaunchedEffect(Unit) {
                     if (pendingIntent != null) {
                         handleDeepLinkIntent(pendingIntent!!, navController)
@@ -1083,6 +1089,15 @@ class MainActivity : ComponentActivity() {
                                             )
                                         },
                                         actions = {
+                                            // Reto de la semana: solo mientras dura (y unos dias despues).
+                                            if (com.cglabs.lifemusic.concurso.Concurso.visible()) {
+                                                IconButton(onClick = { navController.navigate("concurso") }) {
+                                                    Icon(
+                                                        painter = painterResource(R.drawable.trophy),
+                                                        contentDescription = stringResource(R.string.concurso_titulo)
+                                                    )
+                                                }
+                                            }
                                             if (showHistoryButton) {
                                                 IconButton(onClick = { navController.navigate("history") }) {
                                                     Icon(

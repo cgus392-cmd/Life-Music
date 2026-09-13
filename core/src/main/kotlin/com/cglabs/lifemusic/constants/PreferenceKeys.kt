@@ -191,6 +191,22 @@ val AutomixEstiloKey = stringPreferencesKey("automixEstilo")
 val AutomixCierreEntradaKey = floatPreferencesKey("automixCierreEntrada")
 const val AutomixCierreEntradaDefault = 0.5f
 
+/**
+ * Reto de la semana (concurso de minutos). Todo opt-in: sin registro no hay
+ * ninguna llamada de red. El id y el secreto se generan en el telefono al
+ * registrarse; el servidor solo conoce el hash del secreto.
+ */
+val ConcursoIdKey = stringPreferencesKey("concursoId")
+val ConcursoSecretoKey = stringPreferencesKey("concursoSecreto")
+val ConcursoApodoKey = stringPreferencesKey("concursoApodo")
+/** Ultimo total confirmado por el servidor, y puesto. -1 = aun no se sabe. */
+val ConcursoMinutosKey = intPreferencesKey("concursoMinutos")
+val ConcursoPuestoKey = intPreferencesKey("concursoPuesto")
+val ConcursoParticipantesKey = intPreferencesKey("concursoParticipantes")
+val ConcursoUltimoEnvioKey = longPreferencesKey("concursoUltimoEnvio")
+/** El usuario dijo «no participar»: no se le vuelve a insistir. */
+val ConcursoRechazadoKey = booleanPreferencesKey("concursoRechazado")
+
 
 val MaxImageCacheSizeKey = intPreferencesKey("maxImageCacheSize")
 val MaxSongCacheSizeKey = intPreferencesKey("maxSongCacheSize")

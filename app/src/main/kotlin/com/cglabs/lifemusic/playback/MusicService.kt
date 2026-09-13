@@ -889,6 +889,22 @@ class MusicService :
             player.volume = it
         }
 
+        // Reto de la semana: cada diez minutos, si suena algo y el usuario
+        // participa, se mandan sus minutos. El repositorio ya calla si no hay
+        // registro, asi que esto no cuesta nada a quien no juega.
+        scope.launch {
+            while (isActive) {
+                delay(10 * 60_000L)
+                if (player.isPlaying) {
+                    try {
+                        com.cglabs.lifemusic.concurso.ConcursoRepository.sincronizar(this@MusicService, database)
+                    } catch (e: Exception) {
+                        Timber.tag(TAG).d(e, "Envio del reto fallido")
+                    }
+                }
+            }
+        }
+
 
 
         currentSong.debounce(1000).collect(scope) { song ->
