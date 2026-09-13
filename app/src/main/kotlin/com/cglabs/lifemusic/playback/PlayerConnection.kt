@@ -162,6 +162,7 @@ class PlayerConnection(
     val automixDebugInfo: kotlinx.coroutines.flow.StateFlow<MusicService.AutomixDebugInfo?> = service.automixDebugInfo
     val transicionesAutomix: kotlinx.coroutines.flow.StateFlow<List<MusicService.TransicionAutomix>> = service.transicionesAutomix
     val automixEstilo: kotlinx.coroutines.flow.StateFlow<com.cglabs.lifemusic.playback.audio.EstiloTransicion?> = service.automixEstilo
+    val progresoReto: kotlinx.coroutines.flow.StateFlow<MusicService.ProgresoReto> = service.progresoReto
 
     
     var shouldBlockPlaybackChanges: (() -> Boolean)? = null

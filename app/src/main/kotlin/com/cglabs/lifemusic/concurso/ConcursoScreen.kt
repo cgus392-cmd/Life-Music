@@ -51,8 +51,10 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarScrollBehavior
+import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -86,6 +88,8 @@ import androidx.core.content.FileProvider
 import androidx.navigation.NavController
 import com.cglabs.lifemusic.LocalDatabase
 import com.cglabs.lifemusic.LocalPlayerAwareWindowInsets
+import com.cglabs.lifemusic.LocalPlayerConnection
+import com.cglabs.lifemusic.playback.MusicService
 import com.cglabs.lifemusic.R
 import com.cglabs.lifemusic.ui.component.IconButton
 import com.cglabs.lifemusic.ui.screens.Escalonado
@@ -124,6 +128,9 @@ fun ConcursoScreen(
     val database = LocalDatabase.current
     val scope = rememberCoroutineScope()
     val animar = recordarSiAnimar()
+    val conexion = LocalPlayerConnection.current
+    // Lo que cuenta el servicio en vivo: base + segundos de la cancion en curso.
+    val progreso = conexion?.progresoReto?.collectAsState()?.value ?: MusicService.ProgresoReto()
 
     var participacion by remember { mutableStateOf(ConcursoRepository.participacion(context)) }
     var porDia by remember { mutableStateOf<Map<LocalDate, Int>>(emptyMap()) }
@@ -132,21 +139,35 @@ fun ConcursoScreen(
     var mostrarRegistro by remember { mutableStateOf(false) }
     var confirmarAbandono by remember { mutableStateOf(false) }
     var confeti by remember { mutableStateOf(false) }
+    var refrescando by remember { mutableStateOf(false) }
 
     suspend fun refrescar() {
+        refrescando = true
+        conexion?.service?.refrescarProgresoReto()
         porDia = Concurso.minutosPorDia(database)
         if (participacion != null) ConcursoRepository.sincronizar(context, database, forzar = true)
         participacion = ConcursoRepository.participacion(context)
         ranking = ConcursoApi.ranking()
         cargandoRanking = false
+        refrescando = false
     }
 
     LaunchedEffect(Unit) { refrescar() }
+    // Mientras la pantalla esta abierta, la grafica se relee sola cada medio minuto.
+    LaunchedEffect(Unit) {
+        while (true) {
+            kotlinx.coroutines.delay(30_000)
+            porDia = Concurso.minutosPorDia(database)
+        }
+    }
 
     val hoy = Concurso.hoy()
     val totalLocal = Concurso.totalContado(porDia)
-    val minutosHoy = Concurso.minutosHoy(porDia)
-    val minutosMostrados = participacion?.minutosServidor?.takeIf { it >= 0 } ?: totalLocal
+    // En vivo: lo que ya cuenta la base mas la cancion que suena ahora.
+    val enCursoMin = progreso.segundosEnCurso / 60
+    val minutosVivos = maxOf(totalLocal, progreso.minutosTotal) + enCursoMin
+    val minutosHoy = maxOf(Concurso.minutosHoy(porDia), progreso.minutosHoy) + enCursoMin
+    val minutosServidor = participacion?.minutosServidor?.takeIf { it >= 0 }
 
     if (confirmarAbandono) {
         AlertDialog(
@@ -175,13 +196,18 @@ fun ConcursoScreen(
     }
 
     Box(modifier = Modifier.fillMaxSize()) {
+        PullToRefreshBox(
+            isRefreshing = refrescando,
+            onRefresh = { scope.launch { refrescar() } },
+            modifier = Modifier
+                .fillMaxSize()
+                .windowInsetsPadding(LocalPlayerAwareWindowInsets.current.only(WindowInsetsSides.Top)),
+        ) {
         LazyColumn(
             contentPadding = LocalPlayerAwareWindowInsets.current
                 .only(WindowInsetsSides.Horizontal + WindowInsetsSides.Bottom)
                 .asPaddingValues(),
-            modifier = Modifier.windowInsetsPadding(
-                LocalPlayerAwareWindowInsets.current.only(WindowInsetsSides.Top)
-            ),
+            modifier = Modifier.fillMaxSize(),
         ) {
             item { Spacer(Modifier.height(8.dp)) }
 
@@ -199,8 +225,10 @@ fun ConcursoScreen(
                     Escalonado(1, animar) {
                         TuSemana(
                             apodo = p.apodo,
-                            minutos = minutosMostrados,
+                            minutos = minutosVivos,
                             minutosHoy = minutosHoy,
+                            minutosServidor = minutosServidor,
+                            segundosEnCurso = if (progreso.reproduciendo) progreso.segundosEnCurso else 0,
                             porDia = porDia,
                             puesto = p.puesto,
                             participantes = p.participantes,
@@ -274,6 +302,7 @@ fun ConcursoScreen(
                 }
             }
             item { Spacer(Modifier.height(32.dp)) }
+        }
         }
 
         if (confeti) {
@@ -406,6 +435,8 @@ private fun TuSemana(
     apodo: String,
     minutos: Int,
     minutosHoy: Int,
+    minutosServidor: Int?,
+    segundosEnCurso: Int,
     porDia: Map<LocalDate, Int>,
     puesto: Int,
     participantes: Int,
@@ -445,6 +476,35 @@ private fun TuSemana(
                 animar = animar,
             )
         }
+
+        Spacer(Modifier.height(10.dp))
+
+        // Lo que esta pasando ahora mismo, debajo de la tarjeta (no se comparte).
+        if (segundosEnCurso > 0) {
+            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                PuntoQueLate(animar)
+                Text(
+                    text = stringResource(R.string.concurso_en_curso, "%d:%02d".format(segundosEnCurso / 60, segundosEnCurso % 60)),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = VERDE_RETO,
+                )
+            }
+            Spacer(Modifier.height(4.dp))
+        }
+        if (minutosServidor != null) {
+            Text(
+                text = stringResource(R.string.concurso_confirmado, Concurso.formatear(minutosServidor)),
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+            Spacer(Modifier.height(4.dp))
+        }
+        Text(
+            text = stringResource(R.string.concurso_como_cuenta),
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            lineHeight = 17.sp,
+        )
 
         Spacer(Modifier.height(12.dp))
 

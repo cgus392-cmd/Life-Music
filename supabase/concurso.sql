@@ -68,7 +68,6 @@ with (security_invoker = false) as
     apodo,
     minutos
   from public.concurso_participantes
-  where minutos > 0
   order by puesto;
 grant select on public.concurso_ranking to anon, authenticated;
 

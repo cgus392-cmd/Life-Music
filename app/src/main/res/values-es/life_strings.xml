@@ -813,7 +813,10 @@
     <string name="concurso_error_datos">Revisa los datos: apodo de 2 a 24 letras y un correo válido.</string>
     <string name="concurso_sin_red">Sin conexión con el servidor del reto. Inténtalo en un momento.</string>
     <string name="concurso_puesto">Puesto %1$d de %2$d</string>
-    <string name="concurso_puesto_pendiente">Tu puesto aparece con el próximo envío</string>
+    <string name="concurso_puesto_pendiente">Tu puesto llega con el primer envío al ranking</string>
+    <string name="concurso_en_curso">Esta canción: %1$s · se suma al acabar</string>
+    <string name="concurso_confirmado">En el ranking: %1$s · se envía al acabar cada canción</string>
+    <string name="concurso_como_cuenta">Cómo cuenta: cada canción suma su tiempo real al terminar (o al saltarla), si sonó más de 30 s. Aquí ves también la que está sonando.</string>
     <string name="concurso_hoy">Hoy: %1$s de %2$d h que cuentan</string>
     <string name="concurso_compartir">Compartir tarjeta</string>
     <string name="concurso_compartir_texto">Voy con %1$s en el Reto de la semana de Life Music 🎧🏆</string>

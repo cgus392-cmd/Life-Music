@@ -1192,7 +1192,10 @@
     <string name="concurso_error_datos">Check the fields: a nickname of 2 to 24 characters and a valid email.</string>
     <string name="concurso_sin_red">No connection to the challenge server. Try again in a moment.</string>
     <string name="concurso_puesto">Rank %1$d of %2$d</string>
-    <string name="concurso_puesto_pendiente">Your rank shows up with the next report</string>
+    <string name="concurso_puesto_pendiente">Your rank arrives with the first report to the ranking</string>
+    <string name="concurso_en_curso">This song: %1$s · counts when it ends</string>
+    <string name="concurso_confirmado">In the ranking: %1$s · sent when each song ends</string>
+    <string name="concurso_como_cuenta">How it counts: each song adds its real time when it ends (or when skipped), if it played for more than 30 s. The one playing now shows here too.</string>
     <string name="concurso_hoy">Today: %1$s of the %2$d h that count</string>
     <string name="concurso_compartir">Share card</string>
     <string name="concurso_compartir_texto">I am at %1$s in the Life Music weekly challenge 🎧🏆</string>

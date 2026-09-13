@@ -1091,12 +1091,11 @@ class MainActivity : ComponentActivity() {
                                         actions = {
                                             // Reto de la semana: solo mientras dura (y unos dias despues).
                                             if (com.cglabs.lifemusic.concurso.Concurso.visible()) {
-                                                IconButton(onClick = { navController.navigate("concurso") }) {
-                                                    Icon(
-                                                        painter = painterResource(R.drawable.trophy),
-                                                        contentDescription = stringResource(R.string.concurso_titulo)
-                                                    )
-                                                }
+                                                val progresoReto = playerConnection?.progresoReto?.collectAsState()?.value
+                                                com.cglabs.lifemusic.concurso.TrofeoReto(
+                                                    progreso = progresoReto,
+                                                    onClick = { navController.navigate("concurso") },
+                                                )
                                             }
                                             if (showHistoryButton) {
                                                 IconButton(onClick = { navController.navigate("history") }) {

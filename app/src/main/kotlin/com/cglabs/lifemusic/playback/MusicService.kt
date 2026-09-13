@@ -356,6 +356,37 @@ class MusicService :
 
     val automixDebugInfo = MutableStateFlow<AutomixDebugInfo?>(null)
 
+    /**
+     * Progreso del reto de la semana, en vivo. Los eventos de escucha solo se
+     * escriben al ACABAR cada cancion, asi que ademas de lo que ya cuenta la
+     * base ([minutosHoy], [minutosTotal]) se llevan los segundos de la cancion
+     * en curso, que se sumaran cuando termine. Es lo que hace que el usuario
+     * vea subir sus minutos mientras escucha, y no solo al reabrir la pantalla.
+     */
+    data class ProgresoReto(
+        val minutosHoy: Int = 0,
+        val minutosTotal: Int = 0,
+        val segundosEnCurso: Int = 0,
+        val reproduciendo: Boolean = false,
+    )
+
+    val progresoReto = MutableStateFlow(ProgresoReto())
+
+    /** Relee de la base lo que cuenta el reto. Barato: siete sumas. */
+    fun refrescarProgresoReto(reiniciarEnCurso: Boolean = false) {
+        if (!com.cglabs.lifemusic.concurso.Concurso.visible()) return
+        scope.launch {
+            val porDia = withContext(Dispatchers.IO) { com.cglabs.lifemusic.concurso.Concurso.minutosPorDia(database) }
+            val actual = progresoReto.value
+            progresoReto.value = actual.copy(
+                minutosHoy = com.cglabs.lifemusic.concurso.Concurso.minutosHoy(porDia),
+                minutosTotal = com.cglabs.lifemusic.concurso.Concurso.totalContado(porDia),
+                segundosEnCurso = if (reiniciarEnCurso) 0 else actual.segundosEnCurso,
+                reproduciendo = player.isPlaying,
+            )
+        }
+    }
+
     /** Estilo de la transicion en curso, o null fuera de una. Lo lee la voz de Life Line. */
     val automixEstilo = MutableStateFlow<EstiloTransicion?>(null)
 
@@ -889,13 +920,27 @@ class MusicService :
             player.volume = it
         }
 
-        // Reto de la semana: cada diez minutos, si suena algo y el usuario
-        // participa, se mandan sus minutos. El repositorio ya calla si no hay
-        // registro, asi que esto no cuesta nada a quien no juega.
+        // Reto de la semana: contador en vivo. Cada segundo que suena algo se
+        // suma a la cancion en curso; cada veinte segundos se relee la base. Y
+        // cada diez minutos, si suena algo y el usuario participa, se mandan
+        // los minutos (ademas del envio al acabar cada cancion). El repositorio
+        // calla si no hay registro, asi que esto no cuesta nada a quien no juega.
         scope.launch {
+            refrescarProgresoReto()
+            var tic = 0
             while (isActive) {
-                delay(10 * 60_000L)
-                if (player.isPlaying) {
+                delay(1_000)
+                if (!com.cglabs.lifemusic.concurso.Concurso.visible()) continue
+                val sonando = player.isPlaying
+                val actual = progresoReto.value
+                if (sonando) {
+                    progresoReto.value = actual.copy(segundosEnCurso = actual.segundosEnCurso + 1, reproduciendo = true)
+                } else if (actual.reproduciendo) {
+                    progresoReto.value = actual.copy(reproduciendo = false)
+                }
+                tic++
+                if (tic % 20 == 0) refrescarProgresoReto()
+                if (tic % 600 == 0 && sonando) {
                     try {
                         com.cglabs.lifemusic.concurso.ConcursoRepository.sincronizar(this@MusicService, database)
                     } catch (e: Exception) {
@@ -3279,6 +3324,21 @@ class MusicService :
                         ),
                     )
                 } catch (_: SQLException) {
+                }
+            }
+        }
+
+        // Reto de la semana: la cancion acaba de contar (o no, si duro menos de
+        // 30 s). Se relee la base en cuanto el evento este escrito y se manda
+        // al servidor, con su propio intervalo minimo.
+        if (com.cglabs.lifemusic.concurso.Concurso.visible()) {
+            scope.launch {
+                delay(1_500)
+                refrescarProgresoReto(reiniciarEnCurso = true)
+                try {
+                    com.cglabs.lifemusic.concurso.ConcursoRepository.sincronizar(this@MusicService, database)
+                } catch (e: Exception) {
+                    Timber.tag(TAG).d(e, "Envio del reto fallido")
                 }
             }
         }

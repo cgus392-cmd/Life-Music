@@ -46,8 +46,12 @@ sealed class ResultadoRegistro {
 object ConcursoRepository {
     private const val TAG = "Concurso"
 
-    /** Entre envios automaticos. Un envio es una llamada; no hace falta mas. */
-    private const val INTERVALO_ENVIO_MS = 10 * 60_000L
+    /**
+     * Entre envios automaticos (al acabar cada cancion, y cada diez minutos
+     * mientras suena). Dos minutos: el ranking se mueve casi al momento y a
+     * Supabase le llega, como mucho, media llamada por minuto y usuario.
+     */
+    private const val INTERVALO_ENVIO_MS = 2 * 60_000L
 
     private val candado = Mutex()
 
