@@ -41,9 +41,13 @@ septiembre. Todo lo demás sigue igual que en la 1.1.5.
   entre envíos no puede superar el tiempo real. Una app modificada que diga
   «9000 minutos» no cuela.
 
-  En la app: un trofeo en Inicio mientras dura el reto, pantalla con tu semana
-  (minutos, tope de hoy, puesto), ranking en vivo con apodos, reglas, y una
-  tarjeta compartible para Instagram y WhatsApp.
+  En la app: un trofeo en Inicio con dos anillos —lo que llevas hoy hasta el
+  tope, y otro que gira mientras suena algo—, pantalla del reto con la imagen
+  de la campaña, tus minutos **en vivo** (la canción que suena cuenta segundo a
+  segundo y se suma al acabar), tu puesto, ranking con apodos, reglas, tirar
+  para actualizar, y una tarjeta compartible vertical para Instagram y WhatsApp
+  con la gráfica de tus siete días. El premio se entrega solo en el
+  departamento del Atlántico, y así lo dicen las reglas y la inscripción.
 
 ---
 
