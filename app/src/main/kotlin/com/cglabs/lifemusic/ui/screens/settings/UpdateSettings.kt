@@ -39,6 +39,7 @@ import com.cglabs.lifemusic.ui.component.Material3SettingsGroup
 import com.cglabs.lifemusic.ui.component.Material3SettingsItem
 import com.cglabs.lifemusic.appcore.component.UpdateInfoDialog
 import com.cglabs.lifemusic.ui.utils.backToMain
+import com.cglabs.lifemusic.appcore.updater.ComprobadorDeActualizaciones
 import com.cglabs.lifemusic.appcore.updater.getAutoUpdateCheckSetting
 import com.cglabs.lifemusic.appcore.updater.saveAutoUpdateCheckSetting
 import com.cglabs.lifemusic.appcore.updater.getUpdateAvailableState
@@ -160,7 +161,10 @@ fun UpdateSettings(
                             onCheckedChange = { enabled ->
                                 autoUpdateEnabled = enabled
                                 saveAutoUpdateCheckSetting(context, enabled)
-                                if (!enabled) {
+                                if (enabled) {
+                                    ComprobadorDeActualizaciones.programar(context)
+                                } else {
+                                    ComprobadorDeActualizaciones.cancelar(context)
                                     saveUpdateAvailableState(context, false)
                                 }
                             },
@@ -178,7 +182,10 @@ fun UpdateSettings(
                     onClick = {
                         autoUpdateEnabled = !autoUpdateEnabled
                         saveAutoUpdateCheckSetting(context, autoUpdateEnabled)
-                        if (!autoUpdateEnabled) {
+                        if (autoUpdateEnabled) {
+                            ComprobadorDeActualizaciones.programar(context)
+                        } else {
+                            ComprobadorDeActualizaciones.cancelar(context)
                             saveUpdateAvailableState(context, false)
                         }
                     }

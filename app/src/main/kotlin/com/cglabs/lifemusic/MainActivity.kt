@@ -1,7 +1,6 @@
 
 
 package com.cglabs.lifemusic
-import com.cglabs.lifemusic.constants.Repo
 import com.cglabs.lifemusic.R
 import com.cglabs.lifemusic.BuildConfig
 import com.cglabs.lifemusic.ui.screens.settings.RingtoneViewModel
@@ -254,6 +253,8 @@ class MainActivity : ComponentActivity() {
         const val ACTION_SEARCH = "com.cglabs.lifemusic.action.SEARCH"
         const val ACTION_LIBRARY = "com.cglabs.lifemusic.action.LIBRARY"
         const val ACTION_RECOGNITION = "com.cglabs.lifemusic.action.RECOGNITION"
+        /** Abre la pantalla de actualizacion de la app (la usa la notificacion de version nueva). */
+        const val ACTION_UPDATE = "com.cglabs.lifemusic.action.UPDATE"
         const val EXTRA_AUTO_START_RECOGNITION = "auto_start_recognition"
     }
 
@@ -270,6 +271,14 @@ class MainActivity : ComponentActivity() {
     lateinit var listenTogetherManager: com.cglabs.lifemusic.listentogether.ListenTogetherManager
     private lateinit var navController: NavHostController
     private var pendingIntent: Intent? = null
+
+    /**
+     * Abrir el actualizador al arrancar: solo si la actividad nace de verdad
+     * con ACTION_UPDATE (toque en la notificacion). Si el sistema mata el
+     * proceso y luego recrea la actividad, el intent raiz de la tarea sigue
+     * siendo ese, pero savedInstanceState ya no es null y no se vuelve a abrir.
+     */
+    private var abrirActualizadorAlArrancar = false
 
     private var playerConnection by mutableStateOf<PlayerConnection?>(null)
 
@@ -347,6 +356,7 @@ class MainActivity : ComponentActivity() {
             handleDeepLinkIntent(intent, navController)
             handleRecognitionIntent(intent, navController)
             handleAssistantSearchIntent(intent, navController)
+            handleUpdateIntent(intent, navController)
         } else {
             pendingIntent = intent
         }
@@ -372,6 +382,7 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         installSplashScreen()
         super.onCreate(savedInstanceState)
+        abrirActualizadorAlArrancar = savedInstanceState == null && intent?.action == ACTION_UPDATE
         window.decorView.layoutDirection = View.LAYOUT_DIRECTION_LTR
         WindowCompat.setDecorFitsSystemWindows(window, false)
 
@@ -470,9 +481,8 @@ class MainActivity : ComponentActivity() {
                             showUpdateDialog = true
                         }
 
-                        if (isAvailable && getUpdateNotificationsSetting(context)) {
-                            Log.d("UpdateCheck", "Posting update notification for $latestVersion")
-                            UpdateNotificationHelper.showUpdateNotification(context, latestVersion)
+                        if (isAvailable) {
+                            UpdateNotificationHelper.avisarSiHaceFalta(context, latestVersion)
                         }
                     },
                     onError = {
@@ -582,70 +592,6 @@ class MainActivity : ComponentActivity() {
         ) {
 
 
-        if (showUpdateDialog) {
-            AlertDialog(
-                onDismissRequest = { showUpdateDialog = false },
-                title = { Text(stringResource(R.string.update_available_title)) },
-                text = {
-                    Column(modifier = Modifier.fillMaxWidth()) {
-                        Text("Version $availableUpdateVersion is available. Update now?")
-                        if (availableUpdateChangelog.isNotEmpty() || !availableUpdateDescription.isNullOrEmpty()) {
-                            Spacer(modifier = Modifier.height(16.dp))
-                            Text(
-                                text = stringResource(R.string.changelog),
-                                style = MaterialTheme.typography.titleMedium,
-                                fontWeight = FontWeight.Bold
-                            )
-                            Spacer(modifier = Modifier.height(8.dp))
-                            Column(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .weight(1f, fill = false)
-                                    .verticalScroll(rememberScrollState())
-                            ) {
-                                if (availableUpdateChangelog.isNotEmpty()) {
-                                    availableUpdateChangelog.forEach { section ->
-                                        Text(
-                                            text = section.title,
-                                            style = MaterialTheme.typography.titleSmall,
-                                            fontWeight = FontWeight.SemiBold,
-                                            modifier = Modifier.padding(top = 8.dp, bottom = 4.dp)
-                                        )
-                                        section.items.forEach { item ->
-                                            Text(
-                                                text = "• $item",
-                                                style = MaterialTheme.typography.bodyMedium,
-                                                modifier = Modifier.padding(start = 8.dp, bottom = 2.dp)
-                                            )
-                                        }
-                                    }
-                                } else if (!availableUpdateDescription.isNullOrEmpty()) {
-                                    Text(
-                                        text = availableUpdateDescription!!,
-                                        style = MaterialTheme.typography.bodyMedium,
-                                        modifier = Modifier.padding(top = 8.dp, bottom = 4.dp)
-                                    )
-                                }
-                            }
-                        }
-                    }
-                },
-                confirmButton = {
-                    Button(onClick = {
-                        showUpdateDialog = false
-                        val intent = Intent(Intent.ACTION_VIEW, android.net.Uri.parse(Repo.RELEASES_HTML))
-                        context.startActivity(intent)
-                    }) {
-                        Text("Update")
-                    }
-                },
-                dismissButton = {
-                    TextButton(onClick = { showUpdateDialog = false }) {
-                        Text("Next time")
-                    }
-                }
-            )
-        }
             BoxWithConstraints(
                 modifier = Modifier
                     .fillMaxSize()
@@ -680,6 +626,74 @@ class MainActivity : ComponentActivity() {
                 val bottomInsetDp = WindowInsets.systemBars.asPaddingValues().calculateBottomPadding()
 
                 val navController = rememberNavController()
+
+                if (showUpdateDialog) {
+                    // Antes el boton abria la web de publicaciones de GitHub en
+                    // el navegador: un segundo camino, distinto del actualizador
+                    // de Ajustes, y mucha gente no sabe descargar desde ahi.
+                    // Ahora lleva a esa misma pantalla, que descarga e instala.
+                    AlertDialog(
+                        onDismissRequest = { showUpdateDialog = false },
+                        title = { Text(stringResource(R.string.update_available_title)) },
+                        text = {
+                            Column(modifier = Modifier.fillMaxWidth()) {
+                                Text(stringResource(R.string.update_dialog_body, availableUpdateVersion.removePrefix("v")))
+                                if (availableUpdateChangelog.isNotEmpty() || !availableUpdateDescription.isNullOrEmpty()) {
+                                    Spacer(modifier = Modifier.height(16.dp))
+                                    Text(
+                                        text = stringResource(R.string.changelog),
+                                        style = MaterialTheme.typography.titleMedium,
+                                        fontWeight = FontWeight.Bold
+                                    )
+                                    Spacer(modifier = Modifier.height(8.dp))
+                                    Column(
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .weight(1f, fill = false)
+                                            .verticalScroll(rememberScrollState())
+                                    ) {
+                                        if (availableUpdateChangelog.isNotEmpty()) {
+                                            availableUpdateChangelog.forEach { section ->
+                                                Text(
+                                                    text = section.title,
+                                                    style = MaterialTheme.typography.titleSmall,
+                                                    fontWeight = FontWeight.SemiBold,
+                                                    modifier = Modifier.padding(top = 8.dp, bottom = 4.dp)
+                                                )
+                                                section.items.forEach { item ->
+                                                    Text(
+                                                        text = "• $item",
+                                                        style = MaterialTheme.typography.bodyMedium,
+                                                        modifier = Modifier.padding(start = 8.dp, bottom = 2.dp)
+                                                    )
+                                                }
+                                            }
+                                        } else if (!availableUpdateDescription.isNullOrEmpty()) {
+                                            Text(
+                                                text = availableUpdateDescription!!,
+                                                style = MaterialTheme.typography.bodyMedium,
+                                                modifier = Modifier.padding(top = 8.dp, bottom = 4.dp)
+                                            )
+                                        }
+                                    }
+                                }
+                            }
+                        },
+                        confirmButton = {
+                            Button(onClick = {
+                                showUpdateDialog = false
+                                navController.navigate("update") { launchSingleTop = true }
+                            }) {
+                                Text(stringResource(R.string.update_available))
+                            }
+                        },
+                        dismissButton = {
+                            TextButton(onClick = { showUpdateDialog = false }) {
+                                Text(stringResource(R.string.later))
+                            }
+                        }
+                    )
+                }
                 val homeViewModel: HomeViewModel = hiltViewModel()
                 val accountImageUrl by homeViewModel.accountImageUrl.collectAsState()
                 val navBackStackEntry by navController.currentBackStackEntryAsState()
@@ -965,6 +979,7 @@ class MainActivity : ComponentActivity() {
                         handleDeepLinkIntent(pendingIntent!!, navController)
                         handleRecognitionIntent(pendingIntent!!, navController)
                         handleAssistantSearchIntent(pendingIntent!!, navController)
+                        handleUpdateIntent(pendingIntent!!, navController)
                         pendingIntent = null
                     } else if (intent != null && (intent.action == Intent.ACTION_VIEW || intent.action == Intent.ACTION_SEND)) {
                         handleDeepLinkIntent(intent, navController)
@@ -972,6 +987,9 @@ class MainActivity : ComponentActivity() {
                         handleRecognitionIntent(intent, navController)
                     } else if (intent != null && intent.action == android.provider.MediaStore.INTENT_ACTION_MEDIA_PLAY_FROM_SEARCH) {
                         handleAssistantSearchIntent(intent, navController)
+                    } else if (abrirActualizadorAlArrancar) {
+                        abrirActualizadorAlArrancar = false
+                        navController.navigate("update") { launchSingleTop = true }
                     }
                 }
 
@@ -983,6 +1001,8 @@ class MainActivity : ComponentActivity() {
                             handleRecognitionIntent(intent, navController)
                         } else if (intent.action == android.provider.MediaStore.INTENT_ACTION_MEDIA_PLAY_FROM_SEARCH) {
                             handleAssistantSearchIntent(intent, navController)
+                        } else if (intent.action == ACTION_UPDATE) {
+                            handleUpdateIntent(intent, navController)
                         }
                     }
 
@@ -1683,6 +1703,14 @@ class MainActivity : ComponentActivity() {
         navController.navigate(if (autoStart) "recognition?autoStart=true" else "recognition") {
             launchSingleTop = true
         }
+    }
+
+    private fun handleUpdateIntent(
+        intent: Intent,
+        navController: NavHostController,
+    ) {
+        if (intent.action != ACTION_UPDATE) return
+        navController.navigate("update") { launchSingleTop = true }
     }
 
     private fun handleAssistantSearchIntent(

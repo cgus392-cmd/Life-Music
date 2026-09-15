@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Actualizador de la app: pantalla, ajustes, aviso de version nueva y descarga. -->
+    <string name="server_error">Error del servidor (%1$s)</string>
+    <string name="download_progress_channel">Descarga de actualizaciones</string>
+    <string name="download_progress_description">Avisos del progreso de descarga</string>
+    <string name="update_failed">La actualización falló</string>
+    <string name="failed_to_download_version">No se pudo descargar la versión %1$s</string>
+    <string name="failed_to_download_version_error">Error al leer la versión %1$s: %2$s</string>
+    <string name="downloading_update">Descargando…</string>
+    <string name="version_file_size">Versión %1$s ~ %2$s MB</string>
+    <string name="starting">Empezando…</string>
+    <string name="version_progress">Versión %1$s (%2$d%%)</string>
+    <string name="update_ready">Actualización lista</string>
+    <string name="tap_to_install_version">Toca para instalar la versión %1$s</string>
+    <string name="changelog">Novedades</string>
+    <string name="update_available">Actualizar</string>
+    <string name="checking_for_updates">Buscando actualizaciones…</string>
+    <string name="cant_check_updates">No se pudo comprobar\nsi hay actualizaciones</string>
+    <string name="app_up_to_date">La app está al día</string>
+    <string name="version">Versión %1$s</string>
+    <string name="download_failed">La descarga falló</string>
+    <string name="last_checked">Última comprobación: %1$s</string>
+    <string name="install">Instalar</string>
+    <string name="check_for_update">Buscar actualización</string>
+    <string name="no_changelog_available">Esta versión no trae notas</string>
+    <string name="system_update">Actualización de la app</string>
+    <string name="app_updates_title">Actualizaciones</string>
+    <string name="update_settings_title">Actualizaciones</string>
+    <string name="app_updates_subtitle">Actualizaciones de la app</string>
+    <string name="app_update_uptodate">Al día</string>
+    <string name="auto_update_check">Buscar actualizaciones automáticamente</string>
+    <string name="auto_update_check_subtitle">Al abrir la app, comprobar si hay una versión nueva y avisarte</string>
+    <string name="update_notifications_subtitle">Mostrar una notificación cuando haya una versión nueva</string>
+    <string name="settings_check_updates_title">Buscar actualizaciones</string>
+    <string name="later">Más tarde</string>
+    <string name="beta_updates">Versiones beta</string>
+    <string name="beta_updates_subtitle">Recibir también las versiones de prueba</string>
+    <string name="on_latest_version">Tienes la última versión</string>
+    <string name="current_version_v">Versión actual: %1$s</string>
+    <string name="update_to_v">Actualización disponible: %1$s</string>
+    <string name="new_update">Nueva versión</string>
+    <string name="release_date_v">Publicada el %1$s</string>
+    <string name="update_size_v">Tamaño: %1$s MB</string>
+    <string name="update_dialog_body">La versión %1$s ya está lista. Se descarga e instala desde la propia app, sin pasar por el navegador.</string>
+</resources>

@@ -142,7 +142,6 @@ fun UpdateScreen(navController: NavHostController) {
     val snackbarHostState = remember { SnackbarHostState() }
 
     val currentVersion = BuildConfig.VERSION_NAME
-    val autoUpdateCheckEnabled = getAutoUpdateCheckSetting(context)
 
     LaunchedEffect(Unit) {
         DownloadNotificationManager.initialize(context)
@@ -225,10 +224,10 @@ fun UpdateScreen(navController: NavHostController) {
         }
     }
 
+    // Quien entra aqui quiere saber si hay version nueva: se comprueba siempre,
+    // tenga o no activada la comprobacion automatica al arrancar.
     LaunchedEffect(Unit) {
-        if (autoUpdateCheckEnabled) {
-            triggerUpdateCheck()
-        }
+        triggerUpdateCheck()
     }
 
     val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
@@ -561,10 +560,10 @@ fun saveUpdateAvailableState(context: Context, available: Boolean) {
 
 fun getAutoUpdateCheckSetting(context: Context): Boolean {
     val sharedPrefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
-    // Desactivado por defecto: Life Music todavia no publica releases, asi que
-    // comprobar al arrancar solo generaria una peticion fallida en cada inicio.
-    // El usuario puede activarlo en Ajustes cuando exista el canal de descargas.
-    return sharedPrefs.getBoolean(KEY_AUTO_UPDATE_CHECK, false)
+    // Activado por defecto desde 1.1.7: ya hay publicaciones y la mayoria de
+    // quien usa la app no sabe buscarlas a mano. Quien lo apago a proposito
+    // conserva su eleccion (la clave guardada manda sobre este valor).
+    return sharedPrefs.getBoolean(KEY_AUTO_UPDATE_CHECK, true)
 }
 
 fun saveAutoUpdateCheckSetting(context: Context, enabled: Boolean) {
@@ -582,6 +581,19 @@ fun getUpdateNotificationsSetting(context: Context): Boolean {
 fun saveUpdateNotificationsSetting(context: Context, enabled: Boolean) {
     val sharedPrefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
     sharedPrefs.edit().putBoolean(KEY_UPDATE_NOTIFICATIONS, enabled).apply()
+}
+
+const val KEY_NOTIFIED_VERSION = "update_notified_version"
+
+/** Ultima version de la que ya se aviso por notificacion (para no repetirla). */
+fun getNotifiedVersion(context: Context): String? {
+    val sharedPrefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+    return sharedPrefs.getString(KEY_NOTIFIED_VERSION, null)
+}
+
+fun saveNotifiedVersion(context: Context, version: String) {
+    val sharedPrefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+    sharedPrefs.edit().putString(KEY_NOTIFIED_VERSION, version).apply()
 }
 
 fun saveLastCheckedTime(context: Context, timestamp: String) {

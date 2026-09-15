@@ -95,6 +95,11 @@ class App : Application(), SingletonImageLoader.Factory {
 
         // Removed destructive database deletion to preserve user data
 
+        // Aviso de version nueva aunque la app no este abierta (ver la clase).
+        if (com.cglabs.lifemusic.appcore.updater.getAutoUpdateCheckSetting(this)) {
+            com.cglabs.lifemusic.appcore.updater.ComprobadorDeActualizaciones.programar(this)
+        }
+
         
         CrashHandler.install(this)
 

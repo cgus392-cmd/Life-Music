@@ -46,7 +46,7 @@
     <string name="app_updates_subtitle">App updates</string>
     <string name="app_update_uptodate">Up to date</string>
     <string name="auto_update_check">Automatic update check</string>
-    <string name="auto_update_check_subtitle">Automatically check for updates when opening the update screen</string>
+    <string name="auto_update_check_subtitle">When the app opens, check for a new version and let you know</string>
     <string name="update_notifications">Update Notifications</string>
     <string name="update_notifications_subtitle">Show a notification when a new update is found</string>
     <string name="settings_check_updates_title">Check for updates</string>
@@ -80,5 +80,6 @@
     <string name="new_update">New update</string>
     <string name="release_date_v">Released on: %1$s</string>
     <string name="update_size_v">Size: %1$s MB</string>
+    <string name="update_dialog_body">Version %1$s is ready. It downloads and installs from inside the app, no browser needed.</string>
     <string name="update_install_failed">Could not open the installer. Allow installing apps from Life Music in Android settings, then try again.</string>
 </resources>
