@@ -349,8 +349,24 @@ private fun SpotifyLoginSheet(
                 text = stringResource(R.string.spotify_google_hint),
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.8f),
-                modifier = Modifier.padding(top = 4.dp, bottom = 8.dp),
+                modifier = Modifier.padding(top = 4.dp),
             )
+            val contextoBoton = androidx.compose.ui.platform.LocalContext.current
+            androidx.compose.material3.TextButton(
+                onClick = {
+                    // En el navegador del sistema, no en el WebView: ahi Spotify
+                    // trata al usuario como a cualquiera.
+                    val destino = android.net.Uri.parse("https://accounts.spotify.com/password-reset")
+                    runCatching {
+                        androidx.browser.customtabs.CustomTabsIntent.Builder().build().launchUrl(contextoBoton, destino)
+                    }.onFailure {
+                        runCatching { contextoBoton.startActivity(android.content.Intent(android.content.Intent.ACTION_VIEW, destino)) }
+                    }
+                },
+                modifier = Modifier.padding(bottom = 4.dp),
+            ) {
+                Text(stringResource(R.string.spotify_google_password_button))
+            }
             AndroidView(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -453,6 +469,9 @@ private fun WebView.destroySpotifyLoginWebView() {
 
 @android.annotation.SuppressLint("SetJavaScriptEnabled")
 private fun WebView.configureSpotifyLoginWebView() {
+    // Solo en compilaciones de depuracion: permite inspeccionar el WebView con
+    // DevTools (adb forward + protocolo) para ver que cabeceras llegan a Google.
+    if (com.cglabs.lifemusic.BuildConfig.DEBUG) WebView.setWebContentsDebuggingEnabled(true)
     settings.apply {
         javaScriptEnabled = true
         domStorageEnabled = true
@@ -464,56 +483,8 @@ private fun WebView.configureSpotifyLoginWebView() {
         mixedContentMode = android.webkit.WebSettings.MIXED_CONTENT_NEVER_ALLOW
         userAgentString = SpotifyLoginUserAgent
     }
-    disfrazarDeChromeDeEscritorio()
 }
 
-/** Version de Chrome que dice el User-Agent; los client hints tienen que decir la misma. */
-private const val SpotifyLoginChromeVersion = "131"
-private const val SpotifyLoginChromeFullVersion = "131.0.6778.204"
-
-/**
- * Por que Google bloqueaba «Continuar con Google» dentro del login de Spotify.
- *
- * Cambiar el User-Agent a Chrome de escritorio no basta: un WebView manda ademas
- * los *client hints* (`Sec-CH-UA`, `Sec-CH-UA-Mobile`, `Sec-CH-UA-Platform`), y
- * cuando el User-Agent esta sobrescrito sigue mandando los de serie —marca
- * «Android WebView», movil, plataforma Android—. Google lee esa contradiccion,
- * sabe que es un navegador incrustado y responde «este navegador o app puede no
- * ser seguro» (su politica contra el OAuth en WebViews). El login de YouTube de
- * la propia app no lo sufre porque no es OAuth de terceros.
- *
- * Aqui se alinean los hints con el User-Agent: Chrome de escritorio, Windows,
- * no movil. Solo donde el WebView instalado lo soporte (Chromium 113+); en los
- * demas queda como estaba.
- */
-private fun WebView.disfrazarDeChromeDeEscritorio() {
-    if (!androidx.webkit.WebViewFeature.isFeatureSupported(androidx.webkit.WebViewFeature.USER_AGENT_METADATA)) return
-    try {
-        val metadata = androidx.webkit.UserAgentMetadata.Builder()
-            .setBrandVersionList(
-                listOf(
-                    androidx.webkit.UserAgentMetadata.BrandVersion.Builder()
-                        .setBrand("Google Chrome").setMajorVersion(SpotifyLoginChromeVersion).setFullVersion(SpotifyLoginChromeFullVersion).build(),
-                    androidx.webkit.UserAgentMetadata.BrandVersion.Builder()
-                        .setBrand("Chromium").setMajorVersion(SpotifyLoginChromeVersion).setFullVersion(SpotifyLoginChromeFullVersion).build(),
-                    androidx.webkit.UserAgentMetadata.BrandVersion.Builder()
-                        .setBrand("Not_A Brand").setMajorVersion("24").setFullVersion("24.0.0.0").build(),
-                )
-            )
-            .setFullVersion(SpotifyLoginChromeFullVersion)
-            .setPlatform("Windows")
-            .setPlatformVersion("15.0.0")
-            .setArchitecture("x86")
-            .setBitness(64)
-            .setModel("")
-            .setMobile(false)
-            .setFormFactors(listOf(androidx.webkit.UserAgentMetadata.FORM_FACTOR_DESKTOP))
-            .build()
-        androidx.webkit.WebSettingsCompat.setUserAgentMetadata(settings, metadata)
-    } catch (e: Exception) {
-        timber.log.Timber.w(e, "No se pudieron fijar los client hints del login de Spotify")
-    }
-}
 
 private class SpotifyLoginWebChromeClient(
     private val container: android.widget.FrameLayout,

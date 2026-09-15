@@ -1227,4 +1227,5 @@
     <string name="boletin_v116_privacidad">Only your minutes per day, your nickname and your contact leave your phone. Deleted when it ends. Leave whenever you want. Life Music still tracks nothing.</string>
     <!-- Spotify import -->
     <string name="spotify_google_hint">Is your Spotify account a Google one and it will not let you in? Spotify can give it a password: request “Reset password” with your Google email, then sign in here with email and password.</string>
+    <string name="spotify_google_password_button">Create a Spotify password</string>
 </resources>

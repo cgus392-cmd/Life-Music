@@ -848,4 +848,5 @@
     <string name="boletin_v116_privacidad">Solo salen de tu teléfono tus minutos por día, tu apodo y tu contacto. Se borran al terminar. Puedes abandonar cuando quieras. Life Music sigue sin rastrear nada.</string>
     <!-- Importar de Spotify -->
     <string name="spotify_google_hint">¿Tu cuenta de Spotify es de Google y no te deja entrar? En Spotify puedes crear una contraseña: pide «Restablecer contraseña» con tu correo de Google y luego entra aquí con correo y contraseña.</string>
+    <string name="spotify_google_password_button">Crear contraseña en Spotify</string>
 </resources>
