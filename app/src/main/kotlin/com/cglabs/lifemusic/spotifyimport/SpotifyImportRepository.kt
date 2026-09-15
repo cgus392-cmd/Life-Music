@@ -164,10 +164,20 @@ class SpotifyImportRepository @Inject constructor(
         withContext(Dispatchers.IO) {
             val playlistId = parsePlaylistId(url)
                 ?: throw IllegalArgumentException(context.getString(R.string.spotify_invalid_playlist_link))
-            ensureAuthenticated()
+            // Por enlace no hace falta cuenta: una lista publica se lee con token
+            // anonimo. Es la salida para quien tiene su Spotify con Google y no
+            // puede entrar por el WebView.
+            val conCuenta = ensureToken(requireAccount = false)
 
-            val playlist = spotifyCallWithTokenRetry {
-                Spotify.playlist(playlistId).getOrThrow()
+            val playlist = try {
+                spotifyCallWithTokenRetry {
+                    Spotify.playlist(playlistId).getOrThrow()
+                }
+            } catch (error: Spotify.SpotifyException) {
+                if (!conCuenta && error.statusCode in setOf(401, 403, 404)) {
+                    throw IllegalStateException(context.getString(R.string.spotify_private_playlist_hint), error)
+                }
+                throw error
             }
 
             val resolved =
@@ -187,7 +197,8 @@ class SpotifyImportRepository @Inject constructor(
         onProgress: (SpotifyImportProgressUi) -> Unit,
     ): SpotifyImportSummaryUi =
         withContext(Dispatchers.IO) {
-            ensureAuthenticated()
+            // «Me gusta» exige cuenta; las listas se pueden traer con token anonimo.
+            ensureToken(requireAccount = sources.any { it is SpotifyImportSource.LikedSongs })
             val summaries = ArrayList<SpotifyImportSourceSummaryUi>(sources.size)
 
             sources.forEachIndexed { sourceIndex, source ->
@@ -255,19 +266,50 @@ class SpotifyImportRepository @Inject constructor(
         }
 
     private suspend fun ensureAuthenticated() {
+        ensureToken(requireAccount = true)
+    }
+
+    /**
+     * Deja un token valido en [Spotify.accessToken]. Con cuenta (cookie sp_dc)
+     * es el de la sesion; sin cuenta y con [requireAccount] a false, uno anonimo
+     * del reproductor web, que basta para listas publicas. Devuelve si el token
+     * es de una cuenta.
+     */
+    private suspend fun ensureToken(requireAccount: Boolean): Boolean {
         val prefs = context.dataStore.data.first()
         val token = prefs[SpotifyAccessTokenKey].orEmpty()
         val expiresAt = prefs[SpotifyAccessTokenExpiresAtKey] ?: 0L
         if (token.isNotBlank() && expiresAt > System.currentTimeMillis() + TOKEN_EXPIRY_GRACE_MS) {
             Spotify.accessToken = token
-            return
+            return true
         }
 
         val spDc = prefs[SpotifySpDcKey].orEmpty()
-        if (spDc.isBlank()) {
+        if (spDc.isNotBlank()) {
+            refreshAccessToken(spDc = spDc, spKey = prefs[SpotifySpKeyKey].orEmpty()).getOrThrow()
+            return true
+        }
+        if (requireAccount) {
             throw IllegalStateException(context.getString(R.string.spotify_not_connected))
         }
-        refreshAccessToken(spDc = spDc, spKey = prefs[SpotifySpKeyKey].orEmpty()).getOrThrow()
+        refreshAnonymousToken()
+        return false
+    }
+
+    /** Token anonimo en memoria, nunca en preferencias: no es una sesion. */
+    @Volatile private var anonymousToken: String? = null
+    @Volatile private var anonymousExpiresAt: Long = 0L
+
+    private suspend fun refreshAnonymousToken() {
+        val ahora = System.currentTimeMillis()
+        anonymousToken?.takeIf { anonymousExpiresAt > ahora + TOKEN_EXPIRY_GRACE_MS }?.let {
+            Spotify.accessToken = it
+            return
+        }
+        val token = SpotifyAuth.fetchAnonymousToken().getOrThrow()
+        anonymousToken = token.accessToken
+        anonymousExpiresAt = token.accessTokenExpirationTimestampMs
+        Spotify.accessToken = token.accessToken
     }
 
     private suspend fun refreshAccessToken(
@@ -418,9 +460,12 @@ class SpotifyImportRepository @Inject constructor(
                 val prefs = context.dataStore.data.first()
                 val spDc = prefs[SpotifySpDcKey].orEmpty()
                 if (spDc.isBlank()) {
-                    throw error
+                    // Sin cuenta: el anonimo caduca en minutos; se pide otro y se reintenta.
+                    anonymousToken = null
+                    refreshAnonymousToken()
+                } else {
+                    refreshAccessToken(spDc = spDc, spKey = prefs[SpotifySpKeyKey].orEmpty()).getOrThrow()
                 }
-                refreshAccessToken(spDc = spDc, spKey = prefs[SpotifySpKeyKey].orEmpty()).getOrThrow()
                 block()
             }
 

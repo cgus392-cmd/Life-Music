@@ -393,7 +393,7 @@
     <string name="content_sponsor_block">SponsorBlock (Omitir automáticamente)</string>
     <string name="content_sponsor_block_desc">Omitir automáticamente patrocinios, introducciones y secciones que no sean de música en los videos</string>
     <string name="spotify_import_by_link">Importar lista de reproducción mediante enlace</string>
-    <string name="spotify_import_by_link_desc">Pega un enlace de una playlist de Spotify para importarla, incluso las playlist que no te pertenezcan</string>
+    <string name="spotify_import_by_link_desc">Pega el enlace de una lista pública de Spotify. No hace falta iniciar sesión: sirve aunque tu cuenta sea de Google</string>
     <string name="spotify_import_by_link_hint">https://open.spotify.com/playlist/…</string>
     <string name="spotify_add">Agregar</string>
     <string name="spotify_invalid_playlist_link">Eso no parece ser un link real de una playlist de Spotify. Usa un link como https://open.spotify.com/playlist/…</string>

@@ -131,22 +131,40 @@ private fun spotifyImportItems(
     onAddByLink: () -> Unit,
 ): List<Material3SettingsItem> {
     if (!state.isAuthenticated) {
-        return listOf(
-            Material3SettingsItem(
+        val libre = state.progress == null && !state.isLoading
+        return buildList {
+            add(Material3SettingsItem(
                 title = { Text(stringResource(R.string.spotify_connect)) },
                 description = { Text(stringResource(R.string.spotify_not_connected)) },
                 icon = painterResource(R.drawable.ic_spotify),
-                enabled = state.progress == null && !state.isLoading,
+                enabled = libre,
                 onClick = onConnect,
-            ),
-            Material3SettingsItem(
+            ))
+            add(Material3SettingsItem(
                 title = { Text(stringResource(R.string.spotify_import_by_link)) },
                 description = { Text(stringResource(R.string.spotify_import_by_link_desc)) },
                 icon = painterResource(R.drawable.link),
-                enabled = state.progress == null && !state.isLoading,
+                enabled = libre,
                 onClick = onAddByLink,
-            ),
-        )
+            ))
+            // Listas anadidas por enlace sin cuenta: se eligen e importan igual.
+            if (state.hasSources) {
+                add(Material3SettingsItem(
+                    title = { Text(stringResource(R.string.spotify_select_sources)) },
+                    description = { Text(stringResource(R.string.spotify_available_count, state.sources.size)) },
+                    icon = painterResource(R.drawable.playlist_play),
+                    enabled = libre,
+                    onClick = onSelectSources,
+                ))
+                add(Material3SettingsItem(
+                    title = { Text(stringResource(R.string.spotify_import_selected)) },
+                    description = { Text(stringResource(R.string.spotify_selected_count, state.selectedSourceIds.size)) },
+                    icon = painterResource(R.drawable.playlist_add),
+                    enabled = state.canImport,
+                    onClick = { viewModel.importSelectedSources() },
+                ))
+            }
+        }
     }
 
     val idle = !state.isLoading && state.progress == null
@@ -240,7 +258,7 @@ private fun SpotifyImportDialogs(
         )
     }
 
-    if (showSpotifySources && state.isAuthenticated) {
+    if (showSpotifySources && state.hasSources) {
         SpotifySourcePickerSheet(
             state = state,
             onDismiss = onDismissSources,

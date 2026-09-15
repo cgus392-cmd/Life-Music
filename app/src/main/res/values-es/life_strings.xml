@@ -849,4 +849,5 @@
     <!-- Importar de Spotify -->
     <string name="spotify_google_hint">¿Tu cuenta de Spotify es de Google y no te deja entrar? En Spotify puedes crear una contraseña: pide «Restablecer contraseña» con tu correo de Google y luego entra aquí con correo y contraseña.</string>
     <string name="spotify_google_password_button">Crear contraseña en Spotify</string>
+    <string name="spotify_private_playlist_hint">Esa lista es privada o no existe. Para importar una lista privada, conecta tu cuenta de Spotify (con correo y contraseña).</string>
 </resources>

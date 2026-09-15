@@ -61,6 +61,7 @@ object SpotifyAuth {
     suspend fun fetchAccessToken(
         spDc: String,
         spKey: String = "",
+        permitirAnonimo: Boolean = false,
     ): Result<SpotifyInternalToken> = runCatching {
         val nuance = fetchNuance()
         val serverTimeSec = fetchServerTime()
@@ -76,19 +77,27 @@ object SpotifyAuth {
         }
 
         val cookieHeader = buildString {
-            append("sp_dc=$spDc")
+            if (spDc.isNotEmpty()) append("sp_dc=$spDc")
             if (spKey.isNotEmpty()) {
-                append("; sp_key=$spKey")
+                if (isNotEmpty()) append("; ")
+                append("sp_key=$spKey")
             }
         }
 
         val body = withContext(Dispatchers.IO) {
-            httpGet(tokenUrl, mapOf("Cookie" to cookieHeader))
+            httpGet(tokenUrl, if (cookieHeader.isEmpty()) emptyMap() else mapOf("Cookie" to cookieHeader))
         }
 
         val token = json.decodeFromString<SpotifyInternalToken>(body)
 
-        if (token.isAnonymous || token.accessToken.isBlank()) {
+        if (token.accessToken.isBlank()) {
+            throw Spotify.SpotifyException(500, "Empty access token")
+        }
+        // Sin cookies Spotify da un token ANONIMO, que Echo trataba como error.
+        // Sirve para leer listas publicas: es lo que hace el reproductor web con
+        // cualquiera que abra un enlace sin cuenta. Solo es error si se pidio una
+        // sesion de verdad (habia cookie) y salio anonimo: cookie caducada.
+        if (token.isAnonymous && !permitirAnonimo) {
             throw Spotify.SpotifyException(
                 401,
                 "Received anonymous token — sp_dc cookie is invalid or expired",
@@ -97,6 +106,10 @@ object SpotifyAuth {
 
         token
     }
+
+    /** Token anonimo del reproductor web: lee listas publicas sin cuenta. Caduca en minutos. */
+    suspend fun fetchAnonymousToken(): Result<SpotifyInternalToken> =
+        fetchAccessToken(spDc = "", spKey = "", permitirAnonimo = true)
 
     private suspend fun fetchNuance(): Nuance = withContext(Dispatchers.IO) {
         val body = try {
