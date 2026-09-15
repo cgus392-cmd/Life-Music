@@ -1229,4 +1229,14 @@
     <string name="spotify_google_hint">Is your Spotify account a Google one and it will not let you in? Spotify can give it a password: request “Reset password” with your Google email, then sign in here with email and password.</string>
     <string name="spotify_google_password_button">Create a Spotify password</string>
     <string name="spotify_private_playlist_hint">That playlist is private or does not exist. To import a private playlist, connect your Spotify account (email and password).</string>
+    <string name="boletin_v117_titulo_1">Update</string>
+    <string name="boletin_v117_titulo_2">without leaving the app</string>
+    <string name="boletin_v117_intro">New versions now download and install from inside the app: no GitHub, no browser. And you get told even while the app is closed.</string>
+    <string name="boletin_v117_camino_t">One path</string>
+    <string name="boletin_v117_camino">The “Update available” dialog and the notification open the app’s updater. Tap Update, wait for the download, install. That’s it.</string>
+    <string name="boletin_v117_aviso_t">Told even when closed</string>
+    <string name="boletin_v117_aviso">Every 12 hours the app checks for a new version and tells you with a notification, once per version. Turn it off in Settings → Updates.</string>
+    <string name="boletin_v117_spotify_t">Spotify by link</string>
+    <string name="boletin_v117_spotify">Import any public Spotify playlist by pasting its link, no sign-in needed: works even if your account is a Google one. Liked Songs still need signing in, and there is a button to create a Spotify password.</string>
+    <string name="boletin_v117_ademas_1">The whole updater in Spanish.</string>
 </resources>

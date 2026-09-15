@@ -102,7 +102,25 @@ object Boletines {
         heroImagen = R.drawable.reto_airpods,
     )
 
-    val todos: List<BoletinDeVersion> = listOf(v115, v116)
+    private val v117 = BoletinDeVersion(
+        versionCode = 9,
+        versionName = "1.1.7",
+        tituloLinea1 = R.string.boletin_v117_titulo_1,
+        tituloLinea2 = R.string.boletin_v117_titulo_2,
+        intro = R.string.boletin_v117_intro,
+        apartados = listOf(
+            ApartadoBoletin(R.drawable.update, Color(0xFFA5D6A7),
+                R.string.boletin_v117_camino_t, R.string.boletin_v117_camino),
+            ApartadoBoletin(R.drawable.notification, Color(0xFF90CAF9),
+                R.string.boletin_v117_aviso_t, R.string.boletin_v117_aviso),
+            ApartadoBoletin(R.drawable.link, Color(0xFFCE93D8),
+                R.string.boletin_v117_spotify_t, R.string.boletin_v117_spotify),
+        ),
+        ademas = listOf(R.string.boletin_v117_ademas_1),
+        rutaAjustes = "settings/update",
+    )
+
+    val todos: List<BoletinDeVersion> = listOf(v115, v116, v117)
 
     /** El boletin de una version, o null si esa version no tiene nada que contar. */
     fun para(versionCode: Int): BoletinDeVersion? = todos.firstOrNull { it.versionCode == versionCode }

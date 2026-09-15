@@ -15,6 +15,55 @@ esa base**; para la historia anterior, consulte el repositorio de origen.
 
 ---
 
+## [1.1.7] — 2026-09-15
+
+Dos cosas que la gente pedía por WhatsApp: poder traerse sus listas de Spotify
+teniendo la cuenta con Google, y no tener que ir a GitHub para actualizar.
+
+### Añadido
+
+- **Importar listas públicas de Spotify por enlace, sin iniciar sesión.** Google
+  no permite «Continuar con Google» dentro de navegadores incrustados en apps
+  —lo reconoce por una cabecera que Android añade a todas sus peticiones— y
+  Life Music no lo esquiva. Así que ahora hay otro camino: pegas el enlace de
+  cualquier lista pública y la app la lee como lo haría un visitante del
+  reproductor web, sin cuenta, y busca cada canción en YouTube Music. Para tus
+  «Me gusta» y tus listas privadas sigue haciendo falta entrar; para las
+  cuentas de Google hay un botón que lleva a crear una contraseña en Spotify,
+  en el navegador del sistema, donde Google sí lo permite.
+
+- **Aviso de versión nueva aunque la app esté cerrada.** Cada 12 horas, solo
+  con red, la app mira si hay una versión publicada más nueva y lo dice con
+  una notificación, una sola vez por versión. Se apaga en Ajustes →
+  Actualizaciones, con el mismo interruptor que la comprobación automática.
+
+- **El actualizador entero en español.** Pantalla, ajustes y notificaciones de
+  descarga estaban solo en inglés desde el origen.
+
+### Cambiado
+
+- **Un solo camino para actualizar, dentro de la app.** La ventana de
+  «Actualización disponible» del arranque y la notificación abrían la web de
+  publicaciones de GitHub en el navegador: un segundo sistema, distinto del
+  actualizador de Ajustes, que mucha gente no sabía usar. Ahora las dos
+  llevan a esa misma pantalla, que descarga el APK e instala. La ventana sale
+  solo cuando existe una versión más nueva que la instalada.
+
+- **La comprobación automática viene activada.** Estaba apagada de serie desde
+  que Life Music aún no publicaba versiones; ya publica. Quien la apagó a
+  propósito conserva su elección. Y la pantalla del actualizador comprueba
+  siempre al entrar: antes, con la automática apagada, decía «tienes la
+  última versión» sin haber mirado.
+
+### Corregido
+
+- **Reto de la semana: los minutos extra otorgados a mano se perdían.** Un
+  ajuste hecho directamente en el servidor duraba hasta el siguiente envío de
+  la app, que recalculaba el total. Ahora hay un bonus aparte que el servidor
+  suma siempre.
+
+---
+
 ## [1.1.6] — 2026-09-12
 
 Una versión para una semana concreta: el **Reto de la semana**, del 13 al 19 de

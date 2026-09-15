@@ -96,9 +96,11 @@ espacio propio en la barra.
   que **no escribía nadie**: llevaba muerto desde antes del fork.
 - `google-services.json` apuntaba al **proyecto de Firebase de Echo**. Retirado:
   el fork no envía analítica ni fallos a infraestructura ajena.
-- El auto-actualizador venía **activado por defecto** y ofrecía instalar el APK de
-  Echo. Desactivado por defecto y redirigido; toda la identidad del repositorio
-  vive ahora en un único fichero, `constants/Repo.kt`.
+- El auto-actualizador ofrecía instalar el APK de **Echo**, y su ventana de aviso
+  mandaba al navegador. Redirigido a las publicaciones de Life Music —toda la
+  identidad del repositorio vive en un único fichero, `constants/Repo.kt`— y
+  unificado: aviso, notificación y comprobación en segundo plano llevan al
+  actualizador de la app, que descarga e instala sin salir.
 
 ## Créditos y linaje
 

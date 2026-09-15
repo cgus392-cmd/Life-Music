@@ -850,4 +850,14 @@
     <string name="spotify_google_hint">¿Tu cuenta de Spotify es de Google y no te deja entrar? En Spotify puedes crear una contraseña: pide «Restablecer contraseña» con tu correo de Google y luego entra aquí con correo y contraseña.</string>
     <string name="spotify_google_password_button">Crear contraseña en Spotify</string>
     <string name="spotify_private_playlist_hint">Esa lista es privada o no existe. Para importar una lista privada, conecta tu cuenta de Spotify (con correo y contraseña).</string>
+    <string name="boletin_v117_titulo_1">Actualizar</string>
+    <string name="boletin_v117_titulo_2">sin salir de la app</string>
+    <string name="boletin_v117_intro">Las versiones nuevas se descargan e instalan desde la propia app: ni GitHub ni navegador. Y te avisamos aunque la tengas cerrada.</string>
+    <string name="boletin_v117_camino_t">Un solo camino</string>
+    <string name="boletin_v117_camino">La ventana de «Actualización disponible» y la notificación abren el actualizador de la app. Toca Actualizar, espera la descarga e instala. Nada más.</string>
+    <string name="boletin_v117_aviso_t">Aviso aunque esté cerrada</string>
+    <string name="boletin_v117_aviso">Cada 12 horas la app mira si hay una versión nueva y te lo dice con una notificación, una sola vez por versión. Se apaga en Ajustes → Actualizaciones.</string>
+    <string name="boletin_v117_spotify_t">Spotify por enlace</string>
+    <string name="boletin_v117_spotify">Importa cualquier lista pública de Spotify pegando su enlace, sin iniciar sesión: sirve aunque tu cuenta sea de Google. Para tus «Me gusta» sigue haciendo falta entrar, y hay un botón para crear contraseña en Spotify.</string>
+    <string name="boletin_v117_ademas_1">El actualizador entero en español.</string>
 </resources>
