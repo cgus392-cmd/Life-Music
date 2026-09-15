@@ -54,6 +54,8 @@ create table if not exists public.concurso_participantes (
 );
 create unique index if not exists concurso_apodo_unico
   on public.concurso_participantes (lower(apodo));
+alter table public.concurso_participantes
+  add column if not exists bonus integer not null default 0;
 
 alter table public.concurso_config        enable row level security;
 alter table public.concurso_participantes enable row level security;
@@ -70,6 +72,34 @@ with (security_invoker = false) as
   from public.concurso_participantes
   order by puesto;
 grant select on public.concurso_ranking to anon, authenticated;
+
+-- ─── minutos = suma de cada dia con tope + bonus (editable a mano) ─────────
+create or replace function public.concurso_recalcular()
+returns trigger
+language plpgsql
+security definer
+set search_path = public, extensions
+as $$
+declare
+  tope  integer;
+  total integer;
+begin
+  select tope_min_dia into tope from public.concurso_config where id = 1;
+  select coalesce(sum(least((value)::text::integer, tope)), 0) into total
+    from jsonb_each(coalesce(new.minutos_por_dia, '{}'::jsonb));
+  new.minutos := total + coalesce(new.bonus, 0);
+  if tg_op = 'UPDATE' and new.minutos > old.minutos then
+    new.alcanzado_en := now();
+  end if;
+  return new;
+end;
+$$;
+
+drop trigger if exists concurso_recalcular_trg on public.concurso_participantes;
+create trigger concurso_recalcular_trg
+  before insert or update of bonus, minutos_por_dia
+  on public.concurso_participantes
+  for each row execute function public.concurso_recalcular();
 
 -- ─── Estado del concurso (lo lee la app al abrir) ─────────────────────────
 create or replace function public.concurso_estado()
@@ -261,14 +291,15 @@ begin
     from jsonb_each(nuevos) where key::date < dia_registro;
   retro := retro + least(coalesce((nuevos ->> dia_registro::text)::integer, 0), minutos_antes_registro);
 
+  -- `minutos` y `alcanzado_en` los fija el disparador concurso_recalcular
+  -- (suma con tope + bonus), asi que aqui no se tocan.
   update public.concurso_participantes p
     set minutos_por_dia = nuevos,
-        minutos         = total,
         retroactivos    = retro,
-        actualizado_en  = now(),
-        alcanzado_en    = case when total > fila.minutos then now() else p.alcanzado_en end
+        actualizado_en  = now()
     where p.id = p_id;
 
+  select p.minutos into total from public.concurso_participantes p where p.id = p_id;
   select r.puesto into puesto from public.concurso_ranking r where r.apodo = fila.apodo;
   select count(*) into cuantos from public.concurso_participantes;
   return jsonb_build_object('ok', true, 'minutos', total, 'puesto', puesto, 'participantes', cuantos);
