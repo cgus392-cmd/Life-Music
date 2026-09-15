@@ -343,6 +343,14 @@ private fun SpotifyLoginSheet(
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
+            // Red de seguridad por si Google vuelve a cerrar la puerta: una cuenta
+            // de Spotify creada con Google puede tener contrasena propia.
+            Text(
+                text = stringResource(R.string.spotify_google_hint),
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.8f),
+                modifier = Modifier.padding(top = 4.dp, bottom = 8.dp),
+            )
             AndroidView(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -455,6 +463,55 @@ private fun WebView.configureSpotifyLoginWebView() {
         displayZoomControls = false
         mixedContentMode = android.webkit.WebSettings.MIXED_CONTENT_NEVER_ALLOW
         userAgentString = SpotifyLoginUserAgent
+    }
+    disfrazarDeChromeDeEscritorio()
+}
+
+/** Version de Chrome que dice el User-Agent; los client hints tienen que decir la misma. */
+private const val SpotifyLoginChromeVersion = "131"
+private const val SpotifyLoginChromeFullVersion = "131.0.6778.204"
+
+/**
+ * Por que Google bloqueaba «Continuar con Google» dentro del login de Spotify.
+ *
+ * Cambiar el User-Agent a Chrome de escritorio no basta: un WebView manda ademas
+ * los *client hints* (`Sec-CH-UA`, `Sec-CH-UA-Mobile`, `Sec-CH-UA-Platform`), y
+ * cuando el User-Agent esta sobrescrito sigue mandando los de serie —marca
+ * «Android WebView», movil, plataforma Android—. Google lee esa contradiccion,
+ * sabe que es un navegador incrustado y responde «este navegador o app puede no
+ * ser seguro» (su politica contra el OAuth en WebViews). El login de YouTube de
+ * la propia app no lo sufre porque no es OAuth de terceros.
+ *
+ * Aqui se alinean los hints con el User-Agent: Chrome de escritorio, Windows,
+ * no movil. Solo donde el WebView instalado lo soporte (Chromium 113+); en los
+ * demas queda como estaba.
+ */
+private fun WebView.disfrazarDeChromeDeEscritorio() {
+    if (!androidx.webkit.WebViewFeature.isFeatureSupported(androidx.webkit.WebViewFeature.USER_AGENT_METADATA)) return
+    try {
+        val metadata = androidx.webkit.UserAgentMetadata.Builder()
+            .setBrandVersionList(
+                listOf(
+                    androidx.webkit.UserAgentMetadata.BrandVersion.Builder()
+                        .setBrand("Google Chrome").setMajorVersion(SpotifyLoginChromeVersion).setFullVersion(SpotifyLoginChromeFullVersion).build(),
+                    androidx.webkit.UserAgentMetadata.BrandVersion.Builder()
+                        .setBrand("Chromium").setMajorVersion(SpotifyLoginChromeVersion).setFullVersion(SpotifyLoginChromeFullVersion).build(),
+                    androidx.webkit.UserAgentMetadata.BrandVersion.Builder()
+                        .setBrand("Not_A Brand").setMajorVersion("24").setFullVersion("24.0.0.0").build(),
+                )
+            )
+            .setFullVersion(SpotifyLoginChromeFullVersion)
+            .setPlatform("Windows")
+            .setPlatformVersion("15.0.0")
+            .setArchitecture("x86")
+            .setBitness(64)
+            .setModel("")
+            .setMobile(false)
+            .setFormFactors(listOf(androidx.webkit.UserAgentMetadata.FORM_FACTOR_DESKTOP))
+            .build()
+        androidx.webkit.WebSettingsCompat.setUserAgentMetadata(settings, metadata)
+    } catch (e: Exception) {
+        timber.log.Timber.w(e, "No se pudieron fijar los client hints del login de Spotify")
     }
 }
 

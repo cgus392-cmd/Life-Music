@@ -52,6 +52,7 @@ playServicesAuth = "22.0.0"
 googleApiClient = "2.9.0"
 googleDriveApi = "v3-rev20260428-2.0.0"
 browser = "1.8.0"
+webkit = "1.17.0"
 
 [libraries]
 retrofit = { module = "com.squareup.retrofit2:retrofit", version.ref = "retrofit" }
@@ -65,6 +66,7 @@ gradle = { module = "com.android.tools.build:gradle", version.ref = "androidGrad
 activity = { module = "androidx.activity:activity-compose", version.ref = "activity" }
 hilt-navigation = { module = "androidx.hilt:hilt-navigation-compose", version.ref = "hiltNavigation" }
 datastore = { module = "androidx.datastore:datastore-preferences", version.ref = "datastore" }
+webkit = { module = "androidx.webkit:webkit", version.ref = "webkit" }
 
 compose-runtime = { module = "androidx.compose.runtime:runtime", version.ref = "compose" }
 compose-foundation = { module = "androidx.compose.foundation:foundation", version.ref = "compose" }

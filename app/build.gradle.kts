@@ -296,6 +296,7 @@ dependencies {
     implementation(libs.concurrent.futures)
 
     implementation(libs.activity)
+    implementation(libs.webkit)
     implementation(libs.hilt.navigation)
     implementation(libs.datastore)
 

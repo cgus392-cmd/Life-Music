@@ -846,4 +846,6 @@
     <string name="boletin_v116_ganador">Se anuncia el 20 de septiembre en Instagram y en los canales de WhatsApp de Life Music. Mira tu puesto cuando quieras en el trofeo de Inicio, y comparte tu tarjeta.</string>
     <string name="boletin_v116_privacidad_t">Tus datos</string>
     <string name="boletin_v116_privacidad">Solo salen de tu teléfono tus minutos por día, tu apodo y tu contacto. Se borran al terminar. Puedes abandonar cuando quieras. Life Music sigue sin rastrear nada.</string>
+    <!-- Importar de Spotify -->
+    <string name="spotify_google_hint">¿Tu cuenta de Spotify es de Google y no te deja entrar? En Spotify puedes crear una contraseña: pide «Restablecer contraseña» con tu correo de Google y luego entra aquí con correo y contraseña.</string>
 </resources>
