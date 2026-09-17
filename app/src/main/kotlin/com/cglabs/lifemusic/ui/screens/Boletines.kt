@@ -120,7 +120,23 @@ object Boletines {
         rutaAjustes = "settings/update",
     )
 
-    val todos: List<BoletinDeVersion> = listOf(v115, v116, v117)
+    private val v118 = BoletinDeVersion(
+        versionCode = 10,
+        versionName = "1.1.8",
+        tituloLinea1 = R.string.boletin_v118_titulo_1,
+        tituloLinea2 = R.string.boletin_v118_titulo_2,
+        intro = R.string.boletin_v118_intro,
+        apartados = listOf(
+            ApartadoBoletin(R.drawable.trophy, Color(0xFFFFE082),
+                R.string.boletin_v118_puesto_t, R.string.boletin_v118_puesto),
+            ApartadoBoletin(R.drawable.notification, Color(0xFF90CAF9),
+                R.string.boletin_v118_recordatorio_t, R.string.boletin_v118_recordatorio),
+        ),
+        rutaAjustes = "concurso",
+        textoBoton = R.string.concurso_titulo,
+    )
+
+    val todos: List<BoletinDeVersion> = listOf(v115, v116, v117, v118)
 
     /** El boletin de una version, o null si esa version no tiene nada que contar. */
     fun para(versionCode: Int): BoletinDeVersion? = todos.firstOrNull { it.versionCode == versionCode }

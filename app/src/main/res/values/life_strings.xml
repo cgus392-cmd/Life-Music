@@ -1245,4 +1245,11 @@
     <string name="concurso_recordatorio_texto_sin_puesto">Today: %1$d min, %2$d to go before the daily cap.</string>
     <string name="concurso_recordatorio_cero">Nothing listened today yet: up to 6 hours count. You’re #%1$d.</string>
     <string name="concurso_recordatorio_cero_sin_puesto">Nothing listened today yet: up to 6 hours count.</string>
+    <string name="boletin_v118_titulo_1">Your rank,</string>
+    <string name="boletin_v118_titulo_2">always in sight</string>
+    <string name="boletin_v118_intro">Challenge week: two small helpers so you don’t lose track of the ranking.</string>
+    <string name="boletin_v118_puesto_t">In the mini player</string>
+    <string name="boletin_v118_puesto">Next to the controls you’ll see the trophy with your rank. It moves on its own with every ranking update and bounces when you climb.</string>
+    <string name="boletin_v118_recordatorio_t">Reminder at 8 pm</string>
+    <string name="boletin_v118_recordatorio">Today’s minutes, how much is left before the cap, and your rank. Turn it off in the challenge screen. The last one is on the 19th.</string>
 </resources>

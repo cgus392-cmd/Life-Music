@@ -866,4 +866,11 @@
     <string name="concurso_recordatorio_texto_sin_puesto">Hoy llevas %1$d min; te quedan %2$d hasta el tope.</string>
     <string name="concurso_recordatorio_cero">Hoy todavía no has escuchado nada: hasta 6 horas cuentan. Vas de #%1$d.</string>
     <string name="concurso_recordatorio_cero_sin_puesto">Hoy todavía no has escuchado nada: hasta 6 horas cuentan.</string>
+    <string name="boletin_v118_titulo_1">Tu puesto,</string>
+    <string name="boletin_v118_titulo_2">siempre a la vista</string>
+    <string name="boletin_v118_intro">Semana del reto: dos ayudas pequeñas para no perderle el paso al ranking.</string>
+    <string name="boletin_v118_puesto_t">En el mini-reproductor</string>
+    <string name="boletin_v118_puesto">Junto a los controles verás el trofeo con tu puesto. Se mueve solo con cada envío al ranking y da un brinco cuando subes.</string>
+    <string name="boletin_v118_recordatorio_t">Recordatorio a las 8 de la noche</string>
+    <string name="boletin_v118_recordatorio">Cuánto llevas hoy, cuánto te queda hasta el tope y tu puesto. Se apaga en la pantalla del reto. El último es el del 19.</string>
 </resources>

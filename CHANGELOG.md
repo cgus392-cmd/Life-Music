@@ -15,6 +15,28 @@ esa base**; para la historia anterior, consulte el repositorio de origen.
 
 ---
 
+## [1.1.8] — 2026-09-17
+
+Dos cosas pequeñas para la semana del reto, que es esta. Todo lo demás sigue
+igual que en la 1.1.7.
+
+### Añadido
+
+- **Tu puesto en el mini-reproductor.** Junto a los controles, una chapita con
+  el trofeo y «#11». Se mueve sola con cada envío al ranking —cada pocos
+  minutos mientras suena algo y al acabar cada canción— y da un brinco cuando
+  subes de puesto. Solo existe mientras dura el reto y si estás inscrito; el
+  día 22 desaparece sin dejar rastro.
+
+- **Recordatorio diario a las 8 de la noche.** Una notificación para quien
+  está inscrito: cuánto llevas hoy, cuánto te queda hasta el tope de 6 horas
+  y tu puesto. Al tocarla se abre el reto en tu fila. Calla si ya llegaste al
+  tope, y el último es el del 19. Se apaga con un interruptor en la pantalla
+  del reto. Local del todo: lo calcula el teléfono con lo que ya contaba; no
+  sale nada nuevo de él.
+
+---
+
 ## [1.1.7] — 2026-09-15
 
 Dos cosas que la gente pedía por WhatsApp: poder traerse sus listas de Spotify
