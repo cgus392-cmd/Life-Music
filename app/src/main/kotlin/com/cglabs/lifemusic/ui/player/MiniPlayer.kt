@@ -465,6 +465,13 @@ private fun NewMiniPlayer(
                 )
 
                 Spacer(modifier = Modifier.width(4.dp))
+
+                // Puesto en el Reto de la semana; no existe fuera del reto.
+                com.cglabs.lifemusic.concurso.MarcadorDePuesto(
+                    colorTexto = primaryColor,
+                    colorFondo = primaryColor.copy(alpha = 0.16f),
+                    modifier = Modifier.padding(end = 6.dp),
+                )
                 
                 
                 if (isCasting) {
@@ -950,6 +957,13 @@ private fun LegacyMiniMediaInfo(
                 )
             }
         }
+
+        // Puesto en el Reto de la semana; no existe fuera del reto.
+        com.cglabs.lifemusic.concurso.MarcadorDePuesto(
+            colorTexto = MaterialTheme.colorScheme.primary,
+            colorFondo = MaterialTheme.colorScheme.primary.copy(alpha = 0.16f),
+            modifier = Modifier.padding(end = 6.dp),
+        )
     }
 }
 

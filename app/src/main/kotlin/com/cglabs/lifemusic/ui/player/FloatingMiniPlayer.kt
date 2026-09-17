@@ -245,6 +245,13 @@ fun FloatingMiniPlayer(
                 }
             }
 
+            // Puesto en el Reto de la semana; no existe fuera del reto.
+            com.cglabs.lifemusic.concurso.MarcadorDePuesto(
+                colorTexto = contentColor,
+                colorFondo = contentColor.copy(alpha = 0.16f),
+                modifier = Modifier.padding(end = 4.dp),
+            )
+
             IconButton(
                 onClick = { playerConnection.player.togglePlayPause() },
                 modifier = Modifier.size(controlSize),
