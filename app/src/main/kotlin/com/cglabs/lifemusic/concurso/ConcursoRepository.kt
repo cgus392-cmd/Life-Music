@@ -104,6 +104,7 @@ object ConcursoRepository {
         }
         // Los minutos que ya lleva desde el inicio del concurso salen ahora mismo.
         sincronizar(context, database, forzar = true)
+        RecordatorioReto.programar(context)
         return ResultadoRegistro.Ok
     }
 
@@ -150,6 +151,7 @@ object ConcursoRepository {
     }
 
     private suspend fun olvidar(context: Context) {
+        RecordatorioReto.cancelar(context)
         context.dataStore.edit {
             it.remove(ConcursoIdKey)
             it.remove(ConcursoSecretoKey)

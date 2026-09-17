@@ -288,6 +288,11 @@ fun ConcursoScreen(
             item { TituloSeccion(stringResource(R.string.concurso_reglas)) }
             item { Reglas() }
 
+            if (p != null) {
+                item { Spacer(Modifier.height(16.dp)) }
+                item { InterruptorRecordatorio() }
+            }
+
             item { Spacer(Modifier.height(24.dp)) }
             item { Nota(stringResource(R.string.concurso_privacidad)) }
 
@@ -979,6 +984,49 @@ private fun TituloSeccion(texto: String) {
         letterSpacing = 1.2.sp,
         modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
     )
+}
+
+/** Recordatorio diario a las 8 de la noche: cuanto llevas y tu puesto. */
+@Composable
+private fun InterruptorRecordatorio() {
+    val context = LocalContext.current
+    val (activo, setActivo) = com.cglabs.lifemusic.utils.rememberPreference(
+        com.cglabs.lifemusic.constants.ConcursoRecordatorioKey, defaultValue = true,
+    )
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp, vertical = 4.dp),
+    ) {
+        Icon(
+            painter = painterResource(R.drawable.notification),
+            contentDescription = null,
+            tint = MaterialTheme.colorScheme.primary,
+            modifier = Modifier.size(22.dp),
+        )
+        Spacer(Modifier.width(14.dp))
+        Column(Modifier.weight(1f)) {
+            Text(
+                text = stringResource(R.string.concurso_recordatorio_t),
+                style = MaterialTheme.typography.bodyLarge,
+                color = MaterialTheme.colorScheme.onSurface,
+            )
+            Text(
+                text = stringResource(R.string.concurso_recordatorio_desc),
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+        }
+        Spacer(Modifier.width(8.dp))
+        androidx.compose.material3.Switch(
+            checked = activo,
+            onCheckedChange = { encendido ->
+                setActivo(encendido)
+                if (encendido) RecordatorioReto.programar(context) else RecordatorioReto.cancelar(context)
+            },
+        )
+    }
 }
 
 @Composable

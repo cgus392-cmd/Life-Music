@@ -255,6 +255,15 @@ class MainActivity : ComponentActivity() {
         const val ACTION_RECOGNITION = "com.cglabs.lifemusic.action.RECOGNITION"
         /** Abre la pantalla de actualizacion de la app (la usa la notificacion de version nueva). */
         const val ACTION_UPDATE = "com.cglabs.lifemusic.action.UPDATE"
+        /** Abre el Reto de la semana (la usa el recordatorio diario). */
+        const val ACTION_RETO = "com.cglabs.lifemusic.action.RETO"
+
+        /** Acciones de notificacion que abren una pantalla concreta. */
+        private fun rutaDeAccion(accion: String?): String? = when (accion) {
+            ACTION_UPDATE -> "update"
+            ACTION_RETO -> "concurso"
+            else -> null
+        }
         const val EXTRA_AUTO_START_RECOGNITION = "auto_start_recognition"
     }
 
@@ -273,12 +282,12 @@ class MainActivity : ComponentActivity() {
     private var pendingIntent: Intent? = null
 
     /**
-     * Abrir el actualizador al arrancar: solo si la actividad nace de verdad
-     * con ACTION_UPDATE (toque en la notificacion). Si el sistema mata el
-     * proceso y luego recrea la actividad, el intent raiz de la tarea sigue
-     * siendo ese, pero savedInstanceState ya no es null y no se vuelve a abrir.
+     * Pantalla que abrir al arrancar por una notificacion: solo si la actividad
+     * nace de verdad con esa accion. Si el sistema mata el proceso y luego
+     * recrea la actividad, el intent raiz de la tarea sigue siendo ese, pero
+     * savedInstanceState ya no es null y no se vuelve a abrir.
      */
-    private var abrirActualizadorAlArrancar = false
+    private var rutaAlArrancar: String? = null
 
     private var playerConnection by mutableStateOf<PlayerConnection?>(null)
 
@@ -356,7 +365,7 @@ class MainActivity : ComponentActivity() {
             handleDeepLinkIntent(intent, navController)
             handleRecognitionIntent(intent, navController)
             handleAssistantSearchIntent(intent, navController)
-            handleUpdateIntent(intent, navController)
+            handleRutaIntent(intent, navController)
         } else {
             pendingIntent = intent
         }
@@ -382,7 +391,7 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         installSplashScreen()
         super.onCreate(savedInstanceState)
-        abrirActualizadorAlArrancar = savedInstanceState == null && intent?.action == ACTION_UPDATE
+        rutaAlArrancar = if (savedInstanceState == null) rutaDeAccion(intent?.action) else null
         window.decorView.layoutDirection = View.LAYOUT_DIRECTION_LTR
         WindowCompat.setDecorFitsSystemWindows(window, false)
 
@@ -979,7 +988,7 @@ class MainActivity : ComponentActivity() {
                         handleDeepLinkIntent(pendingIntent!!, navController)
                         handleRecognitionIntent(pendingIntent!!, navController)
                         handleAssistantSearchIntent(pendingIntent!!, navController)
-                        handleUpdateIntent(pendingIntent!!, navController)
+                        handleRutaIntent(pendingIntent!!, navController)
                         pendingIntent = null
                     } else if (intent != null && (intent.action == Intent.ACTION_VIEW || intent.action == Intent.ACTION_SEND)) {
                         handleDeepLinkIntent(intent, navController)
@@ -987,9 +996,10 @@ class MainActivity : ComponentActivity() {
                         handleRecognitionIntent(intent, navController)
                     } else if (intent != null && intent.action == android.provider.MediaStore.INTENT_ACTION_MEDIA_PLAY_FROM_SEARCH) {
                         handleAssistantSearchIntent(intent, navController)
-                    } else if (abrirActualizadorAlArrancar) {
-                        abrirActualizadorAlArrancar = false
-                        navController.navigate("update") { launchSingleTop = true }
+                    } else if (rutaAlArrancar != null) {
+                        val ruta = rutaAlArrancar!!
+                        rutaAlArrancar = null
+                        navController.navigate(ruta) { launchSingleTop = true }
                     }
                 }
 
@@ -1001,8 +1011,8 @@ class MainActivity : ComponentActivity() {
                             handleRecognitionIntent(intent, navController)
                         } else if (intent.action == android.provider.MediaStore.INTENT_ACTION_MEDIA_PLAY_FROM_SEARCH) {
                             handleAssistantSearchIntent(intent, navController)
-                        } else if (intent.action == ACTION_UPDATE) {
-                            handleUpdateIntent(intent, navController)
+                        } else if (rutaDeAccion(intent.action) != null) {
+                            handleRutaIntent(intent, navController)
                         }
                     }
 
@@ -1705,12 +1715,12 @@ class MainActivity : ComponentActivity() {
         }
     }
 
-    private fun handleUpdateIntent(
+    private fun handleRutaIntent(
         intent: Intent,
         navController: NavHostController,
     ) {
-        if (intent.action != ACTION_UPDATE) return
-        navController.navigate("update") { launchSingleTop = true }
+        val ruta = rutaDeAccion(intent.action) ?: return
+        navController.navigate(ruta) { launchSingleTop = true }
     }
 
     private fun handleAssistantSearchIntent(

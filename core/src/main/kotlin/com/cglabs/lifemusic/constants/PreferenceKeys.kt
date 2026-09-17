@@ -206,6 +206,8 @@ val ConcursoParticipantesKey = intPreferencesKey("concursoParticipantes")
 val ConcursoUltimoEnvioKey = longPreferencesKey("concursoUltimoEnvio")
 /** El usuario dijo «no participar»: no se le vuelve a insistir. */
 val ConcursoRechazadoKey = booleanPreferencesKey("concursoRechazado")
+/** Recordatorio diario del reto a las 8 de la noche (solo inscritos). */
+val ConcursoRecordatorioKey = booleanPreferencesKey("concursoRecordatorio")
 
 
 val MaxImageCacheSizeKey = intPreferencesKey("maxImageCacheSize")

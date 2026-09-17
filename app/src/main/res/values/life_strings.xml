@@ -1239,4 +1239,10 @@
     <string name="boletin_v117_spotify_t">Spotify by link</string>
     <string name="boletin_v117_spotify">Import any public Spotify playlist by pasting its link, no sign-in needed: works even if your account is a Google one. Liked Songs still need signing in, and there is a button to create a Spotify password.</string>
     <string name="boletin_v117_ademas_1">The whole updater in Spanish.</string>
+    <string name="concurso_recordatorio_t">Daily reminder</string>
+    <string name="concurso_recordatorio_desc">At 8 pm: today’s minutes and your rank</string>
+    <string name="concurso_recordatorio_texto">Today: %1$d min, %2$d to go before the daily cap. You’re #%3$d.</string>
+    <string name="concurso_recordatorio_texto_sin_puesto">Today: %1$d min, %2$d to go before the daily cap.</string>
+    <string name="concurso_recordatorio_cero">Nothing listened today yet: up to 6 hours count. You’re #%1$d.</string>
+    <string name="concurso_recordatorio_cero_sin_puesto">Nothing listened today yet: up to 6 hours count.</string>
 </resources>

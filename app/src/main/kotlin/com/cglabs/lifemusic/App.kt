@@ -95,6 +95,9 @@ class App : Application(), SingletonImageLoader.Factory {
 
         // Removed destructive database deletion to preserve user data
 
+        // Recordatorio diario del reto, si procede (la clase decide).
+        com.cglabs.lifemusic.concurso.RecordatorioReto.programar(this)
+
         // Aviso de version nueva aunque la app no este abierta (ver la clase).
         if (com.cglabs.lifemusic.appcore.updater.getAutoUpdateCheckSetting(this)) {
             com.cglabs.lifemusic.appcore.updater.ComprobadorDeActualizaciones.programar(this)

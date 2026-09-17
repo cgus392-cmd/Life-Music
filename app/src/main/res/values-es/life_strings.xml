@@ -860,4 +860,10 @@
     <string name="boletin_v117_spotify_t">Spotify por enlace</string>
     <string name="boletin_v117_spotify">Importa cualquier lista pública de Spotify pegando su enlace, sin iniciar sesión: sirve aunque tu cuenta sea de Google. Para tus «Me gusta» sigue haciendo falta entrar, y hay un botón para crear contraseña en Spotify.</string>
     <string name="boletin_v117_ademas_1">El actualizador entero en español.</string>
+    <string name="concurso_recordatorio_t">Recordatorio diario</string>
+    <string name="concurso_recordatorio_desc">A las 8 de la noche: cuánto llevas hoy y tu puesto</string>
+    <string name="concurso_recordatorio_texto">Hoy llevas %1$d min; te quedan %2$d hasta el tope. Vas de #%3$d.</string>
+    <string name="concurso_recordatorio_texto_sin_puesto">Hoy llevas %1$d min; te quedan %2$d hasta el tope.</string>
+    <string name="concurso_recordatorio_cero">Hoy todavía no has escuchado nada: hasta 6 horas cuentan. Vas de #%1$d.</string>
+    <string name="concurso_recordatorio_cero_sin_puesto">Hoy todavía no has escuchado nada: hasta 6 horas cuentan.</string>
 </resources>
