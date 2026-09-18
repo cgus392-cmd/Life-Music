@@ -15,7 +15,7 @@ esa base**; para la historia anterior, consulte el repositorio de origen.
 
 ---
 
-## [1.1.9] — sin publicar
+## [1.1.9] — 2026-09-18
 
 ### Cambiado
 

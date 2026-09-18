@@ -1281,4 +1281,16 @@
     <string name="boletin_v118_puesto">Next to the controls you’ll see the trophy with your rank. It moves on its own with every ranking update and bounces when you climb.</string>
     <string name="boletin_v118_recordatorio_t">Reminder at 8 pm</string>
     <string name="boletin_v118_recordatorio">Today’s minutes, how much is left before the cap, and your rank. Turn it off in the challenge screen. The last one is on the 19th.</string>
+    <string name="boletin_v119_titulo_1">Ambient mode,</string>
+    <string name="boletin_v119_titulo_2">now ours</string>
+    <string name="boletin_v119_intro">The cover-and-lyrics screen came straight from Echo. Three things to make it Life Music, plus the challenge closing.</string>
+    <string name="boletin_v119_volumen_t">Volume zone</string>
+    <string name="boletin_v119_volumen">Volume only changes when dragging inside the strip on the right edge. No more accidental drops when pulling down notifications.</string>
+    <string name="boletin_v119_canvas_t">Canvas on the cover</string>
+    <string name="boletin_v119_canvas">When the song has a canvas video, it plays inside the cover frame.</string>
+    <string name="boletin_v119_controles_t">Controls on tap</string>
+    <string name="boletin_v119_controles">Tapping the cover reveals previous, pause and next in a band that cuts the cover; they hide on their own.</string>
+    <string name="boletin_v119_reto_t">The challenge closes properly</string>
+    <string name="boletin_v119_reto">After the 19th your card becomes Final result with the confirmed figure, and the ranking becomes Final standings. The winner is announced on Instagram and WhatsApp.</string>
+    <string name="boletin_v119_ademas_1">Everything in ambient mode is configurable in Settings → Appearance → Ambient mode: strip side, band style, seconds before hiding.</string>
 </resources>

@@ -902,4 +902,16 @@
     <string name="boletin_v118_puesto">Junto a los controles verás el trofeo con tu puesto. Se mueve solo con cada envío al ranking y da un brinco cuando subes.</string>
     <string name="boletin_v118_recordatorio_t">Recordatorio a las 8 de la noche</string>
     <string name="boletin_v118_recordatorio">Cuánto llevas hoy, cuánto te queda hasta el tope y tu puesto. Se apaga en la pantalla del reto. El último es el del 19.</string>
+    <string name="boletin_v119_titulo_1">Modo ambiente,</string>
+    <string name="boletin_v119_titulo_2">ahora nuestro</string>
+    <string name="boletin_v119_intro">La pantalla de carátula y letra venía tal cual de Echo. Tres cosas para que se sienta de Life Music, y el cierre del reto.</string>
+    <string name="boletin_v119_volumen_t">Zona de volumen</string>
+    <string name="boletin_v119_volumen">El volumen solo cambia arrastrando en la franja del borde derecho. Se acabaron los bajones por bajar las notificaciones o rozar la pantalla.</string>
+    <string name="boletin_v119_canvas_t">Canvas en la carátula</string>
+    <string name="boletin_v119_canvas">Si la canción tiene canvas, el vídeo se reproduce dentro del recuadro de la portada.</string>
+    <string name="boletin_v119_controles_t">Controles al tocar</string>
+    <string name="boletin_v119_controles">Un toque en la carátula asoma anterior, pausa y siguiente en una banda que corta la portada; se esconden solos.</string>
+    <string name="boletin_v119_reto_t">El reto cierra bien</string>
+    <string name="boletin_v119_reto">Pasado el 19, tu tarjeta pasa a Resultado final con la cifra confirmada, y el ranking a Clasificación final. El ganador se anuncia en Instagram y WhatsApp.</string>
+    <string name="boletin_v119_ademas_1">Todo el modo ambiente se configura en Ajustes → Apariencia → Modo ambiente: lado de la franja, estilo de la banda, segundos hasta esconderse.</string>
 </resources>

@@ -136,7 +136,27 @@ object Boletines {
         textoBoton = R.string.concurso_titulo,
     )
 
-    val todos: List<BoletinDeVersion> = listOf(v115, v116, v117, v118)
+    private val v119 = BoletinDeVersion(
+        versionCode = 11,
+        versionName = "1.1.9",
+        tituloLinea1 = R.string.boletin_v119_titulo_1,
+        tituloLinea2 = R.string.boletin_v119_titulo_2,
+        intro = R.string.boletin_v119_intro,
+        apartados = listOf(
+            ApartadoBoletin(R.drawable.volume_up, Color(0xFF90CAF9),
+                R.string.boletin_v119_volumen_t, R.string.boletin_v119_volumen),
+            ApartadoBoletin(R.drawable.ic_canvas, Color(0xFFCE93D8),
+                R.string.boletin_v119_canvas_t, R.string.boletin_v119_canvas),
+            ApartadoBoletin(R.drawable.play, Color(0xFF80CBC4),
+                R.string.boletin_v119_controles_t, R.string.boletin_v119_controles),
+            ApartadoBoletin(R.drawable.trophy, Color(0xFFFFE082),
+                R.string.boletin_v119_reto_t, R.string.boletin_v119_reto),
+        ),
+        ademas = listOf(R.string.boletin_v119_ademas_1),
+        rutaAjustes = "settings/appearance",
+    )
+
+    val todos: List<BoletinDeVersion> = listOf(v115, v116, v117, v118, v119)
 
     /** El boletin de una version, o null si esa version no tiene nada que contar. */
     fun para(versionCode: Int): BoletinDeVersion? = todos.firstOrNull { it.versionCode == versionCode }
