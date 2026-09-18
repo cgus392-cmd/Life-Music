@@ -71,3 +71,75 @@ cuentas de su dueño. Al depurar con ADB:
 Diga qué se rompió y por qué, sin adornos. Si el error fue propio, dígalo en una
 línea y siga: aquí ha pasado varias veces y el proyecto está mejor por haberlo
 dicho a tiempo.
+
+## Dónde va el proyecto
+
+Foto del estado al **18 de septiembre de 2026**. Es la sección que se actualiza
+en cada publicación; si lo que dice no cuadra con `git log` o `CHANGELOG.md`,
+mandan ellos y esta sección está atrasada.
+
+### Estado
+
+- **Versión publicada: 1.1.8** (código 10, tag `v1.1.8`). Trae el puesto del
+  reto en el mini-reproductor y el recordatorio diario a las 20:00.
+- **Reto de la semana** (13–19 de septiembre, premio solo entregable en el
+  Atlántico): servidor Supabase con validación de plausibilidad y columna
+  `bonus` editable a mano. El módulo se oculta solo el día 22.
+- **Landing** en `lifemusic.pages.dev` (Cloudflare Pages); `/apk` redirige al
+  APK de la última versión en GitHub.
+- CI (*Android CI* + *CodeQL*) en verde desde el 13 de septiembre.
+- Mappings de R8 de cada versión archivados fuera del repositorio
+  (`_Mappings/vX.Y.Z/`); la llave de firma vive fuera del repositorio.
+
+### Decisiones tomadas y su porqué
+
+| Decisión | Porqué |
+|---|---|
+| **1.1.x = pequeño y rápido; 1.x.0 = funciones grandes** (ahí va el DJ con IA). Demucs descartado. | Cadencia sostenible: cada parche trae poco pero bien hecho. Lo grande no se cuela en un parche. Se trabaja por fases en el día, no por estimaciones de días. |
+| **Automix cerrado en 1.1.5**: «Canción completa» por defecto, Modo DJ opcional, estilos (Blend / Barrido / Plano / Cierre y arranque) y deslizador «Entrada de la siguiente». | Cada vuelta fue un criterio de oído convertido en regla: respetar intros (se comía 14 s de acordeón), cierre sin superposición, entrada gradual sin hueco ni golpe. Lo que venga después son ajustes finos con deslizadores, no más motor. |
+| **Modelos ONNX bajo demanda, nunca en el APK.** | Tamaño. Quedan para la fase C (1.2.0). |
+| **Boletín de novedades por versión** (`ui/screens/Boletines.kt`). | Quien actualiza ve qué cambió sin buscar. Una entrada por versión; reproducible. |
+| **Supabase** para el reto, no Firebase ni Workers. | Firebase es Google y la edición `foss` no lleva servicios de Google; Workers no da una tabla visible para revisar participantes. Sin inscripción, cero llamadas: la app sigue sin telemetría. |
+| **Minutos del reto = tiempo real de la tabla `event`** que ya existía. | No se inventó un contador nuevo y es retroactivo: quien actualiza tarde conserva sus minutos. |
+| **`bonus` como columna propia con disparador**, no editar `minutos`. | El servidor recalcula `minutos` en cada envío; lo escrito a mano se perdía. |
+| **Spotify: importar listas públicas por enlace sin cuenta** + botón «Crear contraseña en Spotify». «Continuar con Google» **no se arregla**. | Google bloquea OAuth en WebViews por la cabecera `X-Requested-With` (medido con DevTools); es una política de seguridad y se decidió no esquivarla. |
+| **Actualizador unificado** (1.1.7, estrenado en 1.1.8): la ventana y la notificación abren el actualizador de la app; comprobación cada 12 h; aviso una vez por versión. | Regla: la ventana solo cuando hay una versión publicada más nueva; nunca «comprobar» al abrir. Hay usuarios que no saben actualizar fuera de GitHub. |
+| **iOS aplazado.** | App Store lo rechazaría; sería un 2.0 con KMP reescribiendo todo el motor de reproducción (Media3 es solo Android). |
+| **`gh` fijado a `cgus392-cmd/Life-Music`.** | Antes resolvía al repositorio de Echo por el remoto `upstream`. |
+
+### Pendientes
+
+**Con fecha**
+- Cierre del reto (19 de septiembre): ganador con la consulta del final de
+  `supabase/concurso.sql` (la columna `retroactivos` sirve para verificarlo);
+  anuncio en Instagram y WhatsApp con las reglas tal como están en la app.
+- Quitar la sección del reto de la landing después del día 22.
+
+**En la mesa (decide el dueño del proyecto)**
+- Premios para 2.º y 3.º puesto.
+- Retos diarios pequeños con bonus, validados en servidor.
+- Panel administrativo para controlar retos sin programar.
+- Google Search Console para la landing.
+- Registro mínimo del Automix a fichero en release, para diagnosticar sin
+  adivinar (la build de producción no escribe registros del servicio).
+
+**Diferido a versiones mayores**
+- Automix fase B (curva de energía, downbeats, frases, candidatos tipados).
+  Hallazgo pendiente: `tempoRatio` se calcula pero nunca se aplica al
+  reproductor (herencia de Echo).
+- Automix fase C (máscara vocal Open-Unmix, Beat This!, echo out, frenada,
+  corte) y el DJ con IA → 1.2.0.
+- Vista previa en vivo de los presets en la bienvenida.
+
+### Reglas de trabajo que salieron de estas semanas
+
+- **Publicar solo con orden explícita** en el mismo ciclo de trabajo. Aprobar
+  el trabajo no es aprobar publicarlo; `push`, `tag` y `release` esperan.
+- **`grep` antes de tocar un valor por defecto o una lista de registro**: las
+  listas de migraciones y dos defaults estuvieron duplicados y mordieron tres
+  veces.
+- **Revertir cualquier ajuste global del teléfono** antes de terminar.
+- **Verificar que Life Music está en primer plano** antes de capturar pantalla.
+- **No decir «lo encontré» sin certeza.** Se dice «vamos a probar esto».
+- Publicación: crear la release como borrador, subir los APK uno a uno y luego
+  publicarla; no consultar la API mientras suben.
