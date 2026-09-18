@@ -13,6 +13,12 @@ publicación de CG LABS, adaptada a Android.
       programa.
 - [ ] **`README.md` refleja el estado real** — que no prometa funciones que no
       están, ni calle las que sí.
+- [ ] **«Dónde va el proyecto» al día** en `AGENT.md`: la fecha, la versión
+      publicada con su código y su etiqueta, lo que esa versión trae, y los
+      pendientes que acaba de resolver. Es lo primero que lee un asistente que
+      empieza de cero, y una sesión nueva no tiene forma de saber que está
+      leyendo una foto vieja. Sin este punto la sección envejece en silencio:
+      ya pasó en la 1.1.9, que salió con la sección diciendo 1.1.8.
 - [ ] **Boletín de la versión**, si hay algo que contar: cadenas
       `boletin_vXYZ_*` en `values/life_strings.xml` y `values-es/`, y una
       entrada en `ui/screens/Boletines.kt` con el `versionCode` nuevo. Sale

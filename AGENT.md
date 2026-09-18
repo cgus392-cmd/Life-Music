@@ -80,11 +80,19 @@ mandan ellos y esta sección está atrasada.
 
 ### Estado
 
-- **Versión publicada: 1.1.8** (código 10, tag `v1.1.8`). Trae el puesto del
-  reto en el mini-reproductor y el recordatorio diario a las 20:00.
-- **Reto de la semana** (13–19 de septiembre, premio solo entregable en el
-  Atlántico): servidor Supabase con validación de plausibilidad y columna
-  `bonus` editable a mano. El módulo se oculta solo el día 22.
+- **Versión publicada: 1.1.9** (código 11, tag `v1.1.9`). Trae la primera pasada
+  propia sobre el modo ambiente —zona de volumen, canvas dentro de la carátula y
+  controles al tocar, cada uno con su interruptor en Apariencia— y el cierre
+  técnico del reto.
+- **Reto de la semana: terminado.** Corrió del 13 al 19 de septiembre (premio
+  solo entregable en el Atlántico). El teléfono ya sabe que acabó y no solo que
+  quedan cero días: a la medianoche de Bogotá el contador en vivo se para, la
+  pantalla pasa a Resultado final con la cifra que confirma el servidor, y la
+  chapita del mini-reproductor se va. Las fechas siguen en `concurso/Concurso.kt`
+  a propósito: un segundo reto necesitaría otra imagen, otro premio y otras
+  reglas, es decir, otra versión. El módulo se oculta solo el día 22.
+- El servidor del reto sigue en Supabase, con validación de plausibilidad y la
+  columna `bonus` editable a mano.
 - **Landing** en `lifemusic.pages.dev` (Cloudflare Pages); `/apk` redirige al
   APK de la última versión en GitHub.
 - CI (*Android CI* + *CodeQL*) en verde desde el 13 de septiembre.
@@ -110,10 +118,12 @@ mandan ellos y esta sección está atrasada.
 ### Pendientes
 
 **Con fecha**
-- Cierre del reto (19 de septiembre): ganador con la consulta del final de
+- Anunciar al ganador del reto: sale de la consulta del final de
   `supabase/concurso.sql` (la columna `retroactivos` sirve para verificarlo);
-  anuncio en Instagram y WhatsApp con las reglas tal como están en la app.
-- Quitar la sección del reto de la landing después del día 22.
+  anuncio en Instagram y WhatsApp con las reglas tal como están en la app. El
+  cierre en la aplicación ya está hecho (1.1.9); esto es lo que queda fuera.
+- Quitar la sección del reto de la landing después del día 22. La esconde sola
+  el 23, pero esconder no es quitar: hay que sacarla de `web/index.html`.
 
 **En la mesa (decide el dueño del proyecto)**
 - Premios para 2.º y 3.º puesto.
@@ -122,6 +132,10 @@ mandan ellos y esta sección está atrasada.
 - Google Search Console para la landing.
 - Registro mínimo del Automix a fichero en release, para diagnosticar sin
   adivinar (la build de producción no escribe registros del servicio).
+
+**Del modo ambiente**
+- Unificar la búsqueda de canvas: salió de `Player.kt` a `BusquedaDeCanvas.kt`
+  para no copiarla una tercera vez, pero `Thumbnail.kt` conserva su variante.
 
 **Diferido a versiones mayores**
 - Automix fase B (curva de energía, downbeats, frases, candidatos tipados).
