@@ -314,7 +314,7 @@ fun OldPlayerMenu(
                     
                     add(
                         Material3MenuItemData(
-                            title = { Text(text = "Ambient Mode") },
+                            title = { Text(text = stringResource(R.string.ambient_mode)) },
                             icon = {
                                 Icon(
                                     painter = painterResource(R.drawable.fullscreen),

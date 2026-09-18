@@ -124,6 +124,14 @@ import kotlinx.coroutines.launch
 import kotlin.math.roundToInt
 import com.cglabs.lifemusic.constants.LyricsClickKey
 import com.cglabs.lifemusic.constants.BrandTitleAlternateKey
+import com.cglabs.lifemusic.constants.AmbienteCanvasKey
+import com.cglabs.lifemusic.constants.AmbienteControlesEstilo
+import com.cglabs.lifemusic.constants.AmbienteControlesEstiloKey
+import com.cglabs.lifemusic.constants.AmbienteControlesKey
+import com.cglabs.lifemusic.constants.AmbienteControlesSegundosDefault
+import com.cglabs.lifemusic.constants.AmbienteControlesSegundosKey
+import com.cglabs.lifemusic.constants.AmbienteZonaVolumen
+import com.cglabs.lifemusic.constants.AmbienteZonaVolumenKey
 import com.cglabs.lifemusic.constants.GreetingEnabledKey
 import com.cglabs.lifemusic.constants.LifeLineCustomColorKey
 import com.cglabs.lifemusic.constants.LifeLineEnabledKey
@@ -256,6 +264,18 @@ highlightKey: String? = null) {
     val (lifeLineCustomColor, onLifeLineCustomColorChange) =
         rememberPreference(LifeLineCustomColorKey, defaultValue = Color.White.toArgb())
     var showLifeLineHighlightDialog by rememberSaveable { mutableStateOf(false) }
+    val (ambienteCanvas, onAmbienteCanvasChange) =
+        rememberPreference(AmbienteCanvasKey, defaultValue = true)
+    val (ambienteZonaVolumen, onAmbienteZonaVolumenChange) =
+        rememberEnumPreference(AmbienteZonaVolumenKey, defaultValue = AmbienteZonaVolumen.DERECHA)
+    val (ambienteControles, onAmbienteControlesChange) =
+        rememberPreference(AmbienteControlesKey, defaultValue = true)
+    val (ambienteControlesEstilo, onAmbienteControlesEstiloChange) =
+        rememberEnumPreference(AmbienteControlesEstiloKey, defaultValue = AmbienteControlesEstilo.CORTE)
+    val (ambienteControlesSegundos, onAmbienteControlesSegundosChange) =
+        rememberPreference(AmbienteControlesSegundosKey, defaultValue = AmbienteControlesSegundosDefault)
+    var showAmbienteZonaDialog by rememberSaveable { mutableStateOf(false) }
+    var showAmbienteEstiloDialog by rememberSaveable { mutableStateOf(false) }
     var showLifeLineCustomColorDialog by rememberSaveable { mutableStateOf(false) }
     val (lyricsScroll, onLyricsScrollChange) = rememberPreference(
         LyricsScrollKey,
@@ -425,6 +445,46 @@ highlightKey: String? = null) {
         )
     }
 
+
+
+    if (showAmbienteEstiloDialog) {
+        EnumDialog(
+            onDismiss = { showAmbienteEstiloDialog = false },
+            onSelect = {
+                onAmbienteControlesEstiloChange(it)
+                showAmbienteEstiloDialog = false
+            },
+            title = stringResource(R.string.ambient_controls_style),
+            current = ambienteControlesEstilo,
+            values = AmbienteControlesEstilo.values().toList(),
+            valueText = {
+                when (it) {
+                    AmbienteControlesEstilo.CORTE -> stringResource(R.string.ambient_controls_style_cut)
+                    AmbienteControlesEstilo.SUAVE -> stringResource(R.string.ambient_controls_style_soft)
+                    AmbienteControlesEstilo.LIMPIO -> stringResource(R.string.ambient_controls_style_clean)
+                }
+            }
+        )
+    }
+    if (showAmbienteZonaDialog) {
+        EnumDialog(
+            onDismiss = { showAmbienteZonaDialog = false },
+            onSelect = {
+                onAmbienteZonaVolumenChange(it)
+                showAmbienteZonaDialog = false
+            },
+            title = stringResource(R.string.ambient_volume_zone),
+            current = ambienteZonaVolumen,
+            values = AmbienteZonaVolumen.values().toList(),
+            valueText = {
+                when (it) {
+                    AmbienteZonaVolumen.DERECHA -> stringResource(R.string.ambient_volume_zone_right)
+                    AmbienteZonaVolumen.IZQUIERDA -> stringResource(R.string.ambient_volume_zone_left)
+                    AmbienteZonaVolumen.DESACTIVADA -> stringResource(R.string.ambient_volume_zone_off)
+                }
+            }
+        )
+    }
     if (showLifeLineHighlightDialog) {
         EnumDialog(
             onDismiss = { showLifeLineHighlightDialog = false },
@@ -1968,6 +2028,107 @@ highlightKey: String? = null) {
                         )
                     },
                     onClick = { onLifeLineTranslationChange(!lifeLineTranslation) }
+                ) else null,
+            )
+        )
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        // Modo ambiente: tres decisiones de CG (18-09-2026), cada una con su
+        // interruptor. Apagadas, la pantalla vuelve a ser la heredada.
+        Material3SettingsGroup(
+            scrollState = scrollState,
+            title = stringResource(R.string.ambient_mode),
+            items = listOfNotNull(
+                Material3SettingsItem(
+                    isHighlighted = (highlightKey == stringResource(R.string.ambient_canvas)),
+                    icon = painterResource(R.drawable.ic_canvas),
+                    title = { Text(stringResource(R.string.ambient_canvas)) },
+                    description = { Text(stringResource(R.string.ambient_canvas_desc)) },
+                    trailingContent = {
+                        Switch(
+                            checked = ambienteCanvas,
+                            onCheckedChange = onAmbienteCanvasChange,
+                            thumbContent = {
+                                Icon(
+                                    painter = painterResource(
+                                        id = if (ambienteCanvas) R.drawable.check else R.drawable.close
+                                    ),
+                                    contentDescription = null,
+                                    modifier = Modifier.size(SwitchDefaults.IconSize)
+                                )
+                            }
+                        )
+                    },
+                    onClick = { onAmbienteCanvasChange(!ambienteCanvas) }
+                ),
+                Material3SettingsItem(
+                    isHighlighted = (highlightKey == stringResource(R.string.ambient_volume_zone)),
+                    icon = painterResource(R.drawable.volume_up),
+                    title = { Text(stringResource(R.string.ambient_volume_zone)) },
+                    description = {
+                        Text(
+                            when (ambienteZonaVolumen) {
+                                AmbienteZonaVolumen.DERECHA -> stringResource(R.string.ambient_volume_zone_right)
+                                AmbienteZonaVolumen.IZQUIERDA -> stringResource(R.string.ambient_volume_zone_left)
+                                AmbienteZonaVolumen.DESACTIVADA -> stringResource(R.string.ambient_volume_zone_off)
+                            }
+                        )
+                    },
+                    onClick = { showAmbienteZonaDialog = true }
+                ),
+                Material3SettingsItem(
+                    isHighlighted = (highlightKey == stringResource(R.string.ambient_controls)),
+                    icon = painterResource(R.drawable.play),
+                    title = { Text(stringResource(R.string.ambient_controls)) },
+                    description = { Text(stringResource(R.string.ambient_controls_desc)) },
+                    trailingContent = {
+                        Switch(
+                            checked = ambienteControles,
+                            onCheckedChange = onAmbienteControlesChange,
+                            thumbContent = {
+                                Icon(
+                                    painter = painterResource(
+                                        id = if (ambienteControles) R.drawable.check else R.drawable.close
+                                    ),
+                                    contentDescription = null,
+                                    modifier = Modifier.size(SwitchDefaults.IconSize)
+                                )
+                            }
+                        )
+                    },
+                    onClick = { onAmbienteControlesChange(!ambienteControles) }
+                ),
+                if (ambienteControles) Material3SettingsItem(
+                    isHighlighted = (highlightKey == stringResource(R.string.ambient_controls_style)),
+                    icon = painterResource(R.drawable.palette),
+                    title = { Text(stringResource(R.string.ambient_controls_style)) },
+                    description = {
+                        Text(
+                            when (ambienteControlesEstilo) {
+                                AmbienteControlesEstilo.CORTE -> stringResource(R.string.ambient_controls_style_cut)
+                                AmbienteControlesEstilo.SUAVE -> stringResource(R.string.ambient_controls_style_soft)
+                                AmbienteControlesEstilo.LIMPIO -> stringResource(R.string.ambient_controls_style_clean)
+                            }
+                        )
+                    },
+                    onClick = { showAmbienteEstiloDialog = true }
+                ) else null,
+                if (ambienteControles) Material3SettingsItem(
+                    isHighlighted = (highlightKey == stringResource(R.string.ambient_controls_seconds)),
+                    icon = painterResource(R.drawable.linear_scale),
+                    title = { Text(stringResource(R.string.ambient_controls_seconds)) },
+                    description = {
+                        Column {
+                            Text(stringResource(R.string.ambient_controls_seconds_value, ambienteControlesSegundos))
+                            Slider(
+                                value = ambienteControlesSegundos.toFloat(),
+                                onValueChange = { onAmbienteControlesSegundosChange(it.roundToInt()) },
+                                valueRange = 2f..15f,
+                                steps = 12
+                            )
+                        }
+                    }
                 ) else null,
             )
         )

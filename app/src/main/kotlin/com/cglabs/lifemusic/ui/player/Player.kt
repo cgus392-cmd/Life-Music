@@ -239,16 +239,9 @@ import androidx.media3.ui.AspectRatioFrameLayout
 import androidx.media3.ui.PlayerView
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsControllerCompat
-import com.cglabs.lifemusic.applecanvas.AppleMusicCanvasProvider
 import com.cglabs.lifemusic.canvas.CanvasArtwork
-import com.cglabs.lifemusic.canvas.TidalCanvasProvider
 import com.cglabs.lifemusic.constants.CanvasThumbnailAnimationKey
 import com.cglabs.lifemusic.extensions.metadata
-import com.cglabs.lifemusic.ui.player.CanvasArtworkPlaybackCache
-import com.cglabs.lifemusic.ui.player.normalizeCanvasArtistName
-import com.cglabs.lifemusic.ui.player.normalizeCanvasSongTitle
-import com.cglabs.lifemusic.echomusiccanvas.echomusicCanvasProvider
-import java.util.Locale
 import kotlin.math.cos
 import kotlin.math.sin
 import androidx.compose.foundation.shape.CircleShape
@@ -687,49 +680,13 @@ fun BottomSheetPlayer(
             return@LaunchedEffect
         }
         val item = mediaMetadata ?: return@LaunchedEffect
-        
-        
-        CanvasArtworkPlaybackCache.get(item.id)?.let { cached ->
-            canvasArtwork = cached
-            return@LaunchedEffect
-        }
 
         if (canvasFetchInFlight) return@LaunchedEffect
         canvasFetchInFlight = true
-        
-        withContext(Dispatchers.IO) {
-            val storefront = Locale.getDefault().country.lowercase(Locale.ROOT).takeIf { it.length == 2 } ?: "us"
-            val requestedTitle = item.title
-            val requestedArtist = item.artists.joinToString { it.name }
-            val requestedAlbum = item.album?.title ?: ""
-            
-            val s = normalizeCanvasSongTitle(requestedTitle)
-            val a = normalizeCanvasArtistName(requestedArtist)
-            
-            val fetched = echomusicCanvasProvider.getBySongArtist(s, a)
-                ?.takeIf { !it.preferredAnimationUrl.isNullOrBlank() }
-                ?: TidalCanvasProvider.getBySongArtist(s, a, requestedAlbum)
-                ?.takeIf { !it.preferredAnimationUrl.isNullOrBlank() }
-                ?: AppleMusicCanvasProvider.getBySongArtist(s, a, requestedAlbum, storefront)
-                ?.takeIf { !it.preferredAnimationUrl.isNullOrBlank() }
-
-            val validated = fetched?.let { artwork ->
-                val localArtists = splitAndNormalizeArtists(requestedArtist)
-                val returnedArtists = splitAndNormalizeArtists(artwork.artist ?: "")
-                val artistMatches = localArtists.isNotEmpty() && returnedArtists.isNotEmpty() &&
-                    (localArtists.any { local -> returnedArtists.any { it.equals(local, ignoreCase = true) } })
-                
-                if (artistMatches) artwork else null
-            }
-
-            withContext(Dispatchers.Main) {
-                canvasArtwork = validated
-                if (validated != null) {
-                    CanvasArtworkPlaybackCache.put(item.id, validated)
-                }
-                canvasFetchInFlight = false
-            }
-        }
+        // La busqueda (cache + proveedores + filtro de artista) vive en
+        // BusquedaDeCanvas.kt; la comparte con el modo ambiente.
+        canvasArtwork = buscarCanvas(item)
+        canvasFetchInFlight = false
     }
 
     val (textButtonColor, iconButtonColor) = when {

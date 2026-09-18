@@ -713,6 +713,28 @@
     <!-- Saludo de entrada -->
     <string name="greeting_enabled">Saludo de entrada</string>
     <string name="greeting_enabled_desc">Una frase de la app antes de Inicio, al arrancar en frío</string>
+
+    <!-- Modo ambiente (CG, 2026-09-18) -->
+    <string name="ambient_mode">Modo ambiente</string>
+    <string name="ambient_settings_desc">Vista a pantalla completa con la carátula y la letra, desde el menú del reproductor</string>
+    <string name="ambient_canvas">Canvas en la carátula</string>
+    <string name="ambient_canvas_desc">Si la canción tiene canvas, el vídeo se reproduce dentro del recuadro de la portada</string>
+    <string name="ambient_volume_zone">Zona de volumen</string>
+    <string name="ambient_volume_zone_desc">Arrastrar arriba o abajo solo cambia el volumen dentro de esta franja; el resto de la pantalla lo ignora</string>
+    <string name="ambient_volume_zone_right">Borde derecho</string>
+    <string name="ambient_volume_zone_left">Borde izquierdo</string>
+    <string name="ambient_volume_zone_off">Desactivada</string>
+    <string name="ambient_controls">Controles al tocar</string>
+    <string name="ambient_controls_desc">Un toque en la carátula asoma anterior, reproducir y siguiente; se esconden a los cinco segundos</string>
+    <string name="ambient_back">Atrás</string>
+    <string name="ambient_previous">Anterior</string>
+    <string name="ambient_next">Siguiente</string>
+    <string name="ambient_controls_style">Estilo de la banda</string>
+    <string name="ambient_controls_style_cut">Corte — banda sólida con filo</string>
+    <string name="ambient_controls_style_soft">Suave — se funde con la carátula</string>
+    <string name="ambient_controls_style_clean">Limpio — solo los iconos</string>
+    <string name="ambient_controls_seconds">Ocultar a los</string>
+    <string name="ambient_controls_seconds_value">%1$d s sin tocarlos</string>
     <string name="greeting_morning">Buenos días</string>
     <string name="greeting_afternoon">Buenas tardes</string>
     <string name="greeting_evening">Buenas noches</string>
@@ -834,6 +856,13 @@
     <string name="concurso_abandonar">Abandonar el reto</string>
     <string name="concurso_abandonar_confirmacion">Se borran tu inscripción, tus minutos, tu nombre y tu correo del servidor. ¿Seguro?</string>
     <string name="concurso_abandonado">Listo. Ya no participas.</string>
+    <!-- Cierre del reto (1.1.9) -->
+    <string name="concurso_resultado_final">Resultado final</string>
+    <string name="concurso_clasificacion_final">Clasificación final</string>
+    <string name="concurso_terminado_nota">El reto terminó el %1$d de septiembre. Los minutos ya no cuentan; el ganador se anuncia en Instagram y en los canales de WhatsApp de Life Music, y se contacta por correo.</string>
+    <string name="concurso_terminado_gracias">El reto terminó el %1$d de septiembre. Gracias por escuchar; el ganador se anuncia en Instagram y WhatsApp.</string>
+    <string name="concurso_compartir_resultado">Compartir resultado</string>
+    <string name="concurso_compartir_texto_final">Terminé el Reto de la semana de Life Music con %1$s 🎧🏆</string>
     <!-- Boletín 1.1.6 -->
     <string name="boletin_v116_titulo_1">Gana unos</string>
     <string name="boletin_v116_titulo_2">AirPods Pro</string>

@@ -192,6 +192,31 @@ val AutomixCierreEntradaKey = floatPreferencesKey("automixCierreEntrada")
 const val AutomixCierreEntradaDefault = 0.5f
 
 /**
+ * Modo ambiente. Tres decisiones de CG (2026-09-18), todas con interruptor:
+ *  - El volumen solo se cambia arrastrando dentro de una franja al borde de la
+ *    pantalla. Antes cualquier arrastre vertical lo tocaba, y bajar la barra de
+ *    notificaciones o un roce bajaban el volumen sin querer.
+ *  - La caratula muestra el canvas (video) de la cancion cuando existe.
+ *  - Un toque en la caratula asoma controles sencillos que se esconden solos.
+ */
+enum class AmbienteZonaVolumen { DERECHA, IZQUIERDA, DESACTIVADA }
+val AmbienteZonaVolumenKey = stringPreferencesKey("ambienteZonaVolumen")
+val AmbienteCanvasKey = booleanPreferencesKey("ambienteCanvas")
+val AmbienteControlesKey = booleanPreferencesKey("ambienteControles")
+
+/**
+ * Como se dibuja la banda de controles sobre la caratula. CORTE es lo que
+ * pidio CG: una banda solida con un filo arriba, como si la portada estuviera
+ * cortada. SUAVE es un degradado; LIMPIO, solo los iconos.
+ */
+enum class AmbienteControlesEstilo { CORTE, SUAVE, LIMPIO }
+val AmbienteControlesEstiloKey = stringPreferencesKey("ambienteControlesEstilo")
+
+/** Segundos que la banda sigue visible sin tocarla. */
+val AmbienteControlesSegundosKey = intPreferencesKey("ambienteControlesSegundos")
+const val AmbienteControlesSegundosDefault = 5
+
+/**
  * Reto de la semana (concurso de minutos). Todo opt-in: sin registro no hay
  * ninguna llamada de red. El id y el secreto se generan en el telefono al
  * registrarse; el servidor solo conoce el hash del secreto.

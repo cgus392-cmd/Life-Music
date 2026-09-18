@@ -1098,6 +1098,28 @@
     <!-- Saludo de entrada -->
     <string name="greeting_enabled">Greeting on launch</string>
     <string name="greeting_enabled_desc">A short line from the app before Home, on cold start</string>
+
+    <!-- Ambient mode (CG, 2026-09-18) -->
+    <string name="ambient_mode">Ambient mode</string>
+    <string name="ambient_settings_desc">Full-screen view with the cover and the lyrics, opened from the player menu</string>
+    <string name="ambient_canvas">Canvas on the cover</string>
+    <string name="ambient_canvas_desc">When the song has a canvas video, it plays inside the cover frame</string>
+    <string name="ambient_volume_zone">Volume zone</string>
+    <string name="ambient_volume_zone_desc">Dragging up or down only changes the volume inside this strip; the rest of the screen ignores it</string>
+    <string name="ambient_volume_zone_right">Right edge</string>
+    <string name="ambient_volume_zone_left">Left edge</string>
+    <string name="ambient_volume_zone_off">Off</string>
+    <string name="ambient_controls">Controls on tap</string>
+    <string name="ambient_controls_desc">Tapping the cover reveals previous, play and next; they hide after five seconds</string>
+    <string name="ambient_back">Back</string>
+    <string name="ambient_previous">Previous</string>
+    <string name="ambient_next">Next</string>
+    <string name="ambient_controls_style">Band style</string>
+    <string name="ambient_controls_style_cut">Cut — solid band with an edge</string>
+    <string name="ambient_controls_style_soft">Soft — fades into the cover</string>
+    <string name="ambient_controls_style_clean">Clean — icons only</string>
+    <string name="ambient_controls_seconds">Hide after</string>
+    <string name="ambient_controls_seconds_value">%1$d s without touching them</string>
     <string name="greeting_morning">Good morning</string>
     <string name="greeting_afternoon">Good afternoon</string>
     <string name="greeting_evening">Good evening</string>
@@ -1213,6 +1235,13 @@
     <string name="concurso_abandonar">Leave the challenge</string>
     <string name="concurso_abandonar_confirmacion">Your entry, minutes, name and email are deleted from the server. Are you sure?</string>
     <string name="concurso_abandonado">Done. You are no longer taking part.</string>
+    <!-- Contest closing (1.1.9) -->
+    <string name="concurso_resultado_final">Final result</string>
+    <string name="concurso_clasificacion_final">Final standings</string>
+    <string name="concurso_terminado_nota">The challenge ended on September %1$d. Minutes no longer count; the winner is announced on Instagram and the Life Music WhatsApp channels, and contacted by email.</string>
+    <string name="concurso_terminado_gracias">The challenge ended on September %1$d. Thanks for listening; the winner is announced on Instagram and WhatsApp.</string>
+    <string name="concurso_compartir_resultado">Share result</string>
+    <string name="concurso_compartir_texto_final">I finished the Life Music Weekly Challenge with %1$s 🎧🏆</string>
     <!-- Bulletin 1.1.6 -->
     <string name="boletin_v116_titulo_1">Win a pair of</string>
     <string name="boletin_v116_titulo_2">AirPods Pro</string>
