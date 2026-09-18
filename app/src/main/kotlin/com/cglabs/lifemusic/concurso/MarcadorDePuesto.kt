@@ -51,7 +51,9 @@ fun MarcadorDePuesto(
     colorFondo: Color,
     modifier: Modifier = Modifier,
 ) {
-    if (!Concurso.visible()) return
+    // Solo mientras se compite: terminado el reto, el puesto final vive en la
+    // pantalla del reto, y una chapita que ya no se mueve solo estorba.
+    if (!Concurso.enVentana()) return
     val id by rememberPreference(ConcursoIdKey, "")
     val puesto by rememberPreference(ConcursoPuestoKey, -1)
     val participantes by rememberPreference(ConcursoParticipantesKey, -1)

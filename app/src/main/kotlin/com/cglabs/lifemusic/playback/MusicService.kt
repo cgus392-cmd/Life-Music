@@ -931,8 +931,18 @@ class MusicService :
             while (isActive) {
                 delay(1_000)
                 if (!com.cglabs.lifemusic.concurso.Concurso.visible()) continue
-                val sonando = player.isPlaying
                 val actual = progresoReto.value
+                // Fuera de la ventana (antes del inicio o pasada la medianoche
+                // del ultimo dia, hora de Bogota) el contador en vivo se para
+                // en seco: el servidor ya no acepta esos minutos y la pantalla
+                // no debe seguir sumando lo que no cuenta.
+                if (!com.cglabs.lifemusic.concurso.Concurso.enVentana()) {
+                    if (actual.reproduciendo || actual.segundosEnCurso != 0) {
+                        progresoReto.value = actual.copy(segundosEnCurso = 0, reproduciendo = false)
+                    }
+                    continue
+                }
+                val sonando = player.isPlaying
                 if (sonando) {
                     progresoReto.value = actual.copy(segundosEnCurso = actual.segundosEnCurso + 1, reproduciendo = true)
                 } else if (actual.reproduciendo) {

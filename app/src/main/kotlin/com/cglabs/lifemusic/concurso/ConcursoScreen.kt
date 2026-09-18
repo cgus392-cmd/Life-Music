@@ -162,12 +162,16 @@ fun ConcursoScreen(
     }
 
     val hoy = Concurso.hoy()
+    val terminado = Concurso.terminado(hoy)
     val totalLocal = Concurso.totalContado(porDia)
-    // En vivo: lo que ya cuenta la base mas la cancion que suena ahora.
-    val enCursoMin = progreso.segundosEnCurso / 60
-    val minutosVivos = maxOf(totalLocal, progreso.minutosTotal) + enCursoMin
-    val minutosHoy = maxOf(Concurso.minutosHoy(porDia), progreso.minutosHoy) + enCursoMin
     val minutosServidor = participacion?.minutosServidor?.takeIf { it >= 0 }
+    // En vivo: lo que ya cuenta la base mas la cancion que suena ahora.
+    // Terminado el reto, la cifra es la que confirmo el servidor (con tope y
+    // bonus) y ya no se mueve: lo que suene desde entonces no cuenta.
+    val enCursoMin = if (terminado) 0 else progreso.segundosEnCurso / 60
+    val minutosVivos = if (terminado) (minutosServidor ?: totalLocal)
+        else maxOf(totalLocal, progreso.minutosTotal) + enCursoMin
+    val minutosHoy = maxOf(Concurso.minutosHoy(porDia), progreso.minutosHoy) + enCursoMin
 
     if (confirmarAbandono) {
         AlertDialog(
@@ -228,16 +232,20 @@ fun ConcursoScreen(
                             minutos = minutosVivos,
                             minutosHoy = minutosHoy,
                             minutosServidor = minutosServidor,
-                            segundosEnCurso = if (progreso.reproduciendo) progreso.segundosEnCurso else 0,
+                            segundosEnCurso = if (progreso.reproduciendo && !terminado) progreso.segundosEnCurso else 0,
                             porDia = porDia,
                             puesto = p.puesto,
                             participantes = p.participantes,
-                            terminado = Concurso.terminado(hoy),
+                            terminado = terminado,
                             animar = animar,
                         )
                     }
                 }
-            } else if (!Concurso.terminado(hoy)) {
+            } else if (terminado) {
+                // Sin inscripcion y con el reto cerrado no hay nada que hacer:
+                // se dice, en vez de dejar un hueco entre la cabecera y el ranking.
+                item { Escalonado(1, animar) { Nota(stringResource(R.string.concurso_terminado_gracias, Concurso.FIN.dayOfMonth)) } }
+            } else {
                 item {
                     Escalonado(1, animar) {
                         if (mostrarRegistro) {
@@ -265,7 +273,7 @@ fun ConcursoScreen(
 
             item { Spacer(Modifier.height(24.dp)) }
 
-            item { Escalonado(2, animar) { TituloSeccion(stringResource(R.string.concurso_ranking)) } }
+            item { Escalonado(2, animar) { TituloSeccion(stringResource(if (terminado) R.string.concurso_clasificacion_final else R.string.concurso_ranking)) } }
             if (cargandoRanking) {
                 item {
                     Box(Modifier.fillMaxWidth().padding(24.dp), contentAlignment = Alignment.Center) {
@@ -288,7 +296,7 @@ fun ConcursoScreen(
             item { TituloSeccion(stringResource(R.string.concurso_reglas)) }
             item { Reglas() }
 
-            if (p != null) {
+            if (p != null && !terminado) {
                 item { Spacer(Modifier.height(16.dp)) }
                 item { InterruptorRecordatorio() }
             }
@@ -496,7 +504,7 @@ private fun TuSemana(
             }
             Spacer(Modifier.height(4.dp))
         }
-        if (minutosServidor != null) {
+        if (minutosServidor != null && !terminado) {
             Text(
                 text = stringResource(R.string.concurso_confirmado, Concurso.formatear(minutosServidor)),
                 style = MaterialTheme.typography.bodySmall,
@@ -505,7 +513,8 @@ private fun TuSemana(
             Spacer(Modifier.height(4.dp))
         }
         Text(
-            text = stringResource(R.string.concurso_como_cuenta),
+            text = if (terminado) stringResource(R.string.concurso_terminado_nota, Concurso.FIN.dayOfMonth)
+                else stringResource(R.string.concurso_como_cuenta),
             style = MaterialTheme.typography.bodySmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             lineHeight = 17.sp,
@@ -529,7 +538,13 @@ private fun TuSemana(
                         val intent = Intent(Intent.ACTION_SEND).apply {
                             type = "image/png"
                             putExtra(Intent.EXTRA_STREAM, uri)
-                            putExtra(Intent.EXTRA_TEXT, context.getString(R.string.concurso_compartir_texto, Concurso.formatear(minutos)))
+                            putExtra(
+                                Intent.EXTRA_TEXT,
+                                context.getString(
+                                    if (terminado) R.string.concurso_compartir_texto_final else R.string.concurso_compartir_texto,
+                                    Concurso.formatear(minutos),
+                                ),
+                            )
                             addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
                         }
                         context.startActivity(Intent.createChooser(intent, context.getString(R.string.concurso_compartir)))
@@ -548,7 +563,7 @@ private fun TuSemana(
         ) {
             Icon(painterResource(R.drawable.share), contentDescription = null, modifier = Modifier.size(20.dp))
             Spacer(Modifier.width(10.dp))
-            Text(stringResource(R.string.concurso_compartir), fontWeight = FontWeight.SemiBold)
+            Text(stringResource(if (terminado) R.string.concurso_compartir_resultado else R.string.concurso_compartir), fontWeight = FontWeight.SemiBold)
         }
     }
 }
@@ -612,7 +627,7 @@ private fun TarjetaConcurso(
                 Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     Icon(painterResource(R.drawable.trophy), contentDescription = null, tint = VERDE_RETO, modifier = Modifier.size(18.dp))
                     Text(
-                        text = stringResource(R.string.concurso_titulo).uppercase(),
+                        text = stringResource(if (terminado) R.string.concurso_resultado_final else R.string.concurso_titulo).uppercase(),
                         style = MaterialTheme.typography.labelMedium,
                         color = VERDE_RETO,
                         letterSpacing = 1.8.sp,
@@ -667,7 +682,8 @@ private fun TarjetaConcurso(
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
                     Text(
-                        text = stringResource(R.string.concurso_gana, Concurso.PREMIO),
+                        text = if (terminado) stringResource(R.string.concurso_fechas, Concurso.INICIO.dayOfMonth, Concurso.FIN.dayOfMonth)
+                            else stringResource(R.string.concurso_gana, Concurso.PREMIO),
                         style = MaterialTheme.typography.labelLarge,
                         color = Color.White.copy(alpha = 0.75f),
                     )

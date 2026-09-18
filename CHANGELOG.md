@@ -15,6 +15,41 @@ esa base**; para la historia anterior, consulte el repositorio de origen.
 
 ---
 
+## [1.1.9] — sin publicar
+
+### Cambiado
+
+- **Modo ambiente, primera pasada propia.** La pantalla venía de Echo tal
+  cual; ahora tiene tres cosas nuestras, cada una con su interruptor en
+  Ajustes → Apariencia → Modo ambiente:
+  - **Zona de volumen.** Antes, cualquier arrastre vertical cambiaba el
+    volumen, y bajar la barra de notificaciones o un roce lo bajaba sin
+    querer. Ahora el volumen solo se toca dentro de una franja al borde
+    derecho (o izquierdo, o ninguna), con su propio indicador discreto en vez
+    del panel del sistema. El barrido horizontal para cambiar de canción
+    sigue en toda la pantalla.
+  - **Canvas en la carátula.** Si la canción tiene canvas, el vídeo se
+    reproduce dentro del recuadro de la portada; si no, la carátula de
+    siempre. Respeta el interruptor general de canvas del reproductor.
+  - **Controles al tocar.** Un toque en la carátula asoma anterior, pausa y
+    siguiente en una banda que sube por el borde inferior de la portada, sin
+    moverla, como si la cortara. Tres estilos (corte sólido, suave, limpio) y
+    los segundos que tardan en esconderse (de 2 a 15; cinco de serie). El
+    doble toque para pausar sigue funcionando.
+- «Ambient Mode» en el menú del reproductor ahora se llama «Modo ambiente».
+- **Cierre del reto de la semana.** La app ya sabe que el reto terminó, no
+  solo que «quedan 0 días»:
+  - A la medianoche del último día (hora de Bogotá) el contador en vivo se
+    para en seco: lo que suene después no se suma ni se muestra sumando.
+  - La pantalla pasa a **Resultado final**: la tarjeta lleva esa etiqueta y las
+    fechas del reto, la cifra es la confirmada por el servidor, el ranking se
+    titula «Clasificación final» y el botón dice «Compartir resultado». Quien
+    no participó ve una nota de cierre en vez de un hueco.
+  - La chapita del puesto en el mini-reproductor y el interruptor del
+    recordatorio desaparecen al terminar (el recordatorio ya no se programaba).
+  - El servidor ya rechazaba minutos fuera de fecha; esto es lo que faltaba en
+    el teléfono. El módulo sigue ocultándose solo el día 22.
+
 ## [1.1.8] — 2026-09-17
 
 Dos cosas pequeñas para la semana del reto, que es esta. Todo lo demás sigue
