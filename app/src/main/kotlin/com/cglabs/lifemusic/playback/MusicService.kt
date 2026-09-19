@@ -132,6 +132,13 @@ import com.cglabs.lifemusic.constants.PreloadNextSongLimitKey
 import com.cglabs.lifemusic.constants.PreventDuplicateTracksInQueueKey
 import com.cglabs.lifemusic.constants.SimilarContent
 import com.cglabs.lifemusic.constants.SkipSilenceInstantKey
+import com.cglabs.lifemusic.constants.EnvolventeAmplitudKey
+import com.cglabs.lifemusic.constants.EnvolventeCrossfeedKey
+import com.cglabs.lifemusic.constants.EnvolventeEnabledKey
+import com.cglabs.lifemusic.constants.EnvolventePreset
+import com.cglabs.lifemusic.constants.EnvolventeSalaKey
+import com.cglabs.lifemusic.constants.EnvolventeTamano
+import com.cglabs.lifemusic.constants.EnvolventeTamanoKey
 import com.cglabs.lifemusic.constants.SkipSilenceKey
 import com.cglabs.lifemusic.constants.IpVersionKey
 import com.music.innertube.models.IpVersion
@@ -148,6 +155,7 @@ import com.cglabs.lifemusic.db.entities.Song
 import com.cglabs.lifemusic.di.DownloadCache
 import com.cglabs.lifemusic.di.PlayerCache
 import com.cglabs.lifemusic.eq.EqualizerService
+import com.cglabs.lifemusic.eq.audio.SurroundAudioProcessor
 import com.cglabs.lifemusic.eq.audio.TransitionFilterAudioProcessor
 import com.cglabs.lifemusic.playback.audio.ConduccionAutomix
 import com.cglabs.lifemusic.playback.audio.EstiloTransicion
@@ -363,6 +371,16 @@ class MusicService :
      * en curso, que se sumaran cuando termine. Es lo que hace que el usuario
      * vea subir sus minutos mientras escucha, y no solo al reabrir la pantalla.
      */
+
+    /** Lo que el usuario pidio para el envolvente, ya en 0..1; todo a cero = apagado. */
+    data class EnvolventeParams(
+        val amplitud: Float = 0f,
+        val crossfeed: Float = 0f,
+        val sala: Float = 0f,
+        val tamano: SurroundAudioProcessor.Sala = SurroundAudioProcessor.Sala.MEDIA,
+    ) {
+        fun aplicar(p: SurroundAudioProcessor) = p.setParams(amplitud, crossfeed, sala, tamano)
+    }
     data class ProgresoReto(
         val minutosHoy: Int = 0,
         val minutosTotal: Int = 0,
@@ -535,6 +553,9 @@ class MusicService :
     var vocalReducer: VocalReducerAudioProcessor? = null
         private set
     private val playerFilters = HashMap<Player, TransitionFilterAudioProcessor>()
+    // Un envolvente por plato: los dos del Automix suenan igual de anchos.
+    private val playerSurround = HashMap<Player, SurroundAudioProcessor>()
+    @Volatile private var envolventeActual: EnvolventeParams = EnvolventeParams()
 
 
     private val instantSilenceSkipEnabled = MutableStateFlow(false)
@@ -1030,6 +1051,28 @@ class MusicService :
             .distinctUntilChanged()
             .collect(scope) { fuerza -> vocalReducer?.setStrength(fuerza) }
 
+        // Sonido envolvente: cuatro cifras y un interruptor. Apagado, los tres
+        // parametros van a cero y el procesador deja pasar el buffer bit a bit.
+        dataStore.data
+            .map {
+                val activo = (try { it[EnvolventeEnabledKey] } catch (e: Exception) { null }) ?: false
+                if (!activo) EnvolventeParams() else EnvolventeParams(
+                    amplitud = ((try { it[EnvolventeAmplitudKey] } catch (e: Exception) { null }) ?: EnvolventePreset.SALA.amplitud) / 100f,
+                    crossfeed = ((try { it[EnvolventeCrossfeedKey] } catch (e: Exception) { null }) ?: EnvolventePreset.SALA.crossfeed) / 100f,
+                    sala = ((try { it[EnvolventeSalaKey] } catch (e: Exception) { null }) ?: EnvolventePreset.SALA.sala) / 100f,
+                    tamano = when (try { it[EnvolventeTamanoKey] } catch (e: Exception) { null }) {
+                        EnvolventeTamano.PEQUENA.name -> SurroundAudioProcessor.Sala.PEQUENA
+                        EnvolventeTamano.GRANDE.name -> SurroundAudioProcessor.Sala.GRANDE
+                        else -> SurroundAudioProcessor.Sala.MEDIA
+                    },
+                )
+            }
+            .distinctUntilChanged()
+            .collect(scope) { params ->
+                envolventeActual = params
+                playerSurround.values.forEach { params.aplicar(it) }
+            }
+
         dataStore.data
             .map { ((try { it[SkipSilenceKey] } catch(e: Exception) { null }) ?: false) to ((try { it[SkipSilenceInstantKey] } catch(e: Exception) { null }) ?: false) }
             .distinctUntilChanged()
@@ -1264,6 +1307,9 @@ class MusicService :
 
         val filtro = TransitionFilterAudioProcessor()
 
+        val envolvente = SurroundAudioProcessor()
+        envolventeActual.aplicar(envolvente)
+
         val vocalProcessor = VocalReducerAudioProcessor()
         vocalReducer = vocalProcessor
 
@@ -1278,7 +1324,7 @@ class MusicService :
 
         val player = ExoPlayer.Builder(this)
             .setMediaSourceFactory(createMediaSourceFactory())
-            .setRenderersFactory(createRenderersFactory(eqProcessor, silenceProcessor, filtro, vocalProcessor))
+            .setRenderersFactory(createRenderersFactory(eqProcessor, silenceProcessor, filtro, vocalProcessor, envolvente))
             .setLoadControl(
                 DefaultLoadControl.Builder()
                     .setBufferDurationsMs(50_000, 50_000, 750, 2_000)
@@ -1300,6 +1346,7 @@ class MusicService :
 
         playerSilenceProcessors[player] = silenceProcessor
         playerFilters[player] = filtro
+        playerSurround[player] = envolvente
 
         player.apply {
                 runBlocking {
@@ -3279,6 +3326,7 @@ class MusicService :
         silenceProcessor: SilenceDetectorAudioProcessor,
         filtro: TransitionFilterAudioProcessor,
         vocalProcessor: VocalReducerAudioProcessor,
+        envolvente: SurroundAudioProcessor,
     ) =
         object : DefaultRenderersFactory(this) {
             override fun buildAudioSink(
@@ -3306,6 +3354,9 @@ class MusicService :
                             // barrido cuando los tempos no casan.
                             filtro,
                             silenceProcessor,
+                            // El envolvente va despues del detector de silencio para
+                            // que la cola de la sala no le tape un final real.
+                            envolvente,
                         ),
                         SilenceSkippingAudioProcessor(2_000_000, 20_000, 256),
                         SonicAudioProcessor(),
@@ -4096,6 +4147,7 @@ class MusicService :
         val pb = prebuffered ?: return
         prebuffered = null
         playerFilters.remove(pb.player)
+        playerSurround.remove(pb.player)
         playerSilenceProcessors.remove(pb.player)
         try {
             pb.player.removeListener(secondaryPlayerListener)

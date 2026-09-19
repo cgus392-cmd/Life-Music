@@ -729,6 +729,28 @@
     <string name="ambient_back">Atrás</string>
     <string name="ambient_previous">Anterior</string>
     <string name="ambient_next">Siguiente</string>
+    <!-- Sonido envolvente (1.1.10) -->
+    <string name="experimental">Experimental</string>
+    <string name="envolvente">Sonido envolvente</string>
+    <string name="envolvente_desc">Amplitud estéreo, crossfeed de auriculares y sala, hechos en casa. Colorea el sonido: pruébalo con tu música y decide.</string>
+    <string name="envolvente_preset">Preajuste</string>
+    <string name="envolvente_preset_auriculares">Auriculares — cerca, sin cabeza partida</string>
+    <string name="envolvente_preset_estudio">Estudio — seco y un poco más ancho</string>
+    <string name="envolvente_preset_sala">Sala — el equilibrio</string>
+    <string name="envolvente_preset_concierto">Concierto — ancho y con cola</string>
+    <string name="envolvente_preset_personalizado">Personalizado</string>
+    <string name="envolvente_amplitud">Amplitud</string>
+    <string name="envolvente_amplitud_desc">Cuánto se abre la imagen estéreo</string>
+    <string name="envolvente_crossfeed">Crossfeed</string>
+    <string name="envolvente_crossfeed_desc">Cuánto oye cada oído del canal contrario, como con altavoces</string>
+    <string name="envolvente_sala">Sala</string>
+    <string name="envolvente_sala_desc">Cuánta sala rodea a la música</string>
+    <string name="envolvente_tamano">Tamaño de la sala</string>
+    <string name="envolvente_tamano_pequena">Pequeña</string>
+    <string name="envolvente_tamano_media">Media</string>
+    <string name="envolvente_tamano_grande">Grande</string>
+    <string name="envolvente_telefono">Efectos de sonido del teléfono</string>
+    <string name="envolvente_telefono_desc">Abre el panel del fabricante (en Samsung, Dolby Atmos). Se aplica a Life Music como a cualquier app.</string>
     <string name="ambient_controls_style">Estilo de la banda</string>
     <string name="ambient_controls_style_cut">Corte — banda sólida con filo</string>
     <string name="ambient_controls_style_soft">Suave — se funde con la carátula</string>
@@ -863,6 +885,12 @@
     <string name="concurso_terminado_gracias">El reto terminó el %1$d de septiembre. Gracias por escuchar; el ganador se anuncia en Instagram y WhatsApp.</string>
     <string name="concurso_compartir_resultado">Compartir resultado</string>
     <string name="concurso_compartir_texto_final">Terminé el Reto de la semana de Life Music con %1$s 🎧🏆</string>
+    <!-- Anuncio del ganador (1.1.10) -->
+    <string name="concurso_ganador_tarjeta">Ganador del reto</string>
+    <string name="concurso_ganador_felicidades">¡Eres tú! Revisa tu correo: te escribimos para la entrega.</string>
+    <string name="concurso_ganador_notif_titulo">Ya hay ganador del reto</string>
+    <string name="concurso_ganador_notif_texto">Ganó %1$s. Gracias por escuchar con Life Music.</string>
+    <string name="concurso_ganador_eres_tu">¡Ganaste el reto! Revisa tu correo: te escribimos para la entrega.</string>
     <!-- Boletín 1.1.6 -->
     <string name="boletin_v116_titulo_1">Gana unos</string>
     <string name="boletin_v116_titulo_2">AirPods Pro</string>
@@ -914,4 +942,14 @@
     <string name="boletin_v119_reto_t">El reto cierra bien</string>
     <string name="boletin_v119_reto">Pasado el 19, tu tarjeta pasa a Resultado final con la cifra confirmada, y el ranking a Clasificación final. El ganador se anuncia en Instagram y WhatsApp.</string>
     <string name="boletin_v119_ademas_1">Todo el modo ambiente se configura en Ajustes → Apariencia → Modo ambiente: lado de la franja, estilo de la banda, segundos hasta esconderse.</string>
+    <string name="boletin_v1110_titulo_1">Sonido envolvente,</string>
+    <string name="boletin_v1110_titulo_2">hecho en casa</string>
+    <string name="boletin_v1110_intro">Un procesador propio para que la música te rodee, y el reto se cierra con su ganador dentro de la app.</string>
+    <string name="boletin_v1110_envolvente_t">Amplitud, crossfeed y sala</string>
+    <string name="boletin_v1110_envolvente">Tres etapas medidas con tonos, no con adjetivos. Presets Auriculares, Estudio, Sala y Concierto, y tres deslizadores. Experimental y apagado de serie: pruébalo con tu música.</string>
+    <string name="boletin_v1110_telefono_t">Y el Dolby de tu teléfono</string>
+    <string name="boletin_v1110_telefono">Una fila abre el panel de efectos del fabricante; en Samsung es Dolby Atmos, y se aplica a Life Music como a cualquier app.</string>
+    <string name="boletin_v1110_ganador_t">El ganador, en el reto</string>
+    <string name="boletin_v1110_ganador">Cuando se anuncie, la pantalla del reto lo muestra y quien participó recibe un aviso. Gracias por jugar.</string>
+    <string name="boletin_v1110_ademas_1">Todo en Ajustes → Reproductor → Sonido envolvente.</string>
 </resources>

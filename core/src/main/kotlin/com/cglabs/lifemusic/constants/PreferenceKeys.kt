@@ -217,6 +217,35 @@ val AmbienteControlesSegundosKey = intPreferencesKey("ambienteControlesSegundos"
 const val AmbienteControlesSegundosDefault = 5
 
 /**
+ * Sonido envolvente (experimental). Tres etapas propias en la cadena de audio
+ * —amplitud estereo, crossfeed de auriculares y sala— cada una de 0 a 100, y
+ * un tamano de sala. Apagado de serie: colorea el sonido y no todo el mundo lo
+ * quiere. Los presets escriben las cuatro cifras; tocar un deslizador pasa el
+ * preset a PERSONALIZADO. No es Dolby ni se llama asi: es DSP de la casa.
+ */
+val EnvolventeEnabledKey = booleanPreferencesKey("envolventeEnabled")
+val EnvolventeAmplitudKey = intPreferencesKey("envolventeAmplitud")
+val EnvolventeCrossfeedKey = intPreferencesKey("envolventeCrossfeed")
+val EnvolventeSalaKey = intPreferencesKey("envolventeSala")
+val EnvolventeTamanoKey = stringPreferencesKey("envolventeTamano")
+val EnvolventePresetKey = stringPreferencesKey("envolventePreset")
+
+enum class EnvolventeTamano { PEQUENA, MEDIA, GRANDE }
+
+enum class EnvolventePreset(val amplitud: Int, val crossfeed: Int, val sala: Int, val tamano: EnvolventeTamano) {
+    /** Auriculares: sobre todo crossfeed, casi sin sala. Quita la «cabeza partida». */
+    AURICULARES(25, 70, 15, EnvolventeTamano.PEQUENA),
+    /** Estudio: sala pequena y seca, imagen un poco mas ancha. */
+    ESTUDIO(35, 40, 30, EnvolventeTamano.PEQUENA),
+    /** Sala: el equilibrio. Es el que se escribe la primera vez que se enciende. */
+    SALA(45, 40, 55, EnvolventeTamano.MEDIA),
+    /** Concierto: ancho y con cola larga. */
+    CONCIERTO(60, 30, 80, EnvolventeTamano.GRANDE),
+    /** Lo que el usuario haya dejado en los deslizadores. */
+    PERSONALIZADO(0, 0, 0, EnvolventeTamano.MEDIA),
+}
+
+/**
  * Reto de la semana (concurso de minutos). Todo opt-in: sin registro no hay
  * ninguna llamada de red. El id y el secreto se generan en el telefono al
  * registrarse; el servidor solo conoce el hash del secreto.
@@ -233,6 +262,11 @@ val ConcursoUltimoEnvioKey = longPreferencesKey("concursoUltimoEnvio")
 val ConcursoRechazadoKey = booleanPreferencesKey("concursoRechazado")
 /** Recordatorio diario del reto a las 8 de la noche (solo inscritos). */
 val ConcursoRecordatorioKey = booleanPreferencesKey("concursoRecordatorio")
+/** Anuncio del ganador, leido del servidor (concurso_estado) cuando CG lo publica. */
+val ConcursoGanadorKey = stringPreferencesKey("concursoGanador")
+val ConcursoAnuncioKey = stringPreferencesKey("concursoAnuncio")
+/** Apodo del ganador ya notificado, para avisar una sola vez. */
+val ConcursoAnuncioNotificadoKey = stringPreferencesKey("concursoAnuncioNotificado")
 
 
 val MaxImageCacheSizeKey = intPreferencesKey("maxImageCacheSize")

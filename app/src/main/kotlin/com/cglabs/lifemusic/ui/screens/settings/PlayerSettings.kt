@@ -3,6 +3,12 @@
 package com.cglabs.lifemusic.ui.screens.settings
 
 import androidx.compose.foundation.layout.Column
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.ui.Alignment
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsetsSides
 import androidx.compose.foundation.layout.height
@@ -48,6 +54,14 @@ import com.cglabs.lifemusic.constants.AutomixEstilo
 import com.cglabs.lifemusic.constants.AutomixEstiloKey
 import com.cglabs.lifemusic.constants.AutomixModo
 import com.cglabs.lifemusic.constants.AutomixModoKey
+import com.cglabs.lifemusic.constants.EnvolventeAmplitudKey
+import com.cglabs.lifemusic.constants.EnvolventeCrossfeedKey
+import com.cglabs.lifemusic.constants.EnvolventeEnabledKey
+import com.cglabs.lifemusic.constants.EnvolventePreset
+import com.cglabs.lifemusic.constants.EnvolventePresetKey
+import com.cglabs.lifemusic.constants.EnvolventeSalaKey
+import com.cglabs.lifemusic.constants.EnvolventeTamano
+import com.cglabs.lifemusic.constants.EnvolventeTamanoKey
 import com.cglabs.lifemusic.constants.CrossfadeDurationKey
 import com.cglabs.lifemusic.constants.CrossfadeEnabledKey
 import com.cglabs.lifemusic.constants.CrossfadeGaplessKey
@@ -133,6 +147,22 @@ highlightKey: String? = null) {
     )
     var showAutomixModoDialog by remember { mutableStateOf(false) }
     var showAutomixEstiloDialog by remember { mutableStateOf(false) }
+    val (envolventeEnabled, onEnvolventeEnabledChange) = rememberPreference(EnvolventeEnabledKey, defaultValue = false)
+    val (envolventePreset, onEnvolventePresetChange) = rememberEnumPreference(EnvolventePresetKey, defaultValue = EnvolventePreset.SALA)
+    val (envolventeAmplitud, onEnvolventeAmplitudChange) = rememberPreference(EnvolventeAmplitudKey, defaultValue = EnvolventePreset.SALA.amplitud)
+    val (envolventeCrossfeed, onEnvolventeCrossfeedChange) = rememberPreference(EnvolventeCrossfeedKey, defaultValue = EnvolventePreset.SALA.crossfeed)
+    val (envolventeSala, onEnvolventeSalaChange) = rememberPreference(EnvolventeSalaKey, defaultValue = EnvolventePreset.SALA.sala)
+    val (envolventeTamano, onEnvolventeTamanoChange) = rememberEnumPreference(EnvolventeTamanoKey, defaultValue = EnvolventePreset.SALA.tamano)
+    var showEnvolventePresetDialog by remember { mutableStateOf(false) }
+    var showEnvolventeTamanoDialog by remember { mutableStateOf(false) }
+    // El panel de efectos del fabricante (Samsung: «Calidad y efectos de sonido»,
+    // donde vive su Dolby Atmos). Si nadie responde al intent, la fila no existe.
+    val ctxEnvolvente = androidx.compose.ui.platform.LocalContext.current
+    val panelEfectosDelTelefono = remember(ctxEnvolvente) {
+        val intent = Intent(android.media.audiofx.AudioEffect.ACTION_DISPLAY_AUDIO_EFFECT_CONTROL_PANEL)
+            .putExtra(android.media.audiofx.AudioEffect.EXTRA_PACKAGE_NAME, ctxEnvolvente.packageName)
+        if (intent.resolveActivity(ctxEnvolvente.packageManager) != null) intent else null
+    }
     val (crossfadeGapless, onCrossfadeGaplessChange) = rememberPreference(
         CrossfadeGaplessKey,
         defaultValue = true
@@ -328,6 +358,42 @@ highlightKey: String? = null) {
         )
     }
 
+
+    if (showEnvolventePresetDialog) {
+        EnumDialog(
+            onDismiss = { showEnvolventePresetDialog = false },
+            onSelect = { preset ->
+                // El preset escribe las cuatro cifras; Personalizado no toca nada.
+                if (preset != EnvolventePreset.PERSONALIZADO) {
+                    onEnvolventeAmplitudChange(preset.amplitud)
+                    onEnvolventeCrossfeedChange(preset.crossfeed)
+                    onEnvolventeSalaChange(preset.sala)
+                    onEnvolventeTamanoChange(preset.tamano)
+                }
+                onEnvolventePresetChange(preset)
+                showEnvolventePresetDialog = false
+            },
+            title = stringResource(R.string.envolvente_preset),
+            current = envolventePreset,
+            values = EnvolventePreset.values().toList(),
+            valueText = { nombrePreset(it) }
+        )
+    }
+
+    if (showEnvolventeTamanoDialog) {
+        EnumDialog(
+            onDismiss = { showEnvolventeTamanoDialog = false },
+            onSelect = {
+                onEnvolventeTamanoChange(it)
+                onEnvolventePresetChange(EnvolventePreset.PERSONALIZADO)
+                showEnvolventeTamanoDialog = false
+            },
+            title = stringResource(R.string.envolvente_tamano),
+            current = envolventeTamano,
+            values = EnvolventeTamano.values().toList(),
+            valueText = { nombreTamano(it) }
+        )
+    }
     if (showAutomixEstiloDialog) {
         EnumDialog(
             onDismiss = { showAutomixEstiloDialog = false },
@@ -899,8 +965,118 @@ highlightKey: String? = null) {
             }
         )
 
-        
 
+
+        // Sonido envolvente (experimental): DSP propio, apagado de serie. Los
+        // presets escriben las cuatro cifras; mover un deslizador lo pasa a
+        // Personalizado. La ultima fila abre el panel de efectos del telefono
+        // (en Samsung es el Dolby Atmos de verdad), solo si el sistema lo tiene.
+        Material3SettingsGroup(
+            scrollState = scrollState,
+            title = stringResource(R.string.envolvente),
+            items = listOfNotNull(
+                Material3SettingsItem(
+                    isHighlighted = (highlightKey == stringResource(R.string.envolvente)),
+                    icon = painterResource(R.drawable.envolvente),
+                    title = {
+                        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                            Text(stringResource(R.string.envolvente), modifier = Modifier.weight(1f, fill = false))
+                            EtiquetaExperimental()
+                        }
+                    },
+                    description = { Text(stringResource(R.string.envolvente_desc)) },
+                    trailingContent = {
+                        Switch(
+                            checked = envolventeEnabled,
+                            onCheckedChange = onEnvolventeEnabledChange,
+                            thumbContent = {
+                                Icon(
+                                    painter = painterResource(
+                                        id = if (envolventeEnabled) R.drawable.check else R.drawable.close
+                                    ),
+                                    contentDescription = null,
+                                    modifier = Modifier.size(SwitchDefaults.IconSize)
+                                )
+                            }
+                        )
+                    },
+                    onClick = { onEnvolventeEnabledChange(!envolventeEnabled) }
+                ),
+                if (envolventeEnabled) Material3SettingsItem(
+                    isHighlighted = (highlightKey == stringResource(R.string.envolvente_preset)),
+                    icon = painterResource(R.drawable.tune),
+                    title = { Text(stringResource(R.string.envolvente_preset)) },
+                    description = { Text(nombrePreset(envolventePreset)) },
+                    onClick = { showEnvolventePresetDialog = true }
+                ) else null,
+                if (envolventeEnabled) Material3SettingsItem(
+                    isHighlighted = (highlightKey == stringResource(R.string.envolvente_amplitud)),
+                    icon = painterResource(R.drawable.linear_scale),
+                    title = { Text(stringResource(R.string.envolvente_amplitud)) },
+                    description = {
+                        Column {
+                            Text(stringResource(R.string.envolvente_amplitud_desc))
+                            Slider(
+                                value = envolventeAmplitud.toFloat(),
+                                onValueChange = { onEnvolventeAmplitudChange(it.roundToInt()); onEnvolventePresetChange(EnvolventePreset.PERSONALIZADO) },
+                                valueRange = 0f..100f,
+                                steps = 19
+                            )
+                        }
+                    }
+                ) else null,
+                if (envolventeEnabled) Material3SettingsItem(
+                    isHighlighted = (highlightKey == stringResource(R.string.envolvente_crossfeed)),
+                    icon = painterResource(R.drawable.linear_scale),
+                    title = { Text(stringResource(R.string.envolvente_crossfeed)) },
+                    description = {
+                        Column {
+                            Text(stringResource(R.string.envolvente_crossfeed_desc))
+                            Slider(
+                                value = envolventeCrossfeed.toFloat(),
+                                onValueChange = { onEnvolventeCrossfeedChange(it.roundToInt()); onEnvolventePresetChange(EnvolventePreset.PERSONALIZADO) },
+                                valueRange = 0f..100f,
+                                steps = 19
+                            )
+                        }
+                    }
+                ) else null,
+                if (envolventeEnabled) Material3SettingsItem(
+                    isHighlighted = (highlightKey == stringResource(R.string.envolvente_sala)),
+                    icon = painterResource(R.drawable.linear_scale),
+                    title = { Text(stringResource(R.string.envolvente_sala)) },
+                    description = {
+                        Column {
+                            Text(stringResource(R.string.envolvente_sala_desc))
+                            Slider(
+                                value = envolventeSala.toFloat(),
+                                onValueChange = { onEnvolventeSalaChange(it.roundToInt()); onEnvolventePresetChange(EnvolventePreset.PERSONALIZADO) },
+                                valueRange = 0f..100f,
+                                steps = 19
+                            )
+                        }
+                    }
+                ) else null,
+                if (envolventeEnabled) Material3SettingsItem(
+                    isHighlighted = (highlightKey == stringResource(R.string.envolvente_tamano)),
+                    icon = painterResource(R.drawable.fullscreen),
+                    title = { Text(stringResource(R.string.envolvente_tamano)) },
+                    description = { Text(nombreTamano(envolventeTamano)) },
+                    onClick = { showEnvolventeTamanoDialog = true }
+                ) else null,
+                if (panelEfectosDelTelefono != null) Material3SettingsItem(
+                    isHighlighted = (highlightKey == stringResource(R.string.envolvente_telefono)),
+                    icon = painterResource(R.drawable.settings),
+                    title = { Text(stringResource(R.string.envolvente_telefono)) },
+                    description = { Text(stringResource(R.string.envolvente_telefono_desc)) },
+                    onClick = {
+                        try { context.startActivity(panelEfectosDelTelefono) } catch (e: Exception) { /* sin panel: la fila no deberia existir */ }
+                    }
+                ) else null,
+            )
+        )
+
+        Spacer(modifier = Modifier.height(16.dp))
         Spacer(modifier = Modifier.height(16.dp))
 
         Material3SettingsGroup(scrollState = scrollState, 
@@ -1280,4 +1456,35 @@ private fun textoEstiloAutomix(estilo: AutomixEstilo) = when (estilo) {
     AutomixEstilo.FILTRO -> R.string.automix_estilo_filtro
     AutomixEstilo.PLANO -> R.string.automix_estilo_plano
     AutomixEstilo.CIERRE -> R.string.automix_estilo_cierre
+}
+
+@Composable
+private fun nombrePreset(p: EnvolventePreset): String = when (p) {
+    EnvolventePreset.AURICULARES -> stringResource(R.string.envolvente_preset_auriculares)
+    EnvolventePreset.ESTUDIO -> stringResource(R.string.envolvente_preset_estudio)
+    EnvolventePreset.SALA -> stringResource(R.string.envolvente_preset_sala)
+    EnvolventePreset.CONCIERTO -> stringResource(R.string.envolvente_preset_concierto)
+    EnvolventePreset.PERSONALIZADO -> stringResource(R.string.envolvente_preset_personalizado)
+}
+
+@Composable
+private fun nombreTamano(t: EnvolventeTamano): String = when (t) {
+    EnvolventeTamano.PEQUENA -> stringResource(R.string.envolvente_tamano_pequena)
+    EnvolventeTamano.MEDIA -> stringResource(R.string.envolvente_tamano_media)
+    EnvolventeTamano.GRANDE -> stringResource(R.string.envolvente_tamano_grande)
+}
+
+/** Chip pequeño «Experimental», al lado del título de la función. */
+@Composable
+private fun EtiquetaExperimental() {
+    Text(
+        text = stringResource(R.string.experimental).uppercase(),
+        style = MaterialTheme.typography.labelSmall,
+        maxLines = 1,
+        softWrap = false,
+        color = MaterialTheme.colorScheme.onTertiaryContainer,
+        modifier = Modifier
+            .background(MaterialTheme.colorScheme.tertiaryContainer, RoundedCornerShape(6.dp))
+            .padding(horizontal = 6.dp, vertical = 2.dp)
+    )
 }
