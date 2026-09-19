@@ -22,6 +22,9 @@ data class EstadoConcurso(
     val topeMinDia: Int,
     val premio: String,
     val participantes: Int,
+    /** Apodo del ganador y texto del anuncio; vacios hasta que CG los publique. */
+    val ganadorApodo: String = "",
+    val anuncio: String = "",
 )
 
 /** Respuesta de registrar/reportar: ok, o un error con nombre. */
@@ -120,6 +123,8 @@ object ConcursoApi {
                 topeMinDia = it.optInt("tope_min_dia", Concurso.TOPE_MIN_DIA),
                 premio = it.optString("premio", Concurso.PREMIO),
                 participantes = it.optInt("participantes", 0),
+                ganadorApodo = it.optString("ganador_apodo", "").takeUnless { s -> s == "null" }.orEmpty().trim(),
+                anuncio = it.optString("anuncio", "").takeUnless { s -> s == "null" }.orEmpty().trim(),
             )
         }
 

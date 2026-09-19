@@ -28,7 +28,7 @@ object Concurso {
     const val PREMIO = "AirPods Pro"
 
     /** Cuantos dias despues del fin sigue visible, para ver el resultado. */
-    private const val DIAS_DE_GRACIA = 3L
+    private const val DIAS_DE_GRACIA = 7L
 
     /** Sin URL y clave en local.properties el modulo no existe: ni icono ni llamadas. */
     val configurado: Boolean

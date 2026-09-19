@@ -98,6 +98,15 @@ class App : Application(), SingletonImageLoader.Factory {
         // Recordatorio diario del reto, si procede (la clase decide).
         com.cglabs.lifemusic.concurso.RecordatorioReto.programar(this)
 
+        // Terminado el reto, al arrancar se pregunta si ya hay ganador: es la
+        // unica llamada de red del modulo que hace quien no participa, y solo
+        // durante los dias de gracia.
+        if (com.cglabs.lifemusic.concurso.Concurso.visible() && com.cglabs.lifemusic.concurso.Concurso.terminado()) {
+            CoroutineScope(Dispatchers.IO).launch {
+                try { com.cglabs.lifemusic.concurso.AnuncioDelReto.comprobar(this@App) } catch (e: Exception) { /* sin red: se reintenta en el proximo arranque */ }
+            }
+        }
+
         // Aviso de version nueva aunque la app no este abierta (ver la clase).
         if (com.cglabs.lifemusic.appcore.updater.getAutoUpdateCheckSetting(this)) {
             com.cglabs.lifemusic.appcore.updater.ComprobadorDeActualizaciones.programar(this)

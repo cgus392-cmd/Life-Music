@@ -15,6 +15,31 @@ esa base**; para la historia anterior, consulte el repositorio de origen.
 
 ---
 
+## [1.1.10] — sin publicar
+
+### Añadido
+
+- **Sonido envolvente (experimental).** Tres etapas propias dentro de la
+  cadena de audio, donde ninguna capa del fabricante las pisa: **amplitud**
+  estéreo (mid/side con compensación de ganancia), **crossfeed** de
+  auriculares (0,35 ms de retardo y agudos recortados, como llega el sonido
+  al oído lejano) y **sala** (seis reflexiones tempranas cruzadas y una cola
+  Schroeder con amortiguación, en tres tamaños). Presets Auriculares, Estudio,
+  Sala y Concierto, tres deslizadores y tamaño de sala; apagado de serie.
+  Todo O(1) por muestra, sin FFT. Medido en `SurroundTest` con tonos y
+  ráfagas: el lado sube y el centro no, el crossfeed cruza graves y no
+  agudos, la cola decae y se extingue, y apagado el buffer sale bit a bit.
+  No es Dolby ni se llama así: es DSP de la casa. Debajo, una fila abre el
+  panel de efectos del teléfono (en Samsung, su Dolby Atmos), que se aplica a
+  Life Music como a cualquier app.
+- **Anuncio del ganador del reto.** CG lo escribe en el servidor (dos
+  columnas nuevas, parche `supabase/concurso_anuncio.sql`) cuando esté
+  verificado, y la app lo lee al abrir el reto o al arrancar tras el fin:
+  tarjeta con el ganador y su texto arriba de la clasificación, y una
+  notificación una sola vez a quien participó («¡Ganaste!» si es él). Se puede
+  corregir o retirar sin publicar nada. El módulo sigue visible siete días
+  tras el fin (antes tres) para que el anuncio llegue.
+
 ## [1.1.9] — 2026-09-18
 
 ### Cambiado

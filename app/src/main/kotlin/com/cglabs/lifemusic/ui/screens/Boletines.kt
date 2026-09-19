@@ -156,7 +156,25 @@ object Boletines {
         rutaAjustes = "settings/appearance",
     )
 
-    val todos: List<BoletinDeVersion> = listOf(v115, v116, v117, v118, v119)
+    private val v1110 = BoletinDeVersion(
+        versionCode = 12,
+        versionName = "1.1.10",
+        tituloLinea1 = R.string.boletin_v1110_titulo_1,
+        tituloLinea2 = R.string.boletin_v1110_titulo_2,
+        intro = R.string.boletin_v1110_intro,
+        apartados = listOf(
+            ApartadoBoletin(R.drawable.envolvente, Color(0xFF80CBC4),
+                R.string.boletin_v1110_envolvente_t, R.string.boletin_v1110_envolvente),
+            ApartadoBoletin(R.drawable.settings, Color(0xFF90CAF9),
+                R.string.boletin_v1110_telefono_t, R.string.boletin_v1110_telefono),
+            ApartadoBoletin(R.drawable.trophy, Color(0xFFFFE082),
+                R.string.boletin_v1110_ganador_t, R.string.boletin_v1110_ganador),
+        ),
+        ademas = listOf(R.string.boletin_v1110_ademas_1),
+        rutaAjustes = "settings/player",
+    )
+
+    val todos: List<BoletinDeVersion> = listOf(v115, v116, v117, v118, v119, v1110)
 
     /** El boletin de una version, o null si esa version no tiene nada que contar. */
     fun para(versionCode: Int): BoletinDeVersion? = todos.firstOrNull { it.versionCode == versionCode }

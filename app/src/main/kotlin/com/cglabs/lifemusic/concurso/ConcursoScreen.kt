@@ -140,9 +140,11 @@ fun ConcursoScreen(
     var confirmarAbandono by remember { mutableStateOf(false) }
     var confeti by remember { mutableStateOf(false) }
     var refrescando by remember { mutableStateOf(false) }
+    var anuncio by remember { mutableStateOf(AnuncioDelReto.guardado(context)) }
 
     suspend fun refrescar() {
         refrescando = true
+        anuncio = AnuncioDelReto.comprobar(context)
         conexion?.service?.refrescarProgresoReto()
         porDia = Concurso.minutosPorDia(database)
         if (participacion != null) ConcursoRepository.sincronizar(context, database, forzar = true)
@@ -224,6 +226,19 @@ fun ConcursoScreen(
             item { Spacer(Modifier.height(16.dp)) }
 
             val p = participacion
+            if (anuncio.hay) {
+                item {
+                    Escalonado(1, animar) {
+                        TarjetaGanador(
+                            apodo = anuncio.ganador,
+                            texto = anuncio.texto,
+                            esMio = p?.apodo.equals(anuncio.ganador, ignoreCase = true),
+                            animar = animar,
+                        )
+                    }
+                }
+                item { Spacer(Modifier.height(16.dp)) }
+            }
             if (p != null) {
                 item {
                     Escalonado(1, animar) {
@@ -1107,6 +1122,59 @@ private fun Confeti(onFin: () -> Unit) {
                     topLeft = Offset(x - p.ancho.dp.toPx() / 2, y - p.alto.dp.toPx() / 2),
                     size = Size(p.ancho.dp.toPx(), p.alto.dp.toPx()),
                     cornerRadius = CornerRadius(1.5.dp.toPx()),
+                )
+            }
+        }
+    }
+}
+
+/**
+ * El anuncio del ganador, leido del servidor. Verde del reto, trofeo grande y
+ * el texto que CG haya escrito. Si el ganador es quien mira, se le dice.
+ */
+@Composable
+private fun TarjetaGanador(apodo: String, texto: String, esMio: Boolean, animar: Boolean) {
+    Surface(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp),
+        shape = RoundedCornerShape(24.dp),
+        color = NEGRO_RETO,
+    ) {
+        Column(modifier = Modifier.padding(22.dp)) {
+            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                Icon(painterResource(R.drawable.trophy), contentDescription = null, tint = VERDE_RETO, modifier = Modifier.size(28.dp))
+                Text(
+                    text = stringResource(R.string.concurso_ganador_tarjeta).uppercase(),
+                    style = MaterialTheme.typography.labelMedium,
+                    color = VERDE_RETO,
+                    letterSpacing = 1.8.sp,
+                )
+                if (animar) PuntoQueLate(true)
+            }
+            Spacer(Modifier.height(10.dp))
+            Text(
+                text = apodo,
+                style = MaterialTheme.typography.displaySmall,
+                fontStyle = FontStyle.Italic,
+                fontWeight = FontWeight.Bold,
+                color = VERDE_RETO,
+            )
+            if (esMio) {
+                Spacer(Modifier.height(6.dp))
+                Text(
+                    text = stringResource(R.string.concurso_ganador_felicidades),
+                    style = MaterialTheme.typography.titleMedium,
+                    color = Color.White,
+                )
+            }
+            if (texto.isNotBlank()) {
+                Spacer(Modifier.height(10.dp))
+                Text(
+                    text = texto,
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = Color.White.copy(alpha = 0.85f),
+                    lineHeight = 20.sp,
                 )
             }
         }
