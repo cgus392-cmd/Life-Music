@@ -130,6 +130,14 @@ import com.cglabs.lifemusic.constants.AmbienteControlesEstiloKey
 import com.cglabs.lifemusic.constants.AmbienteControlesKey
 import com.cglabs.lifemusic.constants.AmbienteControlesSegundosDefault
 import com.cglabs.lifemusic.constants.AmbienteControlesSegundosKey
+import com.cglabs.lifemusic.constants.AmbienteIndicadorVolumen
+import com.cglabs.lifemusic.constants.AmbienteIndicadorVolumenKey
+import com.cglabs.lifemusic.constants.AmbienteFondoReactivoKey
+import com.cglabs.lifemusic.constants.AmbienteReposoKey
+import com.cglabs.lifemusic.constants.AmbienteReposoLetraKey
+import com.cglabs.lifemusic.constants.AmbienteReposoRelojKey
+import com.cglabs.lifemusic.constants.AmbienteReposoSegundosDefault
+import com.cglabs.lifemusic.constants.AmbienteReposoSegundosKey
 import com.cglabs.lifemusic.constants.AmbienteZonaVolumen
 import com.cglabs.lifemusic.constants.AmbienteZonaVolumenKey
 import com.cglabs.lifemusic.constants.GreetingEnabledKey
@@ -274,7 +282,20 @@ highlightKey: String? = null) {
         rememberEnumPreference(AmbienteControlesEstiloKey, defaultValue = AmbienteControlesEstilo.CORTE)
     val (ambienteControlesSegundos, onAmbienteControlesSegundosChange) =
         rememberPreference(AmbienteControlesSegundosKey, defaultValue = AmbienteControlesSegundosDefault)
+    val (ambienteIndicadorVolumen, onAmbienteIndicadorVolumenChange) =
+        rememberEnumPreference(AmbienteIndicadorVolumenKey, defaultValue = AmbienteIndicadorVolumen.DESLIZANTE)
     var showAmbienteZonaDialog by rememberSaveable { mutableStateOf(false) }
+    var showAmbienteIndicadorDialog by rememberSaveable { mutableStateOf(false) }
+    val (ambienteFondoReactivo, onAmbienteFondoReactivoChange) =
+        rememberPreference(AmbienteFondoReactivoKey, defaultValue = true)
+    val (ambienteReposo, onAmbienteReposoChange) =
+        rememberPreference(AmbienteReposoKey, defaultValue = true)
+    val (ambienteReposoSegundos, onAmbienteReposoSegundosChange) =
+        rememberPreference(AmbienteReposoSegundosKey, defaultValue = AmbienteReposoSegundosDefault)
+    val (ambienteReposoLetra, onAmbienteReposoLetraChange) =
+        rememberPreference(AmbienteReposoLetraKey, defaultValue = true)
+    val (ambienteReposoReloj, onAmbienteReposoRelojChange) =
+        rememberPreference(AmbienteReposoRelojKey, defaultValue = true)
     var showAmbienteEstiloDialog by rememberSaveable { mutableStateOf(false) }
     var showLifeLineCustomColorDialog by rememberSaveable { mutableStateOf(false) }
     val (lyricsScroll, onLyricsScrollChange) = rememberPreference(
@@ -464,6 +485,20 @@ highlightKey: String? = null) {
                     AmbienteControlesEstilo.LIMPIO -> stringResource(R.string.ambient_controls_style_clean)
                 }
             }
+        )
+    }
+
+    if (showAmbienteIndicadorDialog) {
+        EnumDialog(
+            onDismiss = { showAmbienteIndicadorDialog = false },
+            onSelect = {
+                onAmbienteIndicadorVolumenChange(it)
+                showAmbienteIndicadorDialog = false
+            },
+            title = stringResource(R.string.ambient_volume_indicator),
+            current = ambienteIndicadorVolumen,
+            values = AmbienteIndicadorVolumen.values().toList(),
+            valueText = { nombreIndicador(it) }
         )
     }
     if (showAmbienteZonaDialog) {
@@ -2077,6 +2112,13 @@ highlightKey: String? = null) {
                     },
                     onClick = { showAmbienteZonaDialog = true }
                 ),
+                if (ambienteZonaVolumen != AmbienteZonaVolumen.DESACTIVADA) Material3SettingsItem(
+                    isHighlighted = (highlightKey == stringResource(R.string.ambient_volume_indicator)),
+                    icon = painterResource(R.drawable.volume_down),
+                    title = { Text(stringResource(R.string.ambient_volume_indicator)) },
+                    description = { Text(nombreIndicador(ambienteIndicadorVolumen)) },
+                    onClick = { showAmbienteIndicadorDialog = true }
+                ) else null,
                 Material3SettingsItem(
                     isHighlighted = (highlightKey == stringResource(R.string.ambient_controls)),
                     icon = painterResource(R.drawable.play),
@@ -2129,6 +2171,110 @@ highlightKey: String? = null) {
                             )
                         }
                     }
+                ) else null,
+                Material3SettingsItem(
+                    isHighlighted = (highlightKey == stringResource(R.string.ambient_reactive)),
+                    icon = painterResource(R.drawable.envolvente),
+                    title = { Text(stringResource(R.string.ambient_reactive)) },
+                    description = { Text(stringResource(R.string.ambient_reactive_desc)) },
+                    trailingContent = {
+                        Switch(
+                            checked = ambienteFondoReactivo,
+                            onCheckedChange = onAmbienteFondoReactivoChange,
+                            thumbContent = {
+                                Icon(
+                                    painter = painterResource(
+                                        id = if (ambienteFondoReactivo) R.drawable.check else R.drawable.close
+                                    ),
+                                    contentDescription = null,
+                                    modifier = Modifier.size(SwitchDefaults.IconSize)
+                                )
+                            }
+                        )
+                    },
+                    onClick = { onAmbienteFondoReactivoChange(!ambienteFondoReactivo) }
+                ),
+                Material3SettingsItem(
+                    isHighlighted = (highlightKey == stringResource(R.string.ambient_rest)),
+                    icon = painterResource(R.drawable.timer),
+                    title = { Text(stringResource(R.string.ambient_rest)) },
+                    description = { Text(stringResource(R.string.ambient_rest_desc)) },
+                    trailingContent = {
+                        Switch(
+                            checked = ambienteReposo,
+                            onCheckedChange = onAmbienteReposoChange,
+                            thumbContent = {
+                                Icon(
+                                    painter = painterResource(
+                                        id = if (ambienteReposo) R.drawable.check else R.drawable.close
+                                    ),
+                                    contentDescription = null,
+                                    modifier = Modifier.size(SwitchDefaults.IconSize)
+                                )
+                            }
+                        )
+                    },
+                    onClick = { onAmbienteReposoChange(!ambienteReposo) }
+                ),
+                if (ambienteReposo) Material3SettingsItem(
+                    isHighlighted = (highlightKey == stringResource(R.string.ambient_rest_seconds)),
+                    icon = painterResource(R.drawable.linear_scale),
+                    title = { Text(stringResource(R.string.ambient_rest_seconds)) },
+                    description = {
+                        Column {
+                            Text(stringResource(R.string.ambient_rest_seconds_value, ambienteReposoSegundos))
+                            Slider(
+                                value = ambienteReposoSegundos.toFloat(),
+                                onValueChange = { onAmbienteReposoSegundosChange(it.roundToInt()) },
+                                valueRange = 15f..300f,
+                                steps = 18
+                            )
+                        }
+                    }
+                ) else null,
+                if (ambienteReposo) Material3SettingsItem(
+                    isHighlighted = (highlightKey == stringResource(R.string.ambient_rest_lyrics)),
+                    icon = painterResource(R.drawable.lyrics),
+                    title = { Text(stringResource(R.string.ambient_rest_lyrics)) },
+                    description = { Text(stringResource(R.string.ambient_rest_lyrics_desc)) },
+                    trailingContent = {
+                        Switch(
+                            checked = ambienteReposoLetra,
+                            onCheckedChange = onAmbienteReposoLetraChange,
+                            thumbContent = {
+                                Icon(
+                                    painter = painterResource(
+                                        id = if (ambienteReposoLetra) R.drawable.check else R.drawable.close
+                                    ),
+                                    contentDescription = null,
+                                    modifier = Modifier.size(SwitchDefaults.IconSize)
+                                )
+                            }
+                        )
+                    },
+                    onClick = { onAmbienteReposoLetraChange(!ambienteReposoLetra) }
+                ) else null,
+                if (ambienteReposo) Material3SettingsItem(
+                    isHighlighted = (highlightKey == stringResource(R.string.ambient_rest_clock)),
+                    icon = painterResource(R.drawable.timer),
+                    title = { Text(stringResource(R.string.ambient_rest_clock)) },
+                    description = { Text(stringResource(R.string.ambient_rest_clock_desc)) },
+                    trailingContent = {
+                        Switch(
+                            checked = ambienteReposoReloj,
+                            onCheckedChange = onAmbienteReposoRelojChange,
+                            thumbContent = {
+                                Icon(
+                                    painter = painterResource(
+                                        id = if (ambienteReposoReloj) R.drawable.check else R.drawable.close
+                                    ),
+                                    contentDescription = null,
+                                    modifier = Modifier.size(SwitchDefaults.IconSize)
+                                )
+                            }
+                        )
+                    },
+                    onClick = { onAmbienteReposoRelojChange(!ambienteReposoReloj) }
                 ) else null,
             )
         )
@@ -2446,4 +2592,11 @@ enum class LyricsPosition {
 enum class PlayerTextAlignment {
     SIDED,
     CENTER,
+}
+
+@Composable
+private fun nombreIndicador(i: AmbienteIndicadorVolumen): String = when (i) {
+    AmbienteIndicadorVolumen.DESLIZANTE -> stringResource(R.string.ambient_volume_indicator_slide)
+    AmbienteIndicadorVolumen.FIJO -> stringResource(R.string.ambient_volume_indicator_fixed)
+    AmbienteIndicadorVolumen.OCULTO -> stringResource(R.string.ambient_volume_indicator_hidden)
 }

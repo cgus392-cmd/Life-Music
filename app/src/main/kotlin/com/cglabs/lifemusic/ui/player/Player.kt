@@ -121,6 +121,8 @@ import coil3.size.Size as CoilSize
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.layout.boundsInRoot
+import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
@@ -158,6 +160,7 @@ import com.cglabs.lifemusic.LocalListenTogetherManager
 import com.cglabs.lifemusic.LocalPlayerConnection
 import com.cglabs.lifemusic.R
 import com.cglabs.lifemusic.ui.component.HeartBurstIcon
+import com.cglabs.lifemusic.ui.guia.objetivoDeGuia
 import com.cglabs.lifemusic.constants.AudioQuality
 import com.cglabs.lifemusic.constants.AudioQualityKey
 import com.cglabs.lifemusic.constants.CropAlbumArtKey
@@ -743,6 +746,36 @@ fun BottomSheetPlayer(
 
     val download by LocalDownloadUtil.current.getDownload(mediaMetadata?.id ?: "")
         .collectAsState(initial = null)
+
+    // Corazon: un toque marca favorito, como siempre; mantenerlo pulsado ademas
+    // descarga la cancion, con el estallido del corazon y un aviso corto (CG).
+    var pulsoCorazon by remember { androidx.compose.runtime.mutableIntStateOf(0) }
+    // Centro del corazon en la raiz, para que los corazones flotantes salgan de el.
+    var centroCorazon by remember { mutableStateOf(androidx.compose.ui.geometry.Offset.Zero) }
+    val hapticoCorazon = androidx.compose.ui.platform.LocalHapticFeedback.current
+    val descargarConCorazon: () -> Unit = descargar@{
+        val meta = mediaMetadata ?: return@descargar
+        pulsoCorazon++
+        hapticoCorazon.performHapticFeedback(androidx.compose.ui.hapticfeedback.HapticFeedbackType.LongPress)
+        // Favorito ademas de descargar (si ya lo era, se queda).
+        if (currentSong?.song?.liked != true) playerConnection.toggleLike()
+        com.cglabs.lifemusic.ui.component.Corazones.lanzar(centroCorazon)
+        com.cglabs.lifemusic.ui.guia.Guia.hecho(com.cglabs.lifemusic.ui.guia.Guia.EV_CORAZON_LARGO)
+        when (download?.state) {
+            Download.STATE_COMPLETED -> Toast.makeText(context, R.string.corazon_ya_descargada, Toast.LENGTH_SHORT).show()
+            Download.STATE_QUEUED, Download.STATE_DOWNLOADING -> Toast.makeText(context, context.getString(R.string.corazon_descargando, meta.title), Toast.LENGTH_SHORT).show()
+            else -> {
+                database.transaction { insert(meta) }
+                DownloadService.sendAddDownload(
+                    context,
+                    ExoDownloadService::class.java,
+                    DownloadRequest.Builder(meta.id, meta.id.toUri()).setCustomCacheKey(meta.id).setData(meta.title.toByteArray()).build(),
+                    false,
+                )
+                Toast.makeText(context, context.getString(R.string.corazon_descargando, meta.title), Toast.LENGTH_SHORT).show()
+            }
+        }
+    }
 
     val sleepTimerEnabled =
         remember(
@@ -1784,19 +1817,25 @@ fun BottomSheetPlayer(
                                     )
                                 }
                             } else {
-                                FilledIconButton(
-                                    onClick = playerConnection::toggleLike,
-                                    shape = favShape,
-                                    colors = IconButtonDefaults.filledIconButtonColors(
-                                        containerColor = textButtonColor,
-                                        contentColor = iconButtonColor,
-                                    ),
-                                    modifier = Modifier.size(42.dp),
+                                // Mismo aspecto que FilledIconButton, pero con pulsacion larga.
+                                Box(
+                                    contentAlignment = Alignment.Center,
+                                    modifier = Modifier
+                                        .size(42.dp)
+                                        .clip(favShape)
+                                        .background(textButtonColor)
+                                        .objetivoDeGuia(com.cglabs.lifemusic.ui.guia.Guia.CORAZON)
+                                        .onGloballyPositioned { centroCorazon = it.boundsInRoot().center }
+                                        .combinedClickable(
+                                            onClick = playerConnection::toggleLike,
+                                            onLongClick = descargarConCorazon,
+                                        ),
                                 ) {
                                     HeartBurstIcon(
                                         isLiked = currentSong?.song?.liked == true,
                                         iconSize = 24.dp,
-                                        unlikedColor = iconButtonColor
+                                        unlikedColor = iconButtonColor,
+                                        pulso = pulsoCorazon,
                                     )
                                 }
                             }
@@ -1900,16 +1939,15 @@ fun BottomSheetPlayer(
                                     .size(40.dp)
                                     .clip(RoundedCornerShape(24.dp))
                                     .background(textButtonColor.copy(alpha = 0.2f))
-                                    .clickable(onClick = playerConnection::toggleLike),
+                                    .objetivoDeGuia(com.cglabs.lifemusic.ui.guia.Guia.CORAZON)
+                                    .onGloballyPositioned { centroCorazon = it.boundsInRoot().center }
+                                    .combinedClickable(onClick = playerConnection::toggleLike, onLongClick = descargarConCorazon),
                             ) {
-                                Icon(
-                                    painter = painterResource(
-                                        if (currentSong?.song?.liked == true)
-                                            R.drawable.favorite
-                                        else R.drawable.favorite_border
-                                    ),
-                                    contentDescription = null,
-                                    tint = textButtonColor,
+                                HeartBurstIcon(
+                                    isLiked = currentSong?.song?.liked == true,
+                                    iconSize = 24.dp,
+                                    unlikedColor = textButtonColor,
+                                    pulso = pulsoCorazon,
                                     modifier = Modifier
                                         .align(Alignment.Center)
                                         .size(24.dp),

@@ -471,6 +471,24 @@ fun PlayerMenu(
                             }
                         )
                     )
+
+                    // Clip: un video corto del modo ambiente para las historias.
+                    add(
+                        Material3MenuItemData(
+                            title = { Text(text = stringResource(R.string.clip_titulo)) },
+                            icon = {
+                                Icon(
+                                    painter = painterResource(R.drawable.slow_motion_video),
+                                    contentDescription = null,
+                                    modifier = Modifier.size(24.dp)
+                                )
+                            },
+                            onClick = {
+                                onDismiss()
+                                com.cglabs.lifemusic.clip.ClipLanzador.abrir()
+                            }
+                        )
+                    )
                 }
             )
         }

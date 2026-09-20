@@ -163,6 +163,7 @@ class PlayerConnection(
     val transicionesAutomix: kotlinx.coroutines.flow.StateFlow<List<MusicService.TransicionAutomix>> = service.transicionesAutomix
     val automixEstilo: kotlinx.coroutines.flow.StateFlow<com.cglabs.lifemusic.playback.audio.EstiloTransicion?> = service.automixEstilo
     val progresoReto: kotlinx.coroutines.flow.StateFlow<MusicService.ProgresoReto> = service.progresoReto
+    val nivelAudio: kotlinx.coroutines.flow.StateFlow<MusicService.NivelAudio> = service.nivelAudio
 
     
     var shouldBlockPlaybackChanges: (() -> Boolean)? = null
@@ -442,6 +443,15 @@ class PlayerConnection(
         mediaItem: MediaItem?,
         reason: Int,
     ) {
+        // Solo manda el reproductor principal del servicio. Si el aviso viene de
+        // otro (el que sale en un crossfade, que se vacia al soltarlo), no se le
+        // hace caso y se vuelve al principal; si no, la pantalla se quedaba sin
+        // cancion con la caratula clavada.
+        val principal = player
+        if (attachedPlayer != null && attachedPlayer !== principal) {
+            updateAttachedPlayer(principal)
+            return
+        }
         mediaMetadata.value = mediaItem?.metadata
         currentMediaItemIndex.value = player.currentMediaItemIndex
         currentWindowIndex.value = player.getCurrentQueueIndex()

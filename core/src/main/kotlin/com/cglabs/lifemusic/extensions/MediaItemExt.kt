@@ -17,7 +17,13 @@ import java.util.Locale
 val MediaItem.metadata: MediaMetadata?
     get() = localConfiguration?.tag as? MediaMetadata
 
-private fun playbackSeedUri(mediaId: String): String {
+/**
+ * URI con la que el reproductor pide una cancion: la propia si ya trae esquema
+ * (local), y si no, una semilla https con el id para que Media3 la mande por la
+ * cadena de caches y el resolvedor. El id pelado, sin esquema, lo tomaria como
+ * fichero local y fallaria con ENOENT (asi se perdio el audio del clip).
+ */
+fun playbackSeedUri(mediaId: String): String {
     val scheme = mediaId.toUri().scheme?.lowercase(Locale.US)
     return when (scheme) {
         "content", "file", "android.resource", "http", "https" -> mediaId

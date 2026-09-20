@@ -6,6 +6,7 @@ import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.rememberInfiniteTransition
+import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -34,10 +35,18 @@ import com.cglabs.lifemusic.models.MediaMetadata
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
+/**
+ * Fondo de manchas de luz con los colores de la caratula. Heredado de Echo giraba
+ * a reloj, sordo; ahora recibe lo que suena: [energia] (0..1, toda la banda)
+ * abre y aviva las manchas, y [golpe] (0..1, los graves con caida rapida) las
+ * hace latir con el bombo. A cero, es exactamente el fondo de antes.
+ */
 @Composable
 fun AmbientGlowBackground(
     mediaMetadata: MediaMetadata?,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    energia: Float = 0f,
+    golpe: Float = 0f,
 ) {
     var gradientColors by remember { mutableStateOf<List<Color>>(emptyList()) }
     val context = LocalContext.current
@@ -150,6 +159,13 @@ fun AmbientGlowBackground(
             val o6y = oscillate(0.5f, 0.7f, 0.62f, 1.0f)
             val r6 = oscillate(0.8f, 1.8f, 0.69f, 1.0f)
 
+            // El bombo ensancha las manchas; la energia las aviva. Suavizado corto
+            // para que el latido se vea como latido y no como parpadeo.
+            val latido by animateFloatAsState(targetValue = golpe, animationSpec = tween(70), label = "latido")
+            val viveza by animateFloatAsState(targetValue = energia, animationSpec = tween(160), label = "viveza")
+            val escalaRadio = 1f + latido * 0.22f
+            val escalaAlfa = 1f + viveza * 0.3f
+
             Box(
                 modifier = Modifier
                     .fillMaxSize()
@@ -157,60 +173,61 @@ fun AmbientGlowBackground(
                         val width = size.width
                         val height = size.height
                         val baseColor = Color(0xFF050505)
+                        fun a(v: Float) = (v * escalaAlfa).coerceIn(0f, 1f)
 
                         val brush1 = Brush.radialGradient(
                             colors = listOf(
-                                color1.copy(alpha = 0.85f),
-                                color1.copy(alpha = 0.5f),
+                                color1.copy(alpha = a(0.85f)),
+                                color1.copy(alpha = a(0.5f)),
                                 Color.Transparent
                             ),
                             center = Offset(width * o1x, height * o1y),
-                            radius = width * r1
+                            radius = width * r1 * escalaRadio
                         )
                         val brush2 = Brush.radialGradient(
                             colors = listOf(
-                                color2.copy(alpha = 0.8f),
-                                color2.copy(alpha = 0.45f),
+                                color2.copy(alpha = a(0.8f)),
+                                color2.copy(alpha = a(0.45f)),
                                 Color.Transparent
                             ),
                             center = Offset(width * o2x, height * o2y),
-                            radius = width * r2
+                            radius = width * r2 * escalaRadio
                         )
                         val brush3 = Brush.radialGradient(
                             colors = listOf(
-                                color3.copy(alpha = 0.75f),
-                                color3.copy(alpha = 0.4f),
+                                color3.copy(alpha = a(0.75f)),
+                                color3.copy(alpha = a(0.4f)),
                                 Color.Transparent
                             ),
                             center = Offset(width * o3x, height * o3y),
-                            radius = width * r3
+                            radius = width * r3 * escalaRadio
                         )
                         val brush4 = Brush.radialGradient(
                             colors = listOf(
-                                color4.copy(alpha = 0.7f),
-                                color4.copy(alpha = 0.35f),
+                                color4.copy(alpha = a(0.7f)),
+                                color4.copy(alpha = a(0.35f)),
                                 Color.Transparent
                             ),
                             center = Offset(width * o4x, height * o4y),
-                            radius = width * r4
+                            radius = width * r4 * escalaRadio
                         )
                         val brush5 = Brush.radialGradient(
                             colors = listOf(
-                                color5.copy(alpha = 0.65f),
-                                color5.copy(alpha = 0.3f),
+                                color5.copy(alpha = a(0.65f)),
+                                color5.copy(alpha = a(0.3f)),
                                 Color.Transparent
                             ),
                             center = Offset(width * o5x, height * o5y),
-                            radius = width * r5
+                            radius = width * r5 * escalaRadio
                         )
                         val brush6 = Brush.radialGradient(
                             colors = listOf(
-                                color6.copy(alpha = 0.6f),
-                                color6.copy(alpha = 0.25f),
+                                color6.copy(alpha = a(0.6f)),
+                                color6.copy(alpha = a(0.25f)),
                                 Color.Transparent
                             ),
                             center = Offset(width * o6x, height * o6y),
-                            radius = width * r6
+                            radius = width * r6 * escalaRadio
                         )
 
                         onDrawBehind {

@@ -37,6 +37,8 @@ data class BoletinDeVersion(
     val hero: HeroBoletin = HeroBoletin.NINGUNO,
     /** Imagen de cabecera (drawable); si esta, manda sobre [hero]. */
     val heroImagen: Int? = null,
+    /** Actualizacion grande: la cabecera lo dice y lleva estrella (lo pidio CG para 1.1.10). */
+    val grande: Boolean = false,
 )
 
 /**
@@ -163,6 +165,10 @@ object Boletines {
         tituloLinea2 = R.string.boletin_v1110_titulo_2,
         intro = R.string.boletin_v1110_intro,
         apartados = listOf(
+            ApartadoBoletin(R.drawable.slow_motion_video, Color(0xFFF48FB1),
+                R.string.boletin_v1110_clip_t, R.string.boletin_v1110_clip),
+            ApartadoBoletin(R.drawable.ic_canvas, Color(0xFFCE93D8),
+                R.string.boletin_v1110_grabar_t, R.string.boletin_v1110_grabar),
             ApartadoBoletin(R.drawable.envolvente, Color(0xFF80CBC4),
                 R.string.boletin_v1110_envolvente_t, R.string.boletin_v1110_envolvente),
             ApartadoBoletin(R.drawable.settings, Color(0xFF90CAF9),
@@ -170,8 +176,9 @@ object Boletines {
             ApartadoBoletin(R.drawable.trophy, Color(0xFFFFE082),
                 R.string.boletin_v1110_ganador_t, R.string.boletin_v1110_ganador),
         ),
-        ademas = listOf(R.string.boletin_v1110_ademas_1),
+        ademas = listOf(R.string.boletin_v1110_ademas_1, R.string.boletin_v1110_ademas_2, R.string.boletin_v1110_ademas_3),
         rutaAjustes = "settings/player",
+        grande = true,
     )
 
     val todos: List<BoletinDeVersion> = listOf(v115, v116, v117, v118, v119, v1110)

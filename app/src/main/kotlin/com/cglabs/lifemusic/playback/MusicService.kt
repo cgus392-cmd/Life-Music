@@ -43,6 +43,7 @@ import androidx.media3.common.Timeline
 import androidx.media3.common.audio.SonicAudioProcessor
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.datasource.DataSource
+import androidx.media3.datasource.DataSpec
 import androidx.media3.datasource.DefaultDataSource
 import androidx.media3.datasource.HttpDataSource
 import androidx.media3.datasource.ResolvingDataSource
@@ -155,6 +156,7 @@ import com.cglabs.lifemusic.db.entities.Song
 import com.cglabs.lifemusic.di.DownloadCache
 import com.cglabs.lifemusic.di.PlayerCache
 import com.cglabs.lifemusic.eq.EqualizerService
+import com.cglabs.lifemusic.eq.audio.LevelMeterAudioProcessor
 import com.cglabs.lifemusic.eq.audio.SurroundAudioProcessor
 import com.cglabs.lifemusic.eq.audio.TransitionFilterAudioProcessor
 import com.cglabs.lifemusic.playback.audio.ConduccionAutomix
@@ -172,6 +174,7 @@ import com.cglabs.lifemusic.extensions.mediaItems
 import com.cglabs.lifemusic.extensions.metadata
 import com.cglabs.lifemusic.extensions.setOffloadEnabled
 import com.cglabs.lifemusic.extensions.toEnum
+import com.cglabs.lifemusic.extensions.playbackSeedUri
 import com.cglabs.lifemusic.extensions.toMediaItem
 import com.cglabs.lifemusic.playback.toPersistQueue
 import com.cglabs.lifemusic.playback.toQueue
@@ -381,6 +384,61 @@ class MusicService :
     ) {
         fun aplicar(p: SurroundAudioProcessor) = p.setParams(amplitud, crossfeed, sala, tamano)
     }
+
+    /** Lo que suena ahora, 0..1, para el fondo del modo ambiente (ver LevelMeterAudioProcessor). */
+    data class NivelAudio(val nivel: Float = 0f, val graves: Float = 0f)
+    val nivelAudio = MutableStateFlow(NivelAudio())
+    @Volatile private var midiendoNivel = false
+
+
+    /**
+     * Copia el audio de una cancion a un fichero, para el clip: de la cache del
+     * reproductor si es de YouTube (misma fuente que el analizador de ritmo),
+     * o del propio fichero si es local. Tope de 40 MB: sobra para cualquier
+     * cancion en Opus/AAC.
+     */
+    suspend fun copiarAudioParaClip(mediaId: String, destino: java.io.File): Boolean = withContext(Dispatchers.IO) {
+        try {
+            if (mediaId.isLocalMediaId()) {
+                contentResolver.openInputStream(android.net.Uri.parse(mediaId))?.use { entrada ->
+                    destino.outputStream().use { entrada.copyTo(it) }
+                } ?: return@withContext false
+                return@withContext true
+            }
+            val fuente = analysisDataSourceFactory.createDataSource()
+            try {
+                // La misma URI semilla que usa el reproductor: asi pasa por las caches
+                // (descarga y reproduccion) y solo baja lo que falte.
+                fuente.open(DataSpec.Builder().setUri(playbackSeedUri(mediaId).toUri()).setKey(mediaId).build())
+                destino.outputStream().use { out ->
+                    val buf = ByteArray(64 * 1024)
+                    var total = 0L
+                    while (total < 40L * 1024 * 1024) {
+                        val n = fuente.read(buf, 0, buf.size)
+                        if (n == C.RESULT_END_OF_INPUT) break
+                        out.write(buf, 0, n)
+                        total += n
+                    }
+                }
+            } catch (e: Exception) {
+                // Si la descarga se corta a medias nos quedamos con lo que llego;
+                // el renderizador decide si el tramo alcanza.
+                android.util.Log.w("LifeMusicClip", "copiarAudioParaClip se corto en ${destino.length()} bytes", e)
+            } finally {
+                runCatching { fuente.close() }
+            }
+            destino.length() > 64 * 1024
+        } catch (e: Exception) {
+            android.util.Log.w("LifeMusicClip", "copiarAudioParaClip fallo", e)
+            false
+        }
+    }
+    /** El modo ambiente lo enciende al entrar y lo apaga al salir; apagado no cuesta nada. */
+    fun medirNivel(activo: Boolean) {
+        midiendoNivel = activo
+        playerMeters.values.forEach { it.activo = activo }
+        if (!activo) nivelAudio.value = NivelAudio()
+    }
     data class ProgresoReto(
         val minutosHoy: Int = 0,
         val minutosTotal: Int = 0,
@@ -555,6 +613,8 @@ class MusicService :
     private val playerFilters = HashMap<Player, TransitionFilterAudioProcessor>()
     // Un envolvente por plato: los dos del Automix suenan igual de anchos.
     private val playerSurround = HashMap<Player, SurroundAudioProcessor>()
+    // Medidor de nivel por plato; solo mide mientras el modo ambiente mira.
+    private val playerMeters = HashMap<Player, LevelMeterAudioProcessor>()
     @Volatile private var envolventeActual: EnvolventeParams = EnvolventeParams()
 
 
@@ -747,6 +807,7 @@ class MusicService :
                 },
         )
         player = createExoPlayer()
+        _playerFlow.value = player
         player.addListener(this@MusicService)
         sleepTimer = SleepTimer(scope, player)
         player.addListener(sleepTimer)
@@ -1310,6 +1371,10 @@ class MusicService :
         val envolvente = SurroundAudioProcessor()
         envolventeActual.aplicar(envolvente)
 
+        val medidor = LevelMeterAudioProcessor()
+        medidor.activo = midiendoNivel
+        medidor.alMedir = { n, g -> nivelAudio.value = NivelAudio(n, g) }
+
         val vocalProcessor = VocalReducerAudioProcessor()
         vocalReducer = vocalProcessor
 
@@ -1324,7 +1389,7 @@ class MusicService :
 
         val player = ExoPlayer.Builder(this)
             .setMediaSourceFactory(createMediaSourceFactory())
-            .setRenderersFactory(createRenderersFactory(eqProcessor, silenceProcessor, filtro, vocalProcessor, envolvente))
+            .setRenderersFactory(createRenderersFactory(eqProcessor, silenceProcessor, filtro, vocalProcessor, envolvente, medidor))
             .setLoadControl(
                 DefaultLoadControl.Builder()
                     .setBufferDurationsMs(50_000, 50_000, 750, 2_000)
@@ -1347,6 +1412,7 @@ class MusicService :
         playerSilenceProcessors[player] = silenceProcessor
         playerFilters[player] = filtro
         playerSurround[player] = envolvente
+        playerMeters[player] = medidor
 
         player.apply {
                 runBlocking {
@@ -1357,9 +1423,15 @@ class MusicService :
                 }
                 addAnalyticsListener(PlaybackStatsListener(false, this@MusicService))
 
-                
+
             }
-        _playerFlow.value = player
+        // Ojo: aqui NO se publica en _playerFlow. Esta fabrica tambien crea el
+        // reproductor secundario del crossfade, y publicarlo hacia que la interfaz
+        // se colgara de el: mostraba la siguiente cancion antes de tiempo y, si el
+        // usuario saltaba mientras existia, releasePrebuffered() lo vaciaba y la
+        // pantalla del reproductor se quedaba sin cancion (controles fuera,
+        // caratula clavada) hasta el siguiente crossfade. Heredado de Echo.
+        // Solo se publica el principal: al arrancar y en performCrossfadeSwap.
         return player
     }
 
@@ -3327,6 +3399,7 @@ class MusicService :
         filtro: TransitionFilterAudioProcessor,
         vocalProcessor: VocalReducerAudioProcessor,
         envolvente: SurroundAudioProcessor,
+        medidor: LevelMeterAudioProcessor,
     ) =
         object : DefaultRenderersFactory(this) {
             override fun buildAudioSink(
@@ -3357,6 +3430,8 @@ class MusicService :
                             // El envolvente va despues del detector de silencio para
                             // que la cola de la sala no le tape un final real.
                             envolvente,
+                            // El ultimo: mide lo que de verdad va a sonar.
+                            medidor,
                         ),
                         SilenceSkippingAudioProcessor(2_000_000, 20_000, 256),
                         SonicAudioProcessor(),
@@ -4097,6 +4172,7 @@ class MusicService :
                 analysisDataSourceFactory,
                 mediaId,
                 cacheDir,
+                uri = playbackSeedUri(mediaId).toUri(),
                 shouldCancel = { !analysisContext.isActive || timedOutOrCancelled() },
             )
                 ?: run {
@@ -4148,6 +4224,7 @@ class MusicService :
         prebuffered = null
         playerFilters.remove(pb.player)
         playerSurround.remove(pb.player)
+        playerMeters.remove(pb.player)
         playerSilenceProcessors.remove(pb.player)
         try {
             pb.player.removeListener(secondaryPlayerListener)

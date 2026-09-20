@@ -2,6 +2,11 @@ plugins {
     id("com.android.library")
     id("com.google.devtools.ksp")
     id("com.google.dagger.hilt.android")
+    // Sin este plugin los @Serializable del ecualizador (SavedEQProfile,
+    // ParametricEQBand, FilterType) no tenian serializador generado y guardar
+    // un perfil tiraba la app con «Serializer for class ... is not found».
+    // Se perdio al mover el EQ de :app a este modulo.
+    alias(libs.plugins.kotlin.serialization)
 }
 
 android {

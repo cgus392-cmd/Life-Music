@@ -115,8 +115,8 @@ private fun ContenidoBoletin(
 
                     Escalonado(0, animar) {
                         Chip(
-                            icono = R.drawable.info,
-                            texto = stringResource(R.string.boletin_eyebrow, boletin.versionName),
+                            icono = if (boletin.grande) R.drawable.star else R.drawable.info,
+                            texto = stringResource(if (boletin.grande) R.string.boletin_eyebrow_grande else R.string.boletin_eyebrow, boletin.versionName),
                         )
                     }
 

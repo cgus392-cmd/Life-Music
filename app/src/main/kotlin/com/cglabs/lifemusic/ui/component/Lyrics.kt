@@ -96,6 +96,8 @@ import androidx.compose.ui.input.nestedscroll.NestedScrollSource
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.layout.boundsInRoot
 import androidx.compose.ui.platform.LocalWindowInfo
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -564,6 +566,9 @@ fun Lyrics(
 
     var showProgressDialog by remember { mutableStateOf(false) }
     var showShareDialog by remember { mutableStateOf(false) }
+    // Tramo (desde, hasta) de las lineas seleccionadas, para el clip. Se toma
+    // al abrir el dialogo, porque la seleccion se limpia justo despues.
+    var clipRango by remember { mutableStateOf<Pair<Long, Long>?>(null) }
     var shareDialogData by remember { mutableStateOf<Triple<String, String, String>?>(null) }
 
     var showColorPickerDialog by remember { mutableStateOf(false) }
@@ -573,6 +578,9 @@ fun Lyrics(
 
     
     var isSelectionModeActive by rememberSaveable { mutableStateOf(false) }
+    val densidadGuia = LocalDensity.current.density
+    DisposableEffect(Unit) { onDispose { com.cglabs.lifemusic.ui.guia.Guia.objetivos.remove(com.cglabs.lifemusic.ui.guia.Guia.LETRA) } }
+    LaunchedEffect(isSelectionModeActive) { if (isSelectionModeActive) com.cglabs.lifemusic.ui.guia.Guia.hecho(com.cglabs.lifemusic.ui.guia.Guia.EV_LETRA_SELECCION) }
     val selectedIndices = remember { mutableStateListOf<Int>() }
     var showMaxSelectionToast by remember { mutableStateOf(false) } 
 
@@ -591,7 +599,7 @@ fun Lyrics(
     }
 
     
-    val maxSelectionLimit = 5
+    val maxSelectionLimit = 10
 
     
     LaunchedEffect(showMaxSelectionToast) {
@@ -851,6 +859,14 @@ fun Lyrics(
                 .asPaddingValues(),
             modifier = Modifier
                 .fadingEdge(vertical = 64.dp)
+                // Guia de novedades: la franja donde cae la linea actual (un tercio
+                // desde arriba, por el contentPadding), no la lista entera.
+                .onGloballyPositioned { c ->
+                    val r = c.boundsInRoot()
+                    val d = c.size.height / 3f
+                    com.cglabs.lifemusic.ui.guia.Guia.objetivos[com.cglabs.lifemusic.ui.guia.Guia.LETRA] =
+                        androidx.compose.ui.geometry.Rect(r.left + 24f * densidadGuia, r.top + d - 30f * densidadGuia, r.right - 24f * densidadGuia, r.top + d + 70f * densidadGuia)
+                }
                 .nestedScroll(remember {
                     object : NestedScrollConnection {
                         override fun onPostScroll(
@@ -1949,6 +1965,14 @@ fun Lyrics(
                                     mediaMetadata?.title ?: "",
                                     mediaMetadata?.artists?.joinToString { it.name } ?: ""
                                 )
+                                // Desde la primera linea elegida hasta donde empieza la
+                                // siguiente a la ultima (o 4 s mas si es la ultima de todas).
+                                val primera = lines.getOrNull(sortedIndices.first())
+                                val ultima = lines.getOrNull(sortedIndices.last())
+                                val siguiente = lines.getOrNull(sortedIndices.last() + 1)
+                                clipRango = if (primera != null && ultima != null && primera.time > 0L) {
+                                    primera.time to (siguiente?.time?.takeIf { it > ultima.time } ?: (ultima.time + 4_000L))
+                                } else null
                                 showShareDialog = true
                             }
                             isSelectionModeActive = false
@@ -2070,6 +2094,33 @@ fun Lyrics(
                             fontSize = 16.sp,
                             color = MaterialTheme.colorScheme.onSurface
                         )
+                    }
+
+                    // Clip: el mismo tramo, pero en video con el modo ambiente.
+                    val rangoClip = clipRango
+                    if (rangoClip != null) {
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clickable {
+                                    showShareDialog = false
+                                    com.cglabs.lifemusic.clip.ClipLanzador.abrir(rangoClip.first, rangoClip.second)
+                                }
+                                .padding(vertical = 12.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Icon(
+                                painter = painterResource(id = R.drawable.slow_motion_video),
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.primary
+                            )
+                            Spacer(modifier = Modifier.width(12.dp))
+                            Text(
+                                text = stringResource(R.string.share_as_clip),
+                                fontSize = 16.sp,
+                                color = MaterialTheme.colorScheme.onSurface
+                            )
+                        }
                     }
                     
                     Row(

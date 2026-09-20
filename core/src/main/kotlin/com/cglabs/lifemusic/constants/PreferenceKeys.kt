@@ -205,6 +205,56 @@ val AmbienteCanvasKey = booleanPreferencesKey("ambienteCanvas")
 val AmbienteControlesKey = booleanPreferencesKey("ambienteControles")
 
 /**
+ * Como se dibuja el indicador de la zona de volumen. DESLIZANTE asoma desde el
+ * borde al usarlo y se retira solo (lo pidio CG, «como Apple»); FIJO queda
+ * siempre tenue; OCULTO no dibuja nada, solo el gesto.
+ */
+enum class AmbienteIndicadorVolumen { DESLIZANTE, FIJO, OCULTO }
+val AmbienteIndicadorVolumenKey = stringPreferencesKey("ambienteIndicadorVolumen")
+
+/** El fondo del modo ambiente late con la musica (medidor de nivel en la cadena de audio). */
+val AmbienteFondoReactivoKey = booleanPreferencesKey("ambienteFondoReactivo")
+
+/**
+ * Reposo nocturno del modo ambiente: tras unos segundos sin tocar, la pantalla
+ * se atenua, la letra se esconde y queda caratula y hora. Un toque despierta.
+ */
+val AmbienteReposoKey = booleanPreferencesKey("ambienteReposo")
+val AmbienteReposoSegundosKey = intPreferencesKey("ambienteReposoSegundos")
+const val AmbienteReposoSegundosDefault = 60
+val AmbienteReposoLetraKey = booleanPreferencesKey("ambienteReposoLetra")
+val AmbienteReposoRelojKey = booleanPreferencesKey("ambienteReposoReloj")
+
+/**
+ * Clip: un video corto del modo ambiente (fondo, caratula, letra) para las
+ * historias, generado fuera de pantalla, sin grabar nada. Cada eleccion se
+ * recuerda. El audio va apagado de serie: Instagram silencia videos con musica
+ * con derechos y pone la cancion oficial desde su propia biblioteca.
+ */
+val ClipDuracionKey = intPreferencesKey("clipDuracion")
+const val ClipDuracionDefault = 15
+val ClipVerticalKey = booleanPreferencesKey("clipVertical")
+val ClipLetraKey = booleanPreferencesKey("clipLetra")
+val ClipAudioKey = booleanPreferencesKey("clipAudio")
+val ClipCaratulaLateKey = booleanPreferencesKey("clipCaratulaLate")
+val ClipFondoLateKey = booleanPreferencesKey("clipFondoLate")
+/** Como se hace el clip: [ClipModo]. Solo desde el modo ambiente se ofrece la grabacion. */
+val ClipModoKey = stringPreferencesKey("clipModo")
+enum class ClipModo {
+    /** La tarjeta dibujada fuera de pantalla (fondo, caratula, letra). */
+    TARJETA,
+    /** Grabacion de lo que se ve en el modo ambiente, tal cual, tras una cuenta atras. */
+    AMBIENTE,
+}
+/** Tope de un clip, en segundos, en los dos modos. */
+const val ClipDuracionMaxima = 60
+/**
+ * Audio en la grabacion del modo ambiente. Encendido de serie, al reves que en
+ * la tarjeta: una grabacion sin lo que sonaba no tiene sentido (lo pidio CG).
+ */
+val ClipGrabacionAudioKey = booleanPreferencesKey("clipGrabacionAudio")
+
+/**
  * Como se dibuja la banda de controles sobre la caratula. CORTE es lo que
  * pidio CG: una banda solida con un filo arriba, como si la portada estuviera
  * cortada. SUAVE es un degradado; LIMPIO, solo los iconos.
@@ -994,3 +1044,10 @@ enum class LifeLineHighlight {
     /** Color elegido por el usuario en Ajustes. */
     CUSTOM,
 }
+
+/**
+ * Guias interactivas de novedades ya vistas (nombre de cada guia, con la
+ * version en que nacio). Cada una se ensena una sola vez, en la pantalla
+ * donde esta lo nuevo, y se da por vista al terminarla o saltarla.
+ */
+val GuiasVistasKey = stringSetPreferencesKey("guiasVistas")

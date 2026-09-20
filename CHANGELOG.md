@@ -15,7 +15,7 @@ esa base**; para la historia anterior, consulte el repositorio de origen.
 
 ---
 
-## [1.1.10] — sin publicar
+## [1.1.10] — 2026-09-19
 
 ### Añadido
 
@@ -39,6 +39,119 @@ esa base**; para la historia anterior, consulte el repositorio de origen.
   notificación una sola vez a quien participó («¡Ganaste!» si es él). Se puede
   corregir o retirar sin publicar nada. El módulo sigue visible siete días
   tras el fin (antes tres) para que el anuncio llegue.
+- **Modo ambiente, segunda pasada** (de probarlo CG en el teléfono):
+  - **El fondo oye la música.** Un medidor de nivel al final de la cadena de
+    audio (no toca el sonido; apagado no lee ni una muestra) mide lo que
+    suena, y las manchas de luz laten con los graves y se avivan con el
+    volumen. Antes giraban a reloj, sordas. Con las animaciones del sistema
+    apagadas, se quedan quietas.
+  - **Reposo nocturno, al estilo Always On Display.** Tras un rato sin tocar
+    (60 s de serie, de 15 a 300) la pantalla se pone en **negro** —en AMOLED
+    son píxeles apagados: ahorra más que solo bajar el brillo— y quedan la
+    hora, grande y fina arriba, y la letra debajo, tenue (cada una con su
+    interruptor; sin letra, la hora al centro). El fondo, la carátula y el
+    canvas se van, así el vídeo se libera y deja de moverse; el medidor de
+    nivel se apaga. El brillo de la ventana baja al 10 %. Cualquier toque o
+    tecla despierta.
+  - **Indicador de volumen nuevo.** Corto y centrado en vez de una línea de
+    borde a borde; en reposo desaparece del todo. Estilo *Deslizante* (asoma
+    por el borde al usarlo y se retira, como en iOS), *Fijo* o *Oculto*.
+  - **Teclas físicas sin panel del sistema.** En el modo ambiente, las teclas
+    de volumen las atiende la app: cambian el volumen sin la interfaz de
+    Android, y solo se ve nuestro indicador, que además ahora sí se entera del
+    cambio (antes se quedaba con el nivel viejo).
+- **Clip.** Un vídeo corto del modo ambiente para las historias, sin grabar
+  pantalla: la app dibuja cada fotograma fuera de pantalla —fondo de manchas
+  con los colores de la carátula, carátula, letra con la palabra viva, título
+  y artista arriba, progreso y la firma «Life Music» abajo— y lo codifica a
+  MP4 (H.264, 1080p a 30 fps) con el códec del teléfono; 15 s salen en unos
+  segundos. Desde el menú del reproductor o el botón del modo ambiente:
+  duración (10/15/30/60 s), vertical 9:16 u horizontal, con o sin letra, y si el
+  fondo y la carátula laten con los graves (la carátula quieta de serie). El
+  audio va apagado de serie —Instagram silencia música con derechos y pone la
+  canción oficial desde su biblioteca— y se enciende para WhatsApp. Compartir
+  a cualquier app o guardar en Películas › Life Music. La marca personal no va
+  en el clip: solo la app, como pidió CG.
+  - **El tramo se elige en la letra.** Pulsación larga sobre una línea →
+    seleccionar → Compartir → «Crear clip con este tramo»: el clip arranca en
+    la primera línea marcada y dura hasta la siguiente (de 5 a 60 s). Desde
+    el menú sin selección, arranca donde va la canción.
+  - El horizontal reparte como el modo ambiente: carátula a la izquierda,
+    letra a la derecha.
+  - El fondo de manchas se dibuja a un cuarto de resolución y se escala: 30 s
+    de vídeo salen en 10 s (antes 55 s para 23 s).
+  - **Hasta 60 s** (chips 10/15/30/60), y en la letra se pueden marcar hasta
+    10 líneas (antes 5), que también valen para la tarjeta de imagen.
+  - **Grabar el modo ambiente.** Segunda manera, solo desde el botón de clip
+    del modo ambiente: en vez de la tarjeta dibujada, graba lo que se ve, tal
+    cual, como una grabación interna: cuenta atrás 3-2-1 y captura desde donde
+    va la canción hasta agotar el tiempo elegido o tocar «Detener»; si la
+    canción cambia, se pausa o se busca dentro de ella, termina ahí (el audio
+    ya no cuadraría). Sin permiso de grabar pantalla ni marca del sistema: se
+    copia la ventana de la app fotograma a fotograma (`PixelCopy`) a un
+    codificador H.264 en su hilo, 30 fps, 1920 de ancho apaisado o 1080
+    vertical con la proporción de la pantalla. La cuenta atrás y el REC van en
+    otra ventana y no salen en el vídeo; el reposo nocturno se aplaza mientras
+    se graba. El audio se saca de la canción (el tramo que sonó, por posición)
+    y se une al final sin recodificar el vídeo (`Remezclador`). Al terminar, la
+    hoja del clip vuelve con el resultado para compartir o guardar.
+  - **Mantener pulsado el botón de clip** del modo ambiente cuelga un mini menú
+    con las duraciones (10/15/30/60 s): se desliza con el mismo dedo y al
+    soltar encima de una graba directo, con audio (encendido de serie para la
+    grabación; se apaga en la hoja y se recuerda). Un toque corto abre la hoja
+    completa, que ahora tiene scroll (en horizontal no cabía y el boton de
+    grabar quedaba fuera de alcance). Lo pidio CG: el menor número de pasos.
+- **Boletín de actualización grande.** La cabecera del boletín lo dice con
+  estrella («Actualización grande»), y abre con los clips, la grabación del
+  modo ambiente, el envolvente y el ganador; en «además», el corazón y los dos
+  arreglos.
+- **Guía interactiva de novedades.** La primera vez que se llega a una
+  pantalla con algo nuevo, un velo con un recorte señala el control y una
+  tarjeta dice que hacer; el paso se da por probado cuando el usuario hace el
+  gesto de verdad (el control avisa) o al tocar «Siguiente», y «Saltar» cierra
+  la guía. No intercepta toques fuera de la tarjeta: la gracia es probar sobre
+  el control real. Tres guias, una vez cada una: modo ambiente (clip con
+  pulsación larga, controles en la carátula y reposo, volumen en el borde),
+  letra (seleccionar lineas y compartir como tarjeta o clip) y corazón
+  (mantener para descargar). Mientras hay guía, el ambiente no entra en reposo.
+- **Mantener pulsado el corazón descarga la canción y la marca favorita**,
+  con corazones que suben flotando desde el botón (dibujados en una capa
+  encima de todo: el estallido dentro del botón quedaba recortado por su
+  círculo y no se veía) y un aviso corto. El toque sigue siendo favorito a
+  secas. En los dos diseños del reproductor.
+
+### Corregido
+
+- **El ecualizador tiraba la app al guardar un perfil** (desde que se separó
+  en módulos): el módulo `:playback` no aplicaba el plugin de
+  kotlinx.serialization, así que `SavedEQProfile`, `ParametricEQBand` y
+  `FilterType` no tenían serializador generado y `encodeToString` moría con
+  «Serializer for class 'f' is not found» (obfuscado; leido de la pantalla de
+  error del teléfono y destrazado con el mapping). Ahora el plugin está, y
+  guardar o borrar perfiles ya no puede tirar la app: si fallara, el cambio
+  vive en memoria y queda en el registro.
+
+- **El reproductor se quedaba «congelado» al saltar canciones rápido** (de
+  Echo, de siempre): carátula de fondo, barra de abajo, y ni título, ni
+  tiempo, ni controles. La fábrica de reproductores publicaba en el flujo que
+  sigue la interfaz **cada** reproductor que creaba, y esa fábrica también
+  crea el secundario del crossfade, el que precarga la siguiente canción 3 s
+  antes de la transición. La interfaz se colgaba de ese secundario (por eso a
+  veces mostraba la siguiente canción antes de tiempo) y, si se saltaba
+  mientras existía, el servicio lo vaciaba y lo soltaba: la pantalla recibía
+  «sin canción» de un reproductor muerto y se quedaba así hasta el siguiente
+  crossfade. Ahora solo se publica el principal (al arrancar y en el relevo), y
+  `PlayerConnection` ignora avisos de cualquier otro reproductor y vuelve al
+  principal por su cuenta.
+- **Canciones descargadas: el clip salía mudo y Automix no las analizaba.**
+  Para leer el audio de una canción se pedía con el id pelado, sin esquema, y
+  Media3 lo tomaba como ruta de fichero local (`ENOENT`). Con las que se
+  reproducen en línea no se notaba porque el resolvedor sustituye la URI por
+  la real; con las descargadas, que se sirven de la caché tal cual, moría al
+  abrir. Ahora se usa la misma URI semilla que el reproductor
+  (`playbackSeedUri`), tanto en el clip como en el analizador de beats, y una
+  copia que se corta a medias se conserva: el clip sale mudo solo si el tramo
+  no llega al 90 %.
 
 ## [1.1.9] — 2026-09-18
 

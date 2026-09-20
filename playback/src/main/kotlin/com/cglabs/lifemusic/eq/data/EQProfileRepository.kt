@@ -93,8 +93,9 @@ class EQProfileRepository @Inject constructor(
         }
 
         
-        val profilesJson = json.encodeToString<List<SavedEQProfile>>(currentProfiles)
-        prefs.edit { putString(KEY_PROFILES, profilesJson) }
+        // Guardar nunca debe tirar la app: si falla, el cambio vive en memoria y queda en el registro.
+        runCatching { prefs.edit { putString(KEY_PROFILES, json.encodeToString<List<SavedEQProfile>>(currentProfiles)) } }
+            .onFailure { Log.e("EQProfileRepository", "Error saving EQ profiles", it) }
 
         _profiles.value = currentProfiles
     }
@@ -104,8 +105,8 @@ class EQProfileRepository @Inject constructor(
         val currentProfiles = _profiles.value.toMutableList()
         currentProfiles.removeAll { it.id == profileId }
 
-        val profilesJson = json.encodeToString<List<SavedEQProfile>>(currentProfiles)
-        prefs.edit { putString(KEY_PROFILES, profilesJson) }
+        runCatching { prefs.edit { putString(KEY_PROFILES, json.encodeToString<List<SavedEQProfile>>(currentProfiles)) } }
+            .onFailure { Log.e("EQProfileRepository", "Error saving EQ profiles", it) }
 
         
         if (_activeProfile.value?.id == profileId) {

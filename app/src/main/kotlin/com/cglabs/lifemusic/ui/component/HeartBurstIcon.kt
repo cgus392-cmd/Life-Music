@@ -27,10 +27,18 @@ fun HeartBurstIcon(
     modifier: Modifier = Modifier,
     iconSize: Dp = 24.dp,
     likedColor: Color = Color(0xFFFF4081), // Pink color
-    unlikedColor: Color = LocalContentColor.current
+    unlikedColor: Color = LocalContentColor.current,
+    /** Cada cambio dispara el estallido aunque ya estuviera en favoritos (pulsacion larga: descarga). */
+    pulso: Int = 0,
 ) {
     val burstAnim = remember { Animatable(0f) }
     var wasLiked by remember { mutableStateOf(isLiked) }
+    LaunchedEffect(pulso) {
+        if (pulso > 0) {
+            burstAnim.snapTo(0f)
+            burstAnim.animateTo(1f, tween(durationMillis = 500, easing = LinearOutSlowInEasing))
+        }
+    }
     
     LaunchedEffect(isLiked) {
         if (isLiked && !wasLiked) {

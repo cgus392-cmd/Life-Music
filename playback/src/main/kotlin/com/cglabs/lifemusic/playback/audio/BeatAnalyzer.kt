@@ -96,6 +96,8 @@ object BeatAnalyzer {
         mediaId: String,
         tempDir: java.io.File,
         shouldCancel: () -> Boolean = { false },
+        /** URI que se abre. Con el id pelado, una cancion descargada se lee como fichero local y falla. */
+        uri: Uri = Uri.parse(mediaId),
     ): CachedAnalysis? {
         val tempFile = java.io.File(tempDir, "beat_${mediaId.hashCode()}.tmp")
         try {
@@ -105,7 +107,7 @@ object BeatAnalyzer {
             try {
                 source.open(
                     DataSpec.Builder()
-                        .setUri(Uri.parse(mediaId))
+                        .setUri(uri)
                         .setKey(mediaId)
                         .build()
                 )

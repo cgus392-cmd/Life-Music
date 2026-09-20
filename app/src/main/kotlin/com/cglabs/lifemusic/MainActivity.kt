@@ -347,6 +347,15 @@ class MainActivity : ComponentActivity() {
         super.onStop()
     }
 
+    /**
+     * Teclas de volumen en modo ambiente: se las queda la pantalla para que no
+     * salga el panel del sistema (ver AmbienteVolumen). En cualquier otra
+     * pantalla siguen su camino normal.
+     */
+    override fun dispatchKeyEvent(event: android.view.KeyEvent): Boolean =
+        if (com.cglabs.lifemusic.ui.screens.ambient.AmbienteVolumen.atender(this, event)) true
+        else super.dispatchKeyEvent(event)
+
     override fun onDestroy() {
         super.onDestroy()
         if (dataStore.get(StopMusicOnTaskClearKey, false) &&
@@ -1569,6 +1578,15 @@ class MainActivity : ComponentActivity() {
                     if (mostrarSaludo && !esPrimerArranque) {
                         SaludoDeEntrada(onTerminado = { mostrarSaludo = false })
                     }
+
+                    // Hoja del clip (video corto para historias); se abre desde ClipLanzador.
+                    com.cglabs.lifemusic.clip.ClipSheet()
+                    // Cuenta atras y REC de la grabacion del modo ambiente (otra ventana).
+                    com.cglabs.lifemusic.clip.GrabacionOverlay()
+                    // Guia interactiva de novedades (una vez por pantalla con algo nuevo).
+                    com.cglabs.lifemusic.ui.guia.GuiaOverlay()
+                    // Corazones flotantes del corazon del reproductor (pulsacion larga).
+                    com.cglabs.lifemusic.ui.component.CorazonesFlotantesOverlay()
 
                 }
             }
