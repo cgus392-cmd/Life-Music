@@ -1,0 +1,103 @@
+/* Receptor de Life Music: el modo ambiente en el TV.
+   Todo en negro con luz de la caratula; tipografia de sala (se lee a tres
+   metros); zona segura del 4 % por si el TV recorta el borde (overscan). */
+
+:root {
+  --texto: #F2F5F3;
+  --texto-2: rgba(242, 245, 243, 0.62);
+  --texto-3: rgba(242, 245, 243, 0.34);
+  --verde: #34D399;
+  --seguro: 4vmin;
+  --display: "Google Sans", "Product Sans", "Segoe UI", Roboto, system-ui, sans-serif;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { width: 100%; height: 100%; overflow: hidden; background: #000; }
+body { font-family: var(--display); color: var(--texto); -webkit-font-smoothing: antialiased; }
+
+/* El reproductor de CAF tiene que existir para que el TV reproduzca, pero no se ve. */
+cast-media-player { display: none; }
+
+/* Fondo: un lienzo pequeno escalado a toda la pantalla (barato para el Chromecast). */
+#fondo {
+  position: fixed; inset: 0; width: 100vw; height: 100vh;
+  image-rendering: auto;
+  filter: blur(1.2vmin) saturate(1.15);
+  transform: scale(1.06);
+}
+
+#escena { position: fixed; inset: 0; padding: var(--seguro); }
+
+.marca {
+  position: absolute; top: var(--seguro); right: var(--seguro);
+  display: flex; align-items: center; gap: 0.8vmin;
+  font-size: 2.1vmin; font-weight: 600; letter-spacing: 0.02em; color: var(--texto-2);
+}
+.marca img { width: 2.8vmin; height: 2.8vmin; border-radius: 0.7vmin; }
+
+/* Bienvenida (sin cancion) */
+#bienvenida {
+  position: absolute; inset: 0; display: none;
+  flex-direction: column; align-items: center; justify-content: center; gap: 2vmin;
+  text-align: center;
+}
+#bienvenida img { width: 14vmin; height: 14vmin; border-radius: 3vmin; box-shadow: 0 2vmin 6vmin rgba(0,0,0,0.6); }
+#bienvenida h1 { font-size: 5.2vmin; font-weight: 700; letter-spacing: -0.02em; margin-top: 1vmin; }
+#bienvenida p { font-size: 2.6vmin; color: var(--texto-2); }
+#escena.vacia #bienvenida { display: flex; }
+#escena.vacia #ambiente { display: none; }
+
+/* Ambiente (con cancion) */
+#ambiente {
+  position: absolute; inset: var(--seguro);
+  display: grid; grid-template-columns: 40fr 60fr; gap: 6vmin; align-items: center;
+}
+#escena.sin-letra #ambiente { grid-template-columns: 1fr; justify-items: center; }
+#escena.sin-letra #derecha { display: none; }
+
+#izquierda { display: flex; flex-direction: column; align-items: flex-start; gap: 1.6vmin; min-width: 0; }
+#escena.sin-letra #izquierda { align-items: center; text-align: center; }
+
+#caratula-marco {
+  width: 52vmin; height: 52vmin; border-radius: 3vmin; overflow: hidden;
+  background: #111; box-shadow: 0 3vmin 9vmin rgba(0,0,0,0.65);
+  transition: transform 220ms ease-out;
+}
+#caratula { width: 100%; height: 100%; object-fit: cover; display: block; }
+#escena.pausa #caratula-marco { transform: scale(0.96); }
+
+#titulo {
+  font-size: 4.2vmin; font-weight: 700; letter-spacing: -0.02em; line-height: 1.1;
+  max-width: 52vmin; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  margin-top: 1vmin;
+}
+#artista { font-size: 2.6vmin; color: var(--texto-2); max-width: 52vmin; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+#progreso { width: 52vmin; height: 0.5vmin; border-radius: 1vmin; background: rgba(255,255,255,0.16); overflow: hidden; margin-top: 0.6vmin; }
+#progreso-barra { width: 0; height: 100%; background: var(--texto); border-radius: 1vmin; transition: width 400ms linear; }
+
+/* Letra: la linea viva al centro, las demas se desvanecen hacia arriba y abajo. */
+#derecha { position: relative; height: 84vh; min-width: 0; overflow: hidden;
+  -webkit-mask-image: linear-gradient(to bottom, transparent 0, #000 22%, #000 78%, transparent 100%);
+  mask-image: linear-gradient(to bottom, transparent 0, #000 22%, #000 78%, transparent 100%); }
+#letra { position: absolute; left: 0; right: 0; top: 50%; transition: transform 420ms cubic-bezier(0.2, 0.8, 0.2, 1); will-change: transform; }
+#letra .linea {
+  font-size: 4.6vmin; font-weight: 700; line-height: 1.25; letter-spacing: -0.015em;
+  color: var(--texto-3); padding: 1.2vmin 0;
+  transition: color 300ms ease, transform 300ms ease, opacity 300ms ease;
+  transform-origin: left center;
+}
+#letra .linea.viva { color: var(--texto); transform: scale(1.04); }
+#letra .linea.pasada { color: var(--texto-3); }
+#letra .linea .p { transition: color 120ms linear; }
+#letra .linea.viva .p { color: rgba(242, 245, 243, 0.45); }
+#letra .linea.viva .p.dicha { color: var(--texto); }
+#sin-letra { display: none; font-size: 2.6vmin; color: var(--texto-3); }
+
+/* TV vertical o pantallas raras: apilar. */
+@media (orientation: portrait) {
+  #ambiente { grid-template-columns: 1fr; grid-template-rows: auto 1fr; align-items: start; }
+  #izquierda { align-items: center; text-align: center; }
+  #derecha { height: 46vh; }
+  #caratula-marco { width: 40vmin; height: 40vmin; }
+}

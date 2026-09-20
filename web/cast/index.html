@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Life Music en tu TV</title>
+<meta name="robots" content="noindex">
+<!--
+  Receptor de Google Cast de Life Music: el modo ambiente en el televisor.
+
+  El Chromecast carga esta pagina cuando el telefono lanza la app registrada
+  en la consola de Cast. El audio lo reproduce el propio TV con el reproductor
+  de la Cast Application Framework (CAF), que entiende los mismos mensajes
+  LOAD/PLAY/PAUSE/SEEK que el reproductor por defecto: el telefono no cambia
+  como manda la musica. Lo que se anade es un canal propio
+  (urn:x-cast:com.cglabs.lifemusic) por el que el telefono manda la letra
+  sincronizada, los colores de la caratula y el tempo de la cancion; con eso
+  esta pagina dibuja el modo ambiente y hace latir el fondo al ritmo real.
+
+  Sin telefono en el navegador: abrir con ?demo=1 para verla con una cancion
+  de mentira (la caratula se dibuja aqui, la letra es de relleno, no es de
+  ninguna cancion).
+-->
+<link rel="icon" type="image/png" href="../img/lifemusic.png">
+<link rel="stylesheet" href="receptor.css">
+<script src="https://www.gstatic.com/cast/sdk/libs/caf_receiver/v3/cast_receiver_framework.js"></script>
+</head>
+<body>
+  <!-- El reproductor de CAF existe pero no se ve: la pantalla es nuestra. -->
+  <cast-media-player id="reproductor"></cast-media-player>
+
+  <canvas id="fondo" width="480" height="270" aria-hidden="true"></canvas>
+
+  <main id="escena" class="vacia">
+    <header class="marca">
+      <img src="../img/lifemusic.png" alt="" width="28" height="28">
+      <span>Life Music</span>
+    </header>
+
+    <!-- Sin cancion: la bienvenida. -->
+    <section id="bienvenida">
+      <img src="../img/lifemusic.png" alt="Life Music" width="120" height="120">
+      <h1>Listo para sonar</h1>
+      <p>Elige una cancion en el telefono</p>
+    </section>
+
+    <!-- Con cancion: caratula a la izquierda, letra a la derecha. -->
+    <section id="ambiente">
+      <div id="izquierda">
+        <div id="caratula-marco"><img id="caratula" alt=""></div>
+        <h2 id="titulo"></h2>
+        <p id="artista"></p>
+        <div id="progreso"><div id="progreso-barra"></div></div>
+      </div>
+      <div id="derecha">
+        <div id="letra"></div>
+        <p id="sin-letra">Esta cancion no tiene letra sincronizada</p>
+      </div>
+    </section>
+  </main>
+
+  <script src="receptor.js"></script>
+</body>
+</html>

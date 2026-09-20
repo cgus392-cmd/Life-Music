@@ -114,6 +114,10 @@ object RenderizadorDeClip {
         }
     }
 
+    /** Caratula y sus seis colores, para quien los necesite fuera del clip (el receptor de Cast). */
+    suspend fun coloresDeCaratula(context: Context, url: String?): List<Int> =
+        cargarCaratula(context, url)?.let { coloresDe(it) } ?: emptyList()
+
     private suspend fun cargarCaratula(context: Context, url: String?): Bitmap? {
         if (url.isNullOrBlank()) return null
         val request = ImageRequest.Builder(context)

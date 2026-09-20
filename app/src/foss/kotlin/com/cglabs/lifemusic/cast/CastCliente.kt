@@ -76,6 +76,9 @@ class CastCliente(private val scope: CoroutineScope) {
     /** transportId de la app del receptor una vez lanzada; destino de los mensajes de media. */
     private var transporte: String? = null
     private var sesionApp: String? = null
+    /** appId que se pidio lanzar; con el propio de Life Music el TV dibuja el modo ambiente. */
+    var appActiva: String? = null
+        private set
 
     suspend fun conectar(host: String, puerto: Int = 8009) = withContext(Dispatchers.IO) {
         val contexto = SSLContext.getInstance("TLS")
@@ -104,11 +107,13 @@ class CastCliente(private val scope: CoroutineScope) {
      * Lanza el reproductor por defecto (o se engancha si ya corre) y abre la
      * conexion virtual con el. Devuelve false si el receptor no respondio.
      */
-    suspend fun lanzarReproductor(): Boolean {
+    suspend fun lanzarReproductor(appId: String = APP_REPRODUCTOR): Boolean {
+        appActiva = appId
+        transporte = null
         val id = peticion.getAndIncrement()
         val espera = CompletableDeferred<JSONObject>()
         pendientes[id] = espera
-        enviar(NS_RECEPTOR, RECEPTOR, JSONObject().put("type", "LAUNCH").put("appId", APP_REPRODUCTOR).put("requestId", id))
+        enviar(NS_RECEPTOR, RECEPTOR, JSONObject().put("type", "LAUNCH").put("appId", appId).put("requestId", id))
         val respuesta = withTimeoutOrNull(10_000) { espera.await() } ?: run { pendientes.remove(id); android.util.Log.w(TAG, "LAUNCH sin respuesta"); return false }
         android.util.Log.i(TAG, "LAUNCH → ${respuesta.optString("type")} ${respuesta.toString().take(300)}")
         if (respuesta.optString("type") == "LAUNCH_ERROR") return false
@@ -128,7 +133,7 @@ class CastCliente(private val scope: CoroutineScope) {
         val apps = estado.optJSONObject("status")?.optJSONArray("applications") ?: return false
         for (i in 0 until apps.length()) {
             val app = apps.getJSONObject(i)
-            if (app.optString("appId") == APP_REPRODUCTOR) {
+            if (app.optString("appId") == (appActiva ?: APP_REPRODUCTOR)) {
                 val t = app.optString("transportId")
                 if (t.isNotEmpty() && t != transporte) {
                     transporte = t
@@ -143,6 +148,7 @@ class CastCliente(private val scope: CoroutineScope) {
 
     /** Carga una pista en el receptor. [desdeSeg] arranca ahi. Devuelve true si el receptor la acepto. */
     suspend fun cargar(
+        mediaId: String,
         url: String,
         tipo: String,
         titulo: String,
@@ -177,11 +183,17 @@ class CastCliente(private val scope: CoroutineScope) {
                 .put("media", media)
                 .put("autoplay", reproducir)
                 .put("currentTime", desdeSeg)
-                .put("customData", JSONObject()),
+                .put("customData", JSONObject().put("mediaId", mediaId)),
         )
         val respuesta = withTimeoutOrNull(15_000) { espera.await() } ?: run { pendientes.remove(id); android.util.Log.w(TAG, "LOAD sin respuesta"); return false }
         android.util.Log.i(TAG, "LOAD → ${respuesta.optString("type")} ${respuesta.toString().take(300)}")
         return respuesta.optString("type") == "MEDIA_STATUS"
+    }
+
+    /** Mensaje por el canal propio de Life Music (letra, colores, tempo); solo con nuestra app en el TV. */
+    fun enviarPropio(carga: JSONObject) {
+        val destino = transporte ?: return
+        enviar(NS_LIFE, destino, carga)
     }
 
     fun play() = ordenMedia("PLAY")
@@ -360,5 +372,7 @@ class CastCliente(private val scope: CoroutineScope) {
         private const val NS_LATIDO = "urn:x-cast:com.google.cast.tp.heartbeat"
         private const val NS_RECEPTOR = "urn:x-cast:com.google.cast.receiver"
         private const val NS_MEDIA = "urn:x-cast:com.google.cast.media"
+        /** El canal propio; el receptor (web/cast/receptor.js) lo declara con el mismo nombre. */
+        const val NS_LIFE = "urn:x-cast:com.cglabs.lifemusic"
     }
 }

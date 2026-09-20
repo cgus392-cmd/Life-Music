@@ -34,6 +34,21 @@ esa base**; para la historia anterior, consulte el repositorio de origen.
   solo corre con la hoja abierta. Misma interfaz que la variante gms, así que
   el servicio y el reproductor no cambian. Probado contra AirScreen; pendiente
   un Chromecast real.
+- **El modo ambiente en el TV (receptor propio).** `web/cast/`: la página que
+  el Chromecast carga cuando el teléfono lanza la app de Life Music (registro
+  en la consola de Cast de Google, pendiente de CG). El audio lo reproduce el
+  TV con el reproductor de la Cast Application Framework —los mismos LOAD/
+  PLAY/PAUSE/SEEK de siempre—, y por un canal propio
+  (`urn:x-cast:com.cglabs.lifemusic`) el teléfono manda los seis colores de la
+  carátula, el **tempo** del análisis de Automix y la **letra sincronizada**
+  (palabra a palabra si la hay; si no está en la base, se pide y se guarda).
+  El TV dibuja: fondo negro con manchas de luz que **laten al ritmo real**,
+  carátula grande, título y artista, barra de progreso y la letra con la línea
+  viva al centro; sin letra, la carátula al centro; sin canción, la bienvenida.
+  Tipografía de sala y zona segura del 4 %. Fondo a un cuarto de resolución
+  para el Chromecast. `?demo=1` la muestra en un navegador con una canción de
+  mentira. Si el receptor no conoce la app (AirScreen, o sin registrar), cae
+  solo al reproductor por defecto: audio y ya.
 
 ## [1.1.10] — 2026-09-19
 

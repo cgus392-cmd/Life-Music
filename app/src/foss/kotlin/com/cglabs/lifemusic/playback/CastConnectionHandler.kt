@@ -6,6 +6,11 @@ import android.widget.Toast
 import com.cglabs.lifemusic.R
 import com.cglabs.lifemusic.cast.CastCliente
 import com.cglabs.lifemusic.cast.DescubridorCast
+import com.cglabs.lifemusic.clip.RenderizadorDeClip
+import com.cglabs.lifemusic.lyrics.LyricsUtils
+import kotlinx.coroutines.flow.first
+import org.json.JSONArray
+import org.json.JSONObject
 import com.cglabs.lifemusic.extensions.currentMetadata
 import com.cglabs.lifemusic.models.MediaMetadata
 import com.cglabs.lifemusic.ui.utils.resize
@@ -104,7 +109,9 @@ class CastConnectionHandler(
                 for (intento in 1..2) {
                     try {
                         c.conectar(aparato.host, aparato.puerto)
-                        lanzado = c.lanzarReproductor()
+                        // Primero nuestra app (el modo ambiente en el TV); si el receptor no la
+                        // conoce (AirScreen, o aun sin registrar), el reproductor por defecto.
+                        lanzado = (APP_LIFE_MUSIC != null && c.lanzarReproductor(APP_LIFE_MUSIC)) || c.lanzarReproductor()
                         if (lanzado) break
                     } catch (e: Exception) {
                         android.util.Log.w(TAG, "intento $intento fallo: ${e.javaClass.simpleName}")
@@ -193,6 +200,7 @@ class CastConnectionHandler(
             }
             val tipo = if (url.contains("mime=audio%2Fwebm") || url.contains("mime=audio/webm")) "audio/webm" else "audio/mp4"
             val ok = c.cargar(
+                mediaId = metadata.id,
                 url = url,
                 tipo = tipo,
                 titulo = metadata.title,
@@ -206,8 +214,61 @@ class CastConnectionHandler(
                 _castIsBuffering.value = false
                 if (idCargado == metadata.id) idCargado = null
                 aviso(context.getString(R.string.cast_error_cancion))
+            } else if (c.appActiva == APP_LIFE_MUSIC) {
+                enviarAmbiente(c, metadata)
             }
         }
+    }
+
+    /**
+     * Lo que el TV necesita para dibujar el modo ambiente y que no viaja en el
+     * LOAD: los colores de la caratula, el tempo (del analisis de Automix, si
+     * lo hay) y la letra sincronizada (de la base; si no esta, se pide como
+     * hace el reproductor y se guarda).
+     */
+    private suspend fun enviarAmbiente(c: CastCliente, metadata: MediaMetadata) {
+        runCatching {
+            val colores = RenderizadorDeClip.coloresDeCaratula(context, metadata.thumbnailUrl)
+            val beat = runCatching { musicService.database.beatInfo(metadata.id) }.getOrNull()
+            val cancion = JSONObject()
+                .put("tipo", "cancion")
+                .put("id", metadata.id)
+                .put("titulo", metadata.title)
+                .put("artista", metadata.artists.joinToString { it.name })
+                .put("album", metadata.album?.title)
+                .put("caratula", metadata.thumbnailUrl?.resize(1080, 1080))
+                .put("colores", JSONArray(colores.map { String.format("#%06X", it and 0xFFFFFF) }))
+                .put("duracionMs", metadata.duration * 1000L)
+            if (beat != null && beat.bpm > 40f && beat.confidence >= 0.4f) {
+                cancion.put("bpm", beat.bpm.toDouble()).put("primerBeatMs", beat.firstBeatOffsetMs)
+            }
+            c.enviarPropio(cancion)
+
+            var texto = musicService.database.lyrics(metadata.id).first()?.lyrics
+            if (texto == null) {
+                val traida = runCatching { musicService.lyricsHelper.getLyrics(metadata) }.getOrNull()
+                texto = traida?.lyrics
+                if (traida != null) runCatching {
+                    musicService.database.query {
+                        upsert(com.cglabs.lifemusic.db.entities.LyricsEntity(id = metadata.id, lyrics = traida.lyrics ?: "", provider = traida.providerName))
+                    }
+                }
+            }
+            val lineas = texto?.trim()?.takeIf { it.isNotEmpty() && it.startsWith("[") }
+                ?.let { runCatching { LyricsUtils.parseLyrics(it) }.getOrNull() }
+                ?.filter { it.time >= 0L }
+                .orEmpty()
+            val json = JSONArray()
+            for (l in lineas) {
+                val linea = JSONObject().put("t", l.time).put("texto", l.text)
+                l.words?.takeIf { it.isNotEmpty() }?.let { ws ->
+                    linea.put("palabras", JSONArray(ws.map { w -> JSONObject().put("t", (w.startTime * 1000).toLong()).put("w", w.text) }))
+                }
+                json.put(linea)
+            }
+            c.enviarPropio(JSONObject().put("tipo", "letra").put("id", metadata.id).put("lineas", json))
+            android.util.Log.i(TAG, "ambiente enviado: colores=${colores.size} bpm=${beat?.bpm} lineas=${lineas.size}")
+        }.onFailure { android.util.Log.w(TAG, "enviarAmbiente fallo", it) }
     }
 
     // ── Mando ────────────────────────────────────────────────────────────────
@@ -292,5 +353,10 @@ class CastConnectionHandler(
 
     companion object {
         private const val TAG = "LifeMusicCast"
+        /**
+         * App ID del receptor propio (web/cast/), registrado en la consola de Cast de
+         * Google. Mientras sea null solo se usa el reproductor por defecto (audio).
+         */
+        val APP_LIFE_MUSIC: String? = null
     }
 }
