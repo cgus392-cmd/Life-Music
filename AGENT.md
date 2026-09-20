@@ -74,17 +74,29 @@ dicho a tiempo.
 
 ## Dónde va el proyecto
 
-Foto del estado al **18 de septiembre de 2026**. Es la sección que se actualiza
+Foto del estado al **20 de septiembre de 2026** (madrugada, tras publicar 1.1.10). Es la sección que se actualiza
 en cada publicación; si lo que dice no cuadra con `git log` o `CHANGELOG.md`,
 mandan ellos y esta sección está atrasada.
 
 ### Estado
 
-- **Versión publicada: 1.1.8** (código 10, tag `v1.1.8`). Trae el puesto del
-  reto en el mini-reproductor y el recordatorio diario a las 20:00.
-- **Reto de la semana** (13–19 de septiembre, premio solo entregable en el
-  Atlántico): servidor Supabase con validación de plausibilidad y columna
-  `bonus` editable a mano. El módulo se oculta solo el día 22.
+- **Versión publicada: 1.1.10** (código 12, tag `v1.1.10`, commit `81c1b52e`),
+  la «actualización grande»: modo ambiente segunda pasada (fondo que oye la
+  música, reposo tipo Always On Display, indicador y teclas de volumen
+  propios), **Clip** (tarjeta dibujada fuera de pantalla con el tramo elegido
+  en la letra, y grabación del modo ambiente con `PixelCopy`; mantener el
+  botón de clip graba directo), guía interactiva de novedades, corazón que
+  descarga al mantenerlo, sonido envolvente propio y anuncio del ganador del
+  reto. Arreglos de fondo: el congelamiento del reproductor al saltar rápido
+  (de Echo), el ecualizador que tiraba la app (faltaba el plugin de
+  serialización en `:playback`) y el audio de canciones descargadas
+  (`playbackSeedUri`). 1.1.9 (18/09) trajo la primera pasada del modo ambiente
+  y el cierre técnico del reto.
+- **Reto de la semana** (13–19 de septiembre) **terminado**: la app ya no suma
+  minutos y muestra Resultado final. El anuncio del ganador se escribe en el
+  servidor (`supabase/concurso_anuncio.sql`, columnas `ganador_apodo` y
+  `anuncio`) y la app lo enseña con una notificación única; el módulo se
+  oculta solo siete días después del fin.
 - **Landing** en `lifemusic.pages.dev` (Cloudflare Pages); `/apk` redirige al
   APK de la última versión en GitHub.
 - CI (*Android CI* + *CodeQL*) en verde desde el 13 de septiembre.
@@ -110,10 +122,13 @@ mandan ellos y esta sección está atrasada.
 ### Pendientes
 
 **Con fecha**
-- Cierre del reto (19 de septiembre): ganador con la consulta del final de
-  `supabase/concurso.sql` (la columna `retroactivos` sirve para verificarlo);
-  anuncio en Instagram y WhatsApp con las reglas tal como están en la app.
+- Ganador del reto: ejecutar `supabase/concurso_anuncio.sql` en el SQL Editor
+  (una vez), elegirlo con la consulta del final de `supabase/concurso.sql`
+  (la columna `retroactivos` sirve para verificarlo) y escribir
+  `ganador_apodo` y `anuncio` en `concurso_config`; la app lo anuncia sola.
 - Quitar la sección del reto de la landing después del día 22.
+- Clip: canvas dentro de la tarjeta, intent «Sharing to Stories» de Meta,
+  unificar la búsqueda de canvas de `Thumbnail.kt` con `BusquedaDeCanvas.kt`.
 
 **En la mesa (decide el dueño del proyecto)**
 - Premios para 2.º y 3.º puesto.
