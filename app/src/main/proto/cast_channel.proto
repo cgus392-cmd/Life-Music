@@ -1,0 +1,36 @@
+// Mensaje del canal de Google Cast (protocolo CASTV2), tal como lo define
+// Chromium en extensions/common/api/cast_channel/cast_channel.proto (BSD).
+// Es lo unico que hace falta para hablar con un receptor sin el SDK de Google:
+// cada trama en el socket TLS es un entero de 4 bytes (big-endian) con la
+// longitud, seguido de este mensaje serializado.
+syntax = "proto2";
+
+package com.cglabs.lifemusic.cast.proto;
+
+option java_package = "com.cglabs.lifemusic.cast.proto";
+option java_multiple_files = false;
+option java_outer_classname = "CastChannel";
+option optimize_for = LITE_RUNTIME;
+
+message CastMessage {
+  enum ProtocolVersion {
+    CASTV2_1_0 = 0;
+  }
+  required ProtocolVersion protocol_version = 1;
+
+  // Emisor y destino: "sender-0" / "receiver-0", o el transportId de la app.
+  required string source_id = 2;
+  required string destination_id = 3;
+
+  // urn:x-cast:com.google.cast.tp.connection, .tp.heartbeat, .receiver, .media
+  required string namespace = 4;
+
+  enum PayloadType {
+    STRING = 0;
+    BINARY = 1;
+  }
+  required PayloadType payload_type = 5;
+
+  optional string payload_utf8 = 6;
+  optional bytes payload_binary = 7;
+}

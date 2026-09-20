@@ -1585,7 +1585,7 @@ fun BottomSheetPlayer(
                             )
                             Spacer(Modifier.width(4.dp))
                             Text(
-                                text = "Casting to $castDeviceName",
+                                text = stringResource(R.string.cast_sonando_en, castDeviceName ?: ""),
                                 style = MaterialTheme.typography.labelMedium,
                                 color = TextBackgroundColor.copy(alpha = 0.7f)
                             )

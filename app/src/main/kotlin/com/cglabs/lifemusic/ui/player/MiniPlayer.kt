@@ -477,7 +477,7 @@ private fun NewMiniPlayer(
                 if (isCasting) {
                     Icon(
                         painter = painterResource(R.drawable.cast_connected),
-                        contentDescription = "Casting to ${castDeviceName ?: "device"}",
+                        contentDescription = stringResource(R.string.cast_sonando_en, castDeviceName ?: ""),
                         tint = primaryColor,
                         modifier = Modifier.size(20.dp)
                     )

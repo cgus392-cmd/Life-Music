@@ -15,6 +15,26 @@ esa base**; para la historia anterior, consulte el repositorio de origen.
 
 ---
 
+## [1.2.0] — sin publicar
+
+### Añadido
+
+- **Life Music en tu TV (Google Cast, sin el SDK de Google).** La variante
+  publicada es la `foss` (sin servicios de Google, como promete la política de
+  privacidad) y hasta hoy su botón de Cast era un hueco. Ahora habla el
+  protocolo de Cast directamente (`cast/CastCliente.kt`: TLS al 8009, tramas
+  protobuf `CastMessage`, JSON por espacio de nombres —conexión, latido,
+  receptor, media—) y encuentra los aparatos por mDNS con el `NsdManager` de
+  Android (`cast/DescubridorCast.kt`). Lanza el reproductor por defecto del
+  receptor y le carga la canción con título, artista, álbum y carátula; el
+  teléfono queda de mando: pausa, salto, búsqueda y volumen del aparato. La
+  cola vive en el teléfono: cuando el receptor termina una pista se avanza la
+  cola local y se carga la siguiente. Al desconectar, la música vuelve al
+  teléfono donde iba. «Reproducir en…» en el menú del reproductor; la búsqueda
+  solo corre con la hoja abierta. Misma interfaz que la variante gms, así que
+  el servicio y el reproductor no cambian. Probado contra AirScreen; pendiente
+  un Chromecast real.
+
 ## [1.1.10] — 2026-09-19
 
 ### Añadido
