@@ -235,12 +235,21 @@
 
     var T = cast.framework.events.EventType;
     // Lo que trae el LOAD estandar vale para pintar aunque el canal propio tarde.
+    // La cancion se identifica por el id que manda el telefono (media.customData).
+    // La URL del audio cambia entre estados sin que cambie la cancion; solo se
+    // toma como cancion nueva si no hay id y la URL es otra distinta a la ultima.
+    var ultimaUrl = null;
     pm.addEventListener(T.MEDIA_STATUS, function () {
       var info = pm.getMediaInformation();
       if (!info) return;
       var md = info.metadata || {};
       var img = (md.images && md.images.length) ? md.images[0].url : null;
-      var idNuevo = (info.customData && info.customData.mediaId) || info.contentId;
+      var idNuevo = info.customData && info.customData.mediaId;
+      if (!idNuevo) {
+        if (cancion && info.contentId === ultimaUrl) idNuevo = cancion.id;
+        else idNuevo = info.contentId;
+      }
+      ultimaUrl = info.contentId;
       if (!cancion || cancion.id !== idNuevo) {
         ponerCancion({
           id: idNuevo, titulo: md.title, artista: md.artist, caratula: img,

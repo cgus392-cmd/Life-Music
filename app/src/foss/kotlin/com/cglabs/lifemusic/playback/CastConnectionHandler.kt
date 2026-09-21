@@ -84,7 +84,8 @@ class CastConnectionHandler(
 
     private var cliente: CastCliente? = null
     /** Aparatos que no supieron lanzar la app propia en esta sesion (AirScreen): directo al reproductor por defecto. */
-    private val sinAppPropia = mutableSetOf<String>()
+    private val sinAppPropia = mutableMapOf<String, Long>()
+    private fun sinAppPropiaReciente(id: String) = (sinAppPropia[id] ?: 0L) > android.os.SystemClock.elapsedRealtime() - 5 * 60_000L
     private var seguimiento: Job? = null
     private var cargando: Job? = null
     /** Cancion cargada en el receptor, para no recargarla si el servicio repite el aviso. */
@@ -117,10 +118,10 @@ class CastConnectionHandler(
                         // conoce o no contesta (AirScreen abre la pagina pero no habla el
                         // protocolo con ella), el reproductor por defecto, y se recuerda para
                         // no volver a esperar con ese aparato.
-                        val probarPropia = APP_LIFE_MUSIC != null && aparato.id !in sinAppPropia
+                        val probarPropia = APP_LIFE_MUSIC != null && !sinAppPropiaReciente(aparato.id)
                         lanzado = probarPropia && c.lanzarReproductor(APP_LIFE_MUSIC!!)
                         if (!lanzado) {
-                            if (probarPropia) { sinAppPropia += aparato.id; com.cglabs.lifemusic.cast.DiagnosticoCast.log("${aparato.nombre} no lanza la app propia; reproductor por defecto") }
+                            if (probarPropia) { sinAppPropia[aparato.id] = android.os.SystemClock.elapsedRealtime(); com.cglabs.lifemusic.cast.DiagnosticoCast.log("${aparato.nombre} no lanza la app propia; reproductor por defecto") }
                             if (!c.conectado.value) { runCatching { c.cerrar(pararApp = false) }; c = CastCliente(scope); c.conectar(aparato.host, aparato.puerto) }
                             lanzado = c.lanzarReproductor()
                         }

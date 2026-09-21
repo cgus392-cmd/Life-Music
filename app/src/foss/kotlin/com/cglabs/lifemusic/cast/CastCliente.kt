@@ -182,6 +182,9 @@ class CastCliente(private val scope: CoroutineScope) {
             .put("contentType", tipo)
             .put("streamType", "BUFFERED")
             .put("metadata", metadatos)
+            // El id de la cancion viaja en media.customData: es lo que el receptor lee
+            // en getMediaInformation(); el customData de la peticion no llega ahi.
+            .put("customData", JSONObject().put("mediaId", mediaId))
         val id = peticion.getAndIncrement()
         val espera = CompletableDeferred<JSONObject>()
         pendientes[id] = espera
