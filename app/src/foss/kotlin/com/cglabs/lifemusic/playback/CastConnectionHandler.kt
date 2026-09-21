@@ -354,9 +354,12 @@ class CastConnectionHandler(
     companion object {
         private const val TAG = "LifeMusicCast"
         /**
-         * App ID del receptor propio (web/cast/), registrado en la consola de Cast de
-         * Google. Mientras sea null solo se usa el reproductor por defecto (audio).
+         * App ID del receptor propio (web/cast/), registrado por CG en la consola de
+         * Cast de Google el 2026-09-20 (es publico, no un secreto). Mientras la app
+         * este sin publicar en la consola, solo la lanzan los Chromecast registrados
+         * ahi por numero de serie; los demas receptores caen al reproductor por
+         * defecto (audio).
          */
-        val APP_LIFE_MUSIC: String? = null
+        val APP_LIFE_MUSIC: String? = "1D9B6EDB"
     }
 }
