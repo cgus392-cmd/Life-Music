@@ -14,6 +14,8 @@ import org.json.JSONObject
 import com.cglabs.lifemusic.extensions.currentMetadata
 import com.cglabs.lifemusic.models.MediaMetadata
 import com.cglabs.lifemusic.ui.utils.resize
+import com.cglabs.lifemusic.utils.dataStore
+import com.cglabs.lifemusic.utils.get
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -81,6 +83,8 @@ class CastConnectionHandler(
     val aparatos: StateFlow<List<DescubridorCast.Aparato>> get() = descubridor.aparatos
 
     private var cliente: CastCliente? = null
+    /** Aparatos que no supieron lanzar la app propia en esta sesion (AirScreen): directo al reproductor por defecto. */
+    private val sinAppPropia = mutableSetOf<String>()
     private var seguimiento: Job? = null
     private var cargando: Job? = null
     /** Cancion cargada en el receptor, para no recargarla si el servicio repite el aviso. */
@@ -109,12 +113,20 @@ class CastConnectionHandler(
                 for (intento in 1..2) {
                     try {
                         c.conectar(aparato.host, aparato.puerto)
-                        // Primero nuestra app (el modo ambiente en el TV); si el receptor no la
-                        // conoce (AirScreen, o aun sin registrar), el reproductor por defecto.
-                        lanzado = (APP_LIFE_MUSIC != null && c.lanzarReproductor(APP_LIFE_MUSIC)) || c.lanzarReproductor()
+                        // Primero nuestra app (el modo ambiente en el TV). Si el receptor no la
+                        // conoce o no contesta (AirScreen abre la pagina pero no habla el
+                        // protocolo con ella), el reproductor por defecto, y se recuerda para
+                        // no volver a esperar con ese aparato.
+                        val probarPropia = APP_LIFE_MUSIC != null && aparato.id !in sinAppPropia
+                        lanzado = probarPropia && c.lanzarReproductor(APP_LIFE_MUSIC!!)
+                        if (!lanzado) {
+                            if (probarPropia) { sinAppPropia += aparato.id; com.cglabs.lifemusic.cast.DiagnosticoCast.log("${aparato.nombre} no lanza la app propia; reproductor por defecto") }
+                            if (!c.conectado.value) { runCatching { c.cerrar(pararApp = false) }; c = CastCliente(scope); c.conectar(aparato.host, aparato.puerto) }
+                            lanzado = c.lanzarReproductor()
+                        }
                         if (lanzado) break
                     } catch (e: Exception) {
-                        android.util.Log.w(TAG, "intento $intento fallo: ${e.javaClass.simpleName}")
+                        com.cglabs.lifemusic.cast.DiagnosticoCast.log("intento $intento fallo: ${e.javaClass.simpleName}")
                     }
                     runCatching { c.cerrar(pararApp = false) }
                     if (intento == 1) { delay(2_000); c = CastCliente(scope) }
@@ -135,7 +147,7 @@ class CastConnectionHandler(
                 }
                 aviso(context.getString(R.string.cast_conectado_a, aparato.nombre))
             } catch (e: Exception) {
-                android.util.Log.w(TAG, "conectar fallo", e)
+                com.cglabs.lifemusic.cast.DiagnosticoCast.log("conectar fallo", e)
                 runCatching { c.cerrar(pararApp = false) }
                 if (cliente === c) cliente = null
                 aviso(context.getString(R.string.cast_error_conectar, aparato.nombre))
@@ -169,7 +181,7 @@ class CastConnectionHandler(
 
     private fun perdida(motivo: Throwable?) {
         if (cliente == null) return
-        android.util.Log.w(TAG, "conexion perdida", motivo)
+        com.cglabs.lifemusic.cast.DiagnosticoCast.log("conexion perdida", motivo)
         aviso(context.getString(R.string.cast_conexion_perdida))
         disconnect()
     }
@@ -230,6 +242,11 @@ class CastConnectionHandler(
         runCatching {
             val colores = RenderizadorDeClip.coloresDeCaratula(context, metadata.thumbnailUrl)
             val beat = runCatching { musicService.database.beatInfo(metadata.id) }.getOrNull()
+            // El canvas, si la cancion lo tiene y el usuario no apago los canvas: el TV lo
+            // reproduce en silencio dentro del marco de la caratula, como el telefono.
+            val canvas = if (context.dataStore.get(com.cglabs.lifemusic.constants.CanvasThumbnailAnimationKey, true)) {
+                runCatching { com.cglabs.lifemusic.ui.player.buscarCanvas(metadata)?.preferredAnimationUrl }.getOrNull()
+            } else null
             val cancion = JSONObject()
                 .put("tipo", "cancion")
                 .put("id", metadata.id)
@@ -239,6 +256,7 @@ class CastConnectionHandler(
                 .put("caratula", metadata.thumbnailUrl?.resize(1080, 1080))
                 .put("colores", JSONArray(colores.map { String.format("#%06X", it and 0xFFFFFF) }))
                 .put("duracionMs", metadata.duration * 1000L)
+                .put("canvas", canvas)
             if (beat != null && beat.bpm > 40f && beat.confidence >= 0.4f) {
                 cancion.put("bpm", beat.bpm.toDouble()).put("primerBeatMs", beat.firstBeatOffsetMs)
             }
@@ -267,8 +285,8 @@ class CastConnectionHandler(
                 json.put(linea)
             }
             c.enviarPropio(JSONObject().put("tipo", "letra").put("id", metadata.id).put("lineas", json))
-            android.util.Log.i(TAG, "ambiente enviado: colores=${colores.size} bpm=${beat?.bpm} lineas=${lineas.size}")
-        }.onFailure { android.util.Log.w(TAG, "enviarAmbiente fallo", it) }
+            com.cglabs.lifemusic.cast.DiagnosticoCast.log("ambiente enviado: colores=${colores.size} bpm=${beat?.bpm} canvas=${canvas != null} lineas=${lineas.size}")
+        }.onFailure { com.cglabs.lifemusic.cast.DiagnosticoCast.log("enviarAmbiente fallo", it) }
     }
 
     // ── Mando ────────────────────────────────────────────────────────────────

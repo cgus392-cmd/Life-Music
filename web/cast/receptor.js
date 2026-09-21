@@ -10,16 +10,21 @@
   // ── Estado ────────────────────────────────────────────────────────────────
   var cancion = null;   // {id, titulo, artista, caratula, colores[], bpm, primerBeatMs, duracionMs}
   var lineas = [];      // [{t, texto, palabras:[{t, w}]}]
-  var ajustes = { manchas: true, latido: true };
+  var ajustes = { manchas: true, latido: true, canvas: true };
   var sonando = false;
   var posicion = function () { return 0; }; // ms; lo pone CAF o la demo
 
   var $ = function (id) { return document.getElementById(id); };
+  // Estado del arranque, visible en la bienvenida: si algo falla en el TV, se lee ahi.
+  function estado(texto) { var e = $("estado"); if (e) e.textContent = texto; }
+  window.onerror = function (msg, src, linea) { estado("Error: " + msg + " (" + (src || "").split("/").pop() + ":" + linea + ")"); };
   var escena = $("escena");
   var elLetra = $("letra");
   var elTitulo = $("titulo");
   var elArtista = $("artista");
   var elCaratula = $("caratula");
+  var elCanvas = $("canvas");
+  var marco = $("caratula-marco");
   var elBarra = $("progreso-barra");
 
   // ── Cancion y letra ───────────────────────────────────────────────────────
@@ -37,9 +42,30 @@
     elTitulo.textContent = c.titulo || "";
     elArtista.textContent = c.artista || "";
     if (c.caratula && elCaratula.getAttribute("src") !== c.caratula) elCaratula.src = c.caratula;
+    ponerCanvas(c.canvas);
     var nuevos = (c.colores && c.colores.length) ? c.colores.map(aRgb) : PALETA_LIFE.map(aRgb);
     if (cambio || nuevos.join() !== colores.join()) { colores = nuevos; reubicarManchas(); }
     if (letraDeId !== c.id) ponerLetra([], null);
+  }
+
+  // El canvas se ve solo si carga y mientras suena; si falla, queda la caratula.
+  function ponerCanvas(url) {
+    if (!ajustes.canvas || !url) {
+      marco.classList.remove("con-canvas");
+      if (elCanvas.getAttribute("src")) { elCanvas.pause(); elCanvas.removeAttribute("src"); elCanvas.load(); }
+      return;
+    }
+    if (elCanvas.getAttribute("src") === url) return;
+    marco.classList.remove("con-canvas");
+    elCanvas.src = url;
+    elCanvas.oncanplay = function () { marco.classList.add("con-canvas"); if (sonando) elCanvas.play(); };
+    elCanvas.onerror = function () { marco.classList.remove("con-canvas"); };
+    elCanvas.load();
+  }
+  function sincronizarCanvas() {
+    if (!marco.classList.contains("con-canvas")) return;
+    if (sonando && elCanvas.paused) { var p = elCanvas.play(); if (p && p.catch) p.catch(function () {}); }
+    else if (!sonando && !elCanvas.paused) elCanvas.pause();
   }
 
   function ponerLetra(nuevas, id) {
@@ -172,6 +198,7 @@
       var ms = posicion();
       actualizarLetra(ms);
       if (cancion.duracionMs > 0) elBarra.style.width = Math.min(100, 100 * ms / cancion.duracionMs) + "%";
+      sincronizarCanvas();
     }
     requestAnimationFrame(bucle);
   }
@@ -189,6 +216,7 @@
       case "ajustes":
         if (typeof d.manchas === "boolean") ajustes.manchas = d.manchas;
         if (typeof d.latido === "boolean") ajustes.latido = d.latido;
+        if (typeof d.canvas === "boolean") { ajustes.canvas = d.canvas; ponerCanvas(cancion ? cancion.canvas : null); }
         break;
       case "vaciar":
         cancion = null; ponerLetra([], null); escena.classList.add("vacia"); break;
@@ -197,6 +225,8 @@
 
   // ── CAF: el reproductor del TV ────────────────────────────────────────────
   function iniciarCast() {
+    estado("Iniciando Cast…");
+    if (typeof cast === "undefined" || !cast.framework) { estado("No cargo el SDK de Cast (¿el TV tiene internet?)"); return; }
     var context = cast.framework.CastReceiverContext.getInstance();
     var pm = context.getPlayerManager();
     posicion = function () { return Math.max(0, pm.getCurrentTimeSec() * 1000); };
@@ -220,17 +250,29 @@
         cancion.duracionMs = info.duration * 1000;
       }
     });
-    pm.addEventListener(T.PLAYER_STATE_CHANGED, function () {
-      sonando = pm.getPlayerState() === cast.framework.messages.PlayerState.PLAYING;
-      escena.classList.toggle("pausa", pm.getPlayerState() === cast.framework.messages.PlayerState.PAUSED);
+    // Estado de reproduccion: CAF no tiene un evento «cambio de estado» unico; se
+    // escuchan los del reproductor y se relee el estado en cada uno.
+    function releerEstado() {
+      var s = pm.getPlayerState();
+      sonando = s === cast.framework.messages.PlayerState.PLAYING;
+      escena.classList.toggle("pausa", s === cast.framework.messages.PlayerState.PAUSED);
+    }
+    [T.PLAYING, T.PAUSE, T.ENDED, T.MEDIA_FINISHED, T.PLAYER_LOAD_COMPLETE, T.BUFFERING, T.WAITING, T.SEEKED].forEach(function (tipo) {
+      if (tipo) pm.addEventListener(tipo, releerEstado);
     });
-    pm.addEventListener(T.MEDIA_FINISHED, function () { /* el telefono carga la siguiente */ });
 
+    context.addEventListener(cast.framework.system.EventType.READY, function () { estado("Cast listo · esperando la cancion"); });
+    context.addEventListener(cast.framework.system.EventType.ERROR, function (e) {
+      var d = e && e.data;
+      estado("Error de Cast: " + String(d && (d.reason || d.error || d.message || d.type) || d || e).slice(0, 200));
+    });
+    context.addEventListener(cast.framework.system.EventType.SENDER_CONNECTED, function () { estado("Telefono conectado"); });
     var opciones = new cast.framework.CastReceiverOptions();
     opciones.disableIdleTimeout = false;
     opciones.customNamespaces = {};
     opciones.customNamespaces[NS] = cast.framework.system.MessageType.JSON;
     context.start(opciones);
+    estado("Cast iniciado · esperando al TV");
   }
 
   // ── Demo en el navegador (?demo=1) ────────────────────────────────────────
@@ -249,7 +291,7 @@
     g.fillStyle = "#fff"; g.font = "700 150px sans-serif"; g.textAlign = "center"; g.textBaseline = "middle";
     g.fillText("LM", 300, 315);
     ponerCancion({
-      id: "demo", titulo: "Noche de prueba", artista: "Life Music · Demo", caratula: c.toDataURL(),
+      id: "demo", titulo: "Noche de prueba", artista: "Life Music · Demo", caratula: c.toDataURL(), canvas: null,
       colores: ["#F59E0B", "#EF4444", "#7C3AED", "#FBBF24", "#DC2626", "#4C1D95"],
       bpm: 96, primerBeatMs: 400, duracionMs: largo,
     });
@@ -278,6 +320,7 @@
   if (demo) {
     iniciarDemo();
   } else {
-    try { iniciarCast(); } catch (e) { console.warn("sin entorno Cast:", e); iniciarDemo(); }
+    // En el TV nunca se cae a la demo: si Cast no arranca, se ve el error escrito.
+    try { iniciarCast(); } catch (e) { estado("Error al iniciar Cast: " + (e && e.message ? e.message : e)); }
   }
 })();

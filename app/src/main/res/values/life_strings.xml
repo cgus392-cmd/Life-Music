@@ -1187,6 +1187,8 @@
     <string name="cast_error_conectar">Couldn’t connect to %1$s</string>
     <string name="cast_error_cancion">The device couldn’t play this song</string>
     <string name="cast_conexion_perdida">Connection with the device lost; playing on the phone again</string>
+    <string name="cast_diagnostico">Copy diagnostics</string>
+    <string name="cast_diagnostico_copiado">Copied. Paste it in the chat with CG.</string>
     <string name="share_as_clip">Create a clip from this segment</string>
     <string name="ambient_controls">Controls on tap</string>
     <string name="ambient_controls_desc">Tapping the cover reveals previous, play and next; they hide after five seconds</string>

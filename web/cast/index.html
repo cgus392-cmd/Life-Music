@@ -42,12 +42,18 @@
       <img src="../img/lifemusic.png" alt="Life Music" width="120" height="120">
       <h1>Listo para sonar</h1>
       <p>Elige una cancion en el telefono</p>
+      <!-- Estado del arranque de Cast: para saber, mirando el TV, si la pagina llego a decir «lista». -->
+      <p id="estado" class="estado"></p>
     </section>
 
     <!-- Con cancion: caratula a la izquierda, letra a la derecha. -->
     <section id="ambiente">
       <div id="izquierda">
-        <div id="caratula-marco"><img id="caratula" alt=""></div>
+        <div id="caratula-marco">
+          <img id="caratula" alt="">
+          <!-- El canvas de la cancion (video corto en bucle, sin sonido), si lo tiene. -->
+          <video id="canvas" muted loop playsinline preload="auto"></video>
+        </div>
         <h2 id="titulo"></h2>
         <p id="artista"></p>
         <div id="progreso"><div id="progreso-barra"></div></div>

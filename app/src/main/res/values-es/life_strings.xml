@@ -802,6 +802,8 @@
     <string name="cast_error_conectar">No se pudo conectar con %1$s</string>
     <string name="cast_error_cancion">El aparato no pudo reproducir esta canción</string>
     <string name="cast_conexion_perdida">Se perdió la conexión con el aparato; la música vuelve al teléfono</string>
+    <string name="cast_diagnostico">Copiar diagnóstico</string>
+    <string name="cast_diagnostico_copiado">Copiado. Pégalo en el chat con CG.</string>
     <string name="share_as_clip">Crear clip con este tramo</string>
     <string name="ambient_controls">Controles al tocar</string>
     <string name="ambient_controls_desc">Un toque en la carátula asoma anterior, reproducir y siguiente; se esconden a los cinco segundos</string>

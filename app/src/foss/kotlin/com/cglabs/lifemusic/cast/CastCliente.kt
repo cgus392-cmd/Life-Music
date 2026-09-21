@@ -92,8 +92,8 @@ class CastCliente(private val scope: CoroutineScope) {
         salida = DataOutputStream(s.outputStream.buffered())
         cerrado = false
         lector = scope.launch(Dispatchers.IO) { leer() }
-        android.util.Log.i(TAG, "conectado a $host:$puerto (${s.session.protocol} ${s.session.cipherSuite})")
-        enviar(NS_CONEXION, RECEPTOR, JSONObject().put("type", "CONNECT"))
+        com.cglabs.lifemusic.cast.DiagnosticoCast.log("conectado a $host:$puerto (${s.session.protocol} ${s.session.cipherSuite})")
+        enviar(NS_CONEXION, RECEPTOR, conectarJson())
         latido = scope.launch(Dispatchers.IO) {
             while (isActive && !cerrado) {
                 runCatching { enviar(NS_LATIDO, RECEPTOR, JSONObject().put("type", "PING")) }
@@ -114,20 +114,31 @@ class CastCliente(private val scope: CoroutineScope) {
         val espera = CompletableDeferred<JSONObject>()
         pendientes[id] = espera
         enviar(NS_RECEPTOR, RECEPTOR, JSONObject().put("type", "LAUNCH").put("appId", appId).put("requestId", id))
-        val respuesta = withTimeoutOrNull(10_000) { espera.await() } ?: run { pendientes.remove(id); android.util.Log.w(TAG, "LAUNCH sin respuesta"); return false }
-        android.util.Log.i(TAG, "LAUNCH → ${respuesta.optString("type")} ${respuesta.toString().take(300)}")
-        if (respuesta.optString("type") == "LAUNCH_ERROR") return false
-        return engancharApp(respuesta) || esperarApp()
-    }
-
-    /** Espera a que un RECEIVER_STATUS traiga la app corriendo (a veces llega despues del LAUNCH). */
-    private suspend fun esperarApp(): Boolean {
-        repeat(20) {
-            if (transporte != null) return true
-            delay(250)
+        // Vale la respuesta numerada o cualquier estado que ya traiga la app corriendo
+        // (AirScreen carga la pagina y no siempre contesta con el requestId). Hasta
+        // 20 s: un receptor que es un telefono tarda en cargar la pagina.
+        val limite = android.os.SystemClock.elapsedRealtime() + 30_000
+        while (android.os.SystemClock.elapsedRealtime() < limite) {
+            if (transporte != null) { pendientes.remove(id); com.cglabs.lifemusic.cast.DiagnosticoCast.log("LAUNCH $appId: app corriendo (transporte $transporte)"); return true }
+            val respuesta = withTimeoutOrNull(250) { espera.await() }
+            if (respuesta != null) {
+                com.cglabs.lifemusic.cast.DiagnosticoCast.log("LAUNCH $appId → ${respuesta.optString("type")} ${respuesta.toString().take(300)}")
+                if (respuesta.optString("type") == "LAUNCH_ERROR") return false
+                if (engancharApp(respuesta)) return true
+            }
+            if (cerrado) return false
         }
+        pendientes.remove(id)
+        com.cglabs.lifemusic.cast.DiagnosticoCast.log("LAUNCH $appId sin respuesta en 30 s")
         return transporte != null
     }
+
+    /** El CONNECT como lo manda el SDK oficial: algunos receptores lo miran. */
+    private fun conectarJson(): JSONObject = JSONObject()
+        .put("type", "CONNECT")
+        .put("origin", JSONObject())
+        .put("userAgent", "Life Music")
+        .put("senderInfo", JSONObject().put("sdkType", 2).put("version", "1.2.0").put("browserVersion", "").put("platform", 4).put("systemVersion", "Android").put("connectionType", 1))
 
     private fun engancharApp(estado: JSONObject): Boolean {
         val apps = estado.optJSONObject("status")?.optJSONArray("applications") ?: return false
@@ -138,7 +149,7 @@ class CastCliente(private val scope: CoroutineScope) {
                 if (t.isNotEmpty() && t != transporte) {
                     transporte = t
                     sesionApp = app.optString("sessionId")
-                    enviar(NS_CONEXION, t, JSONObject().put("type", "CONNECT"))
+                    enviar(NS_CONEXION, t, conectarJson())
                 }
                 return true
             }
@@ -185,8 +196,8 @@ class CastCliente(private val scope: CoroutineScope) {
                 .put("currentTime", desdeSeg)
                 .put("customData", JSONObject().put("mediaId", mediaId)),
         )
-        val respuesta = withTimeoutOrNull(15_000) { espera.await() } ?: run { pendientes.remove(id); android.util.Log.w(TAG, "LOAD sin respuesta"); return false }
-        android.util.Log.i(TAG, "LOAD → ${respuesta.optString("type")} ${respuesta.toString().take(300)}")
+        val respuesta = withTimeoutOrNull(15_000) { espera.await() } ?: run { pendientes.remove(id); com.cglabs.lifemusic.cast.DiagnosticoCast.log("LOAD sin respuesta"); return false }
+        com.cglabs.lifemusic.cast.DiagnosticoCast.log("LOAD → ${respuesta.optString("type")} ${respuesta.toString().take(300)}")
         return respuesta.optString("type") == "MEDIA_STATUS"
     }
 
@@ -249,7 +260,7 @@ class CastCliente(private val scope: CoroutineScope) {
     private fun terminar(motivo: Throwable?) {
         if (cerrado) return
         cerrado = true
-        android.util.Log.i(TAG, "conexion terminada: " + (motivo?.let { it.javaClass.simpleName + (it.message?.let { m -> ": $m" } ?: "") } ?: "cierre propio"))
+        com.cglabs.lifemusic.cast.DiagnosticoCast.log("conexion terminada: " + (motivo?.let { it.javaClass.simpleName + (it.message?.let { m -> ": $m" } ?: "") } ?: "cierre propio"))
         conectado.value = false
         latido?.cancel()
         lector?.cancel()
@@ -316,6 +327,7 @@ class CastCliente(private val scope: CoroutineScope) {
                 terminar(IllegalStateException("el receptor cerro la sesion"))
             }
             NS_RECEPTOR -> {
+                if (transporte == null) com.cglabs.lifemusic.cast.DiagnosticoCast.log("receptor → $tipo ${carga.toString().take(400)}")
                 if (tipo == "RECEIVER_STATUS") {
                     carga.optJSONObject("status")?.optJSONObject("volume")?.let { v ->
                         val nivel = v.optDouble("level", Double.NaN)

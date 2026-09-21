@@ -187,6 +187,14 @@ private fun HojaDeCast(handler: CastConnectionHandler, onCerrar: () -> Unit) {
                 }
                 Spacer(Modifier.height(8.dp))
                 Text(stringResource(R.string.cast_nota_red), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                // Para los probadores: copia las ultimas lineas del registro de Cast al
+                // portapapeles (lo pegan por WhatsApp). Solo lo que el usuario decide copiar.
+                val context = androidx.compose.ui.platform.LocalContext.current
+                androidx.compose.material3.TextButton(onClick = {
+                    val cm = context.getSystemService(android.content.Context.CLIPBOARD_SERVICE) as android.content.ClipboardManager
+                    cm.setPrimaryClip(android.content.ClipData.newPlainText("Life Music Cast", com.cglabs.lifemusic.cast.DiagnosticoCast.texto()))
+                    android.widget.Toast.makeText(context, R.string.cast_diagnostico_copiado, android.widget.Toast.LENGTH_SHORT).show()
+                }) { Text(stringResource(R.string.cast_diagnostico)) }
             }
         }
     }

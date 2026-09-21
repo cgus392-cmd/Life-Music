@@ -44,6 +44,7 @@ cast-media-player { display: none; }
 #bienvenida img { width: 14vmin; height: 14vmin; border-radius: 3vmin; box-shadow: 0 2vmin 6vmin rgba(0,0,0,0.6); }
 #bienvenida h1 { font-size: 5.2vmin; font-weight: 700; letter-spacing: -0.02em; margin-top: 1vmin; }
 #bienvenida p { font-size: 2.6vmin; color: var(--texto-2); }
+#bienvenida .estado { font-size: 1.9vmin; color: var(--texto-3); max-width: 80vw; margin-top: 2vmin; font-family: monospace; word-break: break-word; }
 #escena.vacia #bienvenida { display: flex; }
 #escena.vacia #ambiente { display: none; }
 
@@ -64,6 +65,9 @@ cast-media-player { display: none; }
   transition: transform 220ms ease-out;
 }
 #caratula { width: 100%; height: 100%; object-fit: cover; display: block; }
+#canvas { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; display: none; }
+#caratula-marco { position: relative; }
+#caratula-marco.con-canvas #canvas { display: block; }
 #escena.pausa #caratula-marco { transform: scale(0.96); }
 
 #titulo {

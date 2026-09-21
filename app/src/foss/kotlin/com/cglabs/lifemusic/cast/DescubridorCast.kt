@@ -39,7 +39,7 @@ class DescubridorCast(context: Context) {
         val o = object : NsdManager.DiscoveryListener {
             override fun onDiscoveryStarted(serviceType: String) { buscando.value = true }
             override fun onDiscoveryStopped(serviceType: String) { buscando.value = false }
-            override fun onStartDiscoveryFailed(serviceType: String, errorCode: Int) { android.util.Log.w("LifeMusicCast", "descubrimiento fallo: $errorCode"); buscando.value = false; oyente = null }
+            override fun onStartDiscoveryFailed(serviceType: String, errorCode: Int) { com.cglabs.lifemusic.cast.DiagnosticoCast.log("descubrimiento fallo: $errorCode"); buscando.value = false; oyente = null }
             override fun onStopDiscoveryFailed(serviceType: String, errorCode: Int) { buscando.value = false }
             override fun onServiceFound(info: NsdServiceInfo) {
                 synchronized(porResolver) { porResolver.addLast(info) }
@@ -112,7 +112,7 @@ class DescubridorCast(context: Context) {
             host = host,
             puerto = if (info.port > 0) info.port else CastCliente.PUERTO,
         )
-        android.util.Log.i("LifeMusicCast", "aparato: ${aparato.nombre} (${aparato.modelo}) ${aparato.host}:${aparato.puerto}")
+        com.cglabs.lifemusic.cast.DiagnosticoCast.log("aparato: ${aparato.nombre} (${aparato.modelo}) ${aparato.host}:${aparato.puerto}")
         synchronized(encontrados) {
             encontrados[info.serviceName] = aparato
             aparatos.value = encontrados.values.toList()
