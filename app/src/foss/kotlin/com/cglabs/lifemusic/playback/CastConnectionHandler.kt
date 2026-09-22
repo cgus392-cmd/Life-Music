@@ -83,6 +83,8 @@ class CastConnectionHandler(
     val aparatos: StateFlow<List<DescubridorCast.Aparato>> get() = descubridor.aparatos
 
     private var cliente: CastCliente? = null
+    /** Con quien se transmite, para volver a engancharse si el socket se cae. */
+    private var aparatoActual: DescubridorCast.Aparato? = null
     /** Aparatos que no supieron lanzar la app propia en esta sesion (AirScreen): directo al reproductor por defecto. */
     private val sinAppPropia = mutableMapOf<String, Long>()
     private fun sinAppPropiaReciente(id: String) = (sinAppPropia[id] ?: 0L) > android.os.SystemClock.elapsedRealtime() - 5 * 60_000L
@@ -134,7 +136,23 @@ class CastConnectionHandler(
                 }
                 if (!lanzado) throw IllegalStateException("el receptor no lanzo el reproductor")
                 c.alCerrarse = { motivo -> scope.launch { perdida(motivo) } }
+                // El receptor avisa «listo» cuando su pagina arranco del todo; lo que se
+                // le mande antes se pierde. Ahi va el saludo (y si la pagina se recarga
+                // a mitad de sesion, vuelve a decir listo y se le repite la cancion).
+                c.alMensajePropio = { m ->
+                    // Por «cliente» y no por «c»: tras un reenganche el socket es otro.
+                    if (m.optString("tipo") == "listo") {
+                        cliente?.let { enviarSaludo(it) }
+                        val actual = idCargado
+                        if (actual != null) scope.launch(Dispatchers.IO) {
+                            val meta = withContext(Dispatchers.Main) { musicService.player.currentMetadata }
+                            val vivo = cliente
+                            if (meta != null && meta.id == actual && vivo != null) enviarAmbiente(vivo, meta)
+                        }
+                    }
+                }
                 cliente = c
+                aparatoActual = aparato
                 _castDeviceName.value = aparato.nombre
                 _deviceType.value = CastDeviceKind.fromName(aparato.nombre, aparato.modelo)
                 withContext(Dispatchers.Main) {
@@ -146,6 +164,10 @@ class CastConnectionHandler(
                     seguir(c)
                     loadCurrentMedia()
                 }
+                // Sin un servicio en primer plano, Android corta la red de la app a los
+                // 5 s de apagar la pantalla (ver ServicioDeCast).
+                com.cglabs.lifemusic.cast.ServicioDeCast.alDevolver = { disconnect() }
+                com.cglabs.lifemusic.cast.ServicioDeCast.iniciar(context, aparato.nombre)
                 aviso(context.getString(R.string.cast_conectado_a, aparato.nombre))
             } catch (e: Exception) {
                 com.cglabs.lifemusic.cast.DiagnosticoCast.log("conectar fallo", e)
@@ -158,13 +180,31 @@ class CastConnectionHandler(
         }
     }
 
+    /**
+     * La misma voz que recibe al abrir la app (SaludoDeEntrada), ahora en el TV:
+     * cabecera por hora y una frase que no repite las ultimas vistas en el
+     * telefono. Solo con nuestro receptor, y solo si el saludo esta encendido.
+     */
+    private fun enviarSaludo(c: CastCliente) {
+        if (c.appActiva != APP_LIFE_MUSIC) return
+        if (!context.dataStore.get(com.cglabs.lifemusic.constants.GreetingEnabledKey, true)) return
+        runCatching {
+            val recientes = context.dataStore.get(com.cglabs.lifemusic.constants.RecentGreetingsKey, "").split(',').filter { it.isNotBlank() }
+            val f = com.cglabs.lifemusic.ui.component.fraseDeSaludo(context, diasSinAbrir = 0, recientes = recientes)
+            c.enviarPropio(JSONObject().put("tipo", "saludo").put("cabecera", f.cabecera).put("frase", f.frase))
+        }
+    }
+
     fun disconnect() {
         val c = cliente ?: return
         cliente = null
+        aparatoActual = null
+        com.cglabs.lifemusic.cast.ServicioDeCast.parar(context)
         val posicion = _castPosition.value
         val sonaba = _castIsPlaying.value
         seguimiento?.cancel(); seguimiento = null
         cargando?.cancel(); cargando = null
+        sesionSuperada = -1
         scope.launch(Dispatchers.IO) { runCatching { c.cerrar(pararApp = true) } }
         _isCasting.value = false
         _castIsPlaying.value = false
@@ -180,22 +220,71 @@ class CastConnectionHandler(
         }
     }
 
+    /**
+     * Se cayo el socket. El TV sigue sonando solo, asi que antes de rendirse se
+     * intenta volver a entrar en la misma sesion (tres intentos en ~6 s) sin
+     * recargar la cancion; el usuario no lo nota. Si el TV ya cerro la app o
+     * no hay red, la musica vuelve al telefono.
+     */
     private fun perdida(motivo: Throwable?) {
-        if (cliente == null) return
+        val c = cliente ?: return
+        val aparato = aparatoActual
         com.cglabs.lifemusic.cast.DiagnosticoCast.log("conexion perdida", motivo)
-        aviso(context.getString(R.string.cast_conexion_perdida))
-        disconnect()
+        if (aparato == null) { aviso(context.getString(R.string.cast_conexion_perdida)); disconnect(); return }
+        scope.launch(Dispatchers.IO) {
+            _autoReconnecting.value = true
+            var nuevo: CastCliente? = null
+            for (intento in 1..3) {
+                delay(if (intento == 1) 600L else 2_500L)
+                if (cliente !== c) break // el usuario desconecto mientras tanto
+                val n = CastCliente(scope)
+                val ok = runCatching {
+                    n.conectar(aparato.host, aparato.puerto)
+                    n.engancharse(c.appActiva ?: "CC1AD845")
+                }.getOrDefault(false)
+                if (ok) { nuevo = n; break }
+                runCatching { n.cerrar(pararApp = false) }
+                com.cglabs.lifemusic.cast.DiagnosticoCast.log("reenganche $intento fallo")
+            }
+            _autoReconnecting.value = false
+            if (nuevo == null || cliente !== c) {
+                runCatching { nuevo?.cerrar(pararApp = false) }
+                if (cliente === c) { aviso(context.getString(R.string.cast_conexion_perdida)); disconnect() }
+                return@launch
+            }
+            nuevo.alCerrarse = { m -> scope.launch { perdida(m) } }
+            nuevo.alMensajePropio = c.alMensajePropio
+            cliente = nuevo
+            sesionSuperada = -1
+            withContext(Dispatchers.Main) { seguir(nuevo) }
+            nuevo.pedirEstado()
+            com.cglabs.lifemusic.cast.DiagnosticoCast.log("reenganchado a ${aparato.nombre}")
+        }
     }
 
     // ── Cargar canciones ─────────────────────────────────────────────────────
 
+    /**
+     * La cancion actual del telefono, desde donde va: al conectar (el TV sigue
+     * donde iba el telefono). El servicio tambien la llama al resincronizar tras
+     * cargar una cola; si esa cancion ya esta cargada o cargandose por el cambio
+     * de pista, no se repite: la segunda carga llegaba con la posicion de la
+     * cancion anterior, que aun sonaba en el TV, y la nueva arrancaba a mitad.
+     */
     fun loadCurrentMedia() {
         val actual = musicService.player.currentMetadata ?: return
-        idCargado = null
+        if (idCargado == actual.id) return
         loadMedia(actual, desdeMs = _castPosition.value)
     }
 
     fun loadMedia(metadata: MediaMetadata) = loadMedia(metadata, desdeMs = 0L)
+
+    /**
+     * Sesion de media del TV que estaba sonando cuando se pidio la cancion nueva.
+     * Hasta que el TV conteste con una sesion mas nueva, el seguimiento no toma
+     * la posicion de esa (la cancion anterior sigue sonando alla unos segundos).
+     */
+    @Volatile private var sesionSuperada = -1
 
     private fun loadMedia(metadata: MediaMetadata, desdeMs: Long) {
         val c = cliente ?: return
@@ -203,10 +292,12 @@ class CastConnectionHandler(
         idCargado = metadata.id
         cargando?.cancel()
         cargando = scope.launch(Dispatchers.IO) {
+            sesionSuperada = c.estadoMedia.value?.mediaSessionId ?: -1
             _castIsBuffering.value = true
             _castPosition.value = desdeMs
             val url = musicService.getStreamUrl(metadata.id)
             if (url == null) {
+                sesionSuperada = -1
                 _castIsBuffering.value = false
                 aviso(context.getString(R.string.cast_error_cancion))
                 return@launch
@@ -224,6 +315,7 @@ class CastConnectionHandler(
                 reproducir = quieroSonar,
             )
             if (!ok) {
+                sesionSuperada = -1
                 _castIsBuffering.value = false
                 if (idCargado == metadata.id) idCargado = null
                 aviso(context.getString(R.string.cast_error_cancion))
@@ -258,10 +350,23 @@ class CastConnectionHandler(
                 .put("colores", JSONArray(colores.map { String.format("#%06X", it and 0xFFFFFF) }))
                 .put("duracionMs", metadata.duration * 1000L)
                 .put("canvas", canvas)
-            if (beat != null && beat.bpm > 40f && beat.confidence >= 0.4f) {
-                cancion.put("bpm", beat.bpm.toDouble()).put("primerBeatMs", beat.firstBeatOffsetMs)
+            val conTempo = beat != null && beat.bpm > 40f && beat.confidence >= 0.4f
+            if (conTempo) {
+                cancion.put("bpm", beat!!.bpm.toDouble()).put("primerBeatMs", beat.firstBeatOffsetMs)
             }
             c.enviarPropio(cancion)
+            if (!conTempo) {
+                // Sin analisis previo (solo Automix lo hace), el TV respiraria a un
+                // ritmo fijo. Se analiza ahora y se le manda el tempo en cuanto este,
+                // sin retener la letra ni los colores.
+                scope.launch(Dispatchers.IO) {
+                    val t = runCatching { musicService.tempoDe(metadata.id) }.getOrNull()
+                    if (t != null && cliente === c && idCargado == metadata.id) {
+                        c.enviarPropio(JSONObject().put("tipo", "tempo").put("id", metadata.id).put("bpm", t.bpm.toDouble()).put("primerBeatMs", t.firstBeatOffsetMs))
+                        com.cglabs.lifemusic.cast.DiagnosticoCast.log("tempo analizado y enviado: ${t.bpm}")
+                    } else com.cglabs.lifemusic.cast.DiagnosticoCast.log("tempo: sin resultado para ${metadata.id}")
+                }
+            }
 
             var texto = musicService.database.lyrics(metadata.id).first()?.lyrics
             if (texto == null) {
@@ -286,7 +391,7 @@ class CastConnectionHandler(
                 json.put(linea)
             }
             c.enviarPropio(JSONObject().put("tipo", "letra").put("id", metadata.id).put("lineas", json))
-            com.cglabs.lifemusic.cast.DiagnosticoCast.log("ambiente enviado: colores=${colores.size} bpm=${beat?.bpm} canvas=${canvas != null} lineas=${lineas.size}")
+            com.cglabs.lifemusic.cast.DiagnosticoCast.log("ambiente enviado: colores=${colores.size} bpm=${beat?.bpm} canvas=${canvas?.let { runCatching { android.net.Uri.parse(it).host }.getOrNull() }} lineas=${lineas.size}")
         }.onFailure { com.cglabs.lifemusic.cast.DiagnosticoCast.log("enviarAmbiente fallo", it) }
     }
 
@@ -328,7 +433,7 @@ class CastConnectionHandler(
 
     fun release() {
         disconnect()
-        descubridor.detener()
+        descubridor.detener(forzar = true)
     }
 
     // ── Seguimiento del receptor ─────────────────────────────────────────────
@@ -341,7 +446,8 @@ class CastConnectionHandler(
             var tic = 0
             while (isActive && cliente === c) {
                 val e = c.estadoMedia.value
-                if (e != null) {
+                // Estado de la sesion que se esta reemplazando: se ignora hasta que llegue la nueva.
+                if (e != null && e.mediaSessionId > sesionSuperada) {
                     val reproduciendo = e.estado == "PLAYING"
                     _castIsPlaying.value = reproduciendo || e.estado == "BUFFERING"
                     _castIsBuffering.value = e.estado == "BUFFERING"

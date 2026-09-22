@@ -22,14 +22,14 @@
   ninguna cancion).
 -->
 <link rel="icon" type="image/png" href="../img/lifemusic.png">
-<link rel="stylesheet" href="receptor.css">
+<link rel="stylesheet" href="receptor.css?v=20260921f">
 <script src="https://www.gstatic.com/cast/sdk/libs/caf_receiver/v3/cast_receiver_framework.js"></script>
 </head>
 <body>
   <!-- El reproductor de CAF existe pero no se ve: la pantalla es nuestra. -->
   <cast-media-player id="reproductor"></cast-media-player>
 
-  <canvas id="fondo" width="480" height="270" aria-hidden="true"></canvas>
+  <canvas id="fondo" width="384" height="216" aria-hidden="true"></canvas>
 
   <main id="escena" class="vacia">
     <header class="marca">
@@ -39,9 +39,10 @@
 
     <!-- Sin cancion: la bienvenida. -->
     <section id="bienvenida">
-      <img src="../img/lifemusic.png" alt="Life Music" width="120" height="120">
+      <div class="logo-halo"><img src="../img/lifemusic.png" alt="Life Music" width="120" height="120"></div>
+      <p id="saludo" class="saludo">Buenas noches</p>
       <h1>Listo para sonar</h1>
-      <p>Elige una cancion en el telefono</p>
+      <p id="saludo-estado" class="saludo-estado">Esperando al telefono…</p>
       <!-- Estado del arranque de Cast: para saber, mirando el TV, si la pagina llego a decir «lista». -->
       <p id="estado" class="estado"></p>
     </section>
@@ -50,7 +51,7 @@
     <section id="ambiente">
       <div id="izquierda">
         <div id="caratula-marco">
-          <img id="caratula" alt="">
+          <!-- La caratula la pone receptor.js (una <img class="caratula"> que se funde con la anterior). -->
           <!-- El canvas de la cancion (video corto en bucle, sin sonido), si lo tiene. -->
           <video id="canvas" muted loop playsinline preload="auto"></video>
         </div>
@@ -65,6 +66,12 @@
     </section>
   </main>
 
-  <script src="receptor.js"></script>
+  <!-- El saludo de entrada de la app, en el TV: llega del telefono al conectar. -->
+  <section id="saludo-pantalla" aria-live="polite">
+    <p id="saludo-cabecera"></p>
+    <p id="saludo-frase"></p>
+  </section>
+
+  <script src="receptor.js?v=20260921f"></script>
 </body>
 </html>

@@ -19,6 +19,12 @@
     -->
 
     <application>
+        <!-- Mantiene la app viva mientras se transmite al TV (ver ServicioDeCast). -->
+        <service
+            android:name=".cast.ServicioDeCast"
+            android:exported="false"
+            android:foregroundServiceType="mediaPlayback" />
+
         <!-- Remove Cast provider in FOSS build since GMS is not available -->
         <meta-data
             android:name="com.google.android.gms.cast.framework.OPTIONS_PROVIDER_CLASS_NAME"

@@ -34,7 +34,11 @@ class DescubridorCast(context: Context) {
     val aparatos = MutableStateFlow<List<Aparato>>(emptyList())
     val buscando = MutableStateFlow(false)
 
+    /** Quienes quieren la busqueda encendida (la barra de Inicio y la hoja de aparatos): se apaga con el ultimo. */
+    private var usuarios = 0
+
     fun iniciar() {
+        usuarios++
         if (oyente != null) return
         val o = object : NsdManager.DiscoveryListener {
             override fun onDiscoveryStarted(serviceType: String) { buscando.value = true }
@@ -57,10 +61,16 @@ class DescubridorCast(context: Context) {
             .onFailure { oyente = null }
     }
 
-    fun detener() {
+    fun detener(forzar: Boolean = false) {
+        usuarios = if (forzar) 0 else (usuarios - 1).coerceAtLeast(0)
+        if (usuarios > 0) return
         oyente?.let { runCatching { nsd.stopServiceDiscovery(it) } }
         oyente = null
         buscando.value = false
+        // Sin busqueda no se sabe quien sigue en la red: la lista se vacia y se
+        // vuelve a llenar al encender (los aparatos se anuncian de nuevo).
+        synchronized(encontrados) { encontrados.clear(); aparatos.value = emptyList() }
+        synchronized(porResolver) { porResolver.clear() }
     }
 
     /** NsdManager solo resuelve de a uno: cola y turno. */

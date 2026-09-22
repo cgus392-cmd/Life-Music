@@ -118,10 +118,12 @@ private fun HojaDeCast(handler: CastConnectionHandler, onCerrar: () -> Unit) {
     val buscando by handler.descubridor.buscando.collectAsState()
     val volumen by handler.castVolume.collectAsState()
 
-    // Se busca solo mientras la hoja esta abierta: cero radio el resto del tiempo.
+    // La hoja pide busqueda mientras esta abierta (la barra de Inicio la pide
+    // aparte; el descubridor cuenta a los dos y apaga la radio con el ultimo).
     DisposableEffect(Unit) {
-        if (!transmitiendo) handler.buscar()
-        onDispose { handler.dejarDeBuscar() }
+        val pedida = !transmitiendo
+        if (pedida) handler.buscar()
+        onDispose { if (pedida) handler.dejarDeBuscar() }
     }
 
     ModalBottomSheet(onDismissRequest = onCerrar, sheetState = estado) {

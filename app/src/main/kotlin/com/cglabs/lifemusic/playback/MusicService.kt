@@ -2332,6 +2332,13 @@ class MusicService :
         mediaItem: MediaItem?,
         reason: Int,
     ) {
+        // Rastro de cada cambio de pista (queda en release: hay un defecto de
+        // posicion arrastrada que solo se ve en el telefono de CG).
+        android.util.Log.i(
+            "LifeMusicPista",
+            "cambio motivo=$reason id=${mediaItem?.mediaId} pos=${player.currentPosition} idx=${player.currentMediaItemIndex} " +
+                "estado=${player.playbackState} crossfade=${isCrossfading.value} cast=${castConnectionHandler?.isCasting?.value} jugador=${System.identityHashCode(player)}",
+        )
         // Stale plan belongs to the previous track; planner re-arms when the new one is READY.
         if (!isCrossfading.value) automixDebugInfo.value = null
         prepareAutomixForCurrentPair()
@@ -3728,6 +3735,12 @@ class MusicService :
 
     
     suspend fun getStreamUrl(mediaId: String): String? {
+        // La URL que ya resolvio el reproductor local (o la precarga de la
+        // siguiente) sirve tal cual: el TV comparte la IP publica del telefono.
+        // Se ahorra la ida al servidor, que era casi todo el retraso al cambiar
+        // de cancion transmitiendo (~4 s). Con un minuto de margen de caducidad.
+        val clave = "${mediaId}_${audioQuality.name}"
+        songUrlCache[clave]?.takeIf { it.second > System.currentTimeMillis() + 60_000L }?.let { return it.first }
         return withContext(Dispatchers.IO) {
             try {
                 val playbackData = YTPlayerUtils.playerResponseForPlayback(
@@ -3735,6 +3748,9 @@ class MusicService :
                     audioQuality = audioQuality,
                     connectivityManager = connectivityManager,
                 ).getOrNull()
+                playbackData?.let {
+                    songUrlCache[clave] = it.streamUrl to System.currentTimeMillis() + it.streamExpiresInSeconds * 1000L
+                }
                 playbackData?.streamUrl
             } catch (e: Exception) {
                 timber.log.Timber.e(e, "Failed to get stream URL for Cast")
@@ -3773,6 +3789,10 @@ class MusicService :
         newPosition: Player.PositionInfo,
         reason: Int
     ) {
+        android.util.Log.i(
+            "LifeMusicPista",
+            "salto motivo=$reason de=${oldPosition.mediaItemIndex}@${oldPosition.positionMs} a=${newPosition.mediaItemIndex}@${newPosition.positionMs} jugador=${System.identityHashCode(player)}",
+        )
         if (reason == Player.DISCONTINUITY_REASON_SEEK) {
             prepareAutomixForCurrentPair()
             scheduleCrossfade()
@@ -4089,6 +4109,21 @@ class MusicService :
             if (index == C.INDEX_UNSET) return
             maybeAnalyzeBeat(player.getMediaItemAt(index).mediaId, BeatAnalysisPriority.LOOKAHEAD)
         }
+    }
+
+    /**
+     * Tempo de una cancion para quien lo necesite fuera de Automix (el receptor
+     * de Cast late con el). Si ya esta analizada, vuelve al instante; si no, la
+     * analiza ahora —baja el audio por la cadena de reproduccion, cache primero—
+     * y espera el resultado. Null si no se pudo o el tempo no es fiable.
+     */
+    suspend fun tempoDe(mediaId: String): BeatInfoEntity? {
+        fun guardado() = database.beatInfo(mediaId)?.takeIf { it.bpm > 40f && it.confidence >= 0.4f }
+        withContext(Dispatchers.IO) { guardado() }?.let { return it }
+        if (withContext(Dispatchers.IO) { database.beatInfo(mediaId) } != null) return null // ya se intento: sin tempo
+        maybeAnalyzeBeat(mediaId, BeatAnalysisPriority.IMMEDIATE)
+        synchronized(beatAnalysisJobs) { beatAnalysisJobs[mediaId]?.job }?.join()
+        return withContext(Dispatchers.IO) { guardado() }
     }
 
     /**

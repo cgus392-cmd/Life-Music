@@ -60,6 +60,8 @@ class CastCliente(private val scope: CoroutineScope) {
     val conectado = MutableStateFlow(false)
     /** Se llama una vez cuando la conexion se pierde o se cierra (null = cierre nuestro). */
     var alCerrarse: ((Throwable?) -> Unit)? = null
+    /** Mensajes que manda nuestro receptor por el canal propio (hoy: diagnostico). */
+    var alMensajePropio: ((JSONObject) -> Unit)? = null
 
     private var socket: SSLSocket? = null
     private var entrada: DataInputStream? = null
@@ -131,6 +133,24 @@ class CastCliente(private val scope: CoroutineScope) {
         pendientes.remove(id)
         com.cglabs.lifemusic.cast.DiagnosticoCast.log("LAUNCH $appId sin respuesta en 30 s")
         return transporte != null
+    }
+
+    /**
+     * Se une a [appId] si ya corre en el receptor, sin relanzarla: es el
+     * reenganche tras perder la conexion (el TV sigue sonando solo mientras
+     * tanto). Pide el estado y engancha el transporte de la app si esta.
+     */
+    suspend fun engancharse(appId: String): Boolean {
+        appActiva = appId
+        val id = peticion.getAndIncrement()
+        val espera = CompletableDeferred<JSONObject>()
+        pendientes[id] = espera
+        enviar(NS_RECEPTOR, RECEPTOR, JSONObject().put("type", "GET_STATUS").put("requestId", id))
+        val respuesta = withTimeoutOrNull(5_000) { espera.await() }
+        pendientes.remove(id)
+        val ok = (respuesta != null && engancharApp(respuesta)) || transporte != null
+        com.cglabs.lifemusic.cast.DiagnosticoCast.log("reenganche a $appId: ${if (ok) "app corriendo" else "la app ya no esta"}")
+        return ok
     }
 
     /** El CONNECT como lo manda el SDK oficial: algunos receptores lo miran. */
@@ -357,6 +377,12 @@ class CastCliente(private val scope: CoroutineScope) {
                     }
                 }
                 pendientes.remove(requestId)?.complete(carga)
+            }
+            NS_LIFE -> {
+                // Lo que el TV quiere que sepamos: con «diag» se lee desde el
+                // telefono (Copiar diagnostico) lo que pasa dentro del receptor.
+                if (carga.optString("tipo") == "diag") com.cglabs.lifemusic.cast.DiagnosticoCast.log("TV · ${carga.optString("texto").take(300)}")
+                alMensajePropio?.invoke(carga)
             }
         }
     }
