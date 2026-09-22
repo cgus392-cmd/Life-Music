@@ -1175,6 +1175,7 @@
     <string name="corazon_descargando">Downloading “%1$s”</string>
     <string name="corazon_ya_descargada">Already downloaded</string>
     <string name="cast_transmitir">Play on…</string>
+    <string name="actividad">Activity</string>
     <string name="cast_sonando_en">Playing on %1$s</string>
     <string name="cast_desc">Send the music to a TV or speaker with Chromecast built-in. Your phone becomes the remote.</string>
     <string name="cast_buscando">Looking for devices on your Wi-Fi…</string>
@@ -1184,6 +1185,7 @@
     <string name="cast_volumen">Device volume</string>
     <string name="cast_desconectar">Bring the music back to the phone</string>
     <string name="cast_conectado_a">Playing on %1$s</string>
+    <string name="cast_notificacion_texto">Your phone is the remote. Tap to open.</string>
     <string name="cast_error_conectar">Couldn’t connect to %1$s</string>
     <string name="cast_error_cancion">The device couldn’t play this song</string>
     <string name="cast_conexion_perdida">Connection with the device lost; playing on the phone again</string>
@@ -1419,4 +1421,17 @@
     <string name="boletin_v1110_ademas_1">Press and hold the heart and the song downloads, besides going to favorites.</string>
     <string name="boletin_v1110_ademas_2">The equalizer no longer closes the app when saving a profile, and the player no longer freezes when skipping songs quickly.</string>
     <string name="boletin_v1110_ademas_3">Surround is in Settings → Player → Surround sound, off by default.</string>
+    <string name="boletin_v1120_titulo_1">Life Music</string>
+    <string name="boletin_v1120_titulo_2">on your TV</string>
+    <string name="boletin_v1120_intro">Cast to any Chromecast or TV with Chromecast built-in, with no Google services in the app. And it is not just the audio: the whole ambient mode goes to the big screen.</string>
+    <string name="boletin_v1120_transmitir_t">Play on…</string>
+    <string name="boletin_v1120_transmitir">When there is a TV on your network, the Cast icon shows up at the top of Home (and in the player menu). Tap it, pick the device and your phone becomes the remote: pause, skip, volume.</string>
+    <string name="boletin_v1120_ambiente_t">Ambient mode on the TV</string>
+    <string name="boletin_v1120_ambiente">The same light background pulsing to the tempo, the big cover with its canvas, and word-by-word synced lyrics. With fades between songs and the app\'s greeting when you connect.</string>
+    <string name="boletin_v1120_pantalla_t">Turn the screen off, no worries</string>
+    <string name="boletin_v1120_pantalla">A "Playing on your TV" notification keeps the remote alive with the screen off, and if the network blinks the phone reattaches on its own.</string>
+    <string name="boletin_v1120_barra_t">A clearer Home</string>
+    <string name="boletin_v1120_barra">History and Stats now live in a single button, and the September challenge says goodbye. Thanks to everyone who played.</string>
+    <string name="boletin_v1120_ademas_1">If something does not show on the TV, the Play on… sheet has "Copy diagnostics" to send it to me.</string>
+    <string name="boletin_v1120_ademas_2">Changing songs while casting no longer starts mid-song, and loads faster.</string>
 </resources>

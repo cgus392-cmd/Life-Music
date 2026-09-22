@@ -790,6 +790,7 @@
     <string name="corazon_descargando">Descargando «%1$s»</string>
     <string name="corazon_ya_descargada">Ya está descargada</string>
     <string name="cast_transmitir">Reproducir en…</string>
+    <string name="actividad">Actividad</string>
     <string name="cast_sonando_en">Sonando en %1$s</string>
     <string name="cast_desc">Manda la música a un TV o parlante con Chromecast integrado. El teléfono queda de mando.</string>
     <string name="cast_buscando">Buscando aparatos en tu Wi-Fi…</string>
@@ -799,6 +800,7 @@
     <string name="cast_volumen">Volumen del aparato</string>
     <string name="cast_desconectar">Devolver la música al teléfono</string>
     <string name="cast_conectado_a">Sonando en %1$s</string>
+    <string name="cast_notificacion_texto">El teléfono es el mando. Toca para abrir.</string>
     <string name="cast_error_conectar">No se pudo conectar con %1$s</string>
     <string name="cast_error_cancion">El aparato no pudo reproducir esta canción</string>
     <string name="cast_conexion_perdida">Se perdió la conexión con el aparato; la música vuelve al teléfono</string>
@@ -1040,4 +1042,17 @@
     <string name="boletin_v1110_ademas_1">Mantén pulsado el corazón y la canción se descarga, además de ir a favoritos.</string>
     <string name="boletin_v1110_ademas_2">El ecualizador ya no cierra la app al guardar un perfil, y el reproductor ya no se queda congelado al saltar canciones rápido.</string>
     <string name="boletin_v1110_ademas_3">El envolvente está en Ajustes → Reproductor → Sonido envolvente, apagado de serie.</string>
+    <string name="boletin_v1120_titulo_1">Life Music</string>
+    <string name="boletin_v1120_titulo_2">en tu TV</string>
+    <string name="boletin_v1120_intro">Transmite a cualquier Chromecast o TV con Chromecast integrado, sin servicios de Google en la app. Y no es solo el audio: el modo ambiente entero se va a la pantalla grande.</string>
+    <string name="boletin_v1120_transmitir_t">Reproducir en…</string>
+    <string name="boletin_v1120_transmitir">Cuando haya un TV en tu red aparece el icono de Cast arriba en Inicio (y en el menú del reproductor). Tócalo, elige el aparato y el teléfono queda de mando: pausa, salto, volumen.</string>
+    <string name="boletin_v1120_ambiente_t">El modo ambiente en el TV</string>
+    <string name="boletin_v1120_ambiente">El mismo fondo de luces que late al tempo, la carátula grande con su canvas, y la letra sincronizada palabra a palabra. Con fundidos al cambiar de canción y el saludo de la app al conectar.</string>
+    <string name="boletin_v1120_pantalla_t">Apaga la pantalla tranquilo</string>
+    <string name="boletin_v1120_pantalla">Una notificación «Sonando en tu TV» mantiene el mando vivo con la pantalla apagada, y si la red parpadea el teléfono se vuelve a enganchar solo.</string>
+    <string name="boletin_v1120_barra_t">Inicio más despejado</string>
+    <string name="boletin_v1120_barra">Historial y Estadísticas viven en un solo botón, y el reto de septiembre se despide. Gracias a todos los que jugaron.</string>
+    <string name="boletin_v1120_ademas_1">Si algo no se ve en el TV, en la hoja de Reproducir en… hay «Copiar diagnóstico» para mandármelo.</string>
+    <string name="boletin_v1120_ademas_2">Al cambiar de canción transmitiendo ya no arranca a mitad, y tarda menos en cargar.</string>
 </resources>

@@ -15,7 +15,7 @@ esa base**; para la historia anterior, consulte el repositorio de origen.
 
 ---
 
-## [1.2.0] — sin publicar
+## [1.2.0] — 2026-09-21
 
 ### Añadido
 
@@ -25,30 +25,67 @@ esa base**; para la historia anterior, consulte el repositorio de origen.
   protocolo de Cast directamente (`cast/CastCliente.kt`: TLS al 8009, tramas
   protobuf `CastMessage`, JSON por espacio de nombres —conexión, latido,
   receptor, media—) y encuentra los aparatos por mDNS con el `NsdManager` de
-  Android (`cast/DescubridorCast.kt`). Lanza el reproductor por defecto del
-  receptor y le carga la canción con título, artista, álbum y carátula; el
-  teléfono queda de mando: pausa, salto, búsqueda y volumen del aparato. La
-  cola vive en el teléfono: cuando el receptor termina una pista se avanza la
-  cola local y se carga la siguiente. Al desconectar, la música vuelve al
-  teléfono donde iba. «Reproducir en…» en el menú del reproductor; la búsqueda
-  solo corre con la hoja abierta. Misma interfaz que la variante gms, así que
-  el servicio y el reproductor no cambian. Probado contra AirScreen; pendiente
-  un Chromecast real.
-- **El modo ambiente en el TV (receptor propio).** `web/cast/`: la página que
-  el Chromecast carga cuando el teléfono lanza la app de Life Music (registro
-  en la consola de Cast de Google, pendiente de CG). El audio lo reproduce el
-  TV con el reproductor de la Cast Application Framework —los mismos LOAD/
-  PLAY/PAUSE/SEEK de siempre—, y por un canal propio
-  (`urn:x-cast:com.cglabs.lifemusic`) el teléfono manda los seis colores de la
-  carátula, el **tempo** del análisis de Automix y la **letra sincronizada**
-  (palabra a palabra si la hay; si no está en la base, se pide y se guarda).
-  El TV dibuja: fondo negro con manchas de luz que **laten al ritmo real**,
-  carátula grande, título y artista, barra de progreso y la letra con la línea
-  viva al centro; sin letra, la carátula al centro; sin canción, la bienvenida.
-  Tipografía de sala y zona segura del 4 %. Fondo a un cuarto de resolución
-  para el Chromecast. `?demo=1` la muestra en un navegador con una canción de
-  mentira. Si el receptor no conoce la app (AirScreen, o sin registrar), cae
+  Android (`cast/DescubridorCast.kt`). Le carga al receptor la canción con
+  título, artista, álbum y carátula; el teléfono queda de mando: pausa, salto,
+  búsqueda y volumen del aparato. La cola vive en el teléfono: cuando el
+  receptor termina una pista se avanza la cola local y se carga la siguiente.
+  Al desconectar, la música vuelve al teléfono donde iba. Probado contra
+  AirScreen y contra un Google TV real (onn. 4K).
+- **El modo ambiente en el TV (receptor propio).** `web/cast/`, la página que
+  el TV carga cuando el teléfono lanza la app de Life Music (registrada en la
+  consola de Cast, ID público `1D9B6EDB`). El audio lo reproduce el TV con el
+  reproductor de la Cast Application Framework; por un canal propio
+  (`urn:x-cast:com.cglabs.lifemusic`) el teléfono manda los colores de la
+  carátula, el **tempo**, el **canvas** y la **letra sincronizada** (palabra a
+  palabra si la hay). El TV dibuja el mismo fondo que el modo ambiente del
+  teléfono (las seis luces de `AmbientGlowBackground`, misma rotación de
+  colores) latiendo al tempo real; carátula grande con el canvas encima (los de
+  Apple, en HLS, por hls.js), título, artista, barra y la letra con la línea
+  viva al centro. **Transiciones** al cambiar de canción (carátula fundida,
+  título que sale y entra, paleta que se funde en 1,2 s) y **bienvenida** con
+  el logo, «Buenas noches» según la hora del TV y el estado del teléfono.
+  **El saludo de entrada de la app, en el TV:** al conectar, el teléfono manda
+  la misma frase que recibe al abrir la app y el TV la muestra a pantalla
+  completa antes de la primera canción. Si el receptor no conoce la app, cae
   solo al reproductor por defecto: audio y ya.
+- **Tempo bajo demanda al transmitir.** Solo Automix analizaba el tempo; sin
+  análisis el TV respiraba a un ritmo fijo. Ahora el teléfono analiza la
+  canción al transmitirla y le manda el tempo en cuanto está.
+- **Botón de Cast en la barra de Inicio**, solo cuando hay un receptor en la
+  red o ya se transmite. La búsqueda mDNS corre con la app en primer plano.
+- **Diagnóstico de ida y vuelta.** «Copiar diagnóstico» en la hoja de
+  Reproducir en… incluye lo que el TV cuenta por el canal propio (versión de
+  la página, canvas, rendimiento en ms por fotograma, modo ligero).
+
+### Cambiado
+
+- **Barra de Inicio más limpia.** Historial y Estadísticas en un solo botón con
+  menú; el reto de la semana desaparece.
+- **El reto de septiembre queda apagado** (`Concurso.ACTIVO = false`): sin
+  trofeo, sin chapita de puesto, sin recordatorios ni llamadas al servidor. El
+  código se queda para el próximo.
+- **Receptor pensado para el TV flojo.** Sin desenfoque CSS de pantalla
+  completa, fondo a 24 fps (12 en pausa), lienzo de 384×216 y **modo ligero**
+  automático (15 fps, lienzo menor) si el aparato va por debajo de ~22 fps
+  sostenidos. hls.js con búfer corto.
+- **Cambiar de canción transmitiendo tarda menos:** la URL del audio que ya
+  resolvió el reproductor local vale para el TV, sin otra ida al servidor.
+
+### Arreglado
+
+- **La canción nueva arrancaba a mitad al transmitir.** Al tocar una canción
+  de una lista se hacían dos cargas; la segunda llegaba con la posición de la
+  canción anterior, que aún sonaba en el TV. Ya no se repite la carga, y
+  mientras se pide una canción nueva no se toma la posición de la vieja.
+- **El TV se quedaba sin mando al apagar la pantalla.** Transmitiendo, el
+  reproductor local está en pausa y el servicio baja de primer plano; a los
+  5 s de apagar la pantalla Android cerraba los sockets de la app. Ahora un
+  servicio en primer plano propio («Sonando en X», con «Devolver la música al
+  teléfono») mantiene la app viva, y si el socket se cae igual, el teléfono se
+  vuelve a enganchar a la sesión del TV sin recargar la canción.
+- Los canvas de Apple (HLS) no se veían en el TV; la letra desaparecía a los
+  2 s por confundir la URL del audio con otra canción; el receptor nunca
+  llegaba a «listo» por un evento inexistente de CAF.
 
 ## [1.1.10] — 2026-09-19
 

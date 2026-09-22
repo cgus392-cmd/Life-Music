@@ -184,17 +184,19 @@ fun SaludoDeEntrada(onTerminado: () -> Unit) {
     }
 }
 
+/** Cabecera, frase y clave estable de la frase («t_1», «g_8») para recordarla. */
+class FraseDeSaludo(val cabecera: String, val frase: String, val clave: String)
+
 /**
  * Cabecera por franja horaria y frase al azar entre las que tocan, evitando las
- * [SIN_REPETIR] ultimas: cada arranque en frio suena distinto. Devuelve tambien
- * la clave estable de la frase («t_1», «g_8») para recordarla.
+ * [SIN_REPETIR] ultimas: cada arranque en frio suena distinto. Sin Compose, para
+ * que la misma voz salga tambien en el TV al transmitir (CastConnectionHandler).
  */
-@Composable
-private fun elegirFrase(diasSinAbrir: Int, recientes: List<String>): Triple<String, String, String> {
-    val hora = remember { Calendar.getInstance().get(Calendar.HOUR_OF_DAY) }
+fun fraseDeSaludo(context: android.content.Context, diasSinAbrir: Int, recientes: List<String>): FraseDeSaludo {
+    val hora = Calendar.getInstance().get(Calendar.HOUR_OF_DAY)
     val vuelta = diasSinAbrir >= AUSENCIA_LARGA_DIAS
 
-    val cabecera = stringResource(
+    val cabecera = context.getString(
         when {
             vuelta -> R.string.greeting_back
             hora in 5..11 -> R.string.greeting_morning
@@ -221,12 +223,17 @@ private fun elegirFrase(diasSinAbrir: Int, recientes: List<String>): Triple<Stri
 
     // Fuera las recientes. Si eso vacia la bolsa (solo pasa con las tres de
     // vuelta), basta con no repetir la ultima; y si ni asi, la que sea.
-    val elegida = remember {
-        bolsa.filter { it.first !in recientes }
-            .ifEmpty { bolsa.filter { it.first != recientes.firstOrNull() } }
-            .ifEmpty { bolsa }
-            .random()
-    }
+    val elegida = bolsa.filter { it.first !in recientes }
+        .ifEmpty { bolsa.filter { it.first != recientes.firstOrNull() } }
+        .ifEmpty { bolsa }
+        .random()
 
-    return Triple(cabecera, stringResource(elegida.second), elegida.first)
+    return FraseDeSaludo(cabecera, context.getString(elegida.second), elegida.first)
+}
+
+@Composable
+private fun elegirFrase(diasSinAbrir: Int, recientes: List<String>): Triple<String, String, String> {
+    val contexto = LocalContext.current
+    val f = remember { fraseDeSaludo(contexto, diasSinAbrir, recientes) }
+    return Triple(f.cabecera, f.frase, f.clave)
 }

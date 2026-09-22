@@ -30,9 +30,17 @@ object Concurso {
     /** Cuantos dias despues del fin sigue visible, para ver el resultado. */
     private const val DIAS_DE_GRACIA = 7L
 
+    /**
+     * Interruptor general. El reto de septiembre de 2026 termino y se anuncio
+     * el ganador; desde 1.2.0 el modulo esta apagado del todo (ni trofeo en la
+     * barra, ni chapita de puesto, ni recordatorios, ni llamadas al servidor).
+     * El codigo se queda para el proximo reto: encender, ajustar fechas y listo.
+     */
+    const val ACTIVO = false
+
     /** Sin URL y clave en local.properties el modulo no existe: ni icono ni llamadas. */
     val configurado: Boolean
-        get() = BuildConfig.CONCURSO_URL.isNotBlank() && BuildConfig.CONCURSO_ANON_KEY.isNotBlank()
+        get() = ACTIVO && BuildConfig.CONCURSO_URL.isNotBlank() && BuildConfig.CONCURSO_ANON_KEY.isNotBlank()
 
     fun hoy(): LocalDate = LocalDate.now(ZONA)
 

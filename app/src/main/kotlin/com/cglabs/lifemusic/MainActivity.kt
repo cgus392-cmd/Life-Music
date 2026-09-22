@@ -82,6 +82,8 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Surface
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
@@ -1128,27 +1130,33 @@ class MainActivity : ComponentActivity() {
                                             )
                                         },
                                         actions = {
-                                            // Reto de la semana: solo mientras dura (y unos dias despues).
-                                            if (com.cglabs.lifemusic.concurso.Concurso.visible()) {
-                                                val progresoReto = playerConnection?.progresoReto?.collectAsState()?.value
-                                                com.cglabs.lifemusic.concurso.TrofeoReto(
-                                                    progreso = progresoReto,
-                                                    onClick = { navController.navigate("concurso") },
-                                                )
-                                            }
-                                            if (showHistoryButton) {
-                                                IconButton(onClick = { navController.navigate("history") }) {
+                                            // Transmitir: solo aparece cuando hay un aparato en la red
+                                            // (o ya se transmite). El resto del tiempo, la barra respira.
+                                            com.cglabs.lifemusic.ui.component.CastEnBarra()
+                                            // Historial y Estadisticas en un solo boton con menu: dos
+                                            // iconos por lo mismo («tu actividad») estorbaban.
+                                            var menuActividad by remember { mutableStateOf(false) }
+                                            Box {
+                                                IconButton(onClick = {
+                                                    if (showHistoryButton) menuActividad = true else navController.navigate("stats")
+                                                }) {
                                                     Icon(
-                                                        painter = painterResource(R.drawable.music_history),
-                                                        contentDescription = stringResource(R.string.history)
+                                                        painter = painterResource(R.drawable.stats),
+                                                        contentDescription = stringResource(R.string.actividad)
                                                     )
                                                 }
-                                            }
-                                            IconButton(onClick = { navController.navigate("stats") }) {
-                                                Icon(
-                                                    painter = painterResource(R.drawable.stats),
-                                                    contentDescription = stringResource(R.string.stats)
-                                                )
+                                                DropdownMenu(expanded = menuActividad, onDismissRequest = { menuActividad = false }) {
+                                                    DropdownMenuItem(
+                                                        text = { Text(stringResource(R.string.history)) },
+                                                        leadingIcon = { Icon(painterResource(R.drawable.music_history), contentDescription = null) },
+                                                        onClick = { menuActividad = false; navController.navigate("history") },
+                                                    )
+                                                    DropdownMenuItem(
+                                                        text = { Text(stringResource(R.string.stats)) },
+                                                        leadingIcon = { Icon(painterResource(R.drawable.stats), contentDescription = null) },
+                                                        onClick = { menuActividad = false; navController.navigate("stats") },
+                                                    )
+                                                }
                                             }
                                             if (listenTogetherInTopBar) {
                                                 IconButton(onClick = { navController.navigate("listen_together_from_topbar") }) {
