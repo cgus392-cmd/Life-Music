@@ -79,11 +79,32 @@ android {
         buildConfigField("long", "DISCORD_APPLICATION_ID_LONG", "${discordApplicationIdLong}L")
         buildConfigField("String", "DISCORD_REDIRECT_SCHEME", "\"$discordRedirectScheme\"")
         manifestPlaceholders["discordRedirectScheme"] = discordRedirectScheme
+
+        // Life Music for Car (variante «car») lo pone a true.
+        buildConfigField("Boolean", "ES_CARRO", "false")
     }
 
 
     flavorDimensions += listOf("abi", "variant")
     productFlavors {
+        // Life Music for Car: la app para radios Android de carro. Otra app hacia
+        // fuera (su paquete, su nombre, su interfaz en src/car y su numeracion),
+        // el mismo motor por dentro: los arreglos de reproduccion y de YouTube
+        // llegan a las dos con un solo cambio. Es foss (sin servicios de Google)
+        // y comparte su codigo (src/foss, ver sourceSets). Los radios corren de
+        // verdad Android 8.0/8.1 (API 26-27) de 32 bits con 1-2 GB: se publica
+        // solo en armeabi-v7a, mas x86 para el emulador.
+        create("car") {
+            dimension = "variant"
+            applicationId = "com.cglabs.lifemusic.car"
+            versionCode = 1
+            versionName = "0.1.0"
+            buildConfigField("Boolean", "CAST_AVAILABLE", "false")
+            buildConfigField("Boolean", "ES_CARRO", "true")
+            // Los modulos con variantes (como :playback) le dan su version foss.
+            matchingFallbacks += listOf("foss")
+        }
+
         // Variante FOSS (por defecto): sin Google Play Services.
         //
         // NO es una compilacion apta para F-Droid, aunque el comentario heredado
@@ -125,6 +146,15 @@ android {
             dimension = "abi"
             buildConfigField("String", "ARCHITECTURE", "\"x86_64\"")
             ndk { abiFilters.add("x86_64") }
+        }
+    }
+
+    // La app del carro comparte el codigo foss (Cast/DLNA por protocolo abierto,
+    // sin SDK de Google), que el codigo comun necesita para compilar, y suma el
+    // suyo (src/car: su actividad y su interfaz).
+    sourceSets {
+        getByName("car") {
+            kotlin.srcDir("src/foss/kotlin")
         }
     }
 
@@ -268,6 +298,16 @@ tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile>().configureEach 
             "-opt-in=kotlin.RequiresOptIn"
         )
         suppressWarnings.set(false)
+    }
+}
+
+// Life Music for Car solo existe en 32 bits (lo que son los radios de verdad) y
+// en x86 para el emulador de pruebas: el resto de combinaciones ni se crean.
+androidComponents {
+    beforeVariants { v ->
+        val variante = v.productFlavors.firstOrNull { it.first == "variant" }?.second
+        val abi = v.productFlavors.firstOrNull { it.first == "abi" }?.second
+        if (variante == "car" && abi !in setOf("armeabi", "x86")) v.enable = false
     }
 }
 

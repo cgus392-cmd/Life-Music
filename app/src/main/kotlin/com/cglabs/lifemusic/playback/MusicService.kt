@@ -73,6 +73,7 @@ import com.google.common.util.concurrent.MoreExecutors
 import com.music.innertube.YouTube
 import com.music.innertube.models.SongItem
 import com.music.innertube.models.WatchEndpoint
+import com.cglabs.lifemusic.ActividadPrincipal
 import com.cglabs.lifemusic.MainActivity
 import com.cglabs.lifemusic.R
 import com.cglabs.lifemusic.constants.AudioNormalizationKey
@@ -779,7 +780,7 @@ class MusicService :
             val pending = PendingIntent.getActivity(
                 this,
                 0,
-                Intent(this, MainActivity::class.java),
+                Intent(this, ActividadPrincipal.clase),
                 PendingIntent.FLAG_IMMUTABLE
             )
             val notification: Notification = NotificationCompat.Builder(this, CHANNEL_ID)
@@ -830,7 +831,7 @@ class MusicService :
                     PendingIntent.getActivity(
                         this,
                         0,
-                        Intent(this, MainActivity::class.java),
+                        Intent(this, ActividadPrincipal.clase),
                         PendingIntent.FLAG_IMMUTABLE,
                     ),
                 ).setBitmapLoader(CoilBitmapLoader(this, scope))

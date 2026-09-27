@@ -107,8 +107,9 @@ class App : Application(), SingletonImageLoader.Factory {
             }
         }
 
-        // Aviso de version nueva aunque la app no este abierta (ver la clase).
-        if (com.cglabs.lifemusic.appcore.updater.getAutoUpdateCheckSetting(this)) {
+        // Aviso de version nueva aunque la app no este abierta (ver la clase). No en
+        // Life Music for Car: el actualizador busca el APK del telefono, no el suyo.
+        if (!BuildConfig.ES_CARRO && com.cglabs.lifemusic.appcore.updater.getAutoUpdateCheckSetting(this)) {
             com.cglabs.lifemusic.appcore.updater.ComprobadorDeActualizaciones.programar(this)
         }
 

@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Life Music for Car: la app para radios Android de carro. Hereda el manifiesto
+    comun (servicio de reproduccion, receptores, etc.) y cambia la puerta de
+    entrada: su propia actividad, CarActivity, en vez de las tres del telefono
+    (los alias de icono de MainActivity).
+-->
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
+
+    <application>
+        <!-- Sin Google Play Services, como la variante foss. -->
+        <meta-data
+            android:name="com.google.android.gms.cast.framework.OPTIONS_PROVIDER_CLASS_NAME"
+            tools:node="remove" />
+
+        <!-- Los lanzadores del telefono no existen en el carro. -->
+        <activity-alias android:name=".MainActivityAlias" tools:node="remove" />
+        <activity-alias android:name=".MainActivityLegacy" tools:node="remove" />
+        <activity-alias android:name=".MainActivityStatic" tools:node="remove" />
+
+        <!--
+            La pantalla del carro. Sin forzar la orientacion: los radios ya son
+            horizontales, y asi funciona tambien a media pantalla junto al mapa.
+            configChanges evita que el radio la reconstruya por cambios que
+            provoca el propio aparato (camara de reversa, modo noche, etc.).
+        -->
+        <activity
+            android:name=".car.CarActivity"
+            android:exported="true"
+            android:launchMode="singleTask"
+            android:resizeableActivity="true"
+            android:theme="@style/Theme.LifeMusic"
+            android:windowSoftInputMode="stateAlwaysHidden|adjustResize"
+            android:configChanges="orientation|screenSize|screenLayout|smallestScreenSize|keyboard|keyboardHidden|navigation|uiMode|density">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+                <category android:name="android.intent.category.APP_MUSIC" />
+            </intent-filter>
+        </activity>
+    </application>
+</manifest>

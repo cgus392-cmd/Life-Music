@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Textos de Life Music for Car (solo existen en la variante «car»). -->
+<resources>
+    <string name="carro_nada_sonando">Nothing playing</string>
+    <string name="carro_busca_para_empezar">Search on the right to start</string>
+    <string name="carro_anterior">Previous</string>
+    <string name="carro_siguiente">Next</string>
+    <string name="carro_reproducir">Play</string>
+    <string name="carro_pausar">Pause</string>
+    <string name="carro_buscar_pista">Search songs and artists</string>
+    <string name="carro_buscar_vacio">Type a song or artist and press search</string>
+</resources>
