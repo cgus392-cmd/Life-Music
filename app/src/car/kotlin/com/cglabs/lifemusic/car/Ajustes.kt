@@ -32,8 +32,16 @@ import androidx.compose.ui.unit.dp
 import androidx.datastore.preferences.core.booleanPreferencesKey
 import com.cglabs.lifemusic.BuildConfig
 import com.cglabs.lifemusic.R
+import android.app.Activity
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.ui.platform.LocalContext
+import androidx.datastore.preferences.core.edit
+import com.cglabs.lifemusic.constants.AppLanguageKey
 import com.cglabs.lifemusic.constants.GreetingEnabledKey
+import com.cglabs.lifemusic.constants.SYSTEM_DEFAULT
+import com.cglabs.lifemusic.utils.dataStore
 import com.cglabs.lifemusic.utils.rememberPreference
+import kotlinx.coroutines.launch
 
 /** Si el fondo ambiente se mueve o se queda quieto. Solo existe en el carro. */
 val CarroFondoEnMovimientoKey = booleanPreferencesKey("carroFondoEnMovimiento")
@@ -66,6 +74,8 @@ fun Ajustes(modifier: Modifier = Modifier) {
                 valor = fondoEnMovimiento,
                 alCambiar = { fondoEnMovimiento = it },
             )
+            HorizontalDivider(color = Color.White.copy(alpha = 0.08f), modifier = Modifier.padding(horizontal = 20.dp))
+            FilaIdioma()
         }
         Spacer(Modifier.size(16.dp))
         Row(
@@ -83,6 +93,47 @@ fun Ajustes(modifier: Modifier = Modifier) {
                 Text(stringResource(R.string.carro_acerca_texto), style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
         }
+    }
+}
+
+/** Los idiomas del carro, en el orden en que se recorren al tocar. */
+private val IDIOMAS = listOf(SYSTEM_DEFAULT, "es", "en")
+
+/**
+ * Idioma: cada toque pasa al siguiente (como el sistema → Español → English) y
+ * la pantalla se rehace en el nuevo. Un toque, sin menus: se cambia en marcha.
+ */
+@Composable
+private fun FilaIdioma() {
+    val contexto = LocalContext.current
+    val alcance = rememberCoroutineScope()
+    val actual by rememberPreference(AppLanguageKey, defaultValue = SYSTEM_DEFAULT)
+    val nombre = when (actual) {
+        "es" -> "Español"
+        "en" -> "English"
+        else -> stringResource(R.string.carro_idioma_sistema)
+    }
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(18.dp),
+        modifier = Modifier
+            .fillMaxWidth()
+            .heightIn(min = 88.dp)
+            .clickable {
+                val siguiente = IDIOMAS[(IDIOMAS.indexOf(actual).coerceAtLeast(0) + 1) % IDIOMAS.size]
+                alcance.launch {
+                    contexto.dataStore.edit { it[AppLanguageKey] = siguiente }
+                    (contexto as? Activity)?.recreate()
+                }
+            }
+            .padding(horizontal = 20.dp, vertical = 12.dp),
+    ) {
+        Icon(painterResource(R.drawable.language), contentDescription = null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(28.dp))
+        Column(Modifier.weight(1f)) {
+            Text(stringResource(R.string.carro_ajuste_idioma), style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.SemiBold)
+            Text(stringResource(R.string.carro_ajuste_idioma_texto), style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        }
+        Text(nombre, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary)
     }
 }
 

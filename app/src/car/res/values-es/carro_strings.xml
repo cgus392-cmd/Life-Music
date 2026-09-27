@@ -30,8 +30,6 @@
     <string name="carro_cola_vacia">La cola está vacía</string>
     <string name="carro_cola_vacia_texto">Pon algo a sonar y aquí verás lo que viene</string>
 
-    <string name="carro_biblioteca_pronto">Tu biblioteca viene en camino</string>
-    <string name="carro_biblioteca_pronto_texto">Listas, álbumes, artistas y descargas, a la medida del carro</string>
 
     <string name="carro_ajuste_saludo">Saludo al arrancar</string>
     <string name="carro_ajuste_saludo_texto">Una frase corta, según la hora, cuando enciende el carro</string>
@@ -53,4 +51,45 @@
     <string name="carro_saludo_g_2">Cinturón puesto. Sonido listo.</string>
     <string name="carro_saludo_g_3">Cada ruta tiene su canción.</string>
     <string name="carro_saludo_g_4">Buena compañía para el camino.</string>
+
+    <!-- Tanda 2: detalle, biblioteca e inicio completo. -->
+    <string name="carro_album">Álbum</string>
+    <string name="carro_lista">Lista</string>
+    <string name="carro_artista">Artista</string>
+    <string name="carro_volver">Volver</string>
+    <string name="carro_no_abre">No se pudo abrir</string>
+    <string name="carro_no_abre_texto">Revisa la conexión del carro e inténtalo otra vez.</string>
+    <string name="carro_reintentar">Reintentar</string>
+    <string name="carro_aleatorio">Aleatorio</string>
+    <string name="carro_aleatorio_texto">De tu música</string>
+    <string name="carro_radio">Radio</string>
+    <string name="carro_radio_texto">De esta canción</string>
+    <string name="carro_seleccion_rapida">Selección rápida</string>
+    <string name="carro_novedades">Novedades</string>
+
+    <string name="carro_pestana_me_gusta">Me gusta</string>
+    <string name="carro_pestana_listas">Listas</string>
+    <string name="carro_pestana_albumes">Álbumes</string>
+    <string name="carro_pestana_artistas">Artistas</string>
+    <string name="carro_pestana_descargas">Descargas</string>
+    <string name="carro_vacio_me_gusta">Aún no hay canciones que te gusten</string>
+    <string name="carro_vacio_me_gusta_texto">Toca el corazón en Sonando y aparecerán aquí.</string>
+    <string name="carro_vacio_descargas">Aún no hay descargas</string>
+    <string name="carro_vacio_descargas_texto">Muy pronto podrás guardar música para cuando no haya señal.</string>
+    <string name="carro_vacio_listas">Aún no hay listas</string>
+    <string name="carro_vacio_albumes">Aún no hay álbumes guardados</string>
+    <string name="carro_vacio_artistas">Aún no hay artistas</string>
+    <string name="carro_vacio_cuenta_texto">Cuando entres con tu cuenta de YouTube Music, tu biblioteca llegará aquí.</string>
+    <string name="carro_ajuste_idioma">Idioma</string>
+    <string name="carro_ajuste_idioma_texto">Toca para cambiarlo. Útil si el radio vino en otro idioma</string>
+    <string name="carro_idioma_sistema">Como el sistema</string>
+    <string name="carro_letra">Letra</string>
+    <string name="carro_letra_buscando">Buscando la letra…</string>
+    <string name="carro_letra_no_hay">Esta canción no tiene letra</string>
+    <string name="carro_descargar">Descargar</string>
+    <string name="carro_descargando">Descargando… %1$d%%</string>
+    <string name="carro_quitar_descarga">Quitar descarga</string>
+    <string name="carro_descarga_empezo">Descargando «%1$s»</string>
+    <string name="carro_ya_no_me_gusta">Quitar de Me gusta</string>
+    <string name="carro_radio_cancion">Radio de esta canción</string>
 </resources>

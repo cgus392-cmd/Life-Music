@@ -31,8 +31,6 @@
     <string name="carro_cola_vacia">The queue is empty</string>
     <string name="carro_cola_vacia_texto">Play something and what comes next shows up here</string>
 
-    <string name="carro_biblioteca_pronto">Your library is on its way</string>
-    <string name="carro_biblioteca_pronto_texto">Playlists, albums, artists and downloads, sized for the car</string>
 
     <string name="carro_ajuste_saludo">Greeting on start</string>
     <string name="carro_ajuste_saludo_texto">A short phrase that matches the time of day when the car starts</string>
@@ -54,4 +52,45 @@
     <string name="carro_saludo_g_2">Seatbelt on. Sound ready.</string>
     <string name="carro_saludo_g_3">Every road has its song.</string>
     <string name="carro_saludo_g_4">Good company for the ride.</string>
+
+    <!-- Tanda 2: detalle, biblioteca e inicio completo. -->
+    <string name="carro_album">Album</string>
+    <string name="carro_lista">Playlist</string>
+    <string name="carro_artista">Artist</string>
+    <string name="carro_volver">Back</string>
+    <string name="carro_no_abre">Couldn\'t load this</string>
+    <string name="carro_no_abre_texto">Check the car\'s connection and try again.</string>
+    <string name="carro_reintentar">Try again</string>
+    <string name="carro_aleatorio">Shuffle</string>
+    <string name="carro_aleatorio_texto">From your music</string>
+    <string name="carro_radio">Radio</string>
+    <string name="carro_radio_texto">From this song</string>
+    <string name="carro_seleccion_rapida">Quick picks</string>
+    <string name="carro_novedades">New releases</string>
+
+    <string name="carro_pestana_me_gusta">Liked</string>
+    <string name="carro_pestana_listas">Playlists</string>
+    <string name="carro_pestana_albumes">Albums</string>
+    <string name="carro_pestana_artistas">Artists</string>
+    <string name="carro_pestana_descargas">Downloads</string>
+    <string name="carro_vacio_me_gusta">No liked songs yet</string>
+    <string name="carro_vacio_me_gusta_texto">Tap the heart in Now playing and they\'ll show up here.</string>
+    <string name="carro_vacio_descargas">No downloads yet</string>
+    <string name="carro_vacio_descargas_texto">Soon you\'ll be able to save music for when there\'s no signal.</string>
+    <string name="carro_vacio_listas">No playlists yet</string>
+    <string name="carro_vacio_albumes">No saved albums yet</string>
+    <string name="carro_vacio_artistas">No artists yet</string>
+    <string name="carro_vacio_cuenta_texto">When you sign in with YouTube Music, your library will arrive here.</string>
+    <string name="carro_ajuste_idioma">Language</string>
+    <string name="carro_ajuste_idioma_texto">Tap to switch. Useful when the radio came in another language</string>
+    <string name="carro_idioma_sistema">System</string>
+    <string name="carro_letra">Lyrics</string>
+    <string name="carro_letra_buscando">Looking for the lyrics…</string>
+    <string name="carro_letra_no_hay">No lyrics for this song</string>
+    <string name="carro_descargar">Download</string>
+    <string name="carro_descargando">Downloading… %1$d%%</string>
+    <string name="carro_quitar_descarga">Remove download</string>
+    <string name="carro_descarga_empezo">Downloading “%1$s”</string>
+    <string name="carro_ya_no_me_gusta">Remove from Liked</string>
+    <string name="carro_radio_cancion">Radio from this song</string>
 </resources>

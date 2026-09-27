@@ -39,7 +39,6 @@ import coil3.request.allowHardware
 import coil3.toBitmap
 import com.cglabs.lifemusic.ui.theme.DefaultThemeColor
 import com.cglabs.lifemusic.ui.theme.extractThemeColor
-import com.cglabs.lifemusic.ui.utils.resize
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.withContext
@@ -161,7 +160,7 @@ private fun ManchaDeEspera() {
 /** La caratula en pequeno y en software (para poder leer sus pixeles), o null si no llega. */
 internal suspend fun caratulaPequena(contexto: Context, url: String, lado: Int): Bitmap? = runCatching {
     contexto.imageLoader.execute(
-        ImageRequest.Builder(contexto).data(url.resize(96, 96)).size(lado, lado).allowHardware(false).build()
+        ImageRequest.Builder(contexto).data(urlCaratula(url, 96)).size(lado, lado).allowHardware(false).build()
     ).image?.toBitmap()
 }.getOrNull()
 

@@ -16,7 +16,16 @@ import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsControllerCompat
 import androidx.lifecycle.lifecycleScope
+import android.content.res.Resources
+import com.cglabs.lifemusic.constants.AppLanguageKey
+import com.cglabs.lifemusic.constants.SYSTEM_DEFAULT
+import androidx.compose.runtime.CompositionLocalProvider
 import com.cglabs.lifemusic.db.MusicDatabase
+import com.cglabs.lifemusic.playback.DownloadUtil
+import com.cglabs.lifemusic.utils.dataStore
+import com.cglabs.lifemusic.utils.get
+import com.cglabs.lifemusic.utils.setAppLocale
+import java.util.Locale
 import com.cglabs.lifemusic.playback.MusicService
 import com.cglabs.lifemusic.playback.MusicService.MusicBinder
 import com.cglabs.lifemusic.playback.PlayerConnection
@@ -34,6 +43,9 @@ class CarActivity : ComponentActivity() {
 
     @Inject
     lateinit var database: MusicDatabase
+
+    @Inject
+    lateinit var descargas: DownloadUtil
 
     private var conexion by mutableStateOf<PlayerConnection?>(null)
 
@@ -54,9 +66,23 @@ class CarActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
         WindowCompat.setDecorFitsSystemWindows(window, false)
-        setContent { PantallaCarro(conexion) }
+        aplicarIdioma()
+        setContent { CompositionLocalProvider(LocalDescargas provides descargas) { PantallaCarro(conexion) } }
         ocultarBarraDeEstado()
         vigilarBarraDeEstado()
+    }
+
+    /**
+     * El idioma elegido en Ajustes (o el del sistema). Muchos radios vienen en
+     * ingles de fabrica y cambiarles el idioma del sistema es un laberinto: aqui
+     * basta un toque. Se cambia tambien el Locale por defecto para que la fecha
+     * del reloj salga en el mismo idioma que el resto.
+     */
+    private fun aplicarIdioma() {
+        val elegido = runCatching { dataStore[AppLanguageKey] }.getOrNull()?.takeUnless { it == SYSTEM_DEFAULT }
+        val idioma = elegido?.let { Locale.forLanguageTag(it) } ?: Resources.getSystem().configuration.locales[0]
+        Locale.setDefault(idioma)
+        setAppLocale(this, idioma)
     }
 
     /**

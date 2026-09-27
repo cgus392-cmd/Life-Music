@@ -55,7 +55,7 @@ import com.cglabs.lifemusic.R
 import com.cglabs.lifemusic.models.MediaMetadata
 import com.cglabs.lifemusic.playback.PlayerConnection
 import com.cglabs.lifemusic.ui.component.PlayingIndicatorBox
-import com.cglabs.lifemusic.ui.utils.resize
+import androidx.compose.ui.platform.LocalDensity
 import kotlinx.coroutines.delay
 
 /** Si suena algo ahora mismo (false sin conexion con el servicio). */
@@ -65,13 +65,21 @@ fun sonandoAhora(conexion: PlayerConnection?): Boolean {
     return sonando
 }
 
+/** Lo que suena ahora (null sin conexion o sin cola). */
+@Composable
+fun metadatosActuales(conexion: PlayerConnection?): MediaMetadata? {
+    val m by (conexion?.mediaMetadata?.collectAsState() ?: remember { mutableStateOf<MediaMetadata?>(null) })
+    return m
+}
+
 /** La caratula, o una nota de Life Music si no hay. Cambia de cancion con un fundido. */
 @Composable
-fun Caratula(url: String?, forma: Shape, modifier: Modifier = Modifier, pixeles: Int = 400, sombra: Dp = 0.dp) {
+fun Caratula(url: String?, forma: Shape, modifier: Modifier = Modifier, tamano: Dp = 200.dp, sombra: Dp = 0.dp) {
+    val px = with(LocalDensity.current) { tamano.roundToPx() }
     Surface(shape = forma, color = MaterialTheme.colorScheme.surfaceContainerHigh, shadowElevation = sombra, modifier = modifier) {
         Crossfade(targetState = url, animationSpec = tween(450), label = "caratula") { u ->
             if (u != null) {
-                AsyncImage(model = u.resize(pixeles, pixeles), contentDescription = null, contentScale = ContentScale.Crop, modifier = Modifier.fillMaxSize())
+                AsyncImage(model = urlCaratula(u, px), contentDescription = null, contentScale = ContentScale.Crop, modifier = Modifier.fillMaxSize())
             } else {
                 Box(contentAlignment = Alignment.Center, modifier = Modifier.fillMaxSize()) {
                     Icon(painterResource(R.drawable.music_note), contentDescription = null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.fillMaxSize(0.4f))
@@ -80,6 +88,34 @@ fun Caratula(url: String?, forma: Shape, modifier: Modifier = Modifier, pixeles:
         }
     }
 }
+
+private val TAMANO_GOOGLE = Regex("=[wsh]\\d+[^/=]*$")
+
+/**
+ * La direccion de una caratula al tamaño justo de [px]. Las de Google
+ * (googleusercontent/ggpht) aceptan el tamaño en la propia direccion: se pide
+ * JPEG (`-l90-rj`) de exactamente ese lado. El resize() del telefono pide 500 px
+ * y sin `-rj`, lo que Google sirve como PNG de ~370 KB, incluso para una
+ * tarjeta de 148 px; en un radio de 1 GB eso es memoria, datos y tiempo tirados.
+ *
+ * Las de i.ytimg (videos): YouTube a veces da `maxresdefault`, que solo existe
+ * si el video se subio en HD (si no, 404 y caratula vacia). Se cambia por la
+ * que siempre existe: `mqdefault` (320×180, sin franjas) para lo pequeño y
+ * `hqdefault` (480×360) para lo grande. `hq720` si viene se respeta: YouTube
+ * solo la da cuando existe.
+ */
+fun urlCaratula(url: String, px: Int): String {
+    if ("i.ytimg.com" in url) {
+        if ("/hq720" in url) return url
+        val video = VIDEO_YT.find(url)?.groupValues?.get(1) ?: return url
+        return "https://i.ytimg.com/vi/$video/" + if (px <= 200) "mqdefault.jpg" else "hqdefault.jpg"
+    }
+    if ("googleusercontent.com" !in url && "ggpht.com" !in url) return url
+    val lado = px.coerceIn(48, 1200)
+    return url.replace(TAMANO_GOOGLE, "") + "=w$lado-h$lado-l90-rj"
+}
+
+private val VIDEO_YT = Regex("/vi(?:_webp)?/([^/]+)/")
 
 /** El titulo de cada pantalla: grande, para leerlo desde el asiento. */
 @Composable
@@ -116,7 +152,7 @@ fun FilaCancion(
             .padding(horizontal = 8.dp),
     ) {
         Box(Modifier.size(56.dp)) {
-            Caratula(caratula, RoundedCornerShape(14.dp), Modifier.fillMaxSize(), pixeles = 160)
+            Caratula(caratula, RoundedCornerShape(14.dp), Modifier.fillMaxSize(), tamano = 56.dp)
             if (activa) {
                 Box(Modifier.fillMaxSize().clip(RoundedCornerShape(14.dp)).background(Color.Black.copy(alpha = 0.45f)))
                 PlayingIndicatorBox(isActive = true, playWhenReady = sonando, modifier = Modifier.fillMaxSize())
