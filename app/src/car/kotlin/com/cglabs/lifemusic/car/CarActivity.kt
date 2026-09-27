@@ -5,6 +5,7 @@ import android.content.Intent
 import android.content.ServiceConnection
 import android.os.Bundle
 import android.os.IBinder
+import android.view.View
 import android.view.WindowManager
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -55,6 +56,7 @@ class CarActivity : ComponentActivity() {
         WindowCompat.setDecorFitsSystemWindows(window, false)
         setContent { PantallaCarro(conexion) }
         ocultarBarraDeEstado()
+        vigilarBarraDeEstado()
     }
 
     /**
@@ -74,6 +76,25 @@ class CarActivity : ComponentActivity() {
         super.onWindowFocusChanged(hasFocus)
         if (hasFocus) ocultarBarraDeEstado()
     }
+
+    /**
+     * El teclado tambien la trae de vuelta, y ahi la ventana no pierde el foco:
+     * se vigila la propia barra y, si aparece, se esconde un momento despues (lo
+     * justo para no pelear con el sistema mientras el teclado entra). La API es
+     * vieja, pero es la de Android 8, que es lo que corren los radios.
+     */
+    @Suppress("DEPRECATION")
+    private fun vigilarBarraDeEstado() {
+        val decor = window.decorView
+        decor.setOnSystemUiVisibilityChangeListener { visibilidad ->
+            if (visibilidad and View.SYSTEM_UI_FLAG_FULLSCREEN == 0) {
+                decor.removeCallbacks(reocultar)
+                decor.postDelayed(reocultar, 1_500)
+            }
+        }
+    }
+
+    private val reocultar = Runnable { ocultarBarraDeEstado() }
 
     override fun onStart() {
         super.onStart()

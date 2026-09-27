@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!--
+      El tema de la ventana del carro. Lo que se ve mientras el radio arranca la app
+      (antes de que Compose dibuje nada) es su fondo: el mismo casi negro de la
+      entrada, para que no haya un fogonazo blanco ni un cambio de color al empezar.
+    -->
+    <style name="Theme.LifeMusic.Carro" parent="Theme.LifeMusic">
+        <item name="android:windowBackground">@color/carro_fondo</item>
+    </style>
+
+    <color name="carro_fondo">#FF09090C</color>
+</resources>

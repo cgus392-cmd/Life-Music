@@ -1,12 +1,57 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!-- Textos de Life Music for Car (solo existen en la variante «car»). -->
 <resources>
+    <string name="carro_marca" translatable="false">Life Music</string>
+    <string name="carro_for_car">for Car</string>
+
     <string name="carro_nada_sonando">Nothing playing</string>
-    <string name="carro_busca_para_empezar">Search on the right to start</string>
+    <string name="carro_busca_para_empezar">Search for something to start</string>
     <string name="carro_anterior">Previous</string>
     <string name="carro_siguiente">Next</string>
     <string name="carro_reproducir">Play</string>
     <string name="carro_pausar">Pause</string>
+    <string name="carro_me_gusta">Like</string>
+    <string name="carro_cerrar">Close</string>
+    <string name="carro_sonando">Now playing</string>
+    <string name="carro_continuar">Pick up where you left off</string>
+
+    <string name="carro_inicio">Home</string>
+    <string name="carro_buscar">Search</string>
+    <string name="carro_biblioteca">Library</string>
+    <string name="carro_cola">Queue</string>
+    <string name="carro_ajustes">Settings</string>
+
     <string name="carro_buscar_pista">Search songs and artists</string>
     <string name="carro_buscar_vacio">Type a song or artist and press search</string>
+    <string name="carro_empezar_buscar">Find music</string>
+    <string name="carro_escuchadas">Played recently</string>
+    <string name="carro_sin_historial">What you play will show up here</string>
+
+    <string name="carro_cola_cuantas">%1$d songs</string>
+    <string name="carro_cola_vacia">The queue is empty</string>
+    <string name="carro_cola_vacia_texto">Play something and what comes next shows up here</string>
+
+    <string name="carro_biblioteca_pronto">Your library is on its way</string>
+    <string name="carro_biblioteca_pronto_texto">Playlists, albums, artists and downloads, sized for the car</string>
+
+    <string name="carro_ajuste_saludo">Greeting on start</string>
+    <string name="carro_ajuste_saludo_texto">A short phrase that matches the time of day when the car starts</string>
+    <string name="carro_ajuste_fondo">Moving background</string>
+    <string name="carro_ajuste_fondo_texto">The cover colors drift slowly behind everything. Off, they stay still</string>
+    <string name="carro_acerca_texto">Educational fork of Echo Music · GPL-3.0</string>
+
+    <!-- Saludos del carro: mañana, tarde, noche y para cualquier hora. -->
+    <string name="carro_saludo_m_1">Have a good drive. I\'ll handle the music.</string>
+    <string name="carro_saludo_m_2">Coffee, road and your songs.</string>
+    <string name="carro_saludo_m_3">Let\'s start the day with a good beat.</string>
+    <string name="carro_saludo_t_1">May the traffic feel a little shorter.</string>
+    <string name="carro_saludo_t_2">Halfway through the day, and the music goes on.</string>
+    <string name="carro_saludo_t_3">Window down, good music on.</string>
+    <string name="carro_saludo_n_1">Heading home?</string>
+    <string name="carro_saludo_n_2">The city sounds different at night.</string>
+    <string name="carro_saludo_n_3">Take it easy, the music is riding along.</string>
+    <string name="carro_saludo_g_1">You drive, I\'ll play the music.</string>
+    <string name="carro_saludo_g_2">Seatbelt on. Sound ready.</string>
+    <string name="carro_saludo_g_3">Every road has its song.</string>
+    <string name="carro_saludo_g_4">Good company for the ride.</string>
 </resources>

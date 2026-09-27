@@ -1157,6 +1157,22 @@ interface DatabaseDao {
     @Query("SELECT * FROM event ORDER BY rowId DESC")
     fun events(): Flow<List<EventWithSong>>
 
+    /**
+     * Las ultimas canciones distintas que sonaron, de la mas reciente a la mas
+     * vieja. Para el Inicio del carro: a diferencia de [events], no carga el
+     * historial entero (en un radio de 1 GB eso pesa), solo [limite] filas.
+     */
+    @Transaction
+    @Query(
+        """
+        SELECT song.* FROM song
+        JOIN (SELECT songId, MAX(rowId) AS ultimo FROM event GROUP BY songId ORDER BY ultimo DESC LIMIT :limite) AS r
+            ON song.id = r.songId
+        ORDER BY r.ultimo DESC
+        """,
+    )
+    fun escuchadasHacePoco(limite: Int): Flow<List<Song>>
+
     @Transaction
     @Query("SELECT * FROM event ORDER BY rowId ASC LIMIT 1")
     fun firstEvent(): Flow<EventWithSong?>
