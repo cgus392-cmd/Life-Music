@@ -801,6 +801,14 @@
     <string name="cast_desconectar">Devolver la música al teléfono</string>
     <string name="cast_conectado_a">Sonando en %1$s</string>
     <string name="cast_notificacion_texto">El teléfono es el mando. Toca para abrir.</string>
+    <string name="cast_tema_titulo">Tema en el TV</string>
+    <string name="cast_tema_ambiente">Ambiente</string>
+    <string name="cast_tema_cristal">Cristal líquido</string>
+    <string name="cast_tema_escenario">Escenario</string>
+    <string name="cast_tema_vinilo">Vinilo</string>
+    <string name="cast_tema_galeria">Galería</string>
+    <string name="cast_tema_nocturno">Nocturno</string>
+    <string name="cast_tema_cristal_nota">Usa tu cristal de la app: el tinte, la lente y la vibrancia de Apariencia → Liquid Glass.</string>
     <string name="cast_error_conectar">No se pudo conectar con %1$s</string>
     <string name="cast_error_cancion">El aparato no pudo reproducir esta canción</string>
     <string name="cast_conexion_perdida">Se perdió la conexión con el aparato; la música vuelve al teléfono</string>

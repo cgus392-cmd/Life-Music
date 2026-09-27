@@ -18,6 +18,9 @@
         este permiso: es el actualizador entero.
     -->
 
+    <!-- DLNA: SSDP busca reproductores por multicast (239.255.255.250:1900). -->
+    <uses-permission android:name="android.permission.CHANGE_WIFI_MULTICAST_STATE" />
+
     <application>
         <!-- Mantiene la app viva mientras se transmite al TV (ver ServicioDeCast). -->
         <service

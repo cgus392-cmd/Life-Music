@@ -22,14 +22,22 @@
   ninguna cancion).
 -->
 <link rel="icon" type="image/png" href="../img/lifemusic.png">
-<link rel="stylesheet" href="receptor.css?v=20260921f">
+<link rel="stylesheet" href="receptor.css?v=20260924c">
 <script src="https://www.gstatic.com/cast/sdk/libs/caf_receiver/v3/cast_receiver_framework.js"></script>
 </head>
-<body>
+<body class="tema-ambiente">
   <!-- El reproductor de CAF existe pero no se ve: la pantalla es nuestra. -->
   <cast-media-player id="reproductor"></cast-media-player>
 
   <canvas id="fondo" width="384" height="216" aria-hidden="true"></canvas>
+  <!-- Tema Escenario: un destello suave en cada golpe del tempo. -->
+  <div id="destello" aria-hidden="true"></div>
+  <!-- Tema Cristal en la GPU: la caratula en grande, las luces y los paneles de vidrio (cristal.js). -->
+  <canvas id="fondo-cristal" aria-hidden="true"></canvas>
+  <!-- Tema Galeria: la caratula difuminada a pantalla completa (dos capas para fundir). -->
+  <div id="galeria-fondo" aria-hidden="true"><canvas class="gf" width="48" height="48"></canvas><canvas class="gf" width="48" height="48"></canvas></div>
+  <!-- Tema Vinilo: grano y vineta calidos por encima del fondo. -->
+  <div id="vinilo-grano" aria-hidden="true"></div>
 
   <main id="escena" class="vacia">
     <header class="marca">
@@ -50,19 +58,58 @@
     <!-- Con cancion: caratula a la izquierda, letra a la derecha. -->
     <section id="ambiente">
       <div id="izquierda">
+        <!-- Tema Cristal liquido: el fondo, refractado, dibujado dentro del panel. -->
+        <canvas class="vidrio" aria-hidden="true"></canvas>
         <div id="caratula-marco">
           <!-- La caratula la pone receptor.js (una <img class="caratula"> que se funde con la anterior). -->
           <!-- El canvas de la cancion (video corto en bucle, sin sonido), si lo tiene. -->
           <video id="canvas" muted loop playsinline preload="auto"></video>
+        </div>
+        <!-- Tema Vinilo: el disco con la caratula de etiqueta y el brazo del tocadiscos. -->
+        <div id="vinilo" aria-hidden="true">
+          <div id="disco"><img id="etiqueta" alt=""><span class="eje"></span></div>
+          <div id="brillo-disco"></div>
+          <div id="brazo"><span class="base"></span><span class="barra"></span><span class="capsula"></span></div>
         </div>
         <h2 id="titulo"></h2>
         <p id="artista"></p>
         <div id="progreso"><div id="progreso-barra"></div></div>
       </div>
       <div id="derecha">
-        <div id="letra"></div>
+        <canvas class="vidrio" aria-hidden="true"></canvas>
+        <div id="letra-ventana"><div id="letra"></div></div>
         <p id="sin-letra">Esta cancion no tiene letra sincronizada</p>
       </div>
+    </section>
+
+    <!-- Tema Escenario: la linea viva enorme al centro, la cancion en una esquina. -->
+    <section id="escenario">
+      <div id="esc-letra"></div>
+      <p id="esc-siguiente"></p>
+      <div id="esc-info">
+        <img id="esc-caratula" alt="">
+        <div id="esc-textos">
+          <p id="esc-titulo"></p>
+          <p id="esc-artista"></p>
+          <div id="esc-progreso"><div id="esc-barra"></div></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Tema Galeria: la caratula como cuadro, el titulo y una sola linea de letra. -->
+    <section id="galeria">
+      <img id="gal-caratula" alt="">
+      <h2 id="gal-titulo"></h2>
+      <p id="gal-artista"></p>
+      <p id="gal-linea"></p>
+    </section>
+
+    <!-- Tema Nocturno: negro, la hora y la linea que suena (como el reposo del telefono). -->
+    <section id="nocturno">
+      <div id="noc-hora"></div>
+      <div id="noc-fecha"></div>
+      <p id="noc-linea"></p>
+      <p id="noc-cancion"></p>
     </section>
   </main>
 
@@ -72,6 +119,6 @@
     <p id="saludo-frase"></p>
   </section>
 
-  <script src="receptor.js?v=20260921f"></script>
+  <script src="receptor.js?v=20260924c"></script>
 </body>
 </html>

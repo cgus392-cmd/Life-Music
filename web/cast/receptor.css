@@ -32,7 +32,7 @@ cast-media-player { display: none; }
 #escena { position: fixed; inset: 0; padding: var(--seguro); }
 
 .marca {
-  position: absolute; top: var(--seguro); right: var(--seguro);
+  position: absolute; top: var(--seguro); right: var(--seguro); z-index: 3;
   display: flex; align-items: center; gap: 0.8vmin;
   font-size: 2.1vmin; font-weight: 600; letter-spacing: 0.02em; color: var(--texto-2);
 }
@@ -117,9 +117,12 @@ cast-media-player { display: none; }
 #progreso-barra { width: 0; height: 100%; background: var(--texto); border-radius: 1vmin; transition: width 400ms linear; }
 
 /* Letra: la linea viva al centro, las demas se desvanecen hacia arriba y abajo. */
-#derecha { position: relative; height: 84vh; min-width: 0; overflow: hidden;
+#derecha { position: relative; height: 84vh; min-width: 0; }
+#letra-ventana { position: absolute; inset: 0; overflow: hidden;
   -webkit-mask-image: linear-gradient(to bottom, transparent 0, #000 22%, #000 78%, transparent 100%);
   mask-image: linear-gradient(to bottom, transparent 0, #000 22%, #000 78%, transparent 100%); }
+/* Los paneles de vidrio solo existen en el tema Cristal. */
+.vidrio { display: none; }
 #letra { position: absolute; left: 0; right: 0; top: 50%; opacity: 1;
   transition: transform 420ms var(--suave), opacity 320ms ease; will-change: transform; }
 #letra.oculta { opacity: 0; }
@@ -163,3 +166,226 @@ cast-media-player { display: none; }
   max-width: 82vw; transform: translateY(1.6vmin); transition: transform 640ms var(--suave);
 }
 #saludo-pantalla.visible #saludo-cabecera, #saludo-pantalla.visible #saludo-frase { transform: none; }
+
+/* ══ Temas ═══════════════════════════════════════════════════════════════
+   El tema es una clase en <body>: tema-ambiente (el de siempre),
+   tema-cristal y tema-escenario. Al cambiar, la escena se funde a negro y
+   vuelve con el tema nuevo (receptor.js, ponerTema). */
+#escena { transition: opacity 380ms var(--suave); }
+#escena.cambiando-tema { opacity: 0; }
+
+/* ── Cristal liquido ─────────────────────────────────────────────────────
+   La receta del cristal de la app (la de Kyant): el fondo refractado por
+   una lente, mas vivo que alrededor, con un tinte, el borde que brilla y un
+   hilo de color en las orillas. El fondo refractado no es backdrop-filter
+   (carisimo en un Chromecast): lo pinta receptor.js en el <canvas.vidrio>
+   de cada panel a partir del lienzo del fondo, que es nuestro. */
+body.tema-cristal #ambiente { gap: 4vmin; }
+body.tema-cristal #izquierda,
+body.tema-cristal #derecha {
+  --radio-vidrio: 4.2vmin;
+  position: relative;
+  border-radius: var(--radio-vidrio);
+  box-shadow:
+    0 2.4vmin 7vmin rgba(0, 0, 0, 0.38),        /* profundidad */
+    inset 0 0 0 1px rgba(255, 255, 255, 0.16),  /* canto */
+    inset 0 1.5px 0 rgba(255, 255, 255, 0.42),  /* brillo de arriba */
+    inset 0 -1px 0 rgba(255, 255, 255, 0.07);
+  isolation: isolate;
+}
+body.tema-cristal .vidrio {
+  display: block; position: absolute; inset: 0; width: 100%; height: 100%;
+  border-radius: var(--radio-vidrio); z-index: -1;
+}
+/* El canto de luz: un borde que brilla fuerte en la esquina de arriba a la
+   izquierda y en la de abajo a la derecha, y casi nada en medio, como el
+   cristal de la app (un degradado recortado a un anillo de 1,5 px). El
+   reflejo difuso de la superficie lo pinta receptor.js dentro del vidrio. */
+body.tema-cristal #izquierda::before,
+body.tema-cristal #derecha::before {
+  content: ""; position: absolute; inset: 0; border-radius: var(--radio-vidrio); pointer-events: none;
+  padding: 1.5px;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.75) 0%, rgba(255, 255, 255, 0.10) 28%, rgba(255, 255, 255, 0.04) 55%, rgba(255, 255, 255, 0.38) 100%);
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask: linear-gradient(#000 0 0) content-box exclude, linear-gradient(#000 0 0);
+}
+/* Aberracion cromatica: rojo y cian desplazados en las orillas, muy sutil. */
+body.tema-cristal.aberracion #izquierda::after,
+body.tema-cristal.aberracion #derecha::after {
+  content: ""; position: absolute; inset: 0; border-radius: var(--radio-vidrio); pointer-events: none;
+  box-shadow: inset 2px 1px 1px -1px rgba(255, 90, 110, 0.45), inset -2px -1px 1px -1px rgba(80, 210, 255, 0.45);
+}
+body.tema-cristal.sin-profundidad #izquierda,
+body.tema-cristal.sin-profundidad #derecha {
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.16), inset 0 1.5px 0 rgba(255, 255, 255, 0.42);
+}
+body.tema-cristal #izquierda { padding: 3.2vmin; }
+body.tema-cristal #caratula-marco { width: 46vmin; height: 46vmin; border-radius: 2.6vmin; box-shadow: 0 1.6vmin 4vmin rgba(0, 0, 0, 0.35); }
+body.tema-cristal #titulo, body.tema-cristal #artista, body.tema-cristal #progreso { max-width: 46vmin; }
+body.tema-cristal #progreso { width: 46vmin; }
+body.tema-cristal #letra-ventana { inset: 2vmin 3.6vmin; }
+body.tema-cristal #letra .linea { text-shadow: 0 0.2vmin 1.2vmin rgba(0, 0, 0, 0.25); }
+
+/* ── Escenario ───────────────────────────────────────────────────────────
+   Para fiestas: una sola linea, enorme, al centro, palabra a palabra; la
+   siguiente, pequena debajo; la cancion en una esquina. El fondo golpea
+   mas fuerte y hay un destello en cada beat (receptor.js). */
+#escenario {
+  position: absolute; inset: var(--seguro); display: none;
+  flex-direction: column; align-items: center; justify-content: center; text-align: center;
+  transition: opacity 800ms var(--suave) 150ms, transform 800ms var(--suave) 150ms, visibility 0s linear 950ms;
+}
+body.tema-escenario #ambiente { display: none; }
+body.tema-escenario #escenario { display: flex; }
+#escena.vacia #escenario { opacity: 0; transform: scale(0.96); visibility: hidden; }
+#escena.con-cancion #escenario { opacity: 1; transform: none; visibility: visible; }
+
+#esc-letra { position: relative; width: 88vw; height: 36vh; will-change: transform; }
+.esc-linea {
+  position: absolute; left: 0; right: 0; top: 50%;
+  font-size: 8.6vmin; font-weight: 800; line-height: 1.12; letter-spacing: -0.025em;
+  transform: translateY(-50%); opacity: 1;
+  transition: transform 560ms var(--suave), opacity 420ms ease;
+}
+.esc-linea.entra { transform: translateY(-20%) scale(0.94); opacity: 0; transition: none; }
+.esc-linea.sale { transform: translateY(-110%) scale(0.96); opacity: 0; }
+.esc-linea .p { color: rgba(242, 245, 243, 0.30); transition: color 110ms linear, text-shadow 160ms linear; }
+.esc-linea .p.dicha { color: var(--texto); text-shadow: 0 0 3.2vmin rgba(var(--acento, 52, 211, 153), 0.65); }
+.esc-linea.sin-palabras { color: var(--texto); text-shadow: 0 0 3.2vmin rgba(var(--acento, 52, 211, 153), 0.5); }
+.esc-linea.titulo { font-size: 9.6vmin; }
+#esc-siguiente {
+  margin-top: 2vmin; max-width: 80vw; min-height: 4vmin;
+  font-size: 3.4vmin; font-weight: 600; color: var(--texto-3);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  transition: opacity 300ms ease;
+}
+#esc-info {
+  position: absolute; left: 0; bottom: 0;
+  display: flex; align-items: center; gap: 2vmin; max-width: 46vw;
+  padding: 1.4vmin 2.4vmin 1.4vmin 1.4vmin; border-radius: 2.6vmin; text-align: left;
+  background: rgba(0, 0, 0, 0.28); box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.10);
+}
+#esc-caratula { width: 10vmin; height: 10vmin; border-radius: 1.6vmin; object-fit: cover; background: #111; flex: none; }
+#esc-textos { min-width: 0; }
+#esc-titulo { font-size: 2.8vmin; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+#esc-artista { font-size: 2.2vmin; color: var(--texto-2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+#esc-progreso { margin-top: 1vmin; width: 26vmin; height: 0.4vmin; border-radius: 1vmin; background: rgba(255, 255, 255, 0.16); overflow: hidden; }
+#esc-barra { width: 0; height: 100%; background: var(--texto); transition: width 400ms linear; }
+
+#destello {
+  position: fixed; inset: 0; pointer-events: none; opacity: 0;
+  background: radial-gradient(ellipse at 50% 45%, rgba(255, 255, 255, 0.55) 0%, rgba(255, 255, 255, 0) 65%);
+}
+body:not(.tema-escenario) #destello { display: none; }
+
+/* Modo ligero (TV flojo): sin sombras de brillo en el texto. */
+body.ligero .esc-linea .p.dicha, body.ligero .esc-linea.sin-palabras, body.ligero #letra .linea { text-shadow: none; }
+
+/* ── Cristal en la GPU (cristal.js) ──────────────────────────────────────
+   Con WebGL, el lienzo dibuja la caratula, las luces y el vidrio con su
+   refraccion, canto y sombra: los paneles HTML quedan transparentes y solo
+   llevan el contenido. Sin WebGL se queda el vidrio 2D de arriba. */
+#fondo-cristal { position: fixed; inset: 0; width: 100vw; height: 100vh; opacity: 0; pointer-events: none; transition: opacity 500ms var(--suave); }
+body.tema-cristal.gl.con-cancion #fondo-cristal { opacity: 1; }
+body.tema-cristal.gl .vidrio { display: none; }
+body.tema-cristal.gl #izquierda, body.tema-cristal.gl #derecha { box-shadow: none; }
+body.tema-cristal.gl #izquierda::before, body.tema-cristal.gl #derecha::before,
+body.tema-cristal.gl #izquierda::after, body.tema-cristal.gl #derecha::after { display: none; }
+
+/* ── Vinilo ──────────────────────────────────────────────────────────────
+   El disco gira a 33⅓ con la caratula de etiqueta; arranca y se frena como
+   un plato de verdad (receptor.js), y el brazo baja al sonar y se levanta en
+   pausa. El reflejo no gira: la luz de la sala esta quieta y el disco pasa
+   por debajo. Letra en serif, tonos crema, grano y vineta calidos. */
+#vinilo, #vinilo-grano { display: none; }
+body.tema-vinilo { --texto: #F4E9D8; --texto-2: rgba(244, 233, 216, 0.62); --texto-3: rgba(244, 233, 216, 0.30); }
+body.tema-vinilo #caratula-marco { display: none; }
+body.tema-vinilo #vinilo { display: block; position: relative; width: 56vmin; height: 56vmin; margin: 0 4vmin 1vmin 0; }
+#disco {
+  position: absolute; inset: 0; border-radius: 50%;
+  background:
+    radial-gradient(circle closest-side, rgba(0, 0, 0, 0) 0 38%, rgba(255, 255, 255, 0.06) 38.5% 39%, rgba(0, 0, 0, 0) 39.5% 97%, rgba(255, 255, 255, 0.05) 97.5% 98%, rgba(0, 0, 0, 0) 98.5%),
+    repeating-radial-gradient(circle closest-side, #0c0c0d 0 0.55%, #19191b 0.55% 1.1%);
+  box-shadow: 0 3vmin 8vmin rgba(0, 0, 0, 0.6), inset 0 0 0 0.35vmin #050505;
+  will-change: transform;
+}
+#etiqueta { position: absolute; left: 32%; top: 32%; width: 36%; height: 36%; border-radius: 50%; object-fit: cover; background: #3a2a1a; }
+#disco .eje { position: absolute; left: 48.9%; top: 48.9%; width: 2.2%; height: 2.2%; border-radius: 50%; background: #d8d8d8; box-shadow: 0 0 0 0.25vmin rgba(0, 0, 0, 0.45); }
+#brillo-disco {
+  position: absolute; inset: 0; border-radius: 50%; pointer-events: none;
+  background: conic-gradient(from 25deg, rgba(255, 255, 255, 0) 0deg, rgba(255, 255, 255, 0.11) 28deg, rgba(255, 255, 255, 0) 64deg, rgba(255, 255, 255, 0) 190deg, rgba(255, 255, 255, 0.08) 222deg, rgba(255, 255, 255, 0) 256deg);
+  -webkit-mask: radial-gradient(circle closest-side, transparent 0 37%, #000 38%);
+  mask: radial-gradient(circle closest-side, transparent 0 37%, #000 38%);
+}
+#brazo {
+  position: absolute; right: -5vmin; top: -3vmin; width: 9vmin; height: 44vmin;
+  transform-origin: 62% 7%; transform: rotate(-26deg);
+  transition: transform 1400ms var(--suave);
+  filter: drop-shadow(0 1.2vmin 1.4vmin rgba(0, 0, 0, 0.5));
+}
+body.tema-vinilo.sonando #brazo { transform: rotate(-3deg); }
+#brazo .base { position: absolute; left: 34%; top: 0; width: 5.6vmin; height: 5.6vmin; margin-left: -1.6vmin; border-radius: 50%;
+  background: radial-gradient(circle at 35% 35%, #f2f2f2, #9a9a9a 55%, #5c5c5c); }
+#brazo .barra { position: absolute; left: 58%; top: 2.6vmin; width: 0.9vmin; height: 34vmin; border-radius: 0.5vmin;
+  background: linear-gradient(90deg, #7a7a7a, #eaeaea 45%, #8d8d8d); }
+#brazo .capsula { position: absolute; left: 50%; top: 35vmin; width: 2.6vmin; height: 5vmin; border-radius: 0.5vmin;
+  background: linear-gradient(90deg, #2b2b2b, #5a5a5a 50%, #2b2b2b); transform: rotate(18deg); }
+body.tema-vinilo #titulo { font-family: "Noto Serif", Georgia, "Times New Roman", serif; font-weight: 600; letter-spacing: 0; }
+body.tema-vinilo #artista { font-style: italic; }
+body.tema-vinilo #letra .linea { font-family: "Noto Serif", Georgia, "Times New Roman", serif; font-weight: 600; letter-spacing: 0; }
+body.tema-vinilo #vinilo-grano {
+  display: block; position: fixed; inset: 0; pointer-events: none;
+  background:
+    radial-gradient(ellipse at 50% 50%, rgba(0, 0, 0, 0) 40%, rgba(0, 0, 0, 0.55) 100%),
+    linear-gradient(rgba(255, 150, 60, 0.07), rgba(255, 150, 60, 0.07)),
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 1 0 0 0 0 .86 0 0 0 0 .66 0 0 0 .10 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+/* ── Galeria ─────────────────────────────────────────────────────────────
+   Como un cuadro en la pared: la caratula flotando despacio, el titulo fino
+   y una sola linea de letra, sobre la misma caratula difuminada a pantalla
+   completa. Sin luces animadas: es el tema mas liviano. */
+#galeria-fondo { position: fixed; inset: 0; display: none; overflow: hidden; }
+body.tema-galeria #galeria-fondo { display: block; }
+body.tema-galeria #fondo, body.tema-nocturno #fondo { visibility: hidden; }
+#galeria-fondo .gf {
+  position: absolute; left: -8%; top: -8%; width: 116%; height: 116%;
+  opacity: 0; transition: opacity 1400ms ease;
+  filter: blur(3vmin) saturate(1.3) brightness(0.52);
+}
+#galeria-fondo .gf.visible { opacity: 1; }
+#galeria, #nocturno {
+  position: absolute; inset: var(--seguro); display: none;
+  flex-direction: column; align-items: center; justify-content: center; text-align: center;
+  transition: opacity 800ms var(--suave) 150ms, visibility 0s linear 950ms;
+}
+body.tema-galeria #ambiente, body.tema-nocturno #ambiente { display: none; }
+body.tema-galeria #galeria, body.tema-nocturno #nocturno { display: flex; }
+#escena.vacia #galeria, #escena.vacia #nocturno { opacity: 0; visibility: hidden; }
+#escena.con-cancion #galeria, #escena.con-cancion #nocturno { opacity: 1; visibility: visible; }
+#gal-caratula {
+  width: 54vmin; height: 54vmin; border-radius: 1.8vmin; object-fit: cover; background: #111;
+  box-shadow: 0 4vmin 11vmin rgba(0, 0, 0, 0.55);
+  animation: flotar 9s ease-in-out infinite;
+}
+#escena.pausa #gal-caratula { animation-play-state: paused; }
+@keyframes flotar { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-1.3vmin); } }
+#gal-titulo { margin-top: 4.4vmin; max-width: 80vw; font-size: 4.8vmin; font-weight: 300; letter-spacing: 0.01em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+#gal-artista { margin-top: 0.8vmin; font-size: 2.2vmin; font-weight: 600; letter-spacing: 0.18em; text-transform: uppercase; color: var(--texto-2); }
+#gal-linea, #noc-linea { transition: opacity 380ms ease; }
+#gal-linea.cambia, #noc-linea.cambia { opacity: 0; }
+#gal-linea { margin-top: 2.8vmin; min-height: 3.4vmin; max-width: 70vw; font-size: 2.7vmin; font-style: italic; color: var(--texto-2); }
+
+/* ── Nocturno ────────────────────────────────────────────────────────────
+   Negro de verdad (en un OLED, pixeles apagados), la hora grande, la fecha y
+   la linea que suena. Todo se corre un poco cada minuto para no marcar la
+   pantalla (receptor.js). */
+body.tema-nocturno .marca { visibility: hidden; }
+#nocturno { transition: opacity 800ms var(--suave) 150ms, transform 2400ms ease, visibility 0s linear 950ms; }
+#noc-hora { font-size: 21vmin; font-weight: 200; line-height: 1; letter-spacing: -0.02em; color: rgba(242, 245, 243, 0.86); font-variant-numeric: tabular-nums; }
+#noc-hora small { font-size: 0.22em; font-weight: 400; letter-spacing: 0.04em; margin-left: 1.4vmin; color: rgba(242, 245, 243, 0.5); }
+#noc-fecha { margin-top: 1.6vmin; font-size: 2.6vmin; letter-spacing: 0.04em; color: rgba(242, 245, 243, 0.42); }
+#noc-fecha::first-letter { text-transform: uppercase; }
+#noc-linea { margin-top: 7vmin; min-height: 5vmin; max-width: 80vw; font-size: 3.8vmin; font-weight: 500; color: rgba(242, 245, 243, 0.72); }
+#noc-cancion { margin-top: 1.8vmin; font-size: 2vmin; color: rgba(242, 245, 243, 0.32); }

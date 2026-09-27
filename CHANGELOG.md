@@ -15,6 +15,64 @@ esa base**; para la historia anterior, consulte el repositorio de origen.
 
 ---
 
+## [1.2.1] — sin publicar
+
+### Añadido
+
+- **Temas del TV.** En la hoja de Reproducir en…, mientras se transmite a
+  nuestro receptor, «Tema en el TV» con seis tarjetas con vista previa
+  dibujada: **Ambiente** (el de siempre), **Cristal líquido**, **Escenario**,
+  **Vinilo**, **Galería** y **Nocturno**.
+  El TV cambia al instante con un fundido y el tema queda guardado
+  (`CastTemaKey`); se manda al conectar, tras el «listo» del receptor.
+- **Cristal líquido en la GPU** (`web/cast/cristal.js`, WebGL 1, se descarga
+  solo al elegir el tema). La carátula en grande detrás, moviéndose despacio y
+  respirando con el golpe, con las luces encima; los paneles de la carátula y
+  de la letra son vidrio con **refracción real** en el canto (SDF del
+  rectángulo redondeado y perfil circular), aberración cromática, desenfoque
+  por mipmaps, vibrancia, tinte, brillo especular según el ángulo y sombra.
+  Hereda la configuración de Liquid Glass del usuario en la app (tinte,
+  opacidad, vibrancia, altura y fuerza de la lente, aberración, profundidad y
+  desenfoque). Las carátulas se fundan entre canciones. Sin WebGL, un vidrio
+  2D de respaldo. Medido en AirScreen (Motorola): 16,7 ms por fotograma.
+- **Escenario**, para fiestas: una sola línea enorme al centro, palabra a
+  palabra con el brillo del color más vivo de la carátula; la siguiente
+  pequeña debajo; la canción en una esquina; el fondo golpea más fuerte y hay
+  un destello en cada beat. Sin letra, el título ocupa la línea.
+- **Vinilo:** un disco que gira a 33⅓ con la carátula de etiqueta; arranca y
+  se frena como un plato de verdad, el brazo baja al sonar y se levanta en
+  pausa, el reflejo se queda quieto mientras el disco pasa por debajo. Letra
+  en serif color crema, con grano y viñeta cálidos.
+- **Galería:** la carátula como un cuadro que flota despacio, el título fino y
+  una sola línea de letra, sobre la carátula difuminada a pantalla completa
+  (pintada una vez por canción a 64×36). Sin luces animadas: el más liviano.
+- **Nocturno:** negro de verdad, la hora grande, la fecha en el idioma del
+  teléfono, la línea que suena y la canción en pequeño; todo se corre un poco
+  cada minuto para no marcar las pantallas OLED.
+- **Transmitir por DLNA/UPnP** (la mayoría de los TV Samsung, LG y Sony,
+  AirScreen, Kodi, muchos parlantes). Se buscan por SSDP
+  (`cast/DescubridorDlna.kt`) y salen en la hoja de Reproducir en… con la
+  etiqueta «DLNA», junto a los Chromecast. Se manejan por SOAP
+  (`cast/Upnp.kt`, `cast/SesionDlna.kt`): cargar con la ficha DIDL-Lite
+  (título, artista, álbum y carátula), play, pausa, saltar y volumen; el
+  estado se pregunta cada segundo y al terminar una pista avanza la cola del
+  teléfono. El audio se lo entrega al TV **un servidor HTTP pequeño dentro
+  del teléfono** (`cast/ServidorLocal.kt`, con Range y un token por sesión):
+  el TV no le habla a YouTube, así que no le afectan las URL atadas a la IP
+  del teléfono (IPv6) ni le hace falta HTTPS. Si el aparato no acepta
+  Opus/WebM (lo dice su `GetProtocolInfo`; AirScreen, por ejemplo), el
+  teléfono pide a YouTube la versión **AAC** y sirve esa
+  (`YTPlayerUtils.playerResponseForPlayback(preferirAac)`).
+
+### Arreglado
+
+- **La app se cerraba al perderse la transmisión con la pantalla apagada**
+  (`ForegroundServiceStartNotAllowedException`, 21-09): al devolver la
+  música al teléfono desde segundo plano, Android no deja que el reproductor
+  pase a primer plano. Ahora, si la conexión se cae con la app en segundo
+  plano, la música vuelve al teléfono en pausa; si lo pide el usuario (hoja o
+  notificación), sigue sonando.
+
 ## [1.2.0] — 2026-09-21
 
 ### Añadido

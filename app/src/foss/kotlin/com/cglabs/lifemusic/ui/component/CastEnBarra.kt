@@ -29,9 +29,10 @@ fun CastEnBarra() {
         onStopOrDispose { handler.dejarDeBuscar() }
     }
     val aparatos by handler.aparatos.collectAsState()
+    val renderizadores by handler.renderizadores.collectAsState()
     val transmitiendo by handler.isCasting.collectAsState()
     AnimatedVisibility(
-        visible = transmitiendo || aparatos.isNotEmpty(),
+        visible = transmitiendo || aparatos.isNotEmpty() || renderizadores.isNotEmpty(),
         enter = fadeIn() + scaleIn(initialScale = 0.6f),
         exit = fadeOut() + scaleOut(targetScale = 0.6f),
     ) {

@@ -4112,6 +4112,37 @@ class MusicService :
     }
 
     /**
+     * Una fuente de lectura de [mediaId] por la misma cadena que el reproductor
+     * (descargas y cache primero, red si falta, la URL resuelta y renovada por el
+     * servicio). La usa el servidor local que le entrega el audio a un TV por
+     * DLNA: asi suenan tambien las descargadas y lo que ya esta en cache, y el
+     * TV nunca necesita pedirle nada a YouTube por su cuenta. Una por peticion
+     * (no son seguras entre hilos). Null para archivos locales del telefono.
+     */
+    fun fuenteParaServir(mediaId: String): Pair<DataSource, android.net.Uri>? {
+        if (mediaId.isLocalMediaId()) return null
+        return analysisDataSourceFactory.createDataSource() to playbackSeedUri(mediaId).toUri()
+    }
+
+    /**
+     * La version AAC (audio/mp4) de [mediaId] y su tamaño (-1 si no se sabe), para
+     * reproductores DLNA que no aceptan Opus/WebM. Aparte de la cache del
+     * reproductor, que guarda el formato que el eligio.
+     */
+    suspend fun urlAacParaDlna(mediaId: String): Pair<String, Long>? = withContext(Dispatchers.IO) {
+        runCatching {
+            val d = YTPlayerUtils.playerResponseForPlayback(
+                videoId = mediaId,
+                audioQuality = audioQuality,
+                connectivityManager = connectivityManager,
+                preferirAac = true,
+            ).getOrNull() ?: return@runCatching null
+            if (!d.format.mimeType.startsWith("audio/mp4")) return@runCatching null
+            d.streamUrl to (d.format.contentLength ?: -1L)
+        }.getOrNull()
+    }
+
+    /**
      * Tempo de una cancion para quien lo necesite fuera de Automix (el receptor
      * de Cast late con el). Si ya esta analizada, vuelve al instante; si no, la
      * analiza ahora —baja el audio por la cadena de reproduccion, cache primero—

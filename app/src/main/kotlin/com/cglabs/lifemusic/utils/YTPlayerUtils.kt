@@ -227,6 +227,8 @@ object YTPlayerUtils {
         playlistId: String? = null,
         audioQuality: AudioQuality,
         connectivityManager: ConnectivityManager,
+        /** Pedir AAC (audio/mp4) aunque haya Opus: para reproductores DLNA que no aceptan WebM. */
+        preferirAac: Boolean = false,
     ): Result<PlaybackData> = runCatching {
         val fx = Fix403.nextId("res")
         Timber.tag(TAG).d("=== PLAYER RESPONSE FOR PLAYBACK ===")
@@ -488,6 +490,7 @@ object YTPlayerUtils {
                         responseToUse,
                         audioQuality,
                         connectivityManager,
+                        preferirAac,
                     )
 
                 if (format == null) {
@@ -780,7 +783,14 @@ object YTPlayerUtils {
         playerResponse: PlayerResponse,
         audioQuality: AudioQuality,
         connectivityManager: ConnectivityManager,
+        preferirAac: Boolean = false,
     ): PlayerResponse.StreamingData.Format? {
+        if (preferirAac) {
+            playerResponse.streamingData?.adaptiveFormats
+                ?.filter { it.isAudio && it.isOriginal && it.mimeType.startsWith("audio/mp4") }
+                ?.maxByOrNull { it.bitrate }
+                ?.let { return it }
+        }
         Timber.tag(logTag).d("Finding format with audioQuality: $audioQuality, network metered: ${connectivityManager.isActiveNetworkMetered}")
 
         val format = playerResponse.streamingData?.adaptiveFormats

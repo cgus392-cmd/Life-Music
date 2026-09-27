@@ -9,6 +9,7 @@ import com.cglabs.lifemusic.cast.DescubridorCast
 import com.cglabs.lifemusic.clip.RenderizadorDeClip
 import com.cglabs.lifemusic.lyrics.LyricsUtils
 import kotlinx.coroutines.flow.first
+import androidx.datastore.preferences.core.edit
 import org.json.JSONArray
 import org.json.JSONObject
 import com.cglabs.lifemusic.extensions.currentMetadata
@@ -99,8 +100,173 @@ class CastConnectionHandler(
 
     // ── Buscar y conectar ────────────────────────────────────────────────────
 
-    fun buscar() = descubridor.iniciar()
-    fun dejarDeBuscar() = descubridor.detener()
+    /** Reproductores DLNA/UPnP de la red (TV Samsung, LG, Sony, AirScreen, Kodi...). */
+    val dlna = com.cglabs.lifemusic.cast.DescubridorDlna(context, scope)
+    val renderizadores: StateFlow<List<com.cglabs.lifemusic.cast.DescubridorDlna.Renderizador>> get() = dlna.renderizadores
+
+    fun buscar() { descubridor.iniciar(); dlna.iniciar() }
+    fun dejarDeBuscar() { descubridor.detener(); dlna.detener() }
+
+    // ── DLNA ─────────────────────────────────────────────────────────────────
+    // Un reproductor DLNA no carga paginas ni habla el protocolo de Cast: se le
+    // da una URL de audio y se le manda play/pausa/saltar por SOAP. La URL es la
+    // del servidor local del telefono (ServidorLocal), que le pasa la cancion
+    // por la misma cadena que el reproductor, o en AAC si el aparato no acepta
+    // Opus/WebM. El estado se pregunta cada segundo; cuando una pista termina,
+    // se avanza la cola del telefono y el cambio de cancion carga la siguiente.
+
+    private var sesionDlna: com.cglabs.lifemusic.cast.SesionDlna? = null
+    private var servidor: com.cglabs.lifemusic.cast.ServidorLocal? = null
+    /** Momento de la ultima carga: un STOPPED justo despues es del cambio, no un final. */
+    @Volatile private var cargaDlnaEn = 0L
+
+    fun conectarDlna(r: com.cglabs.lifemusic.cast.DescubridorDlna.Renderizador) {
+        if (_isConnecting.value) return
+        _isConnecting.value = true
+        scope.launch(Dispatchers.IO) {
+            try {
+                val s = com.cglabs.lifemusic.cast.SesionDlna(r)
+                s.estado() // prueba de vida: si no contesta, ni se empieza
+                val formatos = s.formatosDeAudio()
+                val aceptaWebm = formatos.isEmpty() || formatos.any { it.contains("webm") || it.contains("opus") }
+                com.cglabs.lifemusic.cast.DiagnosticoCast.log("DLNA ${r.nombre}: ${if (aceptaWebm) "acepta WebM" else "sin WebM, se manda AAC"} (${formatos.size} formatos de audio)")
+                // Si ya se transmitia a otro aparato, se suelta primero.
+                if (cliente != null || sesionDlna != null) withContext(Dispatchers.Main) { disconnect(reanudar = false) }
+                val srv = servidor ?: com.cglabs.lifemusic.cast.ServidorLocal(context, musicService).also { servidor = it }
+                srv.soloAac = !aceptaWebm
+                srv.iniciar()
+                sesionDlna = s
+                _receptorPropio.value = false
+                _castDeviceName.value = r.nombre
+                _deviceType.value = CastDeviceKind.TV
+                s.volumen()?.let { _castVolume.value = it }
+                withContext(Dispatchers.Main) {
+                    quieroSonar = musicService.player.isPlaying || musicService.player.playWhenReady
+                    _castPosition.value = musicService.player.currentPosition.coerceAtLeast(0L)
+                    _isCasting.value = true
+                    conSincronia { musicService.player.pause() }
+                    seguirDlna(s)
+                    loadCurrentMedia()
+                }
+                com.cglabs.lifemusic.cast.ServicioDeCast.alDevolver = { disconnect() }
+                com.cglabs.lifemusic.cast.ServicioDeCast.iniciar(context, r.nombre)
+                aviso(context.getString(R.string.cast_conectado_a, r.nombre))
+            } catch (e: Exception) {
+                com.cglabs.lifemusic.cast.DiagnosticoCast.log("DLNA ${r.nombre}: no se pudo conectar", e)
+                // Quiza cambio de puerto (AirScreen al reiniciarse): la proxima busqueda lo trae de nuevo.
+                dlna.olvidar(r.id)
+                aviso(context.getString(R.string.cast_error_conectar, r.nombre))
+            } finally {
+                _isConnecting.value = false
+            }
+        }
+    }
+
+    private suspend fun cargarDlna(s: com.cglabs.lifemusic.cast.SesionDlna, m: MediaMetadata, desdeMs: Long) {
+        val srv = servidor ?: return
+        _castIsBuffering.value = true
+        _castPosition.value = desdeMs
+        cargaDlnaEn = SystemClock.elapsedRealtime()
+        try {
+            val url = srv.urlCancion(m.id, s.r.host)
+            val tipo = srv.tipoDe(m.id) // abre la fuente: la primera vez tarda lo que tarde YouTube
+            val caratula = m.thumbnailUrl?.resize(544, 544)?.let { srv.urlCaratula(m.id, it, s.r.host) }
+            // Parar antes de cambiar de URL: algunos TV rechazan cargar mientras suenan.
+            runCatching { s.stop() }
+            s.cargar(url, didl(m, url, tipo, caratula))
+            cargaDlnaEn = SystemClock.elapsedRealtime()
+            if (quieroSonar) s.play()
+            com.cglabs.lifemusic.cast.DiagnosticoCast.log("DLNA: cargada ${m.id} ($tipo)")
+            if (desdeMs > 3_000) {
+                // Saltar solo cuando ya suena: antes, muchos aparatos lo rechazan.
+                for (i in 0 until 16) {
+                    delay(500)
+                    val e = runCatching { s.estado() }.getOrNull() ?: continue
+                    if (e.estado == "PLAYING" || e.estado == "PAUSED_PLAYBACK") { runCatching { s.seek(desdeMs) }; break }
+                }
+            }
+        } catch (e: Exception) {
+            com.cglabs.lifemusic.cast.DiagnosticoCast.log("DLNA: no se pudo cargar ${m.id}", e)
+            if (idCargado == m.id) idCargado = null
+            aviso(context.getString(R.string.cast_error_cancion))
+        } finally {
+            _castIsBuffering.value = false
+        }
+    }
+
+    /** La ficha de la cancion (DIDL-Lite) que el TV muestra: titulo, artista, album y caratula. */
+    private fun didl(m: MediaMetadata, url: String, tipo: String, caratula: String?): String {
+        val e = com.cglabs.lifemusic.cast.Upnp::escapar
+        val artista = m.artists.joinToString { it.name }
+        val dur = m.duration.toLong().coerceAtLeast(0)
+        return buildString {
+            append("<DIDL-Lite xmlns=\"urn:schemas-upnp-org:metadata-1-0/DIDL-Lite/\" xmlns:dc=\"http://purl.org/dc/elements/1.1/\" ")
+            append("xmlns:upnp=\"urn:schemas-upnp-org:metadata-1-0/upnp/\" xmlns:dlna=\"urn:schemas-dlna-org:metadata-1-0/\">")
+            append("<item id=\"").append(e(m.id)).append("\" parentID=\"0\" restricted=\"1\">")
+            append("<dc:title>").append(e(m.title)).append("</dc:title>")
+            append("<dc:creator>").append(e(artista)).append("</dc:creator>")
+            append("<upnp:artist>").append(e(artista)).append("</upnp:artist>")
+            m.album?.title?.let { append("<upnp:album>").append(e(it)).append("</upnp:album>") }
+            caratula?.let { append("<upnp:albumArtURI dlna:profileID=\"JPEG_TN\">").append(e(it)).append("</upnp:albumArtURI>") }
+            append("<upnp:class>object.item.audioItem.musicTrack</upnp:class>")
+            append("<res protocolInfo=\"http-get:*:").append(tipo).append(':').append(com.cglabs.lifemusic.cast.ServidorLocal.FEATURES).append("\"")
+            if (dur > 0) append(" duration=\"").append(com.cglabs.lifemusic.cast.SesionDlna.reloj(dur * 1000)).append(".000\"")
+            append('>').append(e(url)).append("</res>")
+            append("</item></DIDL-Lite>")
+        }
+    }
+
+    /** Pregunta el estado cada segundo; al terminar una pista, la cola del telefono avanza. */
+    private fun seguirDlna(s: com.cglabs.lifemusic.cast.SesionDlna) {
+        seguimiento?.cancel()
+        seguimiento = scope.launch(Dispatchers.IO) {
+            var anterior = ""
+            var fallos = 0
+            var ultimaPos = 0L
+            var ultimaDur = 0L
+            var tic = 0
+            while (isActive && sesionDlna === s) {
+                val e = runCatching { s.estado() }.getOrNull()
+                if (e == null) {
+                    if (++fallos >= 8) {
+                        com.cglabs.lifemusic.cast.DiagnosticoCast.log("DLNA ${s.r.nombre}: dejo de contestar")
+                        aviso(context.getString(R.string.cast_conexion_perdida))
+                        withContext(Dispatchers.Main) { if (sesionDlna === s) disconnect(porUsuario = false) }
+                        break
+                    }
+                    delay(1_000)
+                    continue
+                }
+                fallos = 0
+                val recienCargada = SystemClock.elapsedRealtime() - cargaDlnaEn < 5_000
+                _castIsPlaying.value = e.estado == "PLAYING" || e.estado == "TRANSITIONING"
+                if (!_castIsBuffering.value && !recienCargada) {
+                    e.posicionMs?.let { _castPosition.value = it; ultimaPos = it }
+                }
+                e.duracionMs?.takeIf { it > 0 }?.let { _castDuration.value = it; ultimaDur = it }
+                // Fin de pista: sonaba, se paro solo y estaba cerca del final.
+                val termino = !recienCargada && (anterior == "PLAYING" || anterior == "TRANSITIONING") &&
+                    (e.estado == "STOPPED" || e.estado == "NO_MEDIA_PRESENT") &&
+                    ultimaDur > 0 && ultimaDur - ultimaPos < 5_000
+                if (termino) {
+                    withContext(Dispatchers.Main) {
+                        val p = musicService.player
+                        if (p.hasNextMediaItem()) p.seekToNext() else { _castIsPlaying.value = false; quieroSonar = false }
+                    }
+                }
+                anterior = e.estado
+                if (++tic % 5 == 0) s.volumen()?.let { _castVolume.value = it }
+                delay(1_000)
+            }
+        }
+    }
+
+    private fun soltarDlna() {
+        val s = sesionDlna ?: return
+        sesionDlna = null
+        scope.launch(Dispatchers.IO) { runCatching { s.stop() } }
+        servidor?.detener()
+    }
 
     /** Conecta con [aparato], lanza el reproductor del receptor y le pasa la cancion actual. */
     fun conectar(aparato: DescubridorCast.Aparato) {
@@ -135,6 +301,8 @@ class CastConnectionHandler(
                     if (intento == 1) { delay(2_000); c = CastCliente(scope) }
                 }
                 if (!lanzado) throw IllegalStateException("el receptor no lanzo el reproductor")
+                // Si se transmitia por DLNA, se suelta: el Chromecast toma el relevo.
+                soltarDlna()
                 c.alCerrarse = { motivo -> scope.launch { perdida(motivo) } }
                 // El receptor avisa «listo» cuando su pagina arranco del todo; lo que se
                 // le mande antes se pierde. Ahi va el saludo (y si la pagina se recarga
@@ -142,7 +310,7 @@ class CastConnectionHandler(
                 c.alMensajePropio = { m ->
                     // Por «cliente» y no por «c»: tras un reenganche el socket es otro.
                     if (m.optString("tipo") == "listo") {
-                        cliente?.let { enviarSaludo(it) }
+                        cliente?.let { enviarAjustes(it); enviarSaludo(it) }
                         val actual = idCargado
                         if (actual != null) scope.launch(Dispatchers.IO) {
                             val meta = withContext(Dispatchers.Main) { musicService.player.currentMetadata }
@@ -153,6 +321,7 @@ class CastConnectionHandler(
                 }
                 cliente = c
                 aparatoActual = aparato
+                _receptorPropio.value = c.appActiva == APP_LIFE_MUSIC
                 _castDeviceName.value = aparato.nombre
                 _deviceType.value = CastDeviceKind.fromName(aparato.nombre, aparato.modelo)
                 withContext(Dispatchers.Main) {
@@ -185,6 +354,49 @@ class CastConnectionHandler(
      * cabecera por hora y una frase que no repite las ultimas vistas en el
      * telefono. Solo con nuestro receptor, y solo si el saludo esta encendido.
      */
+    // ── Tema del TV ──────────────────────────────────────────────────────────
+
+    private val _tema = MutableStateFlow(context.dataStore.get(com.cglabs.lifemusic.constants.CastTemaKey, TEMA_AMBIENTE))
+    /** Tema del receptor: [TEMA_AMBIENTE], [TEMA_CRISTAL] o [TEMA_ESCENARIO]. */
+    val tema: StateFlow<String> = _tema.asStateFlow()
+
+    private val _receptorPropio = MutableStateFlow(false)
+    /** Se transmite a nuestro receptor (y no al reproductor por defecto): solo entonces hay temas. */
+    val receptorPropio: StateFlow<Boolean> = _receptorPropio.asStateFlow()
+
+    /** Elige el tema del TV: se guarda y, si se transmite, el TV cambia al momento. */
+    fun ponerTema(nuevo: String) {
+        _tema.value = nuevo
+        scope.launch(Dispatchers.IO) {
+            runCatching { context.dataStore.edit { it[com.cglabs.lifemusic.constants.CastTemaKey] = nuevo } }
+        }
+        cliente?.let { enviarAjustes(it) }
+    }
+
+    /**
+     * El tema y, para el de cristal, la configuracion de Liquid Glass del usuario
+     * en la app (tinte, opacidad, viveza, lente, aberracion, profundidad y
+     * desenfoque): el TV hereda el cristal que el usuario ya eligio.
+     */
+    private fun enviarAjustes(c: CastCliente) {
+        if (c.appActiva != APP_LIFE_MUSIC) return
+        runCatching {
+            val ds = context.dataStore
+            val tinte = ds.get(com.cglabs.lifemusic.constants.LiquidGlassSurfaceTintColorKey, 0)
+            val cristal = JSONObject()
+                .put("opacidad", ds.get(com.cglabs.lifemusic.constants.LiquidGlassSurfaceOpacityKey, 0.4f).toDouble())
+                .put("tinte", if (tinte == 0) JSONObject.NULL else String.format("#%06X", tinte and 0xFFFFFF))
+                .put("vibrancia", ds.get(com.cglabs.lifemusic.constants.LiquidGlassVibrancyKey, 1f).toDouble())
+                .put("lente", ds.get(com.cglabs.lifemusic.constants.LiquidGlassLensAmountKey, 0.5f).toDouble())
+                .put("altura", ds.get(com.cglabs.lifemusic.constants.LiquidGlassLensHeightKey, 0.5f).toDouble())
+                .put("aberracion", ds.get(com.cglabs.lifemusic.constants.LiquidGlassChromaticAberrationKey, true))
+                .put("profundidad", ds.get(com.cglabs.lifemusic.constants.LiquidGlassDepthEffectKey, true))
+                .put("desenfoque", ds.get(com.cglabs.lifemusic.constants.LiquidGlassBlurRadiusKey, 8f).toDouble())
+            c.enviarPropio(JSONObject().put("tipo", "ajustes").put("tema", _tema.value).put("cristal", cristal).put("idioma", java.util.Locale.getDefault().toLanguageTag()))
+            com.cglabs.lifemusic.cast.DiagnosticoCast.log("tema enviado: ${_tema.value}")
+        }
+    }
+
     private fun enviarSaludo(c: CastCliente) {
         if (c.appActiva != APP_LIFE_MUSIC) return
         if (!context.dataStore.get(com.cglabs.lifemusic.constants.GreetingEnabledKey, true)) return
@@ -195,27 +407,42 @@ class CastConnectionHandler(
         }
     }
 
-    fun disconnect() {
-        val c = cliente ?: return
+    /**
+     * Deja de transmitir y la musica vuelve al telefono. [porUsuario]: lo pidio el
+     * usuario (la hoja o la notificacion), no una caida de red. [reanudar] = false
+     * cuando se cambia de aparato: el telefono no debe sonar entre medias.
+     */
+    fun disconnect(porUsuario: Boolean = true, reanudar: Boolean = true) {
+        val c = cliente
+        if (c == null && sesionDlna == null) return
         cliente = null
+        soltarDlna()
         aparatoActual = null
+        _receptorPropio.value = false
         com.cglabs.lifemusic.cast.ServicioDeCast.parar(context)
         val posicion = _castPosition.value
         val sonaba = _castIsPlaying.value
         seguimiento?.cancel(); seguimiento = null
         cargando?.cancel(); cargando = null
         sesionSuperada = -1
-        scope.launch(Dispatchers.IO) { runCatching { c.cerrar(pararApp = true) } }
+        if (c != null) scope.launch(Dispatchers.IO) { runCatching { c.cerrar(pararApp = true) } }
         _isCasting.value = false
         _castIsPlaying.value = false
         _castIsBuffering.value = false
         _castDeviceName.value = null
         idCargado = null
-        // La musica vuelve al telefono donde iba.
+        // La musica vuelve al telefono donde iba. Sonando solo si la app se ve (o
+        // lo pidio el usuario desde la notificacion): arrancar la reproduccion
+        // con la app en segundo plano obliga a MusicService a pasar a primer
+        // plano, y Android lo prohibe y cierra la app
+        // (ForegroundServiceStartNotAllowedException, visto el 21-09 al perderse
+        // la conexion con la pantalla apagada). En ese caso queda en pausa.
+        val puedeSonar = porUsuario || androidx.lifecycle.ProcessLifecycleOwner.get().lifecycle.currentState
+            .isAtLeast(androidx.lifecycle.Lifecycle.State.STARTED)
         scope.launch(Dispatchers.Main) {
             runCatching {
                 musicService.player.seekTo(posicion)
-                if (sonaba) musicService.player.play()
+                if (sonaba && puedeSonar && reanudar) musicService.player.play()
             }
         }
     }
@@ -230,7 +457,7 @@ class CastConnectionHandler(
         val c = cliente ?: return
         val aparato = aparatoActual
         com.cglabs.lifemusic.cast.DiagnosticoCast.log("conexion perdida", motivo)
-        if (aparato == null) { aviso(context.getString(R.string.cast_conexion_perdida)); disconnect(); return }
+        if (aparato == null) { aviso(context.getString(R.string.cast_conexion_perdida)); disconnect(porUsuario = false); return }
         scope.launch(Dispatchers.IO) {
             _autoReconnecting.value = true
             var nuevo: CastCliente? = null
@@ -249,7 +476,7 @@ class CastConnectionHandler(
             _autoReconnecting.value = false
             if (nuevo == null || cliente !== c) {
                 runCatching { nuevo?.cerrar(pararApp = false) }
-                if (cliente === c) { aviso(context.getString(R.string.cast_conexion_perdida)); disconnect() }
+                if (cliente === c) { aviso(context.getString(R.string.cast_conexion_perdida)); disconnect(porUsuario = false) }
                 return@launch
             }
             nuevo.alCerrarse = { m -> scope.launch { perdida(m) } }
@@ -287,6 +514,13 @@ class CastConnectionHandler(
     @Volatile private var sesionSuperada = -1
 
     private fun loadMedia(metadata: MediaMetadata, desdeMs: Long) {
+        sesionDlna?.let { s ->
+            if (idCargado == metadata.id) return
+            idCargado = metadata.id
+            cargando?.cancel()
+            cargando = scope.launch(Dispatchers.IO) { cargarDlna(s, metadata, desdeMs) }
+            return
+        }
         val c = cliente ?: return
         if (idCargado == metadata.id) return
         idCargado = metadata.id
@@ -397,14 +631,24 @@ class CastConnectionHandler(
 
     // ── Mando ────────────────────────────────────────────────────────────────
 
-    fun play() { quieroSonar = true; cliente?.play() }
-    fun pause() { quieroSonar = false; cliente?.pause() }
+    fun play() {
+        quieroSonar = true
+        sesionDlna?.let { s -> scope.launch(Dispatchers.IO) { runCatching { s.play() } }; return }
+        cliente?.play()
+    }
+    fun pause() {
+        quieroSonar = false
+        sesionDlna?.let { s -> scope.launch(Dispatchers.IO) { runCatching { s.pause() } }; return }
+        cliente?.pause()
+    }
     fun seekTo(position: Long) {
         _castPosition.value = position
+        sesionDlna?.let { s -> scope.launch(Dispatchers.IO) { runCatching { s.seek(position) } }; return }
         cliente?.seek(position / 1000.0)
     }
     fun setVolume(volume: Float) {
         _castVolume.value = volume.coerceIn(0f, 1f)
+        sesionDlna?.let { s -> scope.launch(Dispatchers.IO) { runCatching { s.ponerVolumen(volume) } }; return }
         cliente?.setVolumen(volume)
     }
 
@@ -432,8 +676,9 @@ class CastConnectionHandler(
     suspend fun appendItemsToCastQueue(items: List<androidx.media3.common.MediaItem>) = Unit
 
     fun release() {
-        disconnect()
+        disconnect(porUsuario = false, reanudar = false)
         descubridor.detener(forzar = true)
+        dlna.detener(forzar = true)
     }
 
     // ── Seguimiento del receptor ─────────────────────────────────────────────
@@ -486,5 +731,12 @@ class CastConnectionHandler(
          * defecto (audio).
          */
         val APP_LIFE_MUSIC: String? = "1D9B6EDB"
+
+        const val TEMA_AMBIENTE = "ambiente"
+        const val TEMA_CRISTAL = "cristal"
+        const val TEMA_ESCENARIO = "escenario"
+        const val TEMA_VINILO = "vinilo"
+        const val TEMA_GALERIA = "galeria"
+        const val TEMA_NOCTURNO = "nocturno"
     }
 }

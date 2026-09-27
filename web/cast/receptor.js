@@ -4,7 +4,7 @@
 (function () {
   "use strict";
 
-  var VERSION = "2026-09-21f";
+  var VERSION = "2026-09-24c";
   var NS = "urn:x-cast:com.cglabs.lifemusic";
 
   // ── Rendimiento ───────────────────────────────────────────────────────────
@@ -35,6 +35,7 @@
   function activarLigero() {
     ligero = true;
     FPS_FONDO = 15;
+    document.body.classList.add("ligero");
     redimensionarLienzo(288, 162);
     diag("modo ligero: " + mediaFrame.toFixed(1) + " ms/fotograma");
   }
@@ -105,7 +106,13 @@
     ponerCanvas(c.canvas);
     var nuevos = (c.colores && c.colores.length) ? c.colores.map(aRgb) : null;
     if (nuevos && (cambio || nuevos.join() !== paletaNueva.join())) ponerPaleta(nuevos);
-    if (cambio) elBarra.style.width = "0%";
+    if (cambio) { elBarra.style.width = "0%"; elEscBarra.style.width = "0%"; }
+    elEscTitulo.textContent = c.titulo || "";
+    elEscArtista.textContent = c.artista || "";
+    elGalTitulo.textContent = c.titulo || "";
+    elGalArtista.textContent = c.artista || "";
+    elNocCancion.textContent = (c.titulo || "") + (c.artista ? " · " + c.artista : "");
+    if (cambio) { escIdx = -2; lineaSolaIdx = -2; }
     if (letraDeId !== c.id) ponerLetra([], null);
   }
 
@@ -133,10 +140,12 @@
     if (saludoActivo) { ambientePendiente = true; return; }
     escena.classList.remove("vacia");
     escena.classList.add("con-cancion");
+    document.body.classList.add("con-cancion");
   }
   function mostrarBienvenida() {
     escena.classList.add("vacia");
     escena.classList.remove("con-cancion");
+    document.body.classList.remove("con-cancion");
     estadoSaludo("Elige una cancion en el telefono", true);
   }
 
@@ -174,6 +183,11 @@
     };
     img.onerror = function () { diag("caratula no cargo"); };
     img.src = url;
+    elEscCaratula.src = url;
+    elEtiqueta.src = url;
+    elGalCaratula.src = url;
+    ponerGaleriaFondo(url);
+    cargarArteGL(url);
   }
 
   // El canvas se ve solo si carga y mientras suena; si falla, queda la caratula.
@@ -259,6 +273,8 @@
     letraDeId = id === undefined ? (cancion ? cancion.id : null) : id;
     lineas = nuevas || [];
     indiceVivo = -1;
+    escIdx = -2;
+    lineaSolaIdx = -2;
     elLetra.classList.add("oculta");
     var pintar = function () {
       elLetra.innerHTML = "";
@@ -353,6 +369,7 @@
     return [(n >> 16) & 255, (n >> 8) & 255, n & 255];
   }
   function ponerPaleta(nueva) {
+    ponerAcento(nueva);
     paletaVieja = paletaActual(performance.now());
     paletaNueva = nueva;
     fundidoDesde = performance.now();
@@ -392,15 +409,16 @@
 
   var ultimoFotograma = 0;
   function dibujarFondo(ahora) {
+    if (tema === "galeria" || tema === "nocturno") return false;
     // En pausa o en la bienvenida no hay latido que seguir: menos fotogramas.
     var fps = cancion ? (sonando ? FPS_FONDO : 12) : Math.min(FPS_FONDO, 15);
-    if (ahora - ultimoFotograma < 1000 / fps) return;
+    if (ahora - ultimoFotograma < 1000 / fps) return false;
     var dt = Math.min(100, ahora - ultimoFotograma);
     ultimoFotograma = ahora;
     ctx.globalCompositeOperation = "source-over";
     ctx.fillStyle = "#050505";
     ctx.fillRect(0, 0, W, H);
-    if (!ajustes.manchas) return;
+    if (!ajustes.manchas) return true;
 
     // Suavizado corto (70 ms el golpe, 160 ms la energia) para que el latido se
     // vea como latido y no como parpadeo.
@@ -408,8 +426,9 @@
     latido += (p - latido) * Math.min(1, dt / 70);
     var energiaObjetivo = sonando ? 0.35 + 0.4 * p : 0;
     viveza += (energiaObjetivo - viveza) * Math.min(1, dt / 160);
-    var escalaRadio = 1 + latido * 0.22;
-    var escalaAlfa = 1 + viveza * 0.3;
+    var fuerza = tema === "escenario" ? 1.9 : 1;
+    var escalaRadio = 1 + latido * 0.22 * fuerza;
+    var escalaAlfa = 1 + viveza * 0.3 * fuerza;
     var atenuar = cancion ? 1 : 0.55; // en la bienvenida, mas tenue
 
     var progreso = (ahora % CICLO_MS) / CICLO_MS;
@@ -428,21 +447,402 @@
       ctx.fillStyle = g;
       ctx.fillRect(0, 0, W, H);
     }
+    return true;
   }
 
-  // ── Bucle ─────────────────────────────────────────────────────────────────
+  // ── Temas ─────────────────────────────────────────────────────────────────
+  // «ambiente» (el de siempre), «cristal» (paneles de cristal liquido, la
+  // receta de la app) y «escenario» (una linea enorme al centro, para fiestas).
+  // Llega del telefono en «ajustes»; la escena se funde a negro y vuelve.
+  var TEMAS = ["ambiente", "cristal", "escenario", "vinilo", "galeria", "nocturno"];
+  var tema = "ambiente";
+  var cambioTema = null;
+  function ponerTema(nuevo) {
+    if (TEMAS.indexOf(nuevo) < 0) nuevo = "ambiente";
+    if (nuevo === tema) return;
+    var aplicar = function () {
+      document.body.classList.remove("tema-" + tema);
+      tema = nuevo;
+      document.body.classList.add("tema-" + tema);
+      if (tema === "cristal") prepararGL();
+      escIdx = -2;
+      lineaSolaIdx = -2;
+      ultimoReloj = 0;
+      ultimoCorrimiento = performance.now();
+      ultimoGolpe = -1;
+      if (elDestello) elDestello.style.opacity = "0";
+      medirVidrios();
+      diag("tema: " + tema);
+    };
+    clearTimeout(cambioTema);
+    if (!cancion || escena.classList.contains("vacia")) { aplicar(); return; }
+    escena.classList.add("cambiando-tema");
+    cambioTema = setTimeout(function () {
+      aplicar();
+      // Un fotograma para que el diseno nuevo se asiente antes de volver a verse.
+      requestAnimationFrame(function () { escena.classList.remove("cambiando-tema"); });
+    }, 400);
+  }
+
+  // ── Cristal liquido ───────────────────────────────────────────────────────
+  // La configuracion de cristal del usuario en la app (la manda el telefono):
+  // mismo tinte, opacidad, viveza, lente, aberracion y profundidad. El fondo
+  // que se ve a traves del panel lo pinta aqui cada panel en su <canvas.vidrio>,
+  // leyendo el lienzo del fondo: el centro con un pelo de aumento (lente) y
+  // las orillas trayendo lo que hay mas alla del borde (la refraccion del
+  // canto), todo mas vivo que alrededor y con el tinte encima. El lienzo del
+  // panel es pequeno y se reescala: eso es el desenfoque, gratis.
+  var cristal = { opacidad: 0.4, tinte: null, vibrancia: 1, lente: 0.5, altura: 0.5, aberracion: true, profundidad: true, desenfoque: 8 };
+  var tinteVidrio = "rgba(12,14,16,0.22)";
+  function ponerCristal(c) {
+    if (!c) return;
+    for (var k in cristal) if (c[k] !== undefined && c[k] !== null) cristal[k] = c[k];
+    if ("tinte" in c) cristal.tinte = c.tinte || null;
+    var alfa = Math.max(0, Math.min(1, +cristal.opacidad || 0)) * 0.55;
+    var rgb = cristal.tinte ? aRgb(cristal.tinte) : [12, 14, 16];
+    tinteVidrio = "rgba(" + rgb[0] + "," + rgb[1] + "," + rgb[2] + "," + alfa.toFixed(3) + ")";
+    document.body.classList.toggle("aberracion", !!cristal.aberracion);
+    document.body.classList.toggle("sin-profundidad", !cristal.profundidad);
+    medirVidrios();
+  }
+  document.body.classList.add("aberracion");
+
+  var vidrios = [];
+  (function () {
+    var cs = document.querySelectorAll(".vidrio");
+    for (var i = 0; i < cs.length; i++) vidrios.push({ c: cs[i], g: cs[i].getContext("2d"), panel: cs[i].parentNode, r: null });
+  })();
+  var vidriosMedidosEn = 0;
+  function medirVidrios() {
+    vidriosMedidosEn = performance.now();
+    if (tema !== "cristal") return;
+    var escala = 5 + Math.max(0, Math.min(24, +cristal.desenfoque || 0)) / 2;
+    for (var i = 0; i < vidrios.length; i++) {
+      var v = vidrios[i];
+      var r = v.panel.getBoundingClientRect();
+      v.r = r;
+      var w = Math.max(8, Math.round(r.width / escala)), h = Math.max(8, Math.round(r.height / escala));
+      if (v.c.width !== w) v.c.width = w;
+      if (v.c.height !== h) v.c.height = h;
+    }
+  }
+  window.addEventListener("resize", medirVidrios);
+
+  // Toma del fondo el rectangulo centrado en (cx, cy) de sw×sh por «zoom» y lo
+  // pinta en el panel entero; recorta a lo que existe del fondo.
+  function tomar(g, cx, cy, sw, sh, zoom, dw, dh) {
+    var w = sw * zoom, h = sh * zoom, x = cx - w / 2, y = cy - h / 2;
+    var x0 = Math.max(0, x), y0 = Math.max(0, y), x1 = Math.min(W, x + w), y1 = Math.min(H, y + h);
+    if (x1 - x0 < 1 || y1 - y0 < 1) return;
+    g.drawImage(lienzo, x0, y0, x1 - x0, y1 - y0, (x0 - x) / w * dw, (y0 - y) / h * dh, (x1 - x0) / w * dw, (y1 - y0) / h * dh);
+  }
+  function rectRedondo(g, x, y, w, h, rad) {
+    rad = Math.max(0, Math.min(rad, w / 2, h / 2));
+    g.moveTo(x + rad, y);
+    g.arcTo(x + w, y, x + w, y + h, rad);
+    g.arcTo(x + w, y + h, x, y + h, rad);
+    g.arcTo(x, y + h, x, y, rad);
+    g.arcTo(x, y, x + w, y, rad);
+    g.closePath();
+  }
+  // Recorta a la franja entre el borde metido «de» y el metido «a» (a > de).
+  function franja(g, cw, ch, rad, de, a) {
+    g.beginPath();
+    rectRedondo(g, de, de, cw - 2 * de, ch - 2 * de, rad - de);
+    rectRedondo(g, a, a, cw - 2 * a, ch - 2 * a, Math.max(0, rad - a));
+    g.clip("evenodd");
+  }
+  function dibujarVidrios(ahora) {
+    if (tema !== "cristal" || !cancion) return;
+    if (ahora - vidriosMedidosEn > 700) medirVidrios();
+    var iw = window.innerWidth, ih = window.innerHeight;
+    var sat = 1 + 0.5 * Math.max(0, Math.min(2, +cristal.vibrancia || 0));
+    var lente = Math.max(0, Math.min(1, +cristal.lente || 0));
+    var filtro = "saturate(" + sat.toFixed(2) + ") brightness(1.06)";
+    for (var i = 0; i < vidrios.length; i++) {
+      var v = vidrios[i], r = v.r;
+      if (!r || r.width < 2 || v.c.offsetParent === null) continue; // panel oculto (cancion sin letra)
+      var g = v.g, cw = v.c.width, ch = v.c.height;
+      var sx = r.left / iw * W, sy = r.top / ih * H, sw = r.width / iw * W, sh = r.height / ih * H;
+      var cx = sx + sw / 2, cy = sy + sh / 2;
+      var rad = (4.2 * Math.min(iw, ih) / 100) * cw / r.width;
+      g.clearRect(0, 0, cw, ch);
+      g.save();
+      if ("filter" in g) g.filter = filtro;
+      tomar(g, cx, cy, sw, sh, 1 - 0.10 * lente, cw, ch);
+      g.restore();
+      if (!ligero && lente > 0) {
+        var b = Math.min(cw, ch) * (0.07 + 0.08 * lente);
+        g.save(); if ("filter" in g) g.filter = filtro; franja(g, cw, ch, rad, b, 2 * b); tomar(g, cx, cy, sw, sh, 1 + 0.16 * lente, cw, ch); g.restore();
+        g.save(); if ("filter" in g) g.filter = filtro; franja(g, cw, ch, rad, 0, b); tomar(g, cx, cy, sw, sh, 1 + 0.38 * lente, cw, ch); g.restore();
+      }
+      g.fillStyle = tinteVidrio;
+      g.fillRect(0, 0, cw, ch);
+      // Reflejo difuso de la superficie: la luz entra por arriba a la izquierda.
+      var brillo = g.createLinearGradient(0, 0, cw * 0.6, ch * 0.6);
+      brillo.addColorStop(0, "rgba(255,255,255,0.13)");
+      brillo.addColorStop(0.45, "rgba(255,255,255,0.03)");
+      brillo.addColorStop(1, "rgba(255,255,255,0)");
+      g.fillStyle = brillo;
+      g.fillRect(0, 0, cw, ch);
+    }
+  }
+
+  // ── Escenario ─────────────────────────────────────────────────────────────
+  // La linea viva, enorme, sube y se va; la nueva entra desde abajo. Antes de
+  // la primera linea (y en canciones sin letra) el titulo ocupa su lugar.
+  var elEscLetra = $("esc-letra"), elEscSig = $("esc-siguiente"), elEscCaratula = $("esc-caratula");
+  var elEscTitulo = $("esc-titulo"), elEscArtista = $("esc-artista"), elEscBarra = $("esc-barra"), elDestello = $("destello");
+  var escIdx = -2, escPalabra = -1, escViva = null;
+  function lineaEscenario(texto, palabras, clase) {
+    var hijos = elEscLetra.children;
+    for (var i = 0; i < hijos.length; i++) {
+      var viejo = hijos[i];
+      if (viejo.classList.contains("sale")) continue;
+      viejo.classList.add("sale");
+      (function (e) { setTimeout(function () { if (e.parentNode) e.parentNode.removeChild(e); }, 650); })(viejo);
+    }
+    var div = document.createElement("div");
+    div.className = "esc-linea entra" + (clase ? " " + clase : "");
+    if (palabras && palabras.length) {
+      for (var j = 0; j < palabras.length; j++) {
+        var s = document.createElement("span");
+        s.className = "p";
+        s.textContent = palabras[j].w + (j < palabras.length - 1 ? " " : "");
+        div.appendChild(s);
+      }
+    } else {
+      div.textContent = texto;
+      if (!clase) div.classList.add("sin-palabras");
+    }
+    elEscLetra.appendChild(div);
+    void div.offsetWidth;
+    div.classList.remove("entra");
+    return div;
+  }
+  function actualizarEscenario(ms) {
+    if (!lineas.length) {
+      if (escIdx !== -3) { escIdx = -3; escViva = lineaEscenario(cancion.titulo || "", null, "titulo"); elEscSig.textContent = cancion.artista || ""; }
+      return;
+    }
+    var idx = -1;
+    for (var i = 0; i < lineas.length; i++) { if (lineas[i].t <= ms) idx = i; else break; }
+    if (idx !== escIdx) {
+      escIdx = idx;
+      escPalabra = -1;
+      if (idx < 0) {
+        escViva = lineaEscenario(cancion.titulo || "", null, "titulo");
+      } else {
+        var t = (lineas[idx].texto || "").trim();
+        escViva = lineaEscenario(t || "♪", t ? lineas[idx].palabras : null, t ? null : "titulo");
+      }
+      var sig = lineas[idx + 1];
+      elEscSig.textContent = sig ? sig.texto : "";
+    }
+    if (idx >= 0 && escViva && lineas[idx].palabras && lineas[idx].palabras.length) {
+      var ps = lineas[idx].palabras, pv = -1;
+      for (var m = 0; m < ps.length; m++) { if (ps[m].t <= ms) pv = m; else break; }
+      if (pv !== escPalabra) {
+        var spans = escViva.children;
+        for (var n = 0; n < spans.length; n++) spans[n].className = "p" + (n <= pv ? " dicha" : "");
+        escPalabra = pv;
+      }
+    }
+  }
+  // El golpe del escenario: la linea late un poco y la sala se ilumina en cada beat.
+  var ultimoGolpe = -1;
+  function golpeEscenario() {
+    var v = (sonando && cancion && cancion.bpm > 40) ? Math.round(latido * 100) / 100 : 0;
+    if (v === ultimoGolpe) return;
+    ultimoGolpe = v;
+    elEscLetra.style.transform = "scale(" + (1 + v * 0.035).toFixed(4) + ")";
+    elDestello.style.opacity = (v * 0.16).toFixed(3);
+  }
+  // El color de acento del escenario (el brillo de la palabra dicha): el mas vivo de la paleta.
+  function ponerAcento(paleta) {
+    var mejor = paleta[0], puntos = -1;
+    for (var i = 0; i < paleta.length; i++) {
+      var c = paleta[i], mx = Math.max(c[0], c[1], c[2]), mn = Math.min(c[0], c[1], c[2]);
+      var p = mx === 0 ? 0 : ((mx - mn) / mx) * (mx / 255);
+      if (p > puntos) { puntos = p; mejor = c; }
+    }
+    if (mejor) document.body.style.setProperty("--acento", Math.round(mejor[0]) + ", " + Math.round(mejor[1]) + ", " + Math.round(mejor[2]));
+  }
+
+  // ── Cristal en la GPU ─────────────────────────────────────────────────────
+  // El tema Cristal con refraccion de verdad (cristal.js, WebGL): se descarga
+  // la primera vez que se elige el tema. Si el TV no tiene WebGL, o algo falla,
+  // queda el vidrio dibujado en 2D (dibujarVidrios), que siempre funciona.
+  var cristalGL = null, glIntentado = false, lienzoGL = $("fondo-cristal");
+  var arteGLUrl = null;
+  function prepararGL() {
+    if (glIntentado) return;
+    glIntentado = true;
+    var s = document.createElement("script");
+    s.src = "cristal.js?v=" + VERSION;
+    s.onload = function () {
+      try { cristalGL = window.crearCristalGL ? window.crearCristalGL(lienzoGL) : null; }
+      catch (e) { cristalGL = null; diag("cristal GL: " + String(e && e.message || e).slice(0, 160)); }
+      if (!cristalGL) { diag("cristal GL: sin WebGL, queda el vidrio 2D"); return; }
+      document.body.classList.add("gl");
+      diag("cristal GL listo");
+      cargarArteGL(caratulaActual);
+    };
+    s.onerror = function () { diag("cristal GL: no cargo cristal.js"); };
+    document.head.appendChild(s);
+  }
+  // La caratula para la GPU: otra <img> pedida con CORS (la que se ve no lo pide).
+  function cargarArteGL(url) {
+    if (!cristalGL || !url || url === arteGLUrl) return;
+    arteGLUrl = url;
+    var img = new Image();
+    img.crossOrigin = "anonymous";
+    img.onload = function () {
+      if (arteGLUrl !== url) return;
+      try { cristalGL.ponerArte(img); } catch (e) { diag("cristal GL: la caratula no admite CORS"); cristalGL.ponerArte(null); }
+    };
+    img.onerror = function () { if (arteGLUrl === url) cristalGL.ponerArte(null); };
+    img.src = url;
+  }
+  function dibujarCristalGL(ahora) {
+    if (!cristalGL || tema !== "cristal" || !cancion) return;
+    if (ahora - vidriosMedidosEn > 700) medirVidrios();
+    var iw = window.innerWidth, ih = window.innerHeight;
+    var ancho = Math.round(Math.min(iw * (window.devicePixelRatio || 1), ligero ? 640 : 1280));
+    var k = ancho / iw, alto = Math.round(ih * k);
+    var paneles = [];
+    for (var i = 0; i < vidrios.length; i++) {
+      var r = vidrios[i].r;
+      if (!r || r.width < 2 || vidrios[i].panel.offsetParent === null) continue;
+      paneles.push([r.left * k, r.top * k, r.width * k, r.height * k]);
+    }
+    var vmin = Math.min(iw, ih) / 100 * k;
+    // La caratula cubre la pantalla y se pasea despacio (y respira con el golpe).
+    var t = ahora / 1000, aspecto = iw / ih;
+    var zoom = 0.84 + 0.05 * Math.sin(t * 0.045) - 0.015 * latido;
+    var cx = 0.5 + 0.05 * Math.sin(t * 0.031), cy = 0.5 + 0.05 * Math.cos(t * 0.027);
+    var ex = zoom, ey = zoom / aspecto;
+    var rgb = cristal.tinte ? aRgb(cristal.tinte) : [14, 16, 18];
+    cristalGL.subirLuces(lienzo);
+    cristalGL.dibujar({
+      ancho: ancho, alto: alto, paneles: paneles,
+      radio: 4.2 * vmin,
+      lente: (2 + 14 * Math.max(0, Math.min(1, +cristal.altura || 0))) * vmin,
+      refr: (1 + 12 * Math.max(0, Math.min(1, +cristal.lente || 0))) * vmin,
+      aberracion: !!cristal.aberracion && !ligero,
+      desenfoque: 0.3 + Math.max(0, Math.min(24, +cristal.desenfoque || 0)) / 12,
+      saturacion: 1 + 0.5 * Math.max(0, Math.min(2, +cristal.vibrancia || 0)),
+      tinte: [rgb[0] / 255, rgb[1] / 255, rgb[2] / 255, Math.max(0, Math.min(1, +cristal.opacidad || 0)) * 0.7],
+      sombra: !!cristal.profundidad,
+      latido: latido,
+      arte: [ex, ey, cx - ex / 2, cy - ey / 2],
+    });
+  }
+
+  // ── Vinilo ────────────────────────────────────────────────────────────────
+  // 33⅓ rpm son 200 grados por segundo. Arranca en ~0,5 s y se frena en ~0,7 s,
+  // como un plato: no se congela de golpe al pausar.
+  var elDisco = $("disco"), elEtiqueta = $("etiqueta");
+  var anguloDisco = 0, velDisco = 0, ultimoGiro = 0;
+  function girarDisco(ahora) {
+    var dt = ultimoGiro ? Math.min(100, ahora - ultimoGiro) : 16;
+    ultimoGiro = ahora;
+    var objetivo = sonando ? 1 : 0;
+    velDisco += (objetivo - velDisco) * Math.min(1, dt / (objetivo ? 450 : 700));
+    if (!objetivo && velDisco < 0.002) return;
+    anguloDisco = (anguloDisco + velDisco * 0.2 * dt) % 360;
+    elDisco.style.transform = "rotate(" + anguloDisco.toFixed(2) + "deg)";
+  }
+
+  // ── Galeria ───────────────────────────────────────────────────────────────
+  // El fondo es la caratula reducida a 64×36 (un rectangulo de pantalla) y
+  // ampliada con un desenfoque CSS: se pinta una vez por cancion, no por
+  // fotograma. Dos capas para fundir la vieja con la nueva.
+  var galCapas = document.querySelectorAll("#galeria-fondo .gf"), galActual = 0, galUrl = null;
+  for (var gi = 0; gi < galCapas.length; gi++) { galCapas[gi].width = 64; galCapas[gi].height = 36; }
+  var elGalCaratula = $("gal-caratula"), elGalTitulo = $("gal-titulo"), elGalArtista = $("gal-artista"), elGalLinea = $("gal-linea");
+  function ponerGaleriaFondo(url) {
+    if (!url || url === galUrl) return;
+    galUrl = url;
+    var img = new Image();
+    img.onload = function () {
+      if (galUrl !== url) return;
+      var sig = 1 - galActual, cv = galCapas[sig], g = cv.getContext("2d");
+      var iw = img.naturalWidth, ih = img.naturalHeight;
+      var sw = iw, sh = iw * 36 / 64;
+      if (sh > ih) { sh = ih; sw = ih * 64 / 36; }
+      g.drawImage(img, (iw - sw) / 2, (ih - sh) / 2, sw, sh, 0, 0, 64, 36);
+      galCapas[galActual].classList.remove("visible");
+      cv.classList.add("visible");
+      galActual = sig;
+    };
+    img.src = url;
+  }
+
+  // Una sola linea de letra (Galeria y Nocturno): se desvanece y vuelve con la nueva.
+  var lineaSolaIdx = -2;
+  function actualizarLineaSola(el, ms) {
+    var idx = -1;
+    for (var i = 0; i < lineas.length; i++) { if (lineas[i].t <= ms) idx = i; else break; }
+    if (idx === lineaSolaIdx) return;
+    lineaSolaIdx = idx;
+    var texto = idx >= 0 ? (lineas[idx].texto || "").trim() : "";
+    el.classList.add("cambia");
+    setTimeout(function () { if (lineaSolaIdx === idx) el.textContent = texto; el.classList.remove("cambia"); }, 380);
+  }
+
+  // ── Nocturno ──────────────────────────────────────────────────────────────
+  var elNocturno = $("nocturno"), elNocHora = $("noc-hora"), elNocFecha = $("noc-fecha");
+  var elNocLinea = $("noc-linea"), elNocCancion = $("noc-cancion");
+  var idioma = navigator.language || "es";
+  var ultimoReloj = 0, ultimoCorrimiento = 0;
+  function actualizarNocturno(ahora) {
+    if (ahora - ultimoReloj < 1000) return;
+    ultimoReloj = ahora;
+    var d = new Date(), hora, fecha;
+    try {
+      hora = d.toLocaleTimeString(idioma, { hour: "numeric", minute: "2-digit" });
+      fecha = d.toLocaleDateString(idioma, { weekday: "long", day: "numeric", month: "long" });
+    } catch (e) {
+      hora = d.getHours() + ":" + ("0" + d.getMinutes()).slice(-2);
+      fecha = "";
+    }
+    // «7:45 p. m.»: los numeros grandes y el a. m./p. m. pequeno al lado.
+    var m = /^(\d{1,2}[:.]\d{2})\s*(.*)$/.exec(hora);
+    if (m) {
+      elNocHora.textContent = m[1];
+      if (m[2]) { var s = document.createElement("small"); s.textContent = m[2]; elNocHora.appendChild(s); }
+    } else {
+      elNocHora.textContent = hora;
+    }
+    elNocFecha.textContent = fecha;
+    // Pantallas OLED: todo se corre un poco cada minuto para no marcar la imagen.
+    if (ahora - ultimoCorrimiento > 60000) {
+      ultimoCorrimiento = ahora;
+      elNocturno.style.transform = "translate(" + ((Math.random() * 2 - 1) * 1.5).toFixed(2) + "vmin, " + ((Math.random() * 2 - 1) * 1.5).toFixed(2) + "vmin)";
+    }
+  }
+
+  // ── Bucle ────────────────────────────────────────────────────────────────
   var ultimaBarra = 0;
   function bucle(ahora) {
     medirFotograma(ahora);
-    dibujarFondo(ahora);
+    if (dibujarFondo(ahora)) {
+      if (cristalGL && tema === "cristal") dibujarCristalGL(ahora); else dibujarVidrios(ahora);
+    }
     if (cancion) {
       var ms = posicion();
-      actualizarLetra(ms);
+      if (tema === "ambiente" || tema === "cristal" || tema === "vinilo") actualizarLetra(ms);
       // La barra avanza 4 veces por segundo (su transicion CSS la suaviza).
       if (cancion.duracionMs > 0 && ahora - ultimaBarra > 250) {
         ultimaBarra = ahora;
-        elBarra.style.width = Math.min(100, 100 * ms / cancion.duracionMs) + "%";
+        var pct = Math.min(100, 100 * ms / cancion.duracionMs) + "%";
+        if (tema === "escenario") elEscBarra.style.width = pct; else elBarra.style.width = pct;
       }
+      if (tema === "escenario") { actualizarEscenario(ms); golpeEscenario(); }
+      else if (tema === "vinilo") girarDisco(ahora);
+      else if (tema === "galeria") actualizarLineaSola(elGalLinea, ms);
+      else if (tema === "nocturno") { actualizarLineaSola(elNocLinea, ms); actualizarNocturno(ahora); }
       sincronizarCanvas();
     }
     requestAnimationFrame(bucle);
@@ -463,6 +863,9 @@
         if (cancion && d.id === cancion.id && d.bpm > 40) { cancion.bpm = d.bpm; cancion.primerBeatMs = d.primerBeatMs || 0; }
         break;
       case "ajustes":
+        if (d.cristal) ponerCristal(d.cristal);
+        if (typeof d.idioma === "string" && d.idioma) { idioma = d.idioma; ultimoReloj = 0; }
+        if (typeof d.tema === "string") ponerTema(d.tema);
         if (typeof d.manchas === "boolean") ajustes.manchas = d.manchas;
         if (typeof d.latido === "boolean") ajustes.latido = d.latido;
         if (typeof d.canvas === "boolean") { ajustes.canvas = d.canvas; ponerCanvas(cancion ? cancion.canvas : null); }
@@ -514,6 +917,7 @@
     function releerEstado() {
       var s = pm.getPlayerState();
       sonando = s === cast.framework.messages.PlayerState.PLAYING;
+      document.body.classList.toggle("sonando", sonando);
       escena.classList.toggle("pausa", s === cast.framework.messages.PlayerState.PAUSED);
     }
     [T.PLAYING, T.PAUSE, T.ENDED, T.MEDIA_FINISHED, T.PLAYER_LOAD_COMPLETE, T.BUFFERING, T.WAITING, T.SEEKED].forEach(function (tipo) {
@@ -562,9 +966,13 @@
     var t0 = Date.now();
     var largo = 214000;
     sonando = true;
+    document.body.classList.add("sonando");
     posicion = function () { return (Date.now() - t0) % largo; };
     var params = {};
     location.search.slice(1).split("&").forEach(function (p) { var kv = p.split("="); if (kv[0]) params[kv[0]] = decodeURIComponent(kv[1] || ""); });
+    if (params.tema) ponerTema(params.tema);
+    // En el navegador, la tecla T pasa al tema siguiente.
+    document.addEventListener("keydown", function (e) { if (e.key === "t" || e.key === "T") ponerTema(TEMAS[(TEMAS.indexOf(tema) + 1) % TEMAS.length]); });
     estadoSaludo("Demo: la cancion llega en 3 s", true);
     if (params.saludo) setTimeout(function () { mostrarSaludo("Buenas noches", "Baja el volumen, sube el sentimiento."); }, 600);
 
@@ -581,7 +989,7 @@
       return c.toDataURL();
     }
     var canciones = [
-      { id: "demo1", titulo: "Noche de prueba", artista: "Life Music · Demo", caratula: caratulaFalsa("#F59E0B", "#EF4444", "#7C3AED", "LM"),
+      { id: "demo1", titulo: "Noche de prueba", artista: "Life Music · Demo", caratula: params.caratula || caratulaFalsa("#F59E0B", "#EF4444", "#7C3AED", "LM"),
         colores: ["#F59E0B", "#EF4444", "#7C3AED", "#FBBF24", "#DC2626", "#4C1D95"], bpm: 96, primerBeatMs: 400, duracionMs: largo, canvas: params.canvas || null },
       { id: "demo2", titulo: "Segunda cancion, titulo bastante largo", artista: "Otro Artista · Demo", caratula: caratulaFalsa("#0EA5E9", "#22C55E", "#0F172A", "CG"),
         colores: ["#0EA5E9", "#22C55E", "#0F172A", "#38BDF8", "#16A34A", "#1E3A8A"], bpm: 128, primerBeatMs: 0, duracionMs: largo, canvas: null },
