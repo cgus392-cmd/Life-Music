@@ -1,9 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Widget background - uses Material 3 surface colors -->
-<shape xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools"
-    android:shape="rectangle">
-    <solid android:color="@android:color/system_accent1_100"
-        tools:targetApi="31" />
-    <corners android:radius="28dp" />
+<!--
+  Fondo del widget Reconocedor en Android 8 a 11. Antes usaba system_accent1_100,
+  que solo existe desde Android 12: ahi el widget no cargaba. Verde de Life Music;
+  en Android 12+ manda drawable-v31 (colores del sistema).
+-->
+<shape xmlns:android="http://schemas.android.com/apk/res/android" android:shape="rectangle">
+    <solid android:color="#FFDDEEE4" />
+    <corners android:radius="24dp" />
 </shape>

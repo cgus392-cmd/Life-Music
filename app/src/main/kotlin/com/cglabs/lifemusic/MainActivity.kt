@@ -260,10 +260,17 @@ class MainActivity : ComponentActivity() {
         /** Abre el Reto de la semana (la usa el recordatorio diario). */
         const val ACTION_RETO = "com.cglabs.lifemusic.action.RETO"
 
-        /** Acciones de notificacion que abren una pantalla concreta. */
+        /** Abren Me gusta y Descargas (los usa el widget «Tu musica»). */
+        const val ACTION_ME_GUSTA = "com.cglabs.lifemusic.action.LIKED"
+        const val ACTION_DESCARGAS = "com.cglabs.lifemusic.action.DOWNLOADS"
+
+        /** Acciones de notificacion, atajo o widget que abren una pantalla concreta. */
         private fun rutaDeAccion(accion: String?): String? = when (accion) {
             ACTION_UPDATE -> "update"
             ACTION_RETO -> "concurso"
+            ACTION_SEARCH -> Screens.Search.route
+            ACTION_ME_GUSTA -> "auto_playlist/liked"
+            ACTION_DESCARGAS -> "auto_playlist/downloaded"
             else -> null
         }
         const val EXTRA_AUTO_START_RECOGNITION = "auto_start_recognition"
@@ -731,10 +738,12 @@ class MainActivity : ComponentActivity() {
                 val defaultOpenTab = remember {
                     dataStore[DefaultOpenTabKey].toEnum(defaultValue = NavigationTab.HOME)
                 }
+                // Venian cruzados de Echo: «Buscar» abria la Biblioteca y «Biblioteca»
+                // caia en Inicio. Biblioteca arranca en su pestaña; Buscar arranca en
+                // Inicio y abre la busqueda encima (rutaDeAccion).
                 val tabOpenedFromShortcut = remember {
                     when (intent?.action) {
-                        ACTION_SEARCH -> NavigationTab.LIBRARY
-                        ACTION_LIBRARY -> NavigationTab.SEARCH
+                        ACTION_LIBRARY -> NavigationTab.LIBRARY
                         else -> null
                     }
                 }

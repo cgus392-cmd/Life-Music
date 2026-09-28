@@ -1064,6 +1064,24 @@
     <string name="boletin_v1120_ademas_1">Si algo no se ve en el TV, en la hoja de Reproducir en… hay «Copiar diagnóstico» para mandármelo.</string>
     <string name="boletin_v1120_ademas_2">Al cambiar de canción transmitiendo ya no arranca a mitad, y tarda menos en cargar.</string>
 
+    <!-- Boletín 1.3.0 -->
+    <string name="boletin_v1130_titulo_1">Life Music</string>
+    <string name="boletin_v1130_titulo_2">más rápida, más tuya</string>
+    <string name="boletin_v1130_intro">La versión más grande hasta ahora: las canciones empiezan casi al instante, tú eliges la calidad del sonido, los widgets estrenan diseño propio y el TV gana seis temas y más aparatos.</string>
+    <string name="boletin_v1130_rapida_t">Suena casi al instante</string>
+    <string name="boletin_v1130_rapida">Antes de sonar, cada canción daba varias vueltas que no hacían falta. Ahora va directo: empieza hasta cuatro veces más rápido y saltar entre canciones se siente inmediato.</string>
+    <string name="boletin_v1130_calidad_t">Tú eliges la calidad</string>
+    <string name="boletin_v1130_calidad">En Ajustes → Reproductor: Automática, Alta, Normal o Baja. La automática va en alta con Wi-Fi y en normal con datos, y si la señal se corta baja sola hasta que la red mejora.</string>
+    <string name="boletin_v1130_widgets_t">Widgets nuevos</string>
+    <string name="boletin_v1130_widgets">Ambiente, con los colores de la carátula; Cristal líquido, como el mini reproductor; un Tocadiscos de vinilo, y Tu música, para mezclar lo que te gusta con un toque. Los que ya tenías se actualizan solos.</string>
+    <string name="boletin_v1130_temas_t">Seis temas para el TV</string>
+    <string name="boletin_v1130_temas">Al transmitir, elige cómo se ve: Ambiente, Cristal líquido, Escenario (para fiestas), Vinilo, Galería y Nocturno. Se cambian al instante desde la hoja de Reproducir en…</string>
+    <string name="boletin_v1130_dlna_t">Más TVs y parlantes</string>
+    <string name="boletin_v1130_dlna">Además de Chromecast, ahora transmites a televisores y equipos DLNA: la mayoría de Samsung, LG y Sony, Kodi y muchos parlantes. Aparecen solos en Reproducir en…</string>
+    <string name="boletin_v1130_ademas_1">Los widgets ya no gastan batería redibujándose cinco veces por segundo.</string>
+    <string name="boletin_v1130_ademas_2">Los atajos del icono (Buscar y Biblioteca) ya abren lo que dicen.</string>
+    <string name="boletin_v1130_ademas_3">Si se pierde la transmisión con la pantalla apagada, la app ya no se cierra.</string>
+
     <!-- Calidad de audio (1.2.1): antes solo existia «Opus», siempre la mas alta. -->
     <string name="calidad_auto">Automática</string>
     <string name="calidad_auto_detalle">Se adapta a la red: alta con Wi-Fi, normal con datos o hotspot, baja si la conexión va lenta</string>
@@ -1073,4 +1091,23 @@
     <string name="calidad_normal_detalle">Opus ~70 kbps · carga más rápido, casi no se nota</string>
     <string name="calidad_baja">Baja</string>
     <string name="calidad_baja_detalle">Opus ~50 kbps · para señal floja o para ahorrar datos</string>
+
+    <!-- Widgets de Life Music (1.2.1): Ambiente, Cristal liquido, Tocadiscos y Tu musica. -->
+    <string name="widget_sonando">Sonando</string>
+    <string name="widget_en_pausa">En pausa</string>
+    <string name="widget_anterior">Anterior</string>
+    <string name="widget_siguiente">Siguiente</string>
+    <string name="widget_ambiente">Life Music · Ambiente</string>
+    <string name="widget_ambiente_descripcion">El reproductor con los colores de la carátula. Sirve en 2×2, 4×1 y 4×2</string>
+    <string name="widget_cristal">Life Music · Cristal líquido</string>
+    <string name="widget_cristal_descripcion">La carátula en grande y el reproductor en una cápsula de cristal líquido, como el mini reproductor</string>
+    <string name="widget_vinilo">Life Music · Tocadiscos</string>
+    <string name="widget_vinilo_descripcion">Un vinilo con la carátula de etiqueta</string>
+    <string name="widget_tu_musica">Life Music · Tu música</string>
+    <string name="widget_tu_musica_descripcion">Mezcla lo que te gusta y entra rápido a Me gusta, Descargas y Buscar</string>
+    <string name="widget_tu_musica_titulo">Tu música</string>
+    <string name="widget_mezclar_me_gusta">Mezclar Me gusta</string>
+    <string name="widget_me_gusta">Me gusta</string>
+    <string name="widget_descargas">Descargas</string>
+    <string name="widget_buscar">Buscar</string>
 </resources>

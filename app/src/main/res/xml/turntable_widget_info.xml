@@ -2,9 +2,11 @@
 <appwidget-provider xmlns:android="http://schemas.android.com/apk/res/android"
     android:minWidth="110dp"
     android:minHeight="110dp"
-    android:updatePeriodMillis="1800000"
-    android:previewLayout="@layout/widget_turntable"
-    android:initialLayout="@layout/widget_turntable"
-    android:description="@string/turntable_widget_description"
-    android:widgetCategory="home_screen"
-    android:resizeMode="none" />
+    android:targetCellWidth="2"
+    android:targetCellHeight="2"
+    android:updatePeriodMillis="0"
+    android:previewLayout="@layout/widget_vinilo"
+    android:initialLayout="@layout/widget_vinilo"
+    android:description="@string/widget_vinilo_descripcion"
+    android:resizeMode="none"
+    android:widgetCategory="home_screen" />

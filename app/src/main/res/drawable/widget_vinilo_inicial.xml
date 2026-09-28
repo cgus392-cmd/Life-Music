@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Vinilo de espera (antes de que suene nada): disco negro con surcos y la etiqueta verde de Life Music. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="120dp"
+    android:height="120dp"
+    android:viewportWidth="100"
+    android:viewportHeight="100">
+    <path
+        android:fillColor="#FF111113"
+        android:pathData="M50,1a49,49 0,1 1,0 98a49,49 0,1 1,0 -98z" />
+    <path
+        android:fillColor="#00000000"
+        android:pathData="M50,8a42,42 0,1 1,0 84a42,42 0,1 1,0 -84z M50,16a34,34 0,1 1,0 68a34,34 0,1 1,0 -68z M50,24a26,26 0,1 1,0 52a26,26 0,1 1,0 -52z"
+        android:strokeWidth="0.6"
+        android:strokeColor="#1FFFFFFF" />
+    <path
+        android:fillColor="#FF34B37D"
+        android:pathData="M50,32a18,18 0,1 1,0 36a18,18 0,1 1,0 -36z" />
+    <path
+        android:fillColor="#FF0B0B0C"
+        android:pathData="M50,48.3a1.7,1.7 0,1 1,0 3.4a1.7,1.7 0,1 1,0 -3.4z" />
+</vector>

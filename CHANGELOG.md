@@ -15,10 +15,29 @@ esa base**; para la historia anterior, consulte el repositorio de origen.
 
 ---
 
-## [1.2.1] — sin publicar
+## [1.3.0] — 2026-09-27
 
 ### Añadido
 
+- **Widgets de Life Music**, en lugar de los heredados de Echo (morado
+  genérico, igual para toda canción). Los pinta `widget/PintorDeWidgets.kt`
+  en la CPU, una vez por canción:
+  - **Ambiente** (2×2, 4×1 y 4×2; cambia de diseño al estirarlo): el fondo es
+    la carátula desenfocada y saturada con un velo, la línea del saludo de la
+    hora con el estado («Buenas noches · Sonando»), barra de progreso y botones
+    de cristal; el play es cuadrado suave sonando y redondo en pausa, del
+    color de la carátula.
+  - **Cristal líquido** (4×2, nuevo): la carátula a sangre y el reproductor en
+    una cápsula de vidrio con el mismo cristal del mini reproductor —el
+    sombreador de refracción de la app portado a la CPU: desenfoque,
+    vibrancia, lente con perfil circular y profundidad, aberración cromática,
+    tinte, filo de luz y sombra—, con los ajustes de Liquid Glass del usuario.
+  - **Tocadiscos** (2×2): un vinilo con surcos y reflejos y la carátula de
+    etiqueta, con los controles en cristal oscuro.
+  - **Tu música** (4×2, antes «Listas»): mezclar Me gusta, Me gusta,
+    Descargas y Buscar. El de Listas mandaba al servicio una acción que nadie
+    atendía: tocar una lista no hacía nada.
+  Los widgets ya puestos pasan solos al diseño nuevo.
 - **Calidad de audio de verdad.** En Ajustes → Reproductor (y en la hoja de
   audio del reproductor): **Automática** (por defecto), **Alta** (Opus ~160
   kbps), **Normal** (~70 kbps) y **Baja** (~50 kbps). Antes solo existía
@@ -88,6 +107,15 @@ esa base**; para la historia anterior, consulte el repositorio de origen.
   siempre.
 - Tras un corte por red, el reproductor espera 4 s de audio (no 2) antes de
   seguir: menos cortes seguidos de medio segundo.
+- **Los widgets gastaban batería:** mientras sonaba la música se redibujaban
+  enteros (con la carátula) cada 200 ms. Ahora solo cuando algo cambia, las
+  imágenes viajan una vez por canción y la barra avanza cada 2 s con una
+  actualización parcial.
+- **El widget Reconocedor no cargaba en Android 8 a 11:** su fondo usaba
+  colores del sistema que solo existen desde Android 12. Además cada widget
+  venía declarado dos veces (herencia de Echo).
+- **Los atajos del icono iban cruzados:** «Buscar» abría la Biblioteca y
+  «Biblioteca» caía en Inicio.
 - **La app se cerraba al perderse la transmisión con la pantalla apagada**
   (`ForegroundServiceStartNotAllowedException`, 21-09): al devolver la
   música al teléfono desde segundo plano, Android no deja que el reproductor

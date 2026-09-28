@@ -1,8 +1,3 @@
-/**
- * Metrolist Project (C) 2026
- * Licensed under GPL-3.0 | See git history for contributors
- */
-
 package com.cglabs.lifemusic.widget
 
 import android.app.PendingIntent
@@ -11,43 +6,78 @@ import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
 import android.graphics.Bitmap
-import android.graphics.BitmapShader
-import android.graphics.Canvas
-import android.graphics.Paint
+import android.graphics.Color
 import android.graphics.RectF
-import android.graphics.Shader
 import android.os.Bundle
 import android.widget.RemoteViews
 import coil3.ImageLoader
 import coil3.request.ImageRequest
 import coil3.request.allowHardware
-import coil3.request.crossfade
 import coil3.toBitmap
+import com.cglabs.lifemusic.ActividadPrincipal
 import com.cglabs.lifemusic.MainActivity
 import com.cglabs.lifemusic.R
-import com.cglabs.lifemusic.db.MusicDatabase
+import com.cglabs.lifemusic.constants.LiquidGlassBlurRadiusKey
+import com.cglabs.lifemusic.constants.LiquidGlassChromaticAberrationKey
+import com.cglabs.lifemusic.constants.LiquidGlassDepthEffectKey
+import com.cglabs.lifemusic.constants.LiquidGlassLensAmountKey
+import com.cglabs.lifemusic.constants.LiquidGlassLensHeightKey
+import com.cglabs.lifemusic.constants.LiquidGlassSurfaceOpacityKey
+import com.cglabs.lifemusic.constants.LiquidGlassSurfaceTintColorKey
+import com.cglabs.lifemusic.constants.LiquidGlassVibrancyKey
+import com.cglabs.lifemusic.utils.dataStore
+import com.cglabs.lifemusic.utils.get
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
+import java.util.Calendar
 import javax.inject.Inject
 import javax.inject.Singleton
+import kotlin.math.min
+import kotlin.math.roundToInt
 
+/**
+ * Los widgets de Life Music: Ambiente (2x2, 4x1 y 4x2), Cristal liquido, Tocadiscos
+ * y Tu musica. Sustituye a los heredados de Echo (morado generico).
+ *
+ * Como se actualizan, que era el problema de antes:
+ *  - Solo cuando algo cambia (cancion, play/pausa, me gusta, tamaño), no 5 veces
+ *    por segundo. La barra de progreso va aparte ([actualizarProgreso], cada 2 s,
+ *    una actualizacion parcial de un solo numero).
+ *  - Las imagenes (fondo, cristal, vinilo, caratula) se pintan una vez por cancion y
+ *    tamaño, y solo viajan al escritorio la primera vez: si ya las tiene, se le
+ *    manda una actualizacion parcial con textos, iconos y colores.
+ */
 @Singleton
 class LifeMusicWidgetManager @Inject constructor(
     @ApplicationContext private val context: Context,
-    private val database: MusicDatabase,
-    private val playlistWidgetManager: PlaylistWidgetManager,
 ) {
-    private val imageLoader by lazy {
-        ImageLoader.Builder(context)
-            .crossfade(false)
-            .build()
-    }
+    private val imageLoader by lazy { ImageLoader.Builder(context).build() }
+    private val densidad get() = context.resources.displayMetrics.density
 
-    // Cache for album art to avoid reloading
-    private var cachedArtworkUri: String? = null
-    private var cachedAlbumArt: Bitmap? = null
-    private var cachedCircularAlbumArt: Bitmap? = null
+    private var portadaUri: String? = null
+    private var portada: Bitmap? = null
+    private var colores: ColoresDeWidget = PintorDeWidgets.colores(null)
+
+    /** Imagenes ya pintadas para la caratula actual (clave: tipo y tamaño). */
+    private val pintadas = HashMap<String, Bitmap>()
+
+    /** Que imagenes tiene ya cada widget en el escritorio (id → clave). */
+    private val enviadas = HashMap<Int, String>()
+    private val cerrojo = Mutex()
+
+    private class Estado(
+        val titulo: String,
+        val artista: String,
+        val sonando: Boolean,
+        val meGusta: Boolean,
+        val duracion: Long,
+        val posicion: Long,
+    )
+
+    private enum class Forma { FILA, CUADRO, COMPLETO }
 
     suspend fun updateWidgets(
         title: String,
@@ -56,397 +86,305 @@ class LifeMusicWidgetManager @Inject constructor(
         isPlaying: Boolean,
         isLiked: Boolean,
         duration: Long = 0,
-        currentPosition: Long = 0
-    ) {
-        val appWidgetManager = AppWidgetManager.getInstance(context)
+        currentPosition: Long = 0,
+    ) = cerrojo.withLock {
+        val awm = AppWidgetManager.getInstance(context)
+        val ambiente = ids(awm, MusicWidgetReceiver::class.java)
+        val cristal = ids(awm, CristalWidgetReceiver::class.java)
+        val vinilo = ids(awm, TurntableWidgetReceiver::class.java)
+        val tuMusica = ids(awm, PlaylistWidgetReceiver::class.java)
+        // Sin widgets en el escritorio no se carga ni la caratula.
+        if (ambiente.isEmpty() && cristal.isEmpty() && vinilo.isEmpty() && tuMusica.isEmpty()) return@withLock
 
-        // Use cached album art if URI hasn't changed, otherwise load new one
-        val albumArt: Bitmap?
-        val circularAlbumArt: Bitmap?
-        
-        if (artworkUri != null && artworkUri == cachedArtworkUri && cachedAlbumArt != null) {
-            albumArt = cachedAlbumArt
-            circularAlbumArt = cachedCircularAlbumArt
-        } else {
-            albumArt = artworkUri?.let { loadAlbumArt(it, 300) }
-            circularAlbumArt = albumArt?.let { getCircularBitmap(it) }
-            // Update cache
-            cachedArtworkUri = artworkUri
-            cachedAlbumArt = albumArt
-            cachedCircularAlbumArt = circularAlbumArt
+        if (artworkUri != portadaUri || (artworkUri != null && portada == null)) {
+            portadaUri = artworkUri
+            portada = artworkUri?.let { cargarPortada(it) }
+            colores = withContext(Dispatchers.Default) { PintorDeWidgets.colores(portada) }
+            pintadas.clear()
+            enviadas.clear()
         }
+        val e = Estado(title, artist, isPlaying, isLiked, duration, currentPosition)
 
-        // Update main music player widgets
-        val componentName = ComponentName(context, MusicWidgetReceiver::class.java)
-        val widgetIds = appWidgetManager.getAppWidgetIds(componentName)
-        if (widgetIds.isNotEmpty()) {
-            widgetIds.forEach { widgetId ->
-                val options = appWidgetManager.getAppWidgetOptions(widgetId)
-                val views = createRemoteViewsForSize(
-                    options,
-                    title,
-                    artist,
-                    albumArt,
-                    isPlaying,
-                    isLiked,
-                    duration,
-                    currentPosition
-                )
-                appWidgetManager.updateAppWidget(widgetId, views)
+        for (id in ambiente) {
+            val op = awm.getAppWidgetOptions(id)
+            val forma = formaAmbiente(op)
+            val (w, h) = tamanoDp(op, 320, 160)
+            enviar(awm, id, "amb|$forma|$w|$h|$portadaUri") { conImagenes -> vistaAmbiente(forma, w, h, e, conImagenes) }
+        }
+        for (id in cristal) {
+            val (w, h) = tamanoDp(awm.getAppWidgetOptions(id), 320, 170)
+            enviar(awm, id, "cri|$w|$h|$portadaUri") { conImagenes -> vistaCristal(w, h, e, conImagenes) }
+        }
+        for (id in vinilo) {
+            val (w, h) = tamanoDp(awm.getAppWidgetOptions(id), 150, 150)
+            enviar(awm, id, "vin|$w|$h|$portadaUri") { conImagenes -> vistaVinilo(w, h, e, conImagenes) }
+        }
+        for (id in tuMusica) {
+            val (w, h) = tamanoDp(awm.getAppWidgetOptions(id), 320, 160)
+            enviar(awm, id, "tum|$w|$h|$portadaUri") { conImagenes ->
+                val fondo = if (conImagenes && portada != null) {
+                    pintada("amb|$w|$h") { PintorDeWidgets.fondoAmbiente(portada, colores, px(w), px(h), px(24).toFloat()) }
+                } else {
+                    null
+                }
+                vistaTuMusica(context, fondo, colores.acento)
             }
         }
+    }
 
-        // Update turntable widgets
-        val turntableComponentName = ComponentName(context, TurntableWidgetReceiver::class.java)
-        val turntableWidgetIds = appWidgetManager.getAppWidgetIds(turntableComponentName)
-        if (turntableWidgetIds.isNotEmpty()) {
-            val turntableViews = createTurntableRemoteViews(
-                circularAlbumArt,
-                isPlaying,
-                isLiked
+    /**
+     * Solo la barra: una actualizacion parcial de un numero, sin imagenes. La llama
+     * MusicService cada 2 s mientras suena.
+     */
+    fun actualizarProgreso(posicion: Long, duracion: Long) {
+        if (duracion <= 0) return
+        val awm = AppWidgetManager.getInstance(context)
+        val ambiente = ids(awm, MusicWidgetReceiver::class.java)
+        if (ambiente.isEmpty()) return
+        val v = RemoteViews(context.packageName, R.layout.widget_ambiente)
+        v.setProgressBar(R.id.widget_progreso, 1000, nivel(posicion, duracion), false)
+        runCatching { awm.partiallyUpdateAppWidget(ambiente, v) }
+    }
+
+    // ── Vistas ──────────────────────────────────────────────────────────────────
+
+    private suspend fun vistaAmbiente(forma: Forma, w: Int, h: Int, e: Estado, conImagenes: Boolean): RemoteViews {
+        val layout = when (forma) {
+            Forma.FILA -> R.layout.widget_ambiente_fila
+            Forma.CUADRO -> R.layout.widget_ambiente_cuadro
+            Forma.COMPLETO -> R.layout.widget_ambiente
+        }
+        val v = RemoteViews(context.packageName, layout)
+        if (conImagenes) {
+            v.setImageViewBitmap(R.id.widget_fondo, pintada("amb|$w|$h") { PintorDeWidgets.fondoAmbiente(portada, colores, px(w), px(h), px(24).toFloat()) })
+            val lado = when (forma) {
+                Forma.FILA -> 46
+                Forma.CUADRO -> (min(w, h) - 20).coerceAtLeast(60)
+                Forma.COMPLETO -> 72
+            }
+            ponerCaratula(v, lado, if (forma == Forma.CUADRO) 18 else 14)
+        }
+        ponerTextos(v, e)
+        ponerPlay(v, e.sonando)
+        ponerMeGusta(v, e.meGusta)
+        v.setProgressBar(R.id.widget_progreso, 1000, nivel(e.posicion, e.duracion), false)
+        ponerControles(v)
+        return v
+    }
+
+    private suspend fun vistaCristal(w: Int, h: Int, e: Estado, conImagenes: Boolean): RemoteViews {
+        val v = RemoteViews(context.packageName, R.layout.widget_cristal)
+        if (conImagenes) {
+            // Hasta 820 px de ancho: de ahi en adelante no se nota y la imagen pesa el doble.
+            val anchoReal = px(w)
+            val escala = min(1f, 820f / anchoReal)
+            val ancho = (anchoReal * escala).roundToInt()
+            val alto = (px(h) * escala).roundToInt()
+            val d = densidad * escala
+            val capsula = RectF(10 * d, alto - 10 * d - 76 * d, ancho - 10 * d, alto - 10 * d)
+            val ajustes = ajustesCristal()
+            v.setImageViewBitmap(
+                R.id.widget_fondo,
+                pintada("cri|$w|$h") { PintorDeWidgets.cristal(portada, colores, ancho, alto, capsula, 38 * d, 24 * d, ajustes, d) },
             )
-            turntableWidgetIds.forEach { widgetId ->
-                appWidgetManager.updateAppWidget(widgetId, turntableViews)
-            }
+            ponerCaratula(v, 54, 14)
         }
-
-        playlistWidgetManager.updateWidgets(
-            title = title,
-            artist = artist,
-            artworkUri = artworkUri,
-            isPlaying = isPlaying,
-            isLiked = isLiked,
-            duration = duration,
-            currentPosition = currentPosition,
-        )
+        ponerTextos(v, e)
+        ponerPlay(v, e.sonando)
+        ponerMeGusta(v, e.meGusta)
+        ponerControles(v)
+        return v
     }
 
-    private fun createRemoteViewsForSize(
-        options: Bundle,
-        title: String,
-        artist: String,
-        albumArt: Bitmap?,
-        isPlaying: Boolean,
-        isLiked: Boolean,
-        duration: Long,
-        currentPosition: Long
-    ): RemoteViews {
-        val minWidth = options.getInt(AppWidgetManager.OPTION_APPWIDGET_MIN_WIDTH)
-        val minHeight = options.getInt(AppWidgetManager.OPTION_APPWIDGET_MIN_HEIGHT)
+    private suspend fun vistaVinilo(w: Int, h: Int, e: Estado, conImagenes: Boolean): RemoteViews {
+        val v = RemoteViews(context.packageName, R.layout.widget_vinilo)
+        if (conImagenes) {
+            val lado = min(px(min(w, h).coerceAtLeast(100)), 520)
+            v.setImageViewBitmap(R.id.widget_vinilo, pintada("vin|$lado") { PintorDeWidgets.vinilo(portada, colores, lado) })
+        }
+        ponerPlay(v, e.sonando)
+        v.setOnClickPendingIntent(R.id.widget_vinilo, abrirApp(context))
+        ponerControles(v)
+        return v
+    }
 
-        // Determine widget size category
-        // 2x2: approximately 110dp x 110dp (compact square)
-        // 4x1: approximately 250dp x 40dp (wide single row)
-        // Full: approximately 250dp x 110dp (default)
+    private fun ponerCaratula(v: RemoteViews, ladoDp: Int, radioDp: Int) {
+        val p = portada
+        if (p == null) {
+            v.setImageViewResource(R.id.widget_caratula, R.drawable.widget_caratula_inicial)
+        } else {
+            v.setImageViewBitmap(R.id.widget_caratula, pintadaSincrona("car|$ladoDp") { PintorDeWidgets.caratulaRedondeada(p, colores, px(ladoDp), px(radioDp).toFloat()) })
+        }
+    }
+
+    private fun ponerTextos(v: RemoteViews, e: Estado) {
+        v.setTextViewText(R.id.widget_titulo, e.titulo)
+        v.setTextViewText(R.id.widget_artista, e.artista)
+        val estado = context.getString(if (e.sonando) R.string.widget_sonando else R.string.widget_en_pausa)
+        v.setTextViewText(R.id.widget_saludo, "${cabeceraDeLaHora(context)} · $estado")
+        v.setTextColor(R.id.widget_saludo, colores.acento)
+    }
+
+    /** El play de Expressive: cuadrado suave mientras suena, redondo en pausa, del color de la caratula. */
+    private fun ponerPlay(v: RemoteViews, sonando: Boolean) {
+        v.setImageViewResource(R.id.widget_fondo_play, if (sonando) R.drawable.widget_play_cuadrado else R.drawable.widget_play_redondo)
+        v.setInt(R.id.widget_fondo_play, "setColorFilter", colores.acento)
+        v.setImageViewResource(R.id.widget_icono_play, if (sonando) R.drawable.pause else R.drawable.play)
+        v.setInt(R.id.widget_icono_play, "setColorFilter", colores.sobreAcento)
+    }
+
+    private fun ponerMeGusta(v: RemoteViews, meGusta: Boolean) {
+        v.setImageViewResource(R.id.widget_icono_me_gusta, if (meGusta) R.drawable.favorite else R.drawable.favorite_border)
+        v.setInt(R.id.widget_icono_me_gusta, "setColorFilter", if (meGusta) colores.acento else Color.WHITE)
+    }
+
+    /** Los botones: si el layout no tiene alguno, el escritorio lo ignora. */
+    private fun ponerControles(v: RemoteViews) {
+        v.setOnClickPendingIntent(R.id.widget_raiz, abrirApp(context))
+        v.setOnClickPendingIntent(R.id.widget_caratula, abrirApp(context))
+        v.setOnClickPendingIntent(R.id.widget_boton_play, difusion(MusicWidgetReceiver.ACTION_PLAY_PAUSE, 11))
+        v.setOnClickPendingIntent(R.id.widget_boton_me_gusta, difusion(MusicWidgetReceiver.ACTION_LIKE, 12))
+        v.setOnClickPendingIntent(R.id.widget_boton_anterior, difusion(MusicWidgetReceiver.ACTION_PREVIOUS, 13))
+        v.setOnClickPendingIntent(R.id.widget_boton_siguiente, difusion(MusicWidgetReceiver.ACTION_NEXT, 14))
+    }
+
+    // ── Utilidades ──────────────────────────────────────────────────────────────
+
+    private suspend fun enviar(awm: AppWidgetManager, id: Int, clave: String, construir: suspend (Boolean) -> RemoteViews) {
+        runCatching {
+            if (enviadas[id] == clave) {
+                awm.partiallyUpdateAppWidget(id, construir(false))
+            } else {
+                awm.updateAppWidget(id, construir(true))
+                enviadas[id] = clave
+            }
+        }.onFailure {
+            // A la vista en el registro (tambien en la version publicada): un fallo aqui
+            // deja el widget sin pintar y, callado, no hay forma de saber por que.
+            android.util.Log.w(ETIQUETA, "No se pudo actualizar el widget $id ($clave)", it)
+        }
+    }
+
+    private suspend fun pintada(clave: String, pintar: () -> Bitmap): Bitmap =
+        pintadas[clave] ?: withContext(Dispatchers.Default) { pintar() }.also { pintadas[clave] = it }
+
+    private fun pintadaSincrona(clave: String, pintar: () -> Bitmap): Bitmap =
+        pintadas[clave] ?: pintar().also { pintadas[clave] = it }
+
+    private suspend fun cargarPortada(uri: String): Bitmap? = withContext(Dispatchers.IO) {
+        runCatching {
+            imageLoader.execute(
+                ImageRequest.Builder(context).data(uri).size(512, 512).allowHardware(false).build()
+            ).image?.toBitmap()
+        }.getOrNull()
+    }
+
+    private fun ajustesCristal(): AjustesCristal {
+        val ds = context.dataStore
+        return runCatching {
+            AjustesCristal(
+                opacidad = ds.get(LiquidGlassSurfaceOpacityKey, 0.4f),
+                tinte = ds.get(LiquidGlassSurfaceTintColorKey, 0),
+                vibrancia = ds.get(LiquidGlassVibrancyKey, 1f),
+                lente = ds.get(LiquidGlassLensAmountKey, 0.5f),
+                altura = ds.get(LiquidGlassLensHeightKey, 0.5f),
+                aberracion = ds.get(LiquidGlassChromaticAberrationKey, true),
+                profundidad = ds.get(LiquidGlassDepthEffectKey, true),
+                desenfoqueDp = ds.get(LiquidGlassBlurRadiusKey, 8f),
+            )
+        }.getOrDefault(AjustesCristal())
+    }
+
+    private fun px(dp: Int): Int = (dp * densidad).roundToInt().coerceAtLeast(1)
+
+    private fun <T> ids(awm: AppWidgetManager, clase: Class<T>): IntArray =
+        runCatching { awm.getAppWidgetIds(ComponentName(context, clase)) }.getOrDefault(IntArray(0))
+
+    private fun difusion(accion: String, codigo: Int): PendingIntent = PendingIntent.getBroadcast(
+        context,
+        codigo,
+        Intent(context, MusicWidgetReceiver::class.java).setAction(accion),
+        PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
+    )
+
+    /**
+     * Ancho (retrato) y alto (retrato) del widget en dp, segun el escritorio; si no lo
+     * dice, los de su tamaño tipico.
+     */
+    private fun tamanoDp(op: Bundle, anchoPorDefecto: Int, altoPorDefecto: Int): Pair<Int, Int> {
+        val w = op.getInt(AppWidgetManager.OPTION_APPWIDGET_MIN_WIDTH).takeIf { it > 0 } ?: anchoPorDefecto
+        val h = op.getInt(AppWidgetManager.OPTION_APPWIDGET_MAX_HEIGHT).takeIf { it > 0 } ?: altoPorDefecto
+        return w to h
+    }
+
+    /** Una fila (4x1), un cuadro (2x2) o el completo (4x2 y mas), segun el tamaño real. */
+    private fun formaAmbiente(op: Bundle): Forma {
+        val w = op.getInt(AppWidgetManager.OPTION_APPWIDGET_MIN_WIDTH)
+        val h = op.getInt(AppWidgetManager.OPTION_APPWIDGET_MAX_HEIGHT)
         return when {
-            minWidth < 180 && minHeight < 100 -> {
-                // 2x2 Compact - Only play button with album art
-                createCompactSquareRemoteViews(albumArt, isPlaying)
-            }
-            minWidth >= 180 && minHeight < 100 -> {
-                // 4x1 Wide - Single row with album art, song info, like and play buttons
-                createCompactWideRemoteViews(title, artist, albumArt, isPlaying, isLiked)
-            }
-            else -> {
-                // Full layout
-                createRemoteViews(title, artist, albumArt, isPlaying, isLiked, duration, currentPosition)
-            }
+            h in 1 until 110 -> Forma.FILA
+            w in 1 until 220 -> Forma.CUADRO
+            else -> Forma.COMPLETO
         }
     }
 
-    private fun createRemoteViews(
-        title: String,
-        artist: String,
-        albumArt: Bitmap?,
-        isPlaying: Boolean,
-        isLiked: Boolean,
-        duration: Long = 0,
-        currentPosition: Long = 0
-    ): RemoteViews {
-        val views = RemoteViews(context.packageName, R.layout.widget_music_player)
+    private fun nivel(posicion: Long, duracion: Long): Int =
+        if (duracion > 0) (posicion * 1000 / duracion).toInt().coerceIn(0, 1000) else 0
 
-        // Set song info
-        views.setTextViewText(R.id.widget_song_title, title)
-        views.setTextViewText(R.id.widget_artist_name, artist)
+    companion object {
+        private const val ETIQUETA = "LifeMusicWidgets"
 
-        // Set album art with rounded corners
-        if (albumArt != null) {
-            val roundedAlbumArt = getRoundedCornerBitmap(albumArt, 48f)
-            views.setImageViewBitmap(R.id.widget_album_art, roundedAlbumArt)
-        } else {
-            views.setImageViewBitmap(R.id.widget_album_art, getRoundedDefaultIcon(48f))
+        /** «Buenos dias», «Buenas tardes» o «Buenas noches», con las franjas del saludo de la app. */
+        fun cabeceraDeLaHora(context: Context): String {
+            val hora = Calendar.getInstance().get(Calendar.HOUR_OF_DAY)
+            return context.getString(
+                when (hora) {
+                    in 5..11 -> R.string.greeting_morning
+                    in 12..18 -> R.string.greeting_afternoon
+                    else -> R.string.greeting_evening
+                }
+            )
         }
 
-        // Set play/pause icon
-        val playPauseIcon = if (isPlaying) R.drawable.ic_widget_pause else R.drawable.ic_widget_play
-        views.setImageViewResource(R.id.widget_play_pause, playPauseIcon)
-
-        // Set like icon - using nav style (purple) for main widget
-        val likeIcon = if (isLiked) R.drawable.ic_widget_heart_nav else R.drawable.ic_widget_heart_outline_nav
-        views.setImageViewResource(R.id.widget_like_button, likeIcon)
-
-        // Set Progress Level
-        if (duration > 0) {
-            val level = ((currentPosition.toDouble() / duration.toDouble()) * 10000).toInt()
-            views.setInt(R.id.widget_progress_fill, "setImageLevel", level)
-        } else {
-            views.setInt(R.id.widget_progress_fill, "setImageLevel", 0)
-        }
-
-        // Set click intents
-        views.setOnClickPendingIntent(R.id.widget_album_art, getOpenAppIntent())
-        views.setOnClickPendingIntent(R.id.widget_play_pause_container, getPlayPauseIntent())
-        views.setOnClickPendingIntent(R.id.widget_like_button, getLikeIntent())
-
-        return views
-    }
-
-    private suspend fun loadAlbumArt(artworkUri: String, size: Int = 200): Bitmap? {
-        return withContext(Dispatchers.IO) {
-            try {
-                val request = ImageRequest.Builder(context)
-                    .data(artworkUri)
-                    .size(size, size)
-                    .allowHardware(false)
-                    .crossfade(300)
-                    .build()
-                val result = imageLoader.execute(request)
-                result.image?.toBitmap()
-            } catch (e: Exception) {
-                null
-            }
-        }
-    }
-
-    private fun getRoundedCornerBitmap(bitmap: Bitmap, cornerRadius: Float): Bitmap {
-        // Ensure the bitmap is square for thumbnails
-        val size = minOf(bitmap.width, bitmap.height)
-        val xOffset = (bitmap.width - size) / 2
-        val yOffset = (bitmap.height - size) / 2
-        val squareBitmap = Bitmap.createBitmap(bitmap, xOffset, yOffset, size, size)
-
-        val output = Bitmap.createBitmap(size, size, Bitmap.Config.ARGB_8888)
-        val canvas = Canvas(output)
-        val paint = Paint().apply {
-            isAntiAlias = true
-            isFilterBitmap = true
-            shader = BitmapShader(squareBitmap, Shader.TileMode.CLAMP, Shader.TileMode.CLAMP)
-        }
-        val rect = RectF(0f, 0f, size.toFloat(), size.toFloat())
-        canvas.drawRoundRect(rect, cornerRadius, cornerRadius, paint)
-        
-        if (squareBitmap != bitmap) {
-            squareBitmap.recycle()
-        }
-        
-        return output
-    }
-
-    private fun getCircularBitmap(bitmap: Bitmap): Bitmap {
-        val size = minOf(bitmap.width, bitmap.height)
-        
-        // First crop to square
-        val xOffset = (bitmap.width - size) / 2
-        val yOffset = (bitmap.height - size) / 2
-        val squareBitmap = Bitmap.createBitmap(bitmap, xOffset, yOffset, size, size)
-
-        val output = Bitmap.createBitmap(size, size, Bitmap.Config.ARGB_8888)
-        val canvas = Canvas(output)
-        val paint =
-            Paint().apply {
-                isAntiAlias = true
-                isFilterBitmap = true
-                shader = BitmapShader(squareBitmap, Shader.TileMode.CLAMP, Shader.TileMode.CLAMP)
-            }
-        val radius = size / 2f
-        canvas.drawCircle(radius, radius, radius, paint)
-
-        if (squareBitmap != bitmap) {
-            squareBitmap.recycle()
-        }
-        return output
-    }
-
-    private fun createCompactSquareRemoteViews(
-        albumArt: Bitmap?,
-        isPlaying: Boolean
-    ): RemoteViews {
-        val views = RemoteViews(context.packageName, R.layout.widget_compact_square)
-
-        // Set album art with rounded corners
-        if (albumArt != null) {
-            val roundedAlbumArt = getRoundedCornerBitmap(albumArt, 48f)
-            views.setImageViewBitmap(R.id.widget_compact_album_art, roundedAlbumArt)
-        } else {
-            views.setImageViewBitmap(R.id.widget_compact_album_art, getRoundedDefaultIcon(48f))
-        }
-
-        // Set play/pause icon - using low style icons
-        val playPauseIcon = if (isPlaying) R.drawable.ic_widget_pause_low else R.drawable.ic_widget_play_low
-        views.setImageViewResource(R.id.widget_compact_play_pause, playPauseIcon)
-
-        // Set click intents
-        views.setOnClickPendingIntent(R.id.widget_compact_album_art, getOpenAppIntent())
-        views.setOnClickPendingIntent(R.id.widget_compact_play_container, getPlayPauseIntent())
-
-        return views
-    }
-
-    private fun createCompactWideRemoteViews(
-        title: String,
-        artist: String,
-        albumArt: Bitmap?,
-        isPlaying: Boolean,
-        isLiked: Boolean
-    ): RemoteViews {
-        val views = RemoteViews(context.packageName, R.layout.widget_compact_wide)
-
-        // Set song info
-        views.setTextViewText(R.id.widget_wide_song_title, title)
-        views.setTextViewText(R.id.widget_wide_artist_name, artist)
-
-        // Set album art with rounded corners (48f to match 12dp at ~4x density for 48dp view)
-        if (albumArt != null) {
-            val roundedAlbumArt = getRoundedCornerBitmap(albumArt, 48f)
-            views.setImageViewBitmap(R.id.widget_wide_album_art, roundedAlbumArt)
-        } else {
-            // Create rounded default icon
-            views.setImageViewBitmap(R.id.widget_wide_album_art, getRoundedDefaultIcon(48f))
-        }
-
-        // Set play/pause icon - using low style icons
-        val playPauseIcon = if (isPlaying) R.drawable.ic_widget_pause_low else R.drawable.ic_widget_play_low
-        views.setImageViewResource(R.id.widget_wide_play_pause, playPauseIcon)
-
-        // Set like icon - using navigation style (purple)
-        val likeIcon = if (isLiked) R.drawable.ic_widget_heart_nav else R.drawable.ic_widget_heart_outline_nav
-        views.setImageViewResource(R.id.widget_wide_like_button, likeIcon)
-
-        // Set click intents
-        views.setOnClickPendingIntent(R.id.widget_wide_album_art, getOpenAppIntent())
-        views.setOnClickPendingIntent(R.id.widget_wide_play_container, getPlayPauseIntent())
-        views.setOnClickPendingIntent(R.id.widget_wide_like_button, getLikeIntent())
-
-        return views
-    }
-
-    private fun createTurntableRemoteViews(
-        circularAlbumArt: Bitmap?,
-        isPlaying: Boolean,
-        isLiked: Boolean
-    ): RemoteViews {
-        val views = RemoteViews(context.packageName, R.layout.widget_turntable)
-
-        // Set circular album art - create circular default icon if no album art
-        if (circularAlbumArt != null) {
-            views.setImageViewBitmap(R.id.widget_turntable_album_art, circularAlbumArt)
-        } else {
-            // Load and make the default icon circular
-            views.setImageViewBitmap(R.id.widget_turntable_album_art, getCircularDefaultIcon())
-        }
-
-        // Set play/pause icon - using secondary color icons for turntable
-        val playPauseIcon = if (isPlaying) R.drawable.ic_widget_pause_secondary else R.drawable.ic_widget_play_secondary
-        views.setImageViewResource(R.id.widget_turntable_play_pause, playPauseIcon)
-
-        // Set click intents
-        views.setOnClickPendingIntent(R.id.widget_turntable_album_art, getOpenAppIntent())
-        views.setOnClickPendingIntent(R.id.widget_turntable_play_container, getTurntablePlayPauseIntent())
-        views.setOnClickPendingIntent(R.id.widget_turntable_prev_button, getTurntablePreviousIntent())
-        views.setOnClickPendingIntent(R.id.widget_turntable_next_button, getTurntableNextIntent())
-
-        return views
-    }
-    
-    private fun getCircularDefaultIcon(): Bitmap {
-        // Load the custom turntable default art drawable and convert to bitmap
-        val drawable = context.getDrawable(R.drawable.widget_turntable_default_art)!!
-        val size = 300
-        val bitmap = Bitmap.createBitmap(size, size, Bitmap.Config.ARGB_8888)
-        val canvas = Canvas(bitmap)
-        drawable.setBounds(0, 0, size, size)
-        drawable.draw(canvas)
-        return bitmap
-    }
-    
-    private fun getRoundedDefaultIcon(cornerRadius: Float): Bitmap {
-        // Get the launcher icon and make it rounded
-        val drawable = context.packageManager.getApplicationIcon(context.packageName)
-        val size = 300
-        val bitmap = Bitmap.createBitmap(size, size, Bitmap.Config.ARGB_8888)
-        val canvas = Canvas(bitmap)
-        drawable.setBounds(0, 0, size, size)
-        drawable.draw(canvas)
-        return getRoundedCornerBitmap(bitmap, cornerRadius)
-    }
-
-    private fun getOpenAppIntent(): PendingIntent {
-        val intent = Intent(context, MainActivity::class.java)
-        return PendingIntent.getActivity(
+        fun abrirApp(context: Context): PendingIntent = PendingIntent.getActivity(
             context,
-            0,
-            intent,
-            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+            10,
+            Intent(context, ActividadPrincipal.clase),
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
         )
-    }
 
-    private fun getPlayPauseIntent(): PendingIntent {
-        val intent = Intent(context, MusicWidgetReceiver::class.java).apply {
-            action = MusicWidgetReceiver.ACTION_PLAY_PAUSE
+        /**
+         * El widget Tu musica: el saludo y cuatro accesos. Se puede montar sin el
+         * servicio (lo hace el receptor al ponerlo en el escritorio); con musica
+         * sonando, el servicio le pone el fondo de la caratula.
+         */
+        fun vistaTuMusica(context: Context, fondo: Bitmap?, acento: Int): RemoteViews {
+            val v = RemoteViews(context.packageName, R.layout.widget_tu_musica)
+            if (fondo != null) v.setImageViewBitmap(R.id.widget_fondo, fondo)
+            v.setTextViewText(R.id.widget_saludo, cabeceraDeLaHora(context))
+            v.setTextColor(R.id.widget_saludo, acento)
+            listOf(R.id.widget_icono_mezcla, R.id.widget_icono_me_gusta, R.id.widget_icono_descargas, R.id.widget_icono_buscar)
+                .forEach { v.setInt(it, "setColorFilter", acento) }
+            v.setOnClickPendingIntent(R.id.widget_raiz, abrirApp(context))
+            v.setOnClickPendingIntent(
+                R.id.widget_tesela_mezcla,
+                PendingIntent.getBroadcast(
+                    context, 20,
+                    Intent(context, PlaylistWidgetReceiver::class.java).setAction(PlaylistWidgetReceiver.ACTION_MEZCLAR),
+                    PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
+                ),
+            )
+            v.setOnClickPendingIntent(R.id.widget_tesela_me_gusta, abrirEn(context, MainActivity.ACTION_ME_GUSTA, 21))
+            v.setOnClickPendingIntent(R.id.widget_tesela_descargas, abrirEn(context, MainActivity.ACTION_DESCARGAS, 22))
+            v.setOnClickPendingIntent(R.id.widget_tesela_buscar, abrirEn(context, MainActivity.ACTION_SEARCH, 23))
+            return v
         }
-        return PendingIntent.getBroadcast(
-            context,
-            1,
-            intent,
-            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
-        )
-    }
 
-    private fun getLikeIntent(): PendingIntent {
-        val intent = Intent(context, MusicWidgetReceiver::class.java).apply {
-            action = MusicWidgetReceiver.ACTION_LIKE
-        }
-        return PendingIntent.getBroadcast(
+        private fun abrirEn(context: Context, accion: String, codigo: Int): PendingIntent = PendingIntent.getActivity(
             context,
-            2,
-            intent,
-            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
-        )
-    }
-
-    private fun getTurntablePlayPauseIntent(): PendingIntent {
-        val intent = Intent(context, TurntableWidgetReceiver::class.java).apply {
-            action = TurntableWidgetReceiver.ACTION_TURNTABLE_PLAY_PAUSE
-        }
-        return PendingIntent.getBroadcast(
-            context,
-            3,
-            intent,
-            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
-        )
-    }
-
-    private fun getTurntableNextIntent(): PendingIntent {
-        val intent = Intent(context, TurntableWidgetReceiver::class.java).apply {
-            action = TurntableWidgetReceiver.ACTION_TURNTABLE_NEXT
-        }
-        return PendingIntent.getBroadcast(
-            context,
-            4,
-            intent,
-            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
-        )
-    }
-
-    private fun getTurntablePreviousIntent(): PendingIntent {
-        val intent = Intent(context, TurntableWidgetReceiver::class.java).apply {
-            action = TurntableWidgetReceiver.ACTION_TURNTABLE_PREVIOUS
-        }
-        return PendingIntent.getBroadcast(
-            context,
-            5,
-            intent,
-            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+            codigo,
+            Intent(context, ActividadPrincipal.clase).setAction(accion),
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
         )
     }
 }

@@ -3671,6 +3671,24 @@ class MusicService :
                 if (player.isPlaying) player.pause() else player.play()
                 updateWidgetUI(player.isPlaying)
             }
+            com.cglabs.lifemusic.widget.PlaylistWidgetReceiver.ACTION_MEZCLAR -> {
+                // Widget Tu musica: las que te gustan, barajadas. Sin ninguna, se abre la app.
+                scope.launch {
+                    val canciones = withContext(Dispatchers.IO) {
+                        database.likedSongs(com.cglabs.lifemusic.constants.SongSortType.CREATE_DATE, true).first()
+                    }
+                    if (canciones.isEmpty()) {
+                        runCatching { com.cglabs.lifemusic.widget.LifeMusicWidgetManager.abrirApp(this@MusicService).send() }
+                    } else {
+                        playQueue(
+                            com.cglabs.lifemusic.playback.queues.ListQueue(
+                                title = getString(R.string.widget_mezclar_me_gusta),
+                                items = canciones.shuffled().map { it.toMediaItem() },
+                            )
+                        )
+                    }
+                }
+            }
             MusicWidgetReceiver.ACTION_LIKE -> {
                 toggleLike()
             }
@@ -3727,12 +3745,18 @@ class MusicService :
 
     private fun startWidgetUpdates() {
         widgetUpdateJob?.cancel()
+        // Antes: el widget entero (con la caratula) cada 200 ms, 5 veces por segundo.
+        // Ahora solo la barra, cada 2 s y como actualizacion parcial de un numero; el
+        // resto se repinta cuando cambia algo (cancion, play/pausa, me gusta).
         widgetUpdateJob = scope.launch {
             while (isActive) {
                 if (player.isPlaying) {
-                    updateWidgetUI(true)
+                    widgetManager.actualizarProgreso(
+                        player.currentPosition,
+                        if (player.duration != C.TIME_UNSET) player.duration else 0,
+                    )
                 }
-                delay(200)
+                delay(2_000)
             }
         }
     }

@@ -315,40 +315,6 @@
         <meta-data
             android:name="com.google.android.gms.car.application"
             android:resource="@xml/automotive_app_desc" />
-        <!-- Music Widget -->
-        <receiver
-            android:name=".widget.MusicWidgetReceiver"
-            android:exported="true"
-            android:label="@string/widget_music_player">
-            <intent-filter>
-                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
-                <action android:name="com.cglabs.lifemusic.widget.PLAY_PAUSE" />
-                <action android:name="com.cglabs.lifemusic.widget.LIKE" />
-                <action android:name="com.cglabs.lifemusic.widget.UPDATE_WIDGET" />
-            </intent-filter>
-
-            <meta-data
-                android:name="android.appwidget.provider"
-                android:resource="@xml/music_widget_info" />
-        </receiver>
-
-        <!-- Turntable Widget -->
-        <receiver
-            android:name=".widget.TurntableWidgetReceiver"
-            android:exported="true"
-            android:label="@string/widget_turntable">
-            <intent-filter>
-                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
-                <action android:name="com.cglabs.lifemusic.widget.TURNTABLE_PLAY_PAUSE" />
-                <action android:name="com.cglabs.lifemusic.widget.TURNTABLE_LIKE" />
-                <action android:name="com.cglabs.lifemusic.widget.UPDATE_TURNTABLE_WIDGET" />
-            </intent-filter>
-
-            <meta-data
-                android:name="android.appwidget.provider"
-                android:resource="@xml/turntable_widget_info" />
-        </receiver>
-
         <!-- Google Cast Options Provider -->
         <meta-data
             android:name="com.google.android.gms.cast.framework.OPTIONS_PROVIDER_CLASS_NAME"
@@ -358,11 +324,16 @@
             android:name="com.google.android.gms.cast.framework.ReconnectionService"
             android:exported="false"
             android:process=":reconnection_service" />
-        <!-- Music Widget -->
+        <!--
+          Widgets de Life Music. Cada uno venia declarado dos veces (herencia de Echo);
+          ahora una sola. Los nombres de clase se conservan para que los widgets ya
+          puestos en el escritorio pasen solos al diseño nuevo.
+        -->
+        <!-- Ambiente (2x2, 4x1 y 4x2) -->
         <receiver
             android:name=".widget.MusicWidgetReceiver"
             android:exported="true"
-            android:label="@string/widget_music_player">
+            android:label="@string/widget_ambiente">
             <intent-filter>
                 <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
                 <action android:name="com.cglabs.lifemusic.widget.PLAY_PAUSE" />
@@ -374,11 +345,24 @@
                 android:resource="@xml/music_widget_info" />
         </receiver>
 
-        <!-- Playlist Widget -->
+        <!-- Cristal liquido (4x2) -->
+        <receiver
+            android:name=".widget.CristalWidgetReceiver"
+            android:exported="true"
+            android:label="@string/widget_cristal">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/cristal_widget_info" />
+        </receiver>
+
+        <!-- Tu musica (antes Listas) -->
         <receiver
             android:name=".widget.PlaylistWidgetReceiver"
             android:exported="true"
-            android:label="@string/widget_playlists">
+            android:label="@string/widget_tu_musica">
             <intent-filter>
                 <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
             </intent-filter>
@@ -387,11 +371,11 @@
                 android:resource="@xml/playlist_widget_info" />
         </receiver>
 
-        <!-- Turntable Widget -->
+        <!-- Tocadiscos (2x2) -->
         <receiver
             android:name=".widget.TurntableWidgetReceiver"
             android:exported="true"
-            android:label="@string/widget_turntable">
+            android:label="@string/widget_vinilo">
             <intent-filter>
                 <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
                 <action android:name="com.cglabs.lifemusic.widget.TURNTABLE_PLAY_PAUSE" />

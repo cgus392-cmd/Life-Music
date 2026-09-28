@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Widget Ambiente 2x2: la caratula grande y el play en la esquina. -->
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/widget_raiz"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:theme="@style/Theme.Widget.LifeMusic">
+
+    <ImageView
+        android:id="@+id/widget_fondo"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:importantForAccessibility="no"
+        android:scaleType="fitXY"
+        android:src="@drawable/widget_fondo_inicial" />
+
+    <ImageView
+        android:id="@+id/widget_caratula"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_margin="10dp"
+        android:contentDescription="@string/album_art"
+        android:scaleType="fitCenter"
+        android:src="@drawable/widget_caratula_inicial" />
+
+    <FrameLayout
+        android:id="@+id/widget_boton_play"
+        android:layout_width="52dp"
+        android:layout_height="52dp"
+        android:layout_gravity="bottom|end"
+        android:layout_margin="16dp"
+        android:contentDescription="@string/play_pause">
+
+        <ImageView
+            android:id="@+id/widget_fondo_play"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:importantForAccessibility="no"
+            android:scaleType="fitXY"
+            android:src="@drawable/widget_play_redondo" />
+
+        <ImageView
+            android:id="@+id/widget_icono_play"
+            android:layout_width="26dp"
+            android:layout_height="26dp"
+            android:layout_gravity="center"
+            android:importantForAccessibility="no"
+            android:src="@drawable/play" />
+    </FrameLayout>
+</FrameLayout>

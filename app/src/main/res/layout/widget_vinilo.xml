@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Widget Tocadiscos 2x2: el vinilo (PintorDeWidgets.vinilo) y los controles en cristal oscuro. -->
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/widget_raiz"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:theme="@style/Theme.Widget.LifeMusic">
+
+    <ImageView
+        android:id="@+id/widget_vinilo"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_margin="4dp"
+        android:contentDescription="@string/album_art"
+        android:scaleType="fitCenter"
+        android:src="@drawable/widget_vinilo_inicial" />
+
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom|center_horizontal"
+        android:layout_marginBottom="6dp"
+        android:background="@drawable/widget_pastilla_oscura"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:padding="4dp">
+
+        <FrameLayout
+            android:id="@+id/widget_boton_anterior"
+            android:layout_width="36dp"
+            android:layout_height="36dp"
+            android:contentDescription="@string/widget_anterior">
+
+            <ImageView
+                android:layout_width="18dp"
+                android:layout_height="18dp"
+                android:layout_gravity="center"
+                android:importantForAccessibility="no"
+                android:src="@drawable/skip_previous" />
+        </FrameLayout>
+
+        <FrameLayout
+            android:id="@+id/widget_boton_play"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:layout_marginStart="2dp"
+            android:layout_marginEnd="2dp"
+            android:contentDescription="@string/play_pause">
+
+            <ImageView
+                android:id="@+id/widget_fondo_play"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:importantForAccessibility="no"
+                android:scaleType="fitXY"
+                android:src="@drawable/widget_play_redondo" />
+
+            <ImageView
+                android:id="@+id/widget_icono_play"
+                android:layout_width="20dp"
+                android:layout_height="20dp"
+                android:layout_gravity="center"
+                android:importantForAccessibility="no"
+                android:src="@drawable/play" />
+        </FrameLayout>
+
+        <FrameLayout
+            android:id="@+id/widget_boton_siguiente"
+            android:layout_width="36dp"
+            android:layout_height="36dp"
+            android:contentDescription="@string/widget_siguiente">
+
+            <ImageView
+                android:layout_width="18dp"
+                android:layout_height="18dp"
+                android:layout_gravity="center"
+                android:importantForAccessibility="no"
+                android:src="@drawable/skip_next" />
+        </FrameLayout>
+    </LinearLayout>
+</FrameLayout>

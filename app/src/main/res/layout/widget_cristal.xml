@@ -1,0 +1,145 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Widget Cristal liquido 4x2. La imagen de fondo (PintorDeWidgets.cristal) trae la
+  caratula a sangre y, abajo, la capsula de cristal ya pintada: 10 dp de margen y
+  76 dp de alto, las mismas medidas que la fila de controles de aqui encima.
+-->
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/widget_raiz"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:theme="@style/Theme.Widget.LifeMusic">
+
+    <ImageView
+        android:id="@+id/widget_fondo"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:contentDescription="@string/album_art"
+        android:scaleType="fitXY"
+        android:src="@drawable/widget_fondo_inicial" />
+
+    <TextView
+        android:id="@+id/widget_saludo"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="top|start"
+        android:layout_marginStart="16dp"
+        android:layout_marginTop="14dp"
+        android:letterSpacing="0.12"
+        android:maxLines="1"
+        android:shadowColor="#99000000"
+        android:shadowRadius="6"
+        android:text="@string/widget_marca"
+        android:textAllCaps="true"
+        android:textColor="#FFFFFFFF"
+        android:textSize="11sp" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="76dp"
+        android:layout_gravity="bottom"
+        android:layout_marginStart="10dp"
+        android:layout_marginEnd="10dp"
+        android:layout_marginBottom="10dp"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:paddingStart="10dp"
+        android:paddingEnd="10dp">
+
+        <ImageView
+            android:id="@+id/widget_caratula"
+            android:layout_width="54dp"
+            android:layout_height="54dp"
+            android:contentDescription="@string/album_art"
+            android:scaleType="fitCenter"
+            android:src="@drawable/widget_caratula_inicial" />
+
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="12dp"
+            android:layout_marginEnd="6dp"
+            android:layout_weight="1"
+            android:orientation="vertical">
+
+            <TextView
+                android:id="@+id/widget_titulo"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:ellipsize="end"
+                android:maxLines="1"
+                android:shadowColor="#66000000"
+                android:shadowRadius="4"
+                android:text="@string/not_playing"
+                android:textColor="#FFFFFFFF"
+                android:textSize="15sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/widget_artista"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:ellipsize="end"
+                android:maxLines="1"
+                android:shadowColor="#66000000"
+                android:shadowRadius="4"
+                android:text="@string/tap_to_play"
+                android:textColor="#E6FFFFFF"
+                android:textSize="12sp" />
+        </LinearLayout>
+
+        <FrameLayout
+            android:id="@+id/widget_boton_me_gusta"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:contentDescription="@string/like">
+
+            <ImageView
+                android:id="@+id/widget_icono_me_gusta"
+                android:layout_width="22dp"
+                android:layout_height="22dp"
+                android:layout_gravity="center"
+                android:importantForAccessibility="no"
+                android:src="@drawable/favorite_border" />
+        </FrameLayout>
+
+        <FrameLayout
+            android:id="@+id/widget_boton_play"
+            android:layout_width="52dp"
+            android:layout_height="52dp"
+            android:layout_marginStart="4dp"
+            android:contentDescription="@string/play_pause">
+
+            <ImageView
+                android:id="@+id/widget_fondo_play"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:importantForAccessibility="no"
+                android:scaleType="fitXY"
+                android:src="@drawable/widget_play_redondo" />
+
+            <ImageView
+                android:id="@+id/widget_icono_play"
+                android:layout_width="24dp"
+                android:layout_height="24dp"
+                android:layout_gravity="center"
+                android:importantForAccessibility="no"
+                android:src="@drawable/play" />
+        </FrameLayout>
+
+        <FrameLayout
+            android:id="@+id/widget_boton_siguiente"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:layout_marginStart="4dp"
+            android:contentDescription="@string/widget_siguiente">
+
+            <ImageView
+                android:layout_width="22dp"
+                android:layout_height="22dp"
+                android:layout_gravity="center"
+                android:importantForAccessibility="no"
+                android:src="@drawable/skip_next" />
+        </FrameLayout>
+    </LinearLayout>
+</FrameLayout>

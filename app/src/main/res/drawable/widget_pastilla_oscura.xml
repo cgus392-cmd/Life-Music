@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Fondo del widget Reconocedor en modo oscuro, Android 8 a 11 (ver drawable/widget_background.xml). -->
+<!-- Pastilla de cristal oscuro para los controles del vinilo. -->
 <shape xmlns:android="http://schemas.android.com/apk/res/android" android:shape="rectangle">
-    <solid android:color="#FF15241D" />
+    <solid android:color="#A6101012" />
+    <stroke android:width="1dp" android:color="#40FFFFFF" />
     <corners android:radius="24dp" />
 </shape>

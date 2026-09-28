@@ -2,12 +2,12 @@
 <resources>
     <!-- Widget colors fallback for Android < 12 (API 31) -->
     <!-- Material 3 Primary Container (Light) -->
-    <color name="widget_primary_container">#EADDFF</color>
-    <color name="widget_on_primary_container">#21005D</color>
+    <color name="widget_primary_container">#C9EBD8</color>
+    <color name="widget_on_primary_container">#00291A</color>
 
     <!-- Material 3 Tertiary Container (Light) - For like button -->
-    <color name="widget_tertiary_container">#FFD8E4</color>
-    <color name="widget_on_tertiary_container">#31111D</color>
+    <color name="widget_tertiary_container">#D7ECDF</color>
+    <color name="widget_on_tertiary_container">#0F2A1E</color>
 
     <!-- Play button colors (Low style) -->
     <color name="widget_play_button_low_bg">@color/widget_primary_container</color>
@@ -15,10 +15,10 @@
 
     <!-- Music Recognizer Widget colors (Light) -->
     <!-- Active mic button background – deeper accent -->
-    <color name="widget_mic_active_bg">#7965AF</color>
+    <color name="widget_mic_active_bg">#2E8B63</color>
     <!-- Pulse ring colors (opacity variants for outward ripple animation) -->
-    <color name="widget_mic_pulse_ring">#994F378B</color>
-    <color name="widget_mic_pulse_ring_mid">#664F378B</color>
-    <color name="widget_mic_pulse_ring_low">#334F378B</color>
-    <color name="widget_mic_pulse_ring_fade">#1A4F378B</color>
+    <color name="widget_mic_pulse_ring">#992E8B63</color>
+    <color name="widget_mic_pulse_ring_mid">#662E8B63</color>
+    <color name="widget_mic_pulse_ring_low">#332E8B63</color>
+    <color name="widget_mic_pulse_ring_fade">#1A2E8B63</color>
 </resources>

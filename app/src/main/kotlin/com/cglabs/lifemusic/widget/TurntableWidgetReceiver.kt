@@ -21,8 +21,10 @@ class TurntableWidgetReceiver : AppWidgetProvider() {
         // Only trigger update through MusicService if it's already running
         // This prevents BackgroundServiceStartNotAllowedException on Android 14+
         if (MusicService.isRunning) {
+            // El servicio nunca atendio UPDATE_TURNTABLE_WIDGET: se pide el repintado
+            // comun, que ahora tambien pinta el tocadiscos (vinilo).
             val intent = Intent(context, MusicService::class.java).apply {
-                action = ACTION_UPDATE_TURNTABLE_WIDGET
+                action = MusicWidgetReceiver.ACTION_UPDATE_WIDGET
             }
             try {
                 context.startService(intent)

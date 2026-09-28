@@ -1,0 +1,119 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Widget Ambiente 4x1: una fila con caratula, titulo, me gusta, play y siguiente. -->
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/widget_raiz"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:theme="@style/Theme.Widget.LifeMusic">
+
+    <ImageView
+        android:id="@+id/widget_fondo"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:importantForAccessibility="no"
+        android:scaleType="fitXY"
+        android:src="@drawable/widget_fondo_inicial" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:paddingStart="10dp"
+        android:paddingEnd="10dp">
+
+        <ImageView
+            android:id="@+id/widget_caratula"
+            android:layout_width="46dp"
+            android:layout_height="46dp"
+            android:contentDescription="@string/album_art"
+            android:scaleType="fitCenter"
+            android:src="@drawable/widget_caratula_inicial" />
+
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="12dp"
+            android:layout_marginEnd="8dp"
+            android:layout_weight="1"
+            android:orientation="vertical">
+
+            <TextView
+                android:id="@+id/widget_titulo"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:ellipsize="end"
+                android:maxLines="1"
+                android:text="@string/not_playing"
+                android:textColor="#FFFFFFFF"
+                android:textSize="15sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/widget_artista"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:ellipsize="end"
+                android:maxLines="1"
+                android:text="@string/tap_to_play"
+                android:textColor="#CCFFFFFF"
+                android:textSize="12sp" />
+        </LinearLayout>
+
+        <FrameLayout
+            android:id="@+id/widget_boton_me_gusta"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:background="@drawable/widget_vidrio_circulo"
+            android:contentDescription="@string/like">
+
+            <ImageView
+                android:id="@+id/widget_icono_me_gusta"
+                android:layout_width="20dp"
+                android:layout_height="20dp"
+                android:layout_gravity="center"
+                android:importantForAccessibility="no"
+                android:src="@drawable/favorite_border" />
+        </FrameLayout>
+
+        <FrameLayout
+            android:id="@+id/widget_boton_play"
+            android:layout_width="52dp"
+            android:layout_height="44dp"
+            android:layout_marginStart="8dp"
+            android:contentDescription="@string/play_pause">
+
+            <ImageView
+                android:id="@+id/widget_fondo_play"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:importantForAccessibility="no"
+                android:scaleType="fitXY"
+                android:src="@drawable/widget_play_redondo" />
+
+            <ImageView
+                android:id="@+id/widget_icono_play"
+                android:layout_width="24dp"
+                android:layout_height="24dp"
+                android:layout_gravity="center"
+                android:importantForAccessibility="no"
+                android:src="@drawable/play" />
+        </FrameLayout>
+
+        <FrameLayout
+            android:id="@+id/widget_boton_siguiente"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:layout_marginStart="8dp"
+            android:background="@drawable/widget_vidrio_circulo"
+            android:contentDescription="@string/widget_siguiente">
+
+            <ImageView
+                android:layout_width="20dp"
+                android:layout_height="20dp"
+                android:layout_gravity="center"
+                android:importantForAccessibility="no"
+                android:src="@drawable/skip_next" />
+        </FrameLayout>
+    </LinearLayout>
+</FrameLayout>

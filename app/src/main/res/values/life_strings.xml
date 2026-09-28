@@ -1443,6 +1443,24 @@
     <string name="boletin_v1120_ademas_1">If something does not show on the TV, the Play on… sheet has "Copy diagnostics" to send it to me.</string>
     <string name="boletin_v1120_ademas_2">Changing songs while casting no longer starts mid-song, and loads faster.</string>
 
+    <!-- Bulletin 1.3.0 -->
+    <string name="boletin_v1130_titulo_1">Life Music</string>
+    <string name="boletin_v1130_titulo_2">faster, and more yours</string>
+    <string name="boletin_v1130_intro">Our biggest update yet: songs start almost instantly, you choose the sound quality, the widgets get a design of their own and the TV gets six themes and more devices.</string>
+    <string name="boletin_v1130_rapida_t">Plays almost instantly</string>
+    <string name="boletin_v1130_rapida">Before playing, every song took several detours it didn\'t need. Now it goes straight there: up to four times faster to start, and skipping feels immediate.</string>
+    <string name="boletin_v1130_calidad_t">You choose the quality</string>
+    <string name="boletin_v1130_calidad">In Settings → Player: Automatic, High, Normal or Low. Automatic plays high on Wi-Fi and normal on mobile data, and if the signal drops it steps down on its own until the network recovers.</string>
+    <string name="boletin_v1130_widgets_t">New widgets</string>
+    <string name="boletin_v1130_widgets">Ambient, in the cover colors; Liquid Glass, like the mini player; a vinyl Turntable, and Your music, to shuffle what you like in one tap. The ones you already had update on their own.</string>
+    <string name="boletin_v1130_temas_t">Six themes for the TV</string>
+    <string name="boletin_v1130_temas">While casting, choose the look: Ambient, Liquid Glass, Stage (for parties), Vinyl, Gallery and Night. They switch instantly from the Play on… sheet.</string>
+    <string name="boletin_v1130_dlna_t">More TVs and speakers</string>
+    <string name="boletin_v1130_dlna">Besides Chromecast, you can now cast to DLNA TVs and devices: most Samsung, LG and Sony sets, Kodi and many speakers. They show up on their own in Play on…</string>
+    <string name="boletin_v1130_ademas_1">Widgets no longer drain battery by redrawing five times a second.</string>
+    <string name="boletin_v1130_ademas_2">The icon shortcuts (Search and Library) now open what they say.</string>
+    <string name="boletin_v1130_ademas_3">Losing the cast with the screen off no longer closes the app.</string>
+
     <!-- Calidad de audio (1.2.1): antes solo existia «Opus», siempre la mas alta. -->
     <string name="calidad_auto">Automatic</string>
     <string name="calidad_auto_detalle">Adapts to the network: high on Wi-Fi, normal on mobile data or hotspot, low when the connection is slow</string>
@@ -1452,4 +1470,24 @@
     <string name="calidad_normal_detalle">Opus ~70 kbps · loads faster, hard to tell apart</string>
     <string name="calidad_baja">Low</string>
     <string name="calidad_baja_detalle">Opus ~50 kbps · for weak signal or to save data</string>
+
+    <!-- Widgets de Life Music (1.2.1): Ambiente, Cristal liquido, Tocadiscos y Tu musica. -->
+    <string name="widget_marca" translatable="false">Life Music</string>
+    <string name="widget_sonando">Playing</string>
+    <string name="widget_en_pausa">Paused</string>
+    <string name="widget_anterior">Previous</string>
+    <string name="widget_siguiente">Next</string>
+    <string name="widget_ambiente">Life Music · Ambient</string>
+    <string name="widget_ambiente_descripcion">The player tinted with the cover colors. Fits 2×2, 4×1 and 4×2</string>
+    <string name="widget_cristal">Life Music · Liquid Glass</string>
+    <string name="widget_cristal_descripcion">The cover full size and the player in a liquid glass capsule, like the mini player</string>
+    <string name="widget_vinilo">Life Music · Turntable</string>
+    <string name="widget_vinilo_descripcion">A vinyl record with the cover as its label</string>
+    <string name="widget_tu_musica">Life Music · Your music</string>
+    <string name="widget_tu_musica_descripcion">Shuffle your liked songs, and quick access to Liked, Downloads and Search</string>
+    <string name="widget_tu_musica_titulo">Your music</string>
+    <string name="widget_mezclar_me_gusta">Shuffle liked</string>
+    <string name="widget_me_gusta">Liked</string>
+    <string name="widget_descargas">Downloads</string>
+    <string name="widget_buscar">Search</string>
 </resources>
