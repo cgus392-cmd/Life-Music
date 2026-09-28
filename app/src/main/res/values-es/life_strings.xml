@@ -1063,4 +1063,14 @@
     <string name="boletin_v1120_barra">Historial y Estadísticas viven en un solo botón, y el reto de septiembre se despide. Gracias a todos los que jugaron.</string>
     <string name="boletin_v1120_ademas_1">Si algo no se ve en el TV, en la hoja de Reproducir en… hay «Copiar diagnóstico» para mandármelo.</string>
     <string name="boletin_v1120_ademas_2">Al cambiar de canción transmitiendo ya no arranca a mitad, y tarda menos en cargar.</string>
+
+    <!-- Calidad de audio (1.2.1): antes solo existia «Opus», siempre la mas alta. -->
+    <string name="calidad_auto">Automática</string>
+    <string name="calidad_auto_detalle">Se adapta a la red: alta con Wi-Fi, normal con datos o hotspot, baja si la conexión va lenta</string>
+    <string name="calidad_alta">Alta</string>
+    <string name="calidad_alta_detalle">Opus ~160 kbps · la mejor</string>
+    <string name="calidad_normal">Normal</string>
+    <string name="calidad_normal_detalle">Opus ~70 kbps · carga más rápido, casi no se nota</string>
+    <string name="calidad_baja">Baja</string>
+    <string name="calidad_baja_detalle">Opus ~50 kbps · para señal floja o para ahorrar datos</string>
 </resources>

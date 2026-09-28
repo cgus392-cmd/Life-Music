@@ -36,11 +36,20 @@ import android.app.Activity
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.platform.LocalContext
 import androidx.datastore.preferences.core.edit
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.height
+import androidx.compose.ui.draw.clip
 import com.cglabs.lifemusic.constants.AppLanguageKey
+import com.cglabs.lifemusic.constants.AudioQuality
+import com.cglabs.lifemusic.constants.AudioQualityKey
 import com.cglabs.lifemusic.constants.GreetingEnabledKey
 import com.cglabs.lifemusic.constants.SYSTEM_DEFAULT
 import com.cglabs.lifemusic.utils.dataStore
+import com.cglabs.lifemusic.utils.detalle
+import com.cglabs.lifemusic.utils.rememberEnumPreference
 import com.cglabs.lifemusic.utils.rememberPreference
+import com.cglabs.lifemusic.utils.titulo
 import kotlinx.coroutines.launch
 
 /** Si el fondo ambiente se mueve o se queda quieto. Solo existe en el carro. */
@@ -76,6 +85,8 @@ fun Ajustes(modifier: Modifier = Modifier) {
             )
             HorizontalDivider(color = Color.White.copy(alpha = 0.08f), modifier = Modifier.padding(horizontal = 20.dp))
             FilaIdioma()
+            HorizontalDivider(color = Color.White.copy(alpha = 0.08f), modifier = Modifier.padding(horizontal = 20.dp))
+            FilaCalidad()
         }
         Spacer(Modifier.size(16.dp))
         Row(
@@ -91,6 +102,48 @@ fun Ajustes(modifier: Modifier = Modifier) {
                     fontWeight = FontWeight.Bold,
                 )
                 Text(stringResource(R.string.carro_acerca_texto), style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            }
+        }
+    }
+}
+
+/**
+ * Calidad del audio: cuatro pastillas grandes (Automatica, Alta, Normal, Baja) y
+ * debajo lo que significa la elegida. Automatica viene por defecto: con el
+ * hotspot del telefono (red de datos) pone la normal, que en los parlantes de un
+ * carro casi no se distingue y carga bastante mas rapido.
+ */
+@Composable
+private fun FilaCalidad() {
+    val (calidad, alCambiar) = rememberEnumPreference(AudioQualityKey, defaultValue = AudioQuality.AUTO)
+    Column(Modifier.fillMaxWidth().padding(horizontal = 20.dp, vertical = 16.dp)) {
+        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(18.dp)) {
+            Icon(painterResource(R.drawable.graphic_eq), contentDescription = null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(28.dp))
+            Column(Modifier.weight(1f)) {
+                Text(stringResource(R.string.audio_quality), style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.SemiBold)
+                Text(stringResource(calidad.detalle), style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            }
+        }
+        Spacer(Modifier.size(12.dp))
+        Row(horizontalArrangement = Arrangement.spacedBy(10.dp), modifier = Modifier.fillMaxWidth()) {
+            AudioQuality.entries.forEach { q ->
+                val activa = q == calidad
+                Box(
+                    contentAlignment = Alignment.Center,
+                    modifier = Modifier
+                        .weight(1f)
+                        .height(56.dp)
+                        .clip(RoundedCornerShape(28.dp))
+                        .background(if (activa) MaterialTheme.colorScheme.primary else Color.White.copy(alpha = 0.08f))
+                        .clickable { alCambiar(q) },
+                ) {
+                    Text(
+                        stringResource(q.titulo),
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = if (activa) FontWeight.Bold else FontWeight.Medium,
+                        color = if (activa) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurface,
+                    )
+                }
             }
         }
     }

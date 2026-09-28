@@ -98,7 +98,9 @@ import com.cglabs.lifemusic.ui.component.IconButton
 import com.cglabs.lifemusic.ui.component.Material3SettingsGroup
 import com.cglabs.lifemusic.ui.component.Material3SettingsItem
 import com.cglabs.lifemusic.ui.utils.backToMain
+import com.cglabs.lifemusic.utils.detalle
 import com.cglabs.lifemusic.utils.rememberEnumPreference
+import com.cglabs.lifemusic.utils.titulo
 import com.cglabs.lifemusic.utils.rememberPreference
 import kotlin.math.roundToInt
 import android.content.Intent
@@ -114,7 +116,7 @@ highlightKey: String? = null) {
 
     val (audioQuality, onAudioQualityChange) = rememberEnumPreference(
         AudioQualityKey,
-        defaultValue = AudioQuality.OPUS
+        defaultValue = AudioQuality.AUTO
     )
 
     val (crossfadeEnabled, onCrossfadeEnabledChange) = rememberPreference(
@@ -307,16 +309,9 @@ highlightKey: String? = null) {
             },
             title = stringResource(R.string.audio_quality),
             current = audioQuality,
-            values = listOf(AudioQuality.OPUS),
-            valueText = {
-                when (it) {
-                    AudioQuality.OPUS -> "Opus"
-                    else -> ""
-                }
-            },
-            valueDescription = {
-                ""
-            }
+            values = AudioQuality.entries,
+            valueText = { stringResource(it.titulo) },
+            valueDescription = { stringResource(it.detalle) }
         )
     }
 
@@ -532,15 +527,8 @@ highlightKey: String? = null) {
     isHighlighted = (highlightKey == stringResource(R.string.audio_quality)),
                     icon = painterResource(R.drawable.graphic_eq),
                     title = { Text(stringResource(R.string.audio_quality)) },
-                    description = {
-                        Text(
-                            when (audioQuality) {
-                                AudioQuality.OPUS -> "Opus"
-                                else -> "Opus"
-                            }
-                        )
-                    },
-                    onClick = null
+                    description = { Text(stringResource(audioQuality.titulo)) },
+                    onClick = { showAudioQualityDialog = true }
                 ))
                 
                 add(Material3SettingsItem(

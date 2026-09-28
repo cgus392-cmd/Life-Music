@@ -859,7 +859,7 @@ class MusicService :
 
         audioManager.registerAudioDeviceCallback(audioDeviceCallback, null)
 
-        audioQuality = dataStore.get(AudioQualityKey).toEnum(com.cglabs.lifemusic.constants.AudioQuality.OPUS)
+        audioQuality = dataStore.get(AudioQualityKey).toEnum(com.cglabs.lifemusic.constants.AudioQuality.AUTO)
         ipVersion = dataStore.get(IpVersionKey).toEnum(IpVersion.AUTO)
         playerVolume = MutableStateFlow(restorePlayerVolume(dataStore.get(PlayerVolumeKey, 1f)))
 
@@ -930,9 +930,10 @@ class MusicService :
                     val qualityStr = (try { it[AudioQualityKey] } catch(e: Exception) { null })
                     val quality = qualityStr?.let { value ->
                         com.cglabs.lifemusic.constants.AudioQuality.entries.find { enumVal -> enumVal.name == value }
-                    } ?: com.cglabs.lifemusic.constants.AudioQuality.OPUS
+                    } ?: com.cglabs.lifemusic.constants.AudioQuality.AUTO
                     val dataSaver = it[com.cglabs.lifemusic.constants.DataSaverEnabledKey] ?: false
-                    if (dataSaver) com.cglabs.lifemusic.constants.AudioQuality.OPUS else quality
+                    // Ahorro de datos: la baja, siempre (antes no podia bajar: solo habia una).
+                    if (dataSaver) com.cglabs.lifemusic.constants.AudioQuality.LOW else quality
                 }
                 .distinctUntilChanged()
                 .collect { newQuality ->
@@ -949,19 +950,7 @@ class MusicService :
                     Timber.tag("MusicService").i("QUALITY CHANGED: $oldQuality -> $newQuality")
 
                     Timber.tag("MusicService").i("QUALITY CHANGED: $oldQuality -> $newQuality. Will take effect starting from the next song.")
-
-                    // Clear cache for upcoming songs so they fetch the new quality, keeping the currently playing track's URL cache entry intact.
-                    val currentMediaId = player.currentMediaItem?.mediaId
-                    val currentCachedEntry = currentMediaId?.let { mediaId ->
-                        songUrlCache.filter { it.key.startsWith("${mediaId}_") }
-                    }
-                    songUrlCache.clear()
-                    if (currentCachedEntry != null) {
-                        songUrlCache.putAll(currentCachedEntry)
-                    }
-
-                    // Re-trigger prefetch to fetch the next songs in the new quality
-                    preloadUpcomingItems()
+                    descartarPrecargadas()
                 }
         }
 
@@ -1393,7 +1382,10 @@ class MusicService :
             .setRenderersFactory(createRenderersFactory(eqProcessor, silenceProcessor, filtro, vocalProcessor, envolvente, medidor))
             .setLoadControl(
                 DefaultLoadControl.Builder()
-                    .setBufferDurationsMs(50_000, 50_000, 750, 2_000)
+                    // Tras un corte (rebuffer) se espera a tener 4 s y no 2: con señal
+                    // irregular, reanudar con 2 s hacia cortes seguidos de medio segundo,
+                    // que se sienten peor que una pausa un poco mas larga.
+                    .setBufferDurationsMs(50_000, 50_000, 750, 4_000)
                     .build()
             )
             .setHandleAudioBecomingNoisy(true)
@@ -2421,10 +2413,40 @@ class MusicService :
         }
     }
 
+    /** Cuando fue el ultimo salto o adelanto: el «cargando» que le sigue no es un corte de red. */
+    private var ultimoSaltoMs = 0L
+
+    /**
+     * Olvida las direcciones ya resueltas de las proximas canciones (menos la que
+     * suena) y las vuelve a precargar: para que un cambio de calidad —elegido o por
+     * cortes en Automatica— se note desde la siguiente cancion y no tres despues.
+     */
+    private fun descartarPrecargadas() {
+        val currentMediaId = player.currentMediaItem?.mediaId
+        val currentCachedEntry = currentMediaId?.let { mediaId ->
+            songUrlCache.filter { it.key.startsWith("${mediaId}_") }
+        }
+        songUrlCache.clear()
+        if (currentCachedEntry != null) {
+            songUrlCache.putAll(currentCachedEntry)
+        }
+        preloadUpcomingItems()
+    }
+
     override fun onPlaybackStateChanged(
         @Player.State playbackState: Int,
     ) {
-        
+        // Un corte de verdad: vuelve a «cargando» mientras suena, pasado el arranque
+        // y sin que nadie haya saltado ni adelantado. En Automatica, las siguientes
+        // canciones bajan un escalon de calidad (ver YTPlayerUtils.registrarCorte).
+        if (playbackState == Player.STATE_BUFFERING && player.playWhenReady &&
+            player.currentPosition > 3_000 &&
+            android.os.SystemClock.elapsedRealtime() - ultimoSaltoMs > 3_000 &&
+            audioQuality == com.cglabs.lifemusic.constants.AudioQuality.AUTO
+        ) {
+            if (YTPlayerUtils.registrarCorte()) descartarPrecargadas()
+        }
+
         if (playbackState == Player.STATE_ENDED) {
             if (cachedRepeatMode == REPEAT_MODE_ALL && player.mediaItemCount > 0) {
                 player.seekTo(0, 0)
@@ -3794,6 +3816,7 @@ class MusicService :
             "LifeMusicPista",
             "salto motivo=$reason de=${oldPosition.mediaItemIndex}@${oldPosition.positionMs} a=${newPosition.mediaItemIndex}@${newPosition.positionMs} jugador=${System.identityHashCode(player)}",
         )
+        ultimoSaltoMs = android.os.SystemClock.elapsedRealtime()
         if (reason == Player.DISCONTINUITY_REASON_SEEK) {
             prepareAutomixForCurrentPair()
             scheduleCrossfade()

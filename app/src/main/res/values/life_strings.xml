@@ -1442,4 +1442,14 @@
     <string name="boletin_v1120_barra">History and Stats now live in a single button, and the September challenge says goodbye. Thanks to everyone who played.</string>
     <string name="boletin_v1120_ademas_1">If something does not show on the TV, the Play on… sheet has "Copy diagnostics" to send it to me.</string>
     <string name="boletin_v1120_ademas_2">Changing songs while casting no longer starts mid-song, and loads faster.</string>
+
+    <!-- Calidad de audio (1.2.1): antes solo existia «Opus», siempre la mas alta. -->
+    <string name="calidad_auto">Automatic</string>
+    <string name="calidad_auto_detalle">Adapts to the network: high on Wi-Fi, normal on mobile data or hotspot, low when the connection is slow</string>
+    <string name="calidad_alta">High</string>
+    <string name="calidad_alta_detalle">Opus ~160 kbps · the best</string>
+    <string name="calidad_normal">Normal</string>
+    <string name="calidad_normal_detalle">Opus ~70 kbps · loads faster, hard to tell apart</string>
+    <string name="calidad_baja">Low</string>
+    <string name="calidad_baja_detalle">Opus ~50 kbps · for weak signal or to save data</string>
 </resources>

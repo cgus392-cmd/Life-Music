@@ -19,6 +19,16 @@ esa base**; para la historia anterior, consulte el repositorio de origen.
 
 ### Añadido
 
+- **Calidad de audio de verdad.** En Ajustes → Reproductor (y en la hoja de
+  audio del reproductor): **Automática** (por defecto), **Alta** (Opus ~160
+  kbps), **Normal** (~70 kbps) y **Baja** (~50 kbps). Antes solo existía
+  «Opus», siempre la más alta, y la opción ni se podía tocar. Automática
+  empieza en alta con Wi-Fi y en normal con datos o hotspot, y si una canción
+  se corta en plena reproducción las siguientes bajan un escalón (dos cortes:
+  baja); a los 10 minutos sin cortes vuelve a subir. El ahorro de datos ahora
+  sí baja la calidad. Las descargas siguen en alta. Quien tenía guardado
+  «Opus» pasa a Automática.
+
 - **Temas del TV.** En la hoja de Reproducir en…, mientras se transmite a
   nuestro receptor, «Tema en el TV» con seis tarjetas con vista previa
   dibujada: **Ambiente** (el de siempre), **Cristal líquido**, **Escenario**,
@@ -66,6 +76,18 @@ esa base**; para la historia anterior, consulte el repositorio de origen.
 
 ### Arreglado
 
+- **Las canciones tardaban mucho en empezar.** Antes de sonar, cada canción
+  hacía en fila: generar un PoToken (fallaba siempre: `po_token.html` nunca
+  estuvo en Life Music, y aun así arrancaba un WebView oculto), pedir WEB_REMIX
+  (solo para metadatos), pedir VISIONOS, reextraer todo con NewPipe (su
+  resultado se descartaba) y probar la dirección. Ahora hay un camino rápido:
+  VISIONOS primero y WEB_REMIX en paralelo; NewPipe solo si YouTube no da la
+  dirección directa; sin WebView si falta la plantilla. Medido en el emulador:
+  de ~4,1 s a 0,4–1,1 s antes del primer byte (en un radio de 32 bits la
+  diferencia es mucho mayor). Si el camino rápido falla, sigue el completo de
+  siempre.
+- Tras un corte por red, el reproductor espera 4 s de audio (no 2) antes de
+  seguir: menos cortes seguidos de medio segundo.
 - **La app se cerraba al perderse la transmisión con la pantalla apagada**
   (`ForegroundServiceStartNotAllowedException`, 21-09): al devolver la
   música al teléfono desde segundo plano, Android no deja que el reproductor

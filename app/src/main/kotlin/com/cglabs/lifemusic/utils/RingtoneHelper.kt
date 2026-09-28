@@ -22,7 +22,7 @@ object RingtoneHelper {
     suspend fun getStreamUrl(context: Context, songId: String): String? = withContext(Dispatchers.IO) {
         try {
             val connectivityManager = context.getSystemService<ConnectivityManager>()!!
-            val audioQuality = AudioQuality.OPUS
+            val audioQuality = AudioQuality.HIGH
 
             val result = YTPlayerUtils.playerResponseForPlayback(
                 videoId = songId,

@@ -135,6 +135,7 @@ import com.cglabs.lifemusic.LocalPlayerConnection
 import com.cglabs.lifemusic.constants.AudioQuality
 import com.cglabs.lifemusic.constants.AudioQualityKey
 import com.cglabs.lifemusic.utils.rememberEnumPreference
+import com.cglabs.lifemusic.utils.titulo
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 
@@ -849,7 +850,7 @@ fun VolumeControlRow(
 fun AudioQualitySelector(context: Context) {
     val (audioQuality, onAudioQualityChange) = rememberEnumPreference(
         key = AudioQualityKey,
-        defaultValue = AudioQuality.OPUS
+        defaultValue = AudioQuality.AUTO
     )
 
     Column(
@@ -864,13 +865,9 @@ fun AudioQualitySelector(context: Context) {
                 .fillMaxWidth()
         )
 
-        val options = listOf(
-            "Opus"
-        )
-        val selectedIndex = when (audioQuality) {
-            AudioQuality.OPUS -> 0
-            else -> 0
-        }
+        val calidades = AudioQuality.entries
+        val options = calidades.map { stringResource(it.titulo) }
+        val selectedIndex = calidades.indexOf(audioQuality)
 
         androidx.compose.foundation.layout.FlowRow(
             modifier = Modifier
@@ -884,10 +881,7 @@ fun AudioQualitySelector(context: Context) {
                 ToggleButton(
                     checked = selectedIndex == index,
                     onCheckedChange = {
-                        val newQuality = when (index) {
-                            0 -> AudioQuality.OPUS
-                            else -> AudioQuality.OPUS
-                        }
+                        val newQuality = calidades[index]
                         onAudioQualityChange(newQuality)
                         applyAudioQuality(context, newQuality)
                     },

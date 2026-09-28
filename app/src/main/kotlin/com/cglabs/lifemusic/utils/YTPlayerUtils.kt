@@ -26,7 +26,11 @@ import com.music.innertube.models.response.PlayerResponse
 import com.cglabs.lifemusic.utils.reportException
 
 import com.cglabs.lifemusic.constants.AudioQuality
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.withTimeoutOrNull
 import com.cglabs.lifemusic.utils.cipher.CipherDeobfuscator
 import com.cglabs.lifemusic.utils.YTPlayerUtils.MAIN_CLIENT
 import com.cglabs.lifemusic.utils.YTPlayerUtils.STREAM_FALLBACK_CLIENTS
@@ -278,6 +282,12 @@ object YTPlayerUtils {
             Fix403.kv("sts" to signatureTimestamp.timestamp, "source" to "NewPipeExtractor"),
         )
 
+        // Camino rapido: VISIONOS primero, WEB_REMIX en paralelo (ver caminoRapido).
+        if (!isUploadedTrack) {
+            caminoRapido(videoId, playlistId, audioQuality, connectivityManager, preferirAac, signatureTimestamp.timestamp, fx)
+                ?.let { return@runCatching it }
+        }
+
         // Generate PoToken
         var poToken: PoTokenResult? = null
         val sessionId = if (isLoggedIn) YouTube.dataSyncId else YouTube.visitorData
@@ -476,8 +486,15 @@ object YTPlayerUtils {
                 Timber.tag(logTag).d("Player response status OK for client: ${if (clientIndex == -1) MAIN_CLIENT.clientName else STREAM_FALLBACK_CLIENTS[clientIndex].clientName}")
 
                 // Skip NewPipe for age-restricted content (NewPipe doesn't use our auth)
+                // NewPipe reextrae la pagina entera y descifra con JavaScript: solo vale la
+                // pena si el formato elegido no trae ya su direccion. Cuando la trae (los
+                // clientes VISIONOS/ANDROID_VR la dan lista), su resultado se tiraba igual.
+                val yaTraeDireccion = findFormat(streamPlayerResponse, audioQuality, connectivityManager, preferirAac)
+                    ?.url?.isNotEmpty() == true
                 val responseToUse = if (wasOriginallyAgeRestricted) {
                     Timber.tag(logTag).d("Skipping NewPipe for age-restricted content")
+                    streamPlayerResponse
+                } else if (yaTraeDireccion) {
                     streamPlayerResponse
                 } else {
                     // Try to get streams using newPipePlayer method
@@ -779,6 +796,148 @@ object YTPlayerUtils {
             .onFailure { Timber.tag(logTag).e(it, "Failed to fetch metadata") }
     }
 
+    /** Cuanto se espera, como mucho, a que llegue WEB_REMIX una vez que VISIONOS ya dio el audio. */
+    private const val ESPERA_METADATOS_MS = 800L
+
+    /** Topes de bitrate (bit/s, el `bitrate` que anuncia YouTube, que es el pico). 250 anda por 70-90k; 249 por 50-65k. */
+    private const val TOPE_NORMAL = 110_000
+    private const val TOPE_BAJA = 72_000
+
+    /** Tras este tiempo sin cortes, Automatica olvida los escalones que bajo. */
+    private const val OLVIDO_DE_CORTES_MS = 10 * 60_000L
+
+    /**
+     * Escalones que Automatica baja por cortes recientes (0, 1 o 2). Lo sube
+     * [registrarCorte], que MusicService llama cuando la cancion se queda sin audio
+     * a mitad (el reproductor vuelve a «cargando» sin que nadie haya saltado).
+     *
+     * Por que cortes y no ancho de banda: se probo con el medidor de ExoPlayer y
+     * para audio progresivo no sirve. Cuenta tambien el tiempo que la descarga
+     * espera con el bufer lleno, asi que en un Wi-Fi rapido marcaba ~250 kbps y
+     * Automatica habria bajado la calidad sin motivo. Un corte, en cambio, es la
+     * prueba de que la red no dio abasto.
+     */
+    @Volatile
+    private var escalonesPorCortes = 0
+
+    @Volatile
+    private var ultimoCorteMs = 0L
+
+    private fun escalonesVigentes(): Int {
+        if (escalonesPorCortes > 0 && android.os.SystemClock.elapsedRealtime() - ultimoCorteMs > OLVIDO_DE_CORTES_MS) {
+            escalonesPorCortes = 0
+        }
+        return escalonesPorCortes
+    }
+
+    /**
+     * Un corte en plena cancion: las siguientes, un escalon mas abajo (hasta la baja).
+     * Devuelve true si eso cambia la calidad que Automatica va a pedir, para que
+     * quien llama descarte las direcciones ya precargadas de la calidad anterior.
+     */
+    fun registrarCorte(): Boolean {
+        val antes = escalonesVigentes()
+        escalonesPorCortes = (antes + 1).coerceAtMost(2)
+        ultimoCorteMs = android.os.SystemClock.elapsedRealtime()
+        Timber.tag(TAG).i("Corte en plena cancion: Automatica baja a %d escalon(es)", escalonesPorCortes)
+        return escalonesPorCortes != antes
+    }
+
+    /**
+     * El tope de bitrate para [calidad], o null para «la mejor». Automatica parte de
+     * alta con Wi-Fi y normal con datos moviles o hotspot (red «de pago»), y baja un
+     * escalon por cada corte reciente: alta → normal → baja.
+     */
+    private fun topeDeBitrate(calidad: AudioQuality, connectivityManager: ConnectivityManager): Int? = when (calidad) {
+        AudioQuality.HIGH -> null
+        AudioQuality.NORMAL -> TOPE_NORMAL
+        AudioQuality.LOW -> TOPE_BAJA
+        AudioQuality.AUTO -> {
+            val deDatos = runCatching { connectivityManager.isActiveNetworkMetered }.getOrDefault(true)
+            when ((if (deDatos) 1 else 0) + escalonesVigentes()) {
+                0 -> null
+                1 -> TOPE_NORMAL
+                else -> TOPE_BAJA
+            }
+        }
+    }
+
+    /**
+     * El camino rapido para el caso de casi todas las canciones (ni subidas, ni con
+     * restriccion de edad): pedir directamente a VISIONOS, que trae la direccion del
+     * audio lista (urls=17, ciphers=0), probarla y sonar.
+     *
+     * Antes, cada cancion hacia en fila: PoToken (fallaba siempre), WEB_REMIX (solo
+     * para metadatos), VISIONOS, NewPipe (reextraccion completa, cuyo resultado se
+     * tiraba) y la prueba. Medido en el emulador del radio: ~4,1 s antes del primer
+     * byte, de los que solo ~0,5 s hacian falta; en un radio de 32 bits, NewPipe
+     * interpretando JavaScript lo estiraba a mas de 15 s.
+     *
+     * WEB_REMIX se sigue pidiendo, pero en paralelo: de el salen la sonoridad para
+     * normalizar y la URL de estadisticas del historial. Si tarda mas que la prueba
+     * de la direccion mas [ESPERA_METADATOS_MS], se usan los de VISIONOS.
+     *
+     * Devuelve null (y se sigue por el camino completo de siempre) ante cualquier
+     * cosa rara: estado distinto de OK, pista privada, sin formato, sin direccion
+     * directa o prueba fallida.
+     */
+    private suspend fun caminoRapido(
+        videoId: String,
+        playlistId: String?,
+        audioQuality: AudioQuality,
+        connectivityManager: ConnectivityManager,
+        preferirAac: Boolean,
+        sts: Int?,
+        fx: String,
+    ): PlaybackData? = coroutineScope {
+        val principal = async(Dispatchers.IO) {
+            runCatching { YouTube.player(videoId, playlistId, MAIN_CLIENT, sts, null).getOrNull() }.getOrNull()
+        }
+        fun abandonar(porque: String): PlaybackData? {
+            principal.cancel()
+            Fix403.i(fx, "rapido.descartado", Fix403.kv("porque" to porque))
+            return null
+        }
+
+        val respuesta = Fix403.timed(fx, "rapido.visionos") {
+            YouTube.player(videoId, playlistId, VISIONOS, sts, null).getOrNull()
+        } ?: return@coroutineScope abandonar("sinRespuesta")
+        if (respuesta.playabilityStatus.status != "OK") return@coroutineScope abandonar("estado=${respuesta.playabilityStatus.status}")
+        if (respuesta.videoDetails?.musicVideoType == "MUSIC_VIDEO_TYPE_PRIVATELY_OWNED_TRACK") return@coroutineScope abandonar("privada")
+
+        val format = findFormat(respuesta, audioQuality, connectivityManager, preferirAac)
+            ?: return@coroutineScope abandonar("sinFormato")
+        val url = format.url?.takeIf { it.isNotEmpty() } ?: return@coroutineScope abandonar("sinDireccionDirecta")
+        val expira = respuesta.streamingData?.expiresInSeconds ?: return@coroutineScope abandonar("sinCaducidad")
+        val valida = Fix403.timed(fx, "rapido.prueba") {
+            validateStatus(url, format.contentLength, Fix403.kv("fx" to fx, "client" to "VISIONOS", "itag" to format.itag))
+        }
+        if (!valida) return@coroutineScope abandonar("pruebaFallida")
+
+        val metadatos = withTimeoutOrNull(ESPERA_METADATOS_MS) { principal.await() }
+        if (metadatos == null) principal.cancel()
+        Fix403.i(
+            fx, "rapido.aceptado",
+            Fix403.kv(
+                "videoId" to videoId,
+                "itag" to format.itag,
+                "bitrate" to format.bitrate,
+                "calidad" to audioQuality,
+                "redDeDatos" to runCatching { connectivityManager.isActiveNetworkMetered }.getOrNull(),
+                "escalonesPorCortes" to escalonesVigentes(),
+                "metadatos" to if (metadatos != null) "WEB_REMIX" else "VISIONOS",
+            ),
+        )
+        PlaybackData(
+            audioConfig = metadatos?.playerConfig?.audioConfig ?: respuesta.playerConfig?.audioConfig,
+            videoDetails = metadatos?.videoDetails ?: respuesta.videoDetails,
+            playbackTracking = metadatos?.playbackTracking ?: respuesta.playbackTracking,
+            format = format,
+            streamUrl = url,
+            streamExpiresInSeconds = expira,
+        )
+    }
+
     private fun findFormat(
         playerResponse: PlayerResponse,
         audioQuality: AudioQuality,
@@ -793,11 +952,16 @@ object YTPlayerUtils {
         }
         Timber.tag(logTag).d("Finding format with audioQuality: $audioQuality, network metered: ${connectivityManager.isActiveNetworkMetered}")
 
-        val format = playerResponse.streamingData?.adaptiveFormats
+        // El mejor audio que quepa bajo el tope de la calidad pedida (Opus antes que AAC
+        // a igualdad). Si ninguno cabe, el mas liviano que haya.
+        val audios = playerResponse.streamingData?.adaptiveFormats
             ?.filter { it.isAudio && it.isOriginal }
-            ?.maxByOrNull {
-                it.bitrate * 1 + (if (it.mimeType.startsWith("audio/webm")) 10240 else 0)
-            }
+            .orEmpty()
+        val tope = topeDeBitrate(audioQuality, connectivityManager)
+        val candidatos = if (tope == null) audios else audios.filter { it.bitrate <= tope }.ifEmpty { listOfNotNull(audios.minByOrNull { it.bitrate }) }
+        val format = candidatos.maxByOrNull {
+            it.bitrate * 1 + (if (it.mimeType.startsWith("audio/webm")) 10240 else 0)
+        }
 
         if (format != null) {
             Timber.tag(logTag).d("Selected format: ${format.mimeType}, bitrate: ${format.bitrate}")

@@ -139,7 +139,7 @@ class App : Application(), SingletonImageLoader.Factory {
         val locale = Locale.getDefault()
         val languageTag = locale.language
 
-        val currentAudioQuality = settings[AudioQualityKey]?.toEnum(defaultValue = AudioQuality.OPUS) ?: AudioQuality.OPUS
+        val currentAudioQuality = settings[AudioQualityKey]?.toEnum(defaultValue = AudioQuality.AUTO) ?: AudioQuality.AUTO
         val currentDownloadQuality = settings[DownloadQualityKey]?.toEnum(defaultValue = DownloadQuality.YOUTUBE) ?: DownloadQuality.YOUTUBE
         YouTube.locale = YouTubeLocale(
             gl = settings[ContentCountryKey]?.takeIf { it != SYSTEM_DEFAULT }

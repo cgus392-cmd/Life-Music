@@ -17,6 +17,18 @@ class PoTokenGenerator {
     private val webViewSupported by lazy { runCatching { CookieManager.getInstance() }.isSuccess }
     private var webViewBadImpl = false // whether the system has a bad WebView implementation
 
+    /**
+     * El generador carga `po_token.html` de los assets, y ese archivo no existe en
+     * Life Music (nunca estuvo en el historial: se quedo en el proyecto de origen).
+     * Sin el, cada cancion arrancaba un WebView oculto —0,2 s, o 2,2 s la primera
+     * vez; en un radio de Android 8 mucho mas y ~100 MB de memoria— solo para
+     * fallar con FileNotFoundException. Se comprueba una vez y, si falta, ni se
+     * intenta. Se mira antes que [webViewSupported], que ya despierta el WebView.
+     */
+    private val plantillaDisponible by lazy {
+        runCatching { CipherDeobfuscator.appContext.assets.list("")?.contains("po_token.html") == true }.getOrDefault(false)
+    }
+
     private val webPoTokenGenLock = Mutex()
     private var webPoTokenSessionId: String? = null
     private var webPoTokenStreamingPot: String? = null
@@ -24,6 +36,10 @@ class PoTokenGenerator {
 
     fun getWebClientPoToken(videoId: String, sessionId: String): PoTokenResult? {
         Timber.tag(TAG).d("getWebClientPoToken called: videoId=$videoId, sessionId=$sessionId")
+        if (!plantillaDisponible) {
+            Timber.tag(TAG).d("po_token.html no esta en los assets: sin PoToken")
+            return null
+        }
         Timber.tag(TAG).d("WebView state: supported=$webViewSupported, badImpl=$webViewBadImpl")
         if (!webViewSupported || webViewBadImpl) {
             Timber.tag(TAG).d("WebView not available: supported=$webViewSupported, badImpl=$webViewBadImpl")

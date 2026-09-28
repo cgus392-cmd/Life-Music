@@ -121,8 +121,25 @@ val ShowAudioFallbackToastKey = booleanPreferencesKey("show_audio_fallback_toast
 val AudioQualityKey = stringPreferencesKey("audioQuality")
 val IpVersionKey = stringPreferencesKey("ipVersion")
 
+/**
+ * La calidad del audio al reproducir. Echo la habia dejado en una sola opcion
+ * (OPUS = siempre la mas alta), sin mirar la red: con datos o con el hotspot del
+ * telefono, y sobre todo en un radio de carro, eso alarga la carga y entrecorta.
+ * Quien tenga guardado el viejo «OPUS» cae en [AUTO] (toEnum no lo encuentra y
+ * usa el valor por defecto), que es lo que de verdad queria: que suene bien.
+ */
 enum class AudioQuality {
-    OPUS,
+    /** Se adapta a la red: alta con Wi-Fi, normal con datos o hotspot, baja si la conexion va lenta. */
+    AUTO,
+
+    /** Opus ~160 kbps (itag 251): la mejor. */
+    HIGH,
+
+    /** Opus ~70 kbps (itag 250): en los parlantes de un carro casi no se distingue de la alta. */
+    NORMAL,
+
+    /** Opus ~50 kbps (itag 249): para señal floja o para ahorrar datos. */
+    LOW,
 }
 
 val DownloadQualityKey = stringPreferencesKey("downloadQuality")
