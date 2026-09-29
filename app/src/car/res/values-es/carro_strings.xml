@@ -108,4 +108,7 @@
     <string name="carro_tipo_album">Álbum</string>
     <string name="carro_tipo_lista">Lista</string>
     <string name="carro_tipo_cancion">Canción</string>
+    <string name="carro_cola_vaciar">Vaciar lo que viene</string>
+    <string name="carro_cola_quitar">Quitar de la cola</string>
+    <string name="carro_cola_mover">Arrastra para mover</string>
 </resources>

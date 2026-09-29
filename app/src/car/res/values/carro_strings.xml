@@ -109,4 +109,7 @@
     <string name="carro_tipo_album">Album</string>
     <string name="carro_tipo_lista">Playlist</string>
     <string name="carro_tipo_cancion">Song</string>
+    <string name="carro_cola_vaciar">Clear upcoming</string>
+    <string name="carro_cola_quitar">Remove from queue</string>
+    <string name="carro_cola_mover">Drag to reorder</string>
 </resources>

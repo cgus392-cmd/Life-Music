@@ -5,6 +5,12 @@ package com.cglabs.lifemusic.car
 import androidx.compose.animation.Crossfade
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.animateDpAsState
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.foundation.gestures.detectHorizontalDragGestures
+import androidx.compose.foundation.gestures.detectTapGestures
+import androidx.compose.foundation.layout.RowScope
+import androidx.compose.ui.graphics.lerp
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Canvas
@@ -140,6 +146,7 @@ fun FilaCancion(
     modifier: Modifier = Modifier,
     activa: Boolean = false,
     sonando: Boolean = false,
+    final: @Composable RowScope.() -> Unit = {},
 ) {
     val forma = RoundedCornerShape(20.dp)
     Row(
@@ -170,6 +177,7 @@ fun FilaCancion(
             )
             Text(artistas, style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.onSurfaceVariant, maxLines = 1, overflow = TextOverflow.Ellipsis)
         }
+        final()
     }
 }
 
@@ -225,19 +233,76 @@ fun reloj(ms: Long): String {
     return "%d:%02d".format(s / 60, s % 60)
 }
 
-/** La barra ondulada de Expressive, con los tiempos: ondula mientras suena y se queda lisa en pausa. */
+/**
+ * La barra ondulada de Expressive, con los tiempos: ondula mientras suena y se
+ * queda lisa en pausa. Se toca para saltar a ese punto o se arrastra: mientras
+ * el dedo esta encima la barra sigue al dedo, deja de ondular y el tiempo de
+ * la izquierda se agranda y dice a donde se va a saltar. La zona tactil mide
+ * 48 dp aunque la barra se vea de 16.
+ */
 @Composable
 fun BarraOndulada(conexion: PlayerConnection?, sonando: Boolean, m: MediaMetadata?, modifier: Modifier = Modifier) {
     val (posicion, duracion) = progresoDe(conexion, sonando, m)
     val fraccion = if (duracion > 0) (posicion.toFloat() / duracion).coerceIn(0f, 1f) else 0f
+    // Mientras se arrastra, a donde apunta el dedo (0..1); null sin dedo.
+    var arrastre by remember { mutableStateOf<Float?>(null) }
+    // Tras soltar, la posicion pedida se muestra hasta que el reproductor la alcance
+    // (si no, la barra volveria un instante al punto viejo).
+    var pedida by remember { mutableStateOf<Float?>(null) }
+    LaunchedEffect(pedida) {
+        if (pedida != null) {
+            delay(900)
+            pedida = null
+        }
+    }
+    val mostrada = arrastre ?: pedida ?: fraccion
+    val grande by animateFloatAsState(if (arrastre != null) 1f else 0f, tween(180), label = "tiempoGrande")
+
+    fun saltar(f: Float) {
+        if (duracion <= 0) return
+        pedida = f
+        conexion?.seekTo((f * duracion).toLong())
+    }
+
     Column(modifier) {
-        LinearWavyProgressIndicator(
-            progress = { fraccion },
-            amplitude = { if (sonando) 1f else 0f },
-            modifier = Modifier.fillMaxWidth().height(16.dp),
-        )
-        Row(Modifier.fillMaxWidth().padding(top = 6.dp)) {
-            Text(reloj(posicion), style = MaterialTheme.typography.titleSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        Box(
+            contentAlignment = Alignment.Center,
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(48.dp)
+                .pointerInput(duracion) {
+                    detectTapGestures { o -> saltar((o.x / size.width).coerceIn(0f, 1f)) }
+                }
+                .pointerInput(duracion) {
+                    detectHorizontalDragGestures(
+                        onDragStart = { o -> arrastre = (o.x / size.width).coerceIn(0f, 1f) },
+                        onHorizontalDrag = { cambio, _ ->
+                            cambio.consume()
+                            arrastre = (cambio.position.x / size.width).coerceIn(0f, 1f)
+                        },
+                        onDragEnd = {
+                            arrastre?.let(::saltar)
+                            arrastre = null
+                        },
+                        onDragCancel = { arrastre = null },
+                    )
+                },
+        ) {
+            LinearWavyProgressIndicator(
+                progress = { mostrada },
+                amplitude = { if (sonando && arrastre == null) 1f else 0f },
+                modifier = Modifier.fillMaxWidth().height(16.dp),
+            )
+        }
+        // Alto fijo: el tiempo que crece al arrastrar no empuja el titulo hacia arriba.
+        Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth().height(32.dp)) {
+            Text(
+                reloj(if (arrastre != null || pedida != null) (mostrada * duracion).toLong() else posicion),
+                style = MaterialTheme.typography.titleSmall,
+                fontWeight = if (grande > 0.5f) FontWeight.Bold else FontWeight.Normal,
+                color = lerp(MaterialTheme.colorScheme.onSurfaceVariant, MaterialTheme.colorScheme.primary, grande),
+                fontSize = MaterialTheme.typography.titleSmall.fontSize * (1f + grande * 0.8f),
+            )
             Spacer(Modifier.weight(1f))
             Text(reloj(duracion), style = MaterialTheme.typography.titleSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
         }

@@ -3,7 +3,19 @@ package com.cglabs.lifemusic.car
 import android.widget.Toast
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.Crossfade
+import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
+import androidx.compose.foundation.gestures.detectHorizontalDragGestures
+import androidx.compose.foundation.gestures.detectTapGestures
+import androidx.compose.foundation.gestures.detectVerticalDragGestures
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.platform.LocalDensity
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInVertically
@@ -68,18 +80,39 @@ import kotlinx.coroutines.flow.flowOf
  * Sonando a pantalla completa: la caratula todo lo alta que da la pantalla a la
  * izquierda y, a la derecha, la hora en grande, el titulo, la barra ondulada y
  * los controles. Se abre tocando el mini reproductor y se cierra con la flecha
- * (o con Atras). El fondo es el mismo ambiente de siempre, que sigue debajo.
+ * (con Atras, o bajandola con el dedo). El fondo es el mismo ambiente de
+ * siempre, que sigue debajo.
  */
 @Composable
 fun SonandoCompleto(conexion: PlayerConnection?, m: MediaMetadata?, alCerrar: () -> Unit, modifier: Modifier = Modifier) {
     val sonando = sonandoAhora(conexion)
     val navegador = LocalNavegador.current
     var verLetra by rememberSaveable { mutableStateOf(false) }
+    val alcance = rememberCoroutineScope()
+    val umbral = with(LocalDensity.current) { 96.dp.toPx() }
+    // Bajar para cerrar: toda la pantalla sigue al dedo hacia abajo y se desvanece.
+    val bajada = remember { Animatable(0f) }
     Row(
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(36.dp),
         modifier = modifier
             .fillMaxSize()
+            .graphicsLayer {
+                translationY = bajada.value
+                alpha = 1f - (bajada.value / size.height * 1.6f).coerceIn(0f, 0.7f)
+            }
+            .pointerInput(Unit) {
+                detectVerticalDragGestures(
+                    onVerticalDrag = { cambio, dy ->
+                        cambio.consume()
+                        alcance.launch { bajada.snapTo((bajada.value + dy).coerceAtLeast(0f)) }
+                    },
+                    onDragEnd = {
+                        if (bajada.value > umbral) alCerrar() else alcance.launch { bajada.animateTo(0f, spring(dampingRatio = 0.7f)) }
+                    },
+                    onDragCancel = { alcance.launch { bajada.animateTo(0f) } },
+                )
+            }
             .windowInsetsPadding(WindowInsets.navigationBars.union(WindowInsets.displayCutout))
             .padding(28.dp),
     ) {
@@ -88,7 +121,7 @@ fun SonandoCompleto(conexion: PlayerConnection?, m: MediaMetadata?, alCerrar: ()
             if (letra) {
                 Letra(conexion, sonando, Modifier.fillMaxSize())
             } else {
-                Caratula(m?.thumbnailUrl, RoundedCornerShape(36.dp), Modifier.fillMaxSize(), tamano = 480.dp, sombra = 18.dp)
+                CaratulaConGestos(conexion, m, umbral, Modifier.fillMaxSize())
             }
         }
         Column(Modifier.weight(1f).fillMaxHeight()) {
@@ -157,6 +190,83 @@ fun SonandoCompleto(conexion: PlayerConnection?, m: MediaMetadata?, alCerrar: ()
                 Controles(conexion, sonando, Modifier.weight(1f), escala = 0.92f)
                 MeGusta(conexion, m)
             }
+        }
+    }
+}
+
+/**
+ * La caratula grande de Sonando, que tambien se maneja con el dedo:
+ *  - deslizarla a la izquierda pasa a la siguiente; a la derecha, la anterior
+ *    (sigue al dedo, se va por el lado y la nueva entra desde el otro);
+ *  - doble toque: me gusta, con un corazon que late encima. Si ya gustaba no la
+ *    quita (un doble toque por un bache no deberia borrar nada).
+ */
+@Composable
+private fun CaratulaConGestos(conexion: PlayerConnection?, m: MediaMetadata?, umbral: Float, modifier: Modifier = Modifier) {
+    val alcance = rememberCoroutineScope()
+    val lado = remember { Animatable(0f) }
+    val latido = remember { Animatable(0f) }
+    val cancion by remember(conexion) { conexion?.currentSong ?: flowOf<Song?>(null) }.collectAsState(initial = null)
+    Box(
+        contentAlignment = Alignment.Center,
+        modifier = modifier
+            .graphicsLayer {
+                translationX = lado.value
+                rotationZ = lado.value / size.width * 8f
+                alpha = 1f - (kotlin.math.abs(lado.value) / size.width).coerceIn(0f, 0.8f)
+            }
+            .pointerInput(conexion) {
+                detectTapGestures(onDoubleTap = {
+                    if (cancion?.song?.liked != true) conexion?.toggleLike()
+                    alcance.launch {
+                        latido.snapTo(0.01f)
+                        latido.animateTo(1f, spring(dampingRatio = 0.45f, stiffness = 500f))
+                        delay(450)
+                        latido.animateTo(0f, tween(220))
+                    }
+                })
+            }
+            .pointerInput(conexion) {
+                detectHorizontalDragGestures(
+                    onHorizontalDrag = { cambio, dx ->
+                        cambio.consume()
+                        alcance.launch { lado.snapTo(lado.value + dx) }
+                    },
+                    onDragEnd = {
+                        val hacia = when {
+                            lado.value < -umbral -> -1f
+                            lado.value > umbral -> 1f
+                            else -> 0f
+                        }
+                        alcance.launch {
+                            if (hacia == 0f) {
+                                lado.animateTo(0f, spring(dampingRatio = 0.7f))
+                                return@launch
+                            }
+                            lado.animateTo(hacia * size.width, tween(160))
+                            if (hacia < 0) conexion?.seekToNext() else conexion?.seekToPrevious()
+                            lado.snapTo(-hacia * size.width * 0.5f)
+                            lado.animateTo(0f, spring(dampingRatio = 0.8f, stiffness = 300f))
+                        }
+                    },
+                    onDragCancel = { alcance.launch { lado.animateTo(0f) } },
+                )
+            },
+    ) {
+        Caratula(m?.thumbnailUrl, RoundedCornerShape(36.dp), Modifier.fillMaxSize(), tamano = 480.dp, sombra = 18.dp)
+        if (latido.value > 0f) {
+            Icon(
+                painterResource(R.drawable.favorite),
+                contentDescription = null,
+                tint = Color.White,
+                modifier = Modifier
+                    .size(140.dp)
+                    .graphicsLayer {
+                        scaleX = latido.value
+                        scaleY = latido.value
+                        alpha = latido.value.coerceIn(0f, 1f)
+                    },
+            )
         }
     }
 }
