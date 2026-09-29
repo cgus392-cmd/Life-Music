@@ -8,6 +8,9 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
 
+    <!-- La señal del Wi-Fi, para el indicador de red de Inicio (permiso normal: no se pregunta). -->
+    <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
+
     <!-- Para saber si el radio tiene dictado (el microfono de Buscar). -->
     <queries>
         <intent>

@@ -112,4 +112,24 @@
     <string name="carro_cola_vaciar">Clear upcoming</string>
     <string name="carro_cola_quitar">Remove from queue</string>
     <string name="carro_cola_mover">Drag to reorder</string>
+    <string name="carro_rendimiento">Performance</string>
+    <string name="carro_rendimiento_automatico">Automatic</string>
+    <string name="carro_rendimiento_ligero">Light</string>
+    <string name="carro_rendimiento_completo">Full</string>
+    <string name="carro_rendimiento_equipo">Your radio: %1$s of RAM · %2$d cores · %3$s</string>
+    <string name="carro_rendimiento_32">32-bit</string>
+    <string name="carro_rendimiento_64">64-bit</string>
+    <string name="carro_rendimiento_efecto_ligero">Running Light: no canvas and a still background, so maps and music fit in memory</string>
+    <string name="carro_rendimiento_efecto_completo">Running Full: canvas and a moving background</string>
+    <string name="carro_ajuste_fondo_ligero">Stays still in the Light profile</string>
+    <string name="carro_red_midiendo">Measuring…</string>
+    <string name="carro_red_estable">Stable</string>
+    <string name="carro_red_lenta">Slow</string>
+    <string name="carro_red_deficiente">Poor</string>
+    <string name="carro_red_sin_internet">No internet</string>
+    <string name="carro_red_sin_conexion">Offline</string>
+    <string name="carro_red_wifi">Wi-Fi</string>
+    <string name="carro_red_datos">Mobile data</string>
+    <string name="carro_red_cable">Wired network</string>
+    <string name="carro_red_descripcion">Network: %1$s, %2$s. Tap to measure again</string>
 </resources>

@@ -58,12 +58,13 @@ val CarroFondoEnMovimientoKey = booleanPreferencesKey("carroFondoEnMovimiento")
 /**
  * Ajustes del carro. Pocos y grandes, cada fila entera es el interruptor: en
  * marcha nadie apunta a un switch de 32 dp. Crecera con las tandas (modo
- * noche, ecualizador, perfil segun la RAM).
+ * noche, ecualizador).
  */
 @Composable
 fun Ajustes(modifier: Modifier = Modifier) {
     var saludo by rememberPreference(GreetingEnabledKey, defaultValue = true)
     var fondoEnMovimiento by rememberPreference(CarroFondoEnMovimientoKey, defaultValue = true)
+    val ligero = LocalPerfil.current == Perfil.LIGERO
 
     Column(modifier.fillMaxSize().verticalScroll(rememberScrollState())) {
         TituloDePantalla(stringResource(R.string.carro_ajustes))
@@ -76,17 +77,21 @@ fun Ajustes(modifier: Modifier = Modifier) {
                 alCambiar = { saludo = it },
             )
             HorizontalDivider(color = Color.White.copy(alpha = 0.08f), modifier = Modifier.padding(horizontal = 20.dp))
+            // En Ligero el fondo va quieto sin importar el interruptor: se dice y se deja apagado.
             FilaInterruptor(
                 icono = R.drawable.gradient,
                 titulo = stringResource(R.string.carro_ajuste_fondo),
-                texto = stringResource(R.string.carro_ajuste_fondo_texto),
-                valor = fondoEnMovimiento,
+                texto = stringResource(if (ligero) R.string.carro_ajuste_fondo_ligero else R.string.carro_ajuste_fondo_texto),
+                valor = fondoEnMovimiento && !ligero,
                 alCambiar = { fondoEnMovimiento = it },
+                habilitada = !ligero,
             )
             HorizontalDivider(color = Color.White.copy(alpha = 0.08f), modifier = Modifier.padding(horizontal = 20.dp))
             FilaIdioma()
             HorizontalDivider(color = Color.White.copy(alpha = 0.08f), modifier = Modifier.padding(horizontal = 20.dp))
             FilaCalidad()
+            HorizontalDivider(color = Color.White.copy(alpha = 0.08f), modifier = Modifier.padding(horizontal = 20.dp))
+            FilaRendimiento()
         }
         Spacer(Modifier.size(16.dp))
         Row(
@@ -125,25 +130,68 @@ private fun FilaCalidad() {
             }
         }
         Spacer(Modifier.size(12.dp))
-        Row(horizontalArrangement = Arrangement.spacedBy(10.dp), modifier = Modifier.fillMaxWidth()) {
-            AudioQuality.entries.forEach { q ->
-                val activa = q == calidad
-                Box(
-                    contentAlignment = Alignment.Center,
-                    modifier = Modifier
-                        .weight(1f)
-                        .height(56.dp)
-                        .clip(RoundedCornerShape(28.dp))
-                        .background(if (activa) MaterialTheme.colorScheme.primary else Color.White.copy(alpha = 0.08f))
-                        .clickable { alCambiar(q) },
-                ) {
-                    Text(
-                        stringResource(q.titulo),
-                        style = MaterialTheme.typography.titleMedium,
-                        fontWeight = if (activa) FontWeight.Bold else FontWeight.Medium,
-                        color = if (activa) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurface,
-                    )
-                }
+        Pastillas(AudioQuality.entries, calidad, { stringResource(it.titulo) }, alCambiar)
+    }
+}
+
+/**
+ * Rendimiento: lo que se detecto del radio y las tres formas de ir. Automatico
+ * (por defecto) decide con la RAM; Ligero y Completo lo fuerzan, por si el
+ * radio se defiende mejor (o peor) de lo que dice su memoria.
+ */
+@Composable
+private fun FilaRendimiento() {
+    val equipo = LocalEquipo.current
+    val (modo, alCambiar) = rememberEnumPreference(CarroRendimientoKey, defaultValue = ModoRendimiento.AUTOMATICO)
+    val perfil = perfilDe(modo, equipo)
+    Column(Modifier.fillMaxWidth().padding(horizontal = 20.dp, vertical = 16.dp)) {
+        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(18.dp)) {
+            Icon(painterResource(R.drawable.speed), contentDescription = null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(28.dp))
+            Column(Modifier.weight(1f)) {
+                Text(stringResource(R.string.carro_rendimiento), style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.SemiBold)
+                Text(
+                    stringResource(
+                        R.string.carro_rendimiento_equipo,
+                        equipo.ramTexto,
+                        equipo.nucleos,
+                        stringResource(if (equipo.bits64) R.string.carro_rendimiento_64 else R.string.carro_rendimiento_32),
+                    ),
+                    style = MaterialTheme.typography.bodyLarge,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+                Text(
+                    stringResource(if (perfil == Perfil.LIGERO) R.string.carro_rendimiento_efecto_ligero else R.string.carro_rendimiento_efecto_completo),
+                    style = MaterialTheme.typography.bodyLarge,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
+        }
+        Spacer(Modifier.size(12.dp))
+        Pastillas(ModoRendimiento.entries, modo, { stringResource(it.titulo) }, alCambiar)
+    }
+}
+
+/** Una fila de pastillas del mismo ancho: la elegida, llena del color de la caratula. */
+@Composable
+private fun <T> Pastillas(opciones: List<T>, actual: T, titulo: @Composable (T) -> String, alElegir: (T) -> Unit) {
+    Row(horizontalArrangement = Arrangement.spacedBy(10.dp), modifier = Modifier.fillMaxWidth()) {
+        opciones.forEach { opcion ->
+            val activa = opcion == actual
+            Box(
+                contentAlignment = Alignment.Center,
+                modifier = Modifier
+                    .weight(1f)
+                    .height(56.dp)
+                    .clip(RoundedCornerShape(28.dp))
+                    .background(if (activa) MaterialTheme.colorScheme.primary else Color.White.copy(alpha = 0.08f))
+                    .clickable { alElegir(opcion) },
+            ) {
+                Text(
+                    titulo(opcion),
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = if (activa) FontWeight.Bold else FontWeight.Medium,
+                    color = if (activa) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurface,
+                )
             }
         }
     }
@@ -191,14 +239,21 @@ private fun FilaIdioma() {
 }
 
 @Composable
-private fun FilaInterruptor(icono: Int, titulo: String, texto: String, valor: Boolean, alCambiar: (Boolean) -> Unit) {
+private fun FilaInterruptor(
+    icono: Int,
+    titulo: String,
+    texto: String,
+    valor: Boolean,
+    alCambiar: (Boolean) -> Unit,
+    habilitada: Boolean = true,
+) {
     Row(
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(18.dp),
         modifier = Modifier
             .fillMaxWidth()
             .heightIn(min = 88.dp)
-            .clickable { alCambiar(!valor) }
+            .clickable(enabled = habilitada) { alCambiar(!valor) }
             .padding(horizontal = 20.dp, vertical = 12.dp),
     ) {
         Icon(painterResource(icono), contentDescription = null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(28.dp))
@@ -206,6 +261,6 @@ private fun FilaInterruptor(icono: Int, titulo: String, texto: String, valor: Bo
             Text(titulo, style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.SemiBold)
             Text(texto, style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.onSurfaceVariant)
         }
-        Switch(checked = valor, onCheckedChange = alCambiar)
+        Switch(checked = valor, onCheckedChange = alCambiar, enabled = habilitada)
     }
 }

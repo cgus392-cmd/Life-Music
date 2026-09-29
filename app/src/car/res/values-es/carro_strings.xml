@@ -111,4 +111,24 @@
     <string name="carro_cola_vaciar">Vaciar lo que viene</string>
     <string name="carro_cola_quitar">Quitar de la cola</string>
     <string name="carro_cola_mover">Arrastra para mover</string>
+    <string name="carro_rendimiento">Rendimiento</string>
+    <string name="carro_rendimiento_automatico">Automático</string>
+    <string name="carro_rendimiento_ligero">Ligero</string>
+    <string name="carro_rendimiento_completo">Completo</string>
+    <string name="carro_rendimiento_equipo">Tu radio: %1$s de RAM · %2$d núcleos · %3$s</string>
+    <string name="carro_rendimiento_32">32 bits</string>
+    <string name="carro_rendimiento_64">64 bits</string>
+    <string name="carro_rendimiento_efecto_ligero">Va en Ligero: sin canvas y con el fondo quieto, para que el mapa y la música quepan en la memoria</string>
+    <string name="carro_rendimiento_efecto_completo">Va en Completo: canvas y fondo en movimiento</string>
+    <string name="carro_ajuste_fondo_ligero">Quieto en el perfil Ligero</string>
+    <string name="carro_red_midiendo">Midiendo…</string>
+    <string name="carro_red_estable">Estable</string>
+    <string name="carro_red_lenta">Lenta</string>
+    <string name="carro_red_deficiente">Deficiente</string>
+    <string name="carro_red_sin_internet">Sin internet</string>
+    <string name="carro_red_sin_conexion">Sin conexión</string>
+    <string name="carro_red_wifi">Wi-Fi</string>
+    <string name="carro_red_datos">Datos móviles</string>
+    <string name="carro_red_cable">Red por cable</string>
+    <string name="carro_red_descripcion">Red: %1$s, %2$s. Toca para medir de nuevo</string>
 </resources>

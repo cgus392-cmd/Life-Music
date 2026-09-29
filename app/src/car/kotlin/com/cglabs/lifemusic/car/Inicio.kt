@@ -163,10 +163,14 @@ fun Inicio(
 
     LazyColumn(contentPadding = PaddingValues(bottom = 16.dp), modifier = modifier.fillMaxSize()) {
         item(key = "saludo") {
-            Column {
-                Text(cabeceraDeLaHora(contexto, ahora), style = MaterialTheme.typography.displaySmall, fontWeight = FontWeight.Bold)
-                Text(fechaLarga(ahora), style = MaterialTheme.typography.titleLarge, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                Spacer(Modifier.height(20.dp))
+            // El saludo a la izquierda y, enfrente, como esta la red.
+            Row(verticalAlignment = Alignment.Top, modifier = Modifier.padding(bottom = 20.dp)) {
+                Column(Modifier.weight(1f)) {
+                    Text(cabeceraDeLaHora(contexto, ahora), style = MaterialTheme.typography.displaySmall, fontWeight = FontWeight.Bold)
+                    Text(fechaLarga(ahora), style = MaterialTheme.typography.titleLarge, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                }
+                Spacer(Modifier.width(16.dp))
+                IndicadorDeRed(Modifier.padding(top = 4.dp))
             }
         }
         item(key = "sonando") {

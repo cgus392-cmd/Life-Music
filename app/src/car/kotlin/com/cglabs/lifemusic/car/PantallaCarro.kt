@@ -48,6 +48,7 @@ import com.cglabs.lifemusic.models.MediaMetadata
 import com.cglabs.lifemusic.playback.PlayerConnection
 import com.cglabs.lifemusic.ui.component.SaludoEntrada
 import com.cglabs.lifemusic.ui.theme.LifeMusicTheme
+import com.cglabs.lifemusic.utils.rememberEnumPreference
 import com.cglabs.lifemusic.utils.rememberPreference
 
 /**
@@ -74,6 +75,8 @@ fun PantallaCarro(conexion: PlayerConnection?) {
 
     val animar = remember { animacionesDelSistema(contexto) }
     val fondoEnMovimiento by rememberPreference(CarroFondoEnMovimientoKey, defaultValue = true)
+    val (modoRendimiento, _) = rememberEnumPreference(CarroRendimientoKey, defaultValue = ModoRendimiento.AUTOMATICO)
+    val perfil = perfilDe(modoRendimiento, LocalEquipo.current)
     var destino by rememberSaveable { mutableStateOf(Destino.INICIO) }
     var sonandoAbierto by rememberSaveable { mutableStateOf(false) }
     // Una vez por arranque en frio, como el saludo del telefono (girar o volver de otra app no lo repite).
@@ -108,9 +111,10 @@ fun PantallaCarro(conexion: PlayerConnection?) {
 
     LifeMusicTheme(darkTheme = true, themeColor = color) {
         Surface(color = Color.Transparent, contentColor = MaterialTheme.colorScheme.onSurface, modifier = Modifier.fillMaxSize()) {
-            CompositionLocalProvider(LocalNavegador provides navegador) {
+            CompositionLocalProvider(LocalNavegador provides navegador, LocalPerfil provides perfil) {
                 Box(Modifier.fillMaxSize()) {
-                    FondoAmbiente(metadatos?.thumbnailUrl, moverse = fondoEnMovimiento && animar)
+                    // En Ligero el fondo se queda quieto: dos capas girando a 20 fps son GPU que el mapa necesita.
+                    FondoAmbiente(metadatos?.thumbnailUrl, moverse = fondoEnMovimiento && animar && perfil == Perfil.COMPLETO)
 
                     AnimatedVisibility(
                         visible = !sonandoAbierto,

@@ -49,6 +49,12 @@ class CarActivity : ComponentActivity() {
 
     private var conexion by mutableStateOf<PlayerConnection?>(null)
 
+    /** Lo que aguanta el radio (RAM, nucleos, bits): se mide una vez. */
+    private val equipo by lazy { Equipo.medir(this) }
+
+    /** La red, vigilada solo mientras la app esta a la vista. */
+    private val monitorDeRed by lazy { MonitorDeRed(applicationContext) }
+
     private val alServicio = object : ServiceConnection {
         override fun onServiceConnected(name: ComponentName?, service: IBinder?) {
             if (service is MusicBinder) {
@@ -67,7 +73,13 @@ class CarActivity : ComponentActivity() {
         window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
         WindowCompat.setDecorFitsSystemWindows(window, false)
         aplicarIdioma()
-        setContent { CompositionLocalProvider(LocalDescargas provides descargas) { PantallaCarro(conexion) } }
+        setContent {
+            CompositionLocalProvider(
+                LocalDescargas provides descargas,
+                LocalEquipo provides equipo,
+                LocalMonitorDeRed provides monitorDeRed,
+            ) { PantallaCarro(conexion) }
+        }
         ocultarBarraDeEstado()
         vigilarBarraDeEstado()
     }
@@ -125,9 +137,11 @@ class CarActivity : ComponentActivity() {
     override fun onStart() {
         super.onStart()
         bindService(Intent(this, MusicService::class.java), alServicio, BIND_AUTO_CREATE)
+        monitorDeRed.empezar()
     }
 
     override fun onStop() {
+        monitorDeRed.parar()
         unbindService(alServicio)
         super.onStop()
     }
