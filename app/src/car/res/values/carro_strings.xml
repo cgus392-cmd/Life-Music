@@ -93,4 +93,20 @@
     <string name="carro_descarga_empezo">Downloading “%1$s”</string>
     <string name="carro_ya_no_me_gusta">Remove from Liked</string>
     <string name="carro_radio_cancion">Radio from this song</string>
+    <string name="carro_filtro_canciones">Songs</string>
+    <string name="carro_filtro_artistas">Artists</string>
+    <string name="carro_filtro_albumes">Albums</string>
+    <string name="carro_filtro_listas">Playlists</string>
+    <string name="carro_filtro_videos">Videos</string>
+    <string name="carro_buscar_nada">Nothing found for “%1$s”</string>
+    <string name="carro_borrar_texto">Clear</string>
+    <string name="carro_dictar">Search by voice</string>
+    <string name="carro_busquedas_recientes">Recent searches</string>
+    <string name="carro_borrar_todo">Clear all</string>
+    <string name="carro_olvidar">Forget this search</string>
+    <string name="carro_completar">Keep typing from here</string>
+    <string name="carro_tipo_artista">Artist</string>
+    <string name="carro_tipo_album">Album</string>
+    <string name="carro_tipo_lista">Playlist</string>
+    <string name="carro_tipo_cancion">Song</string>
 </resources>

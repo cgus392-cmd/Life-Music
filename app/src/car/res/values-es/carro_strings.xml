@@ -92,4 +92,20 @@
     <string name="carro_descarga_empezo">Descargando «%1$s»</string>
     <string name="carro_ya_no_me_gusta">Quitar de Me gusta</string>
     <string name="carro_radio_cancion">Radio de esta canción</string>
+    <string name="carro_filtro_canciones">Canciones</string>
+    <string name="carro_filtro_artistas">Artistas</string>
+    <string name="carro_filtro_albumes">Álbumes</string>
+    <string name="carro_filtro_listas">Listas</string>
+    <string name="carro_filtro_videos">Videos</string>
+    <string name="carro_buscar_nada">Nada para «%1$s»</string>
+    <string name="carro_borrar_texto">Borrar</string>
+    <string name="carro_dictar">Buscar con la voz</string>
+    <string name="carro_busquedas_recientes">Búsquedas recientes</string>
+    <string name="carro_borrar_todo">Borrar todo</string>
+    <string name="carro_olvidar">Olvidar esta búsqueda</string>
+    <string name="carro_completar">Seguir escribiendo desde aquí</string>
+    <string name="carro_tipo_artista">Artista</string>
+    <string name="carro_tipo_album">Álbum</string>
+    <string name="carro_tipo_lista">Lista</string>
+    <string name="carro_tipo_cancion">Canción</string>
 </resources>
