@@ -132,4 +132,12 @@
     <string name="carro_red_datos">Mobile data</string>
     <string name="carro_red_cable">Wired network</string>
     <string name="carro_red_descripcion">Network: %1$s, %2$s. Tap to measure again</string>
+    <string name="carro_canvas">Canvas</string>
+    <string name="carro_canvas_automatico">Automatic</string>
+    <string name="carro_canvas_siempre">Always</string>
+    <string name="carro_canvas_nunca">Never</string>
+    <string name="carro_canvas_automatico_texto">The looping video on the cover in Now Playing. Loads when the network is stable and the song has already loaded</string>
+    <string name="carro_canvas_siempre_texto">Loads whenever there is internet, after the song. Uses more data</string>
+    <string name="carro_canvas_nunca_texto">Just the cover</string>
+    <string name="carro_canvas_ligero">Your radio runs Light: automatic mode doesn\'t load it</string>
 </resources>

@@ -131,4 +131,12 @@
     <string name="carro_red_datos">Datos móviles</string>
     <string name="carro_red_cable">Red por cable</string>
     <string name="carro_red_descripcion">Red: %1$s, %2$s. Toca para medir de nuevo</string>
+    <string name="carro_canvas">Canvas</string>
+    <string name="carro_canvas_automatico">Automático</string>
+    <string name="carro_canvas_siempre">Siempre</string>
+    <string name="carro_canvas_nunca">Nunca</string>
+    <string name="carro_canvas_automatico_texto">El video en bucle de la carátula, en Sonando. Se carga con la red estable y cuando la canción ya cargó</string>
+    <string name="carro_canvas_siempre_texto">Se carga siempre que haya internet, después de la canción. Gasta más datos</string>
+    <string name="carro_canvas_nunca_texto">Solo la carátula</string>
+    <string name="carro_canvas_ligero">Tu radio va en Ligero: en automático no se carga</string>
 </resources>

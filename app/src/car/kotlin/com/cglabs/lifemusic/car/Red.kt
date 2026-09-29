@@ -38,7 +38,6 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.cglabs.lifemusic.R
-import com.cglabs.lifemusic.playback.MedidorDeDescargas
 import com.music.innertube.YouTube
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -72,7 +71,7 @@ enum class CalidadRed(val texto: Int) {
  * La red en un momento dado. [barras] va de 0 a 4 (-1 si el radio no lo dice),
  * [medida] es una red de datos o un hotspot que se declara de pago,
  * [latenciaMs] es la mediana de las ultimas pruebas y [velocidadBps] la ultima
- * velocidad medida con el audio en esta misma red (null si aun no hay).
+ * velocidad medida en esta misma red (null si aun no hay).
  */
 data class EstadoRed(
     val tipo: TipoRed = TipoRed.NINGUNA,
@@ -92,8 +91,12 @@ data class EstadoRed(
  *   HTTPS vacia (generate_204, unos cientos de bytes) sobre una conexion que se
  *   mantiene abierta, asi que mide ida y vuelta y no el apreton de manos. Son
  *   unos 150 KB por hora con la app a la vista; en segundo plano, nada.
- * - La velocidad no se prueba bajando nada: la mide [MedidorDeDescargas] con el
- *   audio que la app ya descarga.
+ * - La velocidad sale de bajar [VELOCIDAD_BYTES] (256 KB) al cambiar de red,
+ *   cada [INTERVALO_VELOCIDAD_MS] y al tocar el indicador: unos 1,5 MB por
+ *   hora con la app a la vista. No se mide con el audio: YouTube lo entrega a
+ *   un ritmo fijo (unas dos veces lo que se escucha), asi que medirlo dice
+ *   cuanto deja pasar YouTube, no cuanto da la red (se probo: 36 kB/s con una
+ *   red de mas de 1 MB/s).
  *
  * El mismo estado decide cuando cargar el canvas.
  */
@@ -114,6 +117,11 @@ class MonitorDeRed(private val contexto: Context) {
 
     /** Cuando cambio la red: una velocidad medida antes es de otra red y no cuenta. */
     private var cambioMs = 0L
+
+    /** La ultima velocidad medida (bits/s) y cuando; null si aun no hay en esta red. */
+    private var velocidad: Long? = null
+    private var velocidadMs = 0L
+    private var pedirVelocidad = true
 
     private val despertar = Channel<Unit>(Channel.CONFLATED)
 
@@ -153,7 +161,6 @@ class MonitorDeRed(private val contexto: Context) {
         capacidades = runCatching { conectividad?.getNetworkCapabilities(conectividad.activeNetwork) }.getOrNull()
         cambioMs = SystemClock.elapsedRealtime()
         runCatching { conectividad?.registerDefaultNetworkCallback(alCambiarRed) }
-        a.launch { MedidorDeDescargas.ultima.collect { recalcular() } }
         a.launch {
             while (isActive) {
                 probar()
@@ -175,14 +182,17 @@ class MonitorDeRed(private val contexto: Context) {
         alcance = null
     }
 
-    /** Tocar el indicador: probar ya, sin esperar a la siguiente vuelta. */
+    /** Tocar el indicador: probar ya (tambien la velocidad), sin esperar a la siguiente vuelta. */
     fun medirAhora() {
+        pedirVelocidad = true
         despertar.trySend(Unit)
     }
 
     private fun redNueva() {
         cambioMs = SystemClock.elapsedRealtime()
         pruebas.clear()
+        velocidad = null
+        pedirVelocidad = true
         despertar.trySend(Unit)
     }
 
@@ -200,6 +210,17 @@ class MonitorDeRed(private val contexto: Context) {
         pruebas.addLast(ms)
         while (pruebas.size > VENTANA) pruebas.removeFirst()
         recalcular()
+        // La velocidad, solo si hay internet y toca (red nueva, pedida o ya vieja).
+        val ahora = SystemClock.elapsedRealtime()
+        if (ms != null && (pedirVelocidad || ahora - velocidadMs > INTERVALO_VELOCIDAD_MS)) {
+            pedirVelocidad = false
+            val medida = withContext(Dispatchers.IO) { medirVelocidad() }
+            if (medida != null) {
+                velocidad = medida
+                velocidadMs = SystemClock.elapsedRealtime()
+            }
+            recalcular()
+        }
     }
 
     private fun ping(): Int? = runCatching {
@@ -209,23 +230,43 @@ class MonitorDeRed(private val contexto: Context) {
         }
     }.getOrNull()
 
+    /**
+     * Baja [VELOCIDAD_BYTES] y cronometra el cuerpo (sin la espera de la
+     * respuesta, que ya mide el ping). Con 256 KB el arranque lento de TCP pesa
+     * en redes muy rapidas (el techo que se ve ronda los 10-15 Mbps), pero para
+     * lo que importa aqui (si da para el audio y para el canvas) sobra.
+     */
+    private fun medirVelocidad(): Long? = runCatching {
+        cliente.newCall(Request.Builder().url(VELOCIDAD_URL).build()).execute().use { r ->
+            if (!r.isSuccessful) return@use null
+            val entrada = r.body?.byteStream() ?: return@use null
+            val bufer = ByteArray(16 * 1024)
+            var total = 0L
+            val t0 = SystemClock.elapsedRealtimeNanos()
+            while (true) {
+                val n = entrada.read(bufer)
+                if (n < 0) break
+                total += n
+            }
+            val ns = SystemClock.elapsedRealtimeNanos() - t0
+            if (total < VELOCIDAD_BYTES / 2 || ns <= 0) null else total * 8 * 1_000_000_000L / ns
+        }
+    }.getOrNull()
+
     private fun recalcular() {
         val caps = capacidades
         val tipo = caps?.let(::tipoDe) ?: TipoRed.NINGUNA
         val validas = pruebas.filterNotNull().sorted()
         val fallos = pruebas.count { it == null }
         val latencia = validas.getOrNull(validas.size / 2)
-        val ahora = SystemClock.elapsedRealtime()
-        val velocidad = MedidorDeDescargas.ultima.value
-            ?.takeIf { it.cuandoMs >= cambioMs && ahora - it.cuandoMs < VIGENCIA_VELOCIDAD_MS }
-            ?.bitsPorSegundo
+        val vigente = velocidad?.takeIf { SystemClock.elapsedRealtime() - velocidadMs < VIGENCIA_VELOCIDAD_MS }
         val ultimasFallaron = pruebas.size >= 2 && pruebas.takeLast(2).all { it == null }
         val calidad = when {
             caps == null -> CalidadRed.SIN_INTERNET
             pruebas.isEmpty() -> CalidadRed.MIDIENDO
             latencia == null || ultimasFallaron -> CalidadRed.SIN_INTERNET
-            fallos >= 2 || latencia > LATENCIA_MALA_MS || (velocidad != null && velocidad < VELOCIDAD_MALA_BPS) -> CalidadRed.DEFICIENTE
-            fallos == 1 || latencia > LATENCIA_LENTA_MS || (velocidad != null && velocidad < VELOCIDAD_LENTA_BPS) -> CalidadRed.LENTA
+            fallos >= 2 || latencia > LATENCIA_MALA_MS || (vigente != null && vigente < VELOCIDAD_MALA_BPS) -> CalidadRed.DEFICIENTE
+            fallos == 1 || latencia > LATENCIA_LENTA_MS || (vigente != null && vigente < VELOCIDAD_LENTA_BPS) -> CalidadRed.LENTA
             else -> CalidadRed.ESTABLE
         }
         _estado.value = EstadoRed(
@@ -233,7 +274,7 @@ class MonitorDeRed(private val contexto: Context) {
             barras = barrasDe(tipo),
             medida = caps != null && !caps.hasCapability(NetworkCapabilities.NET_CAPABILITY_NOT_METERED),
             latenciaMs = latencia,
-            velocidadBps = velocidad,
+            velocidadBps = vigente,
             calidad = calidad,
         )
     }
@@ -264,7 +305,12 @@ class MonitorDeRed(private val contexto: Context) {
         const val INTERVALO_MS = 12_000L
         const val SENAL_MS = 5_000L
         const val VENTANA = 5
-        const val VIGENCIA_VELOCIDAD_MS = 10 * 60_000L
+
+        /** La de pruebas de velocidad de Cloudflare: devuelve exactamente los bytes pedidos. */
+        const val VELOCIDAD_BYTES = 256 * 1024L
+        const val VELOCIDAD_URL = "https://speed.cloudflare.com/__down?bytes=$VELOCIDAD_BYTES"
+        const val INTERVALO_VELOCIDAD_MS = 10 * 60_000L
+        const val VIGENCIA_VELOCIDAD_MS = 15 * 60_000L
 
         // Ida y vuelta: el 4G bueno anda por 40-80 ms; por encima de 300 ya se nota, de 800 se corta.
         const val LATENCIA_LENTA_MS = 300
@@ -285,7 +331,7 @@ private val ROJO_RED = Color(0xFFFF8A7A)
 
 /**
  * El indicador de red de Inicio: el icono de la red con su señal, cuan estable
- * esta y lo que da (la velocidad medida con el audio o, si aun no hay, el
+ * esta y lo que da (la velocidad de la ultima prueba o, si aun no hay, el
  * tiempo de respuesta). Tocarlo vuelve a medir.
  */
 @Composable

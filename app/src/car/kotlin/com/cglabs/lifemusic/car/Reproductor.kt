@@ -11,6 +11,7 @@ import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.gestures.detectVerticalDragGestures
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalDensity
@@ -254,6 +255,8 @@ private fun CaratulaConGestos(conexion: PlayerConnection?, m: MediaMetadata?, um
             },
     ) {
         Caratula(m?.thumbnailUrl, RoundedCornerShape(36.dp), Modifier.fillMaxSize(), tamano = 480.dp, sombra = 18.dp)
+        // El canvas, si toca y existe, encima de la caratula; los gestos siguen siendo del cuadro.
+        CanvasDeCaratula(conexion, m, sonandoAhora(conexion), Modifier.fillMaxSize().clip(RoundedCornerShape(36.dp)))
         if (latido.value > 0f) {
             Icon(
                 painterResource(R.drawable.favorite),

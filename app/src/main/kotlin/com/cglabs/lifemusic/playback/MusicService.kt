@@ -3124,7 +3124,7 @@ class MusicService :
                                         } ?: response.request
                                     }
                                     .build()
-                            ).setTransferListener(MedidorDeDescargas)
+                            )
                     )
             ).setCacheWriteDataSinkFactory(null)
             .setFlags(FLAG_IGNORE_CACHE_ON_ERROR)

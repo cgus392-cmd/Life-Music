@@ -20,6 +20,7 @@ import android.content.res.Resources
 import com.cglabs.lifemusic.constants.AppLanguageKey
 import com.cglabs.lifemusic.constants.SYSTEM_DEFAULT
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.media3.database.DatabaseProvider
 import com.cglabs.lifemusic.db.MusicDatabase
 import com.cglabs.lifemusic.playback.DownloadUtil
 import com.cglabs.lifemusic.utils.dataStore
@@ -47,6 +48,9 @@ class CarActivity : ComponentActivity() {
     @Inject
     lateinit var descargas: DownloadUtil
 
+    @Inject
+    lateinit var baseDeCaches: DatabaseProvider
+
     private var conexion by mutableStateOf<PlayerConnection?>(null)
 
     /** Lo que aguanta el radio (RAM, nucleos, bits): se mide una vez. */
@@ -73,6 +77,7 @@ class CarActivity : ComponentActivity() {
         window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
         WindowCompat.setDecorFitsSystemWindows(window, false)
         aplicarIdioma()
+        CacheDeCanvas.baseDeDatos = baseDeCaches
         setContent {
             CompositionLocalProvider(
                 LocalDescargas provides descargas,

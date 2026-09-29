@@ -92,6 +92,8 @@ fun Ajustes(modifier: Modifier = Modifier) {
             FilaCalidad()
             HorizontalDivider(color = Color.White.copy(alpha = 0.08f), modifier = Modifier.padding(horizontal = 20.dp))
             FilaRendimiento()
+            HorizontalDivider(color = Color.White.copy(alpha = 0.08f), modifier = Modifier.padding(horizontal = 20.dp))
+            FilaCanvas()
         }
         Spacer(Modifier.size(16.dp))
         Row(
@@ -168,6 +170,31 @@ private fun FilaRendimiento() {
         }
         Spacer(Modifier.size(12.dp))
         Pastillas(ModoRendimiento.entries, modo, { stringResource(it.titulo) }, alCambiar)
+    }
+}
+
+/**
+ * Canvas: Automatico (por defecto: red estable, cancion ya cargada y perfil
+ * Completo), Siempre o Nunca. Debajo, lo que hace el elegido y, si el radio va
+ * en Ligero, que en automatico no se carga.
+ */
+@Composable
+private fun FilaCanvas() {
+    val (modo, alCambiar) = rememberEnumPreference(CarroCanvasKey, defaultValue = ModoCanvas.AUTOMATICO)
+    val ligero = LocalPerfil.current == Perfil.LIGERO
+    Column(Modifier.fillMaxWidth().padding(horizontal = 20.dp, vertical = 16.dp)) {
+        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(18.dp)) {
+            Icon(painterResource(R.drawable.slow_motion_video), contentDescription = null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(28.dp))
+            Column(Modifier.weight(1f)) {
+                Text(stringResource(R.string.carro_canvas), style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.SemiBold)
+                Text(stringResource(modo.detalle), style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                if (ligero && modo == ModoCanvas.AUTOMATICO) {
+                    Text(stringResource(R.string.carro_canvas_ligero), style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.primary)
+                }
+            }
+        }
+        Spacer(Modifier.size(12.dp))
+        Pastillas(ModoCanvas.entries, modo, { stringResource(it.titulo) }, alCambiar)
     }
 }
 
