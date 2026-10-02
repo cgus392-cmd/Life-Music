@@ -1,0 +1,150 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Life Music Web</title>
+<meta name="description" content="Life Music en el navegador: busca y escucha música desde tu iPhone, iPad o computador.">
+<meta name="theme-color" content="#0B0F0D">
+<meta name="color-scheme" content="dark">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Life Music">
+<link rel="manifest" href="/manifest.webmanifest">
+<link rel="icon" type="image/png" href="/img/favicon.png">
+<link rel="apple-touch-icon" href="/img/apple-touch-icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap">
+<link rel="stylesheet" href="/app.css">
+</head>
+<body>
+<div class="aurora" aria-hidden="true"><i></i><i></i></div>
+
+<header class="barra">
+  <a class="marca" href="/" aria-label="Life Music Web">
+    <img src="/img/favicon.png" alt="" width="34" height="34">
+    <span><b>Life Music</b><small>Web · beta</small></span>
+  </a>
+  <button class="pildora" id="btnInstalar" hidden data-t="instalar">Instalar</button>
+</header>
+
+<main class="marco">
+  <!-- El reproductor oficial de YouTube va visible: es parte de las reglas de su API
+       (al menos 200 × 200 px y sin taparlo). Hace de carátula. -->
+  <section class="escenario" id="escenario" hidden aria-label="Sonando">
+    <div class="pantalla">
+      <div id="yt"></div>
+      <div class="toca" id="toca" hidden><span data-t="toca">Toca el video para empezar</span></div>
+    </div>
+    <div class="info">
+      <div class="textos">
+        <h2 id="tTitulo">—</h2>
+        <p id="tArtista"></p>
+      </div>
+      <button class="icono" id="btnMeGusta" aria-label="Me gusta" data-t-aria="me_gusta">
+        <svg viewBox="0 0 24 24"><path d="M12 21s-7.5-4.6-9.6-9.2C.9 8.4 3 4.5 6.7 4.5c2.1 0 3.6 1.1 4.4 2.6h1.8c.8-1.5 2.3-2.6 4.4-2.6 3.7 0 5.8 3.9 4.3 7.3C19.5 16.4 12 21 12 21z"/></svg>
+      </button>
+    </div>
+    <div class="progreso">
+      <input type="range" id="barra" min="0" max="1000" value="0" aria-label="Posición" data-t-aria="posicion">
+      <div class="tiempos"><span id="tAhora">0:00</span><span id="tTotal">0:00</span></div>
+    </div>
+    <div class="controles">
+      <button class="icono grande" id="btnAnterior" aria-label="Anterior" data-t-aria="anterior">
+        <svg viewBox="0 0 24 24"><path d="M6 5h2v14H6zM20 5v14L9.5 12z"/></svg>
+      </button>
+      <button class="reproducir" id="btnReproducir" aria-label="Reproducir" data-t-aria="reproducir">
+        <svg class="si-pausado" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+        <svg class="si-sonando" viewBox="0 0 24 24"><path d="M6 5h4v14H6zM14 5h4v14h-4z"/></svg>
+      </button>
+      <button class="icono grande" id="btnSiguiente" aria-label="Siguiente" data-t-aria="siguiente">
+        <svg viewBox="0 0 24 24"><path d="M16 5h2v14h-2zM4 5v14l10.5-7z"/></svg>
+      </button>
+    </div>
+    <label class="despierta">
+      <input type="checkbox" id="chkDespierta">
+      <span data-t="despierta">Mantener la pantalla encendida mientras suena</span>
+    </label>
+  </section>
+
+  <section class="columna">
+    <form class="buscador" id="formBuscar" role="search" autocomplete="off">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M10 3a7 7 0 015.6 11.2l4.6 4.6-1.4 1.4-4.6-4.6A7 7 0 1110 3zm0 2a5 5 0 100 10 5 5 0 000-10z"/></svg>
+      <input type="search" id="q" enterkeyhint="search" placeholder="Busca canciones y artistas" data-t-ph="buscar" aria-label="Buscar">
+      <button type="button" class="icono" id="btnBorrar" hidden aria-label="Borrar" data-t-aria="borrar">
+        <svg viewBox="0 0 24 24"><path d="M6.4 5L12 10.6 17.6 5 19 6.4 13.4 12l5.6 5.6-1.4 1.4-5.6-5.6L6.4 19 5 17.6 10.6 12 5 6.4z"/></svg>
+      </button>
+      <ul class="sugerencias" id="sugerencias" hidden></ul>
+    </form>
+
+    <nav class="pestanas" role="tablist">
+      <button role="tab" id="tabResultados" aria-selected="true" data-t="resultados">Resultados</button>
+      <button role="tab" id="tabCola" aria-selected="false"><span data-t="cola">A continuación</span> <em id="cuantas"></em></button>
+      <button role="tab" id="tabGustos" aria-selected="false" data-t="me_gusta">Me gusta</button>
+    </nav>
+
+    <div id="panelResultados">
+      <div class="bienvenida" id="bienvenida">
+        <h1 data-t="hola">Tu música, ahora también en el navegador.</h1>
+        <p data-t="hola_texto">Busca una canción y Life Music arma la radio para que siga sonando.</p>
+        <div class="tarjeta aviso" id="avisoIos" hidden>
+          <b data-t="ios_titulo">¿En iPhone o iPad?</b>
+          <p data-t-html="ios_texto">Toca <span class="glifo">Compartir</span> y luego <b>Agregar a inicio</b> para tenerla como app.</p>
+        </div>
+        <div class="tarjeta aviso" id="avisoAndroid" hidden>
+          <b data-t="android_titulo">¿Tienes Android?</b>
+          <p data-t="android_texto">La app completa suena con la pantalla apagada, descarga y tiene ecualizador.</p>
+          <a class="pildora llena" href="https://lifemusic.pages.dev/apk" data-t="android_boton">Descargar la app</a>
+        </div>
+        <details class="tarjeta limites">
+          <summary data-t="limites_titulo">Lo que aún no puede la versión web</summary>
+          <ul>
+            <li data-t="limite_1">En iPhone la música se pausa al bloquear la pantalla o salir de la app. Es una regla de Apple para las apps web.</li>
+            <li data-t="limite_2">Algunas canciones solo se pueden escuchar dentro de YouTube. Life Music las salta solas.</li>
+            <li data-t="limite_3">Puede aparecer publicidad de YouTube: suena en su reproductor oficial.</li>
+            <li data-t="limite_4">No hay descargas ni ecualizador.</li>
+          </ul>
+        </details>
+      </div>
+      <ul class="lista" id="resultados"></ul>
+      <div class="cargando" id="cargando" hidden><i></i><i></i><i></i></div>
+      <p class="vacio" id="vacio" hidden></p>
+      <button class="pildora centro" id="btnMas" hidden data-t="mas">Ver más</button>
+    </div>
+    <div id="panelCola" hidden>
+      <ul class="lista" id="cola"></ul>
+      <p class="vacio" id="colaVacia" data-t="cola_vacia">Pon una canción y aquí aparece lo que sigue.</p>
+    </div>
+    <div id="panelGustos" hidden>
+      <ul class="lista" id="gustos"></ul>
+      <p class="vacio" id="gustosVacio" data-t="gustos_vacio">Toca el corazón mientras suena una canción y se guarda aquí, en este dispositivo.</p>
+    </div>
+
+    <footer class="pie">
+      <p><span data-t="pie">Hecho por</span> <a href="https://github.com/cgus392-cmd/Life-Music">CG LABS</a> · <a href="https://t.me/cglabsti">Telegram</a> · GPL-3.0</p>
+      <p class="chico" data-t="pie_yt">La música suena en el reproductor oficial de YouTube. Life Music no guarda ni retransmite audio.</p>
+    </footer>
+  </section>
+</main>
+
+<!-- Mini reproductor: aparece cuando el escenario sale de la vista. -->
+<div class="mini" id="mini" hidden>
+  <img id="miniCaratula" alt="" width="44" height="44">
+  <button class="mini-textos" id="miniIr"><b id="miniTitulo"></b><span id="miniArtista"></span></button>
+  <button class="icono" id="miniReproducir" aria-label="Reproducir" data-t-aria="reproducir">
+    <svg class="si-pausado" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+    <svg class="si-sonando" viewBox="0 0 24 24"><path d="M6 5h4v14H6zM14 5h4v14h-4z"/></svg>
+  </button>
+  <button class="icono" id="miniSiguiente" aria-label="Siguiente" data-t-aria="siguiente">
+    <svg viewBox="0 0 24 24"><path d="M16 5h2v14h-2zM4 5v14l10.5-7z"/></svg>
+  </button>
+  <div class="mini-progreso"><i id="miniBarra"></i></div>
+</div>
+
+<div class="aviso-flotante" id="toast" role="status" aria-live="polite" hidden></div>
+
+<script src="/app.js" type="module"></script>
+</body>
+</html>
