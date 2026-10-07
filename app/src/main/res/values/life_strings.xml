@@ -1537,4 +1537,7 @@
     <string name="boletin_v1131_tv">No Cast on your TV? Open lifemusic.pages.dev/tv in its browser, tap cast → TV with a browser and type the code. The TV remembers it next time.</string>
     <string name="boletin_v1131_actualizador_t">Renewed updater</string>
     <string name="boletin_v1131_actualizador">Every version arrives with its image and news, the download is smaller on most phones, shows how long is left and resumes if it gets cut. The version history is in Settings → Updates.</string>
+    <string name="update_permiso_titulo">One permission to install</string>
+    <string name="update_permiso_texto">To install the new version, Android will ask you to let Life Music install apps. It is only used for its own updates. Turn the switch on and come back: the install continues by itself.</string>
+    <string name="update_permiso_boton">Give the permission</string>
 </resources>

@@ -5,6 +5,23 @@ publicación de CG LABS, adaptada a Android.
 
 ## Antes de etiquetar
 
+- [ ] **La versión trae de 3 a 5 funciones nuevas** y cada una pasó por sus
+      cuatro fases: idea, ficha técnica aprobada (`docs/versiones/<versión>/`),
+      desarrollo y **un día de pruebas internas** con la candidata, con la lista
+      fija de pruebas. La excepción son los arreglos urgentes. Ver la skill
+      `cglabs` §2.1.
+- [ ] **Imagen de la versión** (desde 1.3.1), en el estilo de la marca:
+      acrílico transparente, cromo verde menta y fondo oscuro con grano. El
+      objeto protagonista es la función estrella de la versión. El original va
+      en `Brand/novedades/` y dos WebP:
+      - `web/novedades/<versión>.webp`, de unos 1600 px y menos de 250 KB;
+      - `app/src/main/res/drawable-nodpi/novedades_<código>.webp`, de unos 1200 px,
+        como `heroImagen` del boletín.
+- [ ] **`web/novedades/<versión>.json`** con el resumen y las funciones (es y en)
+      y, ya con los APK finales, `bytes` y `sha256` de `lifemusic.apk` y
+      `lifemusic-arm64.apk`. Se despliega con la landing **antes** de publicar
+      el release: así la hoja de «versión nueva» la encuentra desde el primer
+      momento.
 - [ ] **Subir el número de versión** en `app/build.gradle.kts`: `versionCode` y
       `versionName`. El código de versión **siempre sube**; Android no permite
       instalar uno menor que el ya presente.
@@ -21,7 +38,9 @@ publicación de CG LABS, adaptada a Android.
       Ajustes → Actualizaciones → Versión. Una versión sin entrada no
       interrumpe a nadie.
 - [ ] **Compilación limpia en modo publicación**, sin avisos nuevos sin revisar.
-- [ ] **Pruebas en verde**: `./gradlew :playback:testFossDebugUnitTest`.
+- [ ] **Pruebas en verde**: `./gradlew :playback:testFossDebugUnitTest` y
+      `./gradlew :app:testArm64FossDebugUnitTest`. La segunda, entre otras cosas,
+      lee el `novedades.json` publicado.
 - [ ] **Historial escaneado por secretos**. El repositorio es público: nunca dar
       por hecho que está limpio.
 - [ ] **Probado en un dispositivo real**, no solo compilando.

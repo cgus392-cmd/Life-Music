@@ -141,6 +141,46 @@ fun UpdateScreen(navController: NavHostController) {
     var isDownloadComplete by remember { mutableStateOf(false) }
     var downloadedFile by remember { mutableStateOf<File?>(null) }
     val snackbarHostState = remember { SnackbarHostState() }
+    // Instalar en un paso (1.3.1): al terminar de bajar se abre el instalador solo;
+    // si falta el permiso, primero se explica, y al volver de Ajustes se instala.
+    var vioDescargar by remember { mutableStateOf(false) }
+    var pidiendoPermiso by remember { mutableStateOf(false) }
+    var instalarAlVolver by remember { mutableStateOf(false) }
+
+    fun intentarInstalar(file: File) {
+        if (puedeInstalar(context)) instalarApk(context, file) else pidiendoPermiso = true
+    }
+
+    if (pidiendoPermiso) {
+        androidx.compose.material3.AlertDialog(
+            onDismissRequest = { pidiendoPermiso = false },
+            icon = { Icon(painterResource(R.drawable.update), contentDescription = null) },
+            title = { Text(stringResource(R.string.update_permiso_titulo)) },
+            text = { Text(stringResource(R.string.update_permiso_texto)) },
+            confirmButton = {
+                androidx.compose.material3.Button(onClick = {
+                    pidiendoPermiso = false
+                    instalarAlVolver = true
+                    abrirPermisoDeInstalar(context)
+                }) { Text(stringResource(R.string.update_permiso_boton)) }
+            },
+            dismissButton = {
+                androidx.compose.material3.TextButton(onClick = { pidiendoPermiso = false }) { Text(stringResource(R.string.later)) }
+            },
+        )
+    }
+
+    val ciclo = androidx.lifecycle.compose.LocalLifecycleOwner.current
+    androidx.compose.runtime.DisposableEffect(ciclo) {
+        val observador = androidx.lifecycle.LifecycleEventObserver { _, evento ->
+            if (evento == androidx.lifecycle.Lifecycle.Event.ON_RESUME && instalarAlVolver && puedeInstalar(context)) {
+                instalarAlVolver = false
+                downloadedFile?.takeIf { it.exists() }?.let { instalarApk(context, it) }
+            }
+        }
+        ciclo.lifecycle.addObserver(observador)
+        onDispose { ciclo.lifecycle.removeObserver(observador) }
+    }
 
     val currentVersion = BuildConfig.VERSION_NAME
 
@@ -158,6 +198,7 @@ fun UpdateScreen(navController: NavHostController) {
                 when (workInfo.state) {
                     WorkInfo.State.RUNNING -> {
                         isDownloading = true
+                        vioDescargar = true
                         downloadProgress = workInfo.progress.getFloat("progress", 0f)
                         val bajados = workInfo.progress.getLong("bajados", -1L)
                         if (bajados >= 0) {
@@ -172,12 +213,20 @@ fun UpdateScreen(navController: NavHostController) {
                         val filePath = workInfo.outputData.getString("file_path")
                         if (filePath != null) {
                             downloadedFile = File(filePath)
+                            // Solo si se vio bajar en esta visita: abrir la pantalla otro dia no reinstala nada.
+                            if (vioDescargar) {
+                                vioDescargar = false
+                                intentarInstalar(File(filePath))
+                            }
                         }
                     }
                     WorkInfo.State.FAILED -> {
                         isDownloading = false
+                        vioDescargar = false
+                        // «error» = la verificacion rechazo el APK (llego a medias o no era el esperado).
+                        val danada = workInfo.outputData.getString("error") != null
                         scope.launch {
-                            snackbarHostState.showSnackbar(context.getString(R.string.download_failed))
+                            snackbarHostState.showSnackbar(context.getString(if (danada) R.string.update_descarga_danada else R.string.download_failed))
                         }
                     }
                     WorkInfo.State.CANCELLED -> {
@@ -324,7 +373,7 @@ fun UpdateScreen(navController: NavHostController) {
                                                 downloadProgress = 0f
                                                 return@AnimatedActionButton
                                             }
-                                            instalarApk(context, file)
+                                            intentarInstalar(file)
                                         } else {
                                             encolarDescarga(context, currentStatus.version, currentStatus.apkUrl ?: Repo.apkUrl(currentStatus.version), currentStatus.size)
                                             isDownloading = true
@@ -723,6 +772,26 @@ private fun leerJsonDeGitHub(url: String): String {
         conexion.inputStream.bufferedReader().use { it.readText() }
     } finally {
         conexion.disconnect()
+    }
+}
+
+/** Life Music puede abrir el instalador (permiso «instalar apps desconocidas»). */
+fun puedeInstalar(context: Context): Boolean = try {
+    Build.VERSION.SDK_INT < Build.VERSION_CODES.O || context.packageManager.canRequestPackageInstalls()
+} catch (e: Exception) {
+    false
+}
+
+/** La pantalla del sistema donde se da ese permiso a Life Music. */
+fun abrirPermisoDeInstalar(context: Context) {
+    try {
+        context.startActivity(
+            Intent(android.provider.Settings.ACTION_MANAGE_UNKNOWN_APP_SOURCES).apply {
+                data = Uri.parse("package:" + context.packageName)
+            },
+        )
+    } catch (e: Exception) {
+        Toast.makeText(context, R.string.update_install_failed, Toast.LENGTH_LONG).show()
     }
 }
 
