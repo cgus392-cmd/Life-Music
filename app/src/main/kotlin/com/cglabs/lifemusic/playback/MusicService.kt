@@ -92,6 +92,7 @@ import com.cglabs.lifemusic.constants.AutomixModoKey
 import com.cglabs.lifemusic.constants.CrossfadeDurationKey
 import com.cglabs.lifemusic.constants.CrossfadeEnabledKey
 import com.cglabs.lifemusic.constants.CrossfadeGaplessKey
+import com.cglabs.lifemusic.constants.FundidoAlElegirKey
 import com.cglabs.lifemusic.constants.DisableLoadMoreWhenRepeatAllKey
 import android.os.Handler
 import android.os.Looper
@@ -161,6 +162,7 @@ import com.cglabs.lifemusic.eq.audio.LevelMeterAudioProcessor
 import com.cglabs.lifemusic.eq.audio.SurroundAudioProcessor
 import com.cglabs.lifemusic.eq.audio.TransitionFilterAudioProcessor
 import com.cglabs.lifemusic.playback.audio.ConduccionAutomix
+import com.cglabs.lifemusic.playback.audio.FundidoAlElegir
 import com.cglabs.lifemusic.playback.audio.EstiloTransicion
 import com.cglabs.lifemusic.playback.audio.NivelTransicion
 import com.cglabs.lifemusic.eq.audio.VocalReducerAudioProcessor
@@ -1744,20 +1746,135 @@ class MusicService :
         }
     }
 
+    // Fundido al elegir otra cancion (1.3.1): bajar, cambiar, subir. Ver
+    // FundidoAlElegir y docs/versiones/1.3.1/fundido.md. La generacion dice quien
+    // manda: un fundido cancelado por otro mas nuevo no toca el volumen al salir.
+    private var fundidoJob: Job? = null
+    private var fundidoGeneracion = 0
+
+    /** Cuantas veces se cambio la lista del reproductor: para saber que la cancion elegida ya entro. */
+    private var cambiosDeLista = 0
+
+    override fun onTimelineChanged(timeline: androidx.media3.common.Timeline, reason: Int) {
+        if (reason == Player.TIMELINE_CHANGE_REASON_PLAYLIST_CHANGED) cambiosDeLista++
+    }
+
+    /** El volumen al que vuelve un fundido: el del usuario, o el 20 % si otra app pidio bajar. */
+    private fun volumenObjetivo(): Float =
+        if (lastAudioFocusState == AudioManager.AUDIOFOCUS_LOSS_TRANSIENT_CAN_DUCK) volumenNominal() * 0.2f
+        else volumenNominal()
+
+    /**
+     * Elegir una cancion nueva (busqueda, album, lista, inicio, carro). Si suena
+     * algo, la que suena baja, se cambia con el volumen en cero y la nueva sube
+     * cuando de verdad suena. [conFundido] en falso: escuchar juntos, que no puede
+     * perder los 0,4 s de bajar.
+     */
     fun playQueue(
         queue: Queue,
         playWhenReady: Boolean = true,
+        conFundido: Boolean = true,
     ) {
+        val generacion = ++fundidoGeneracion
+        val enCurso = fundidoJob?.isActive == true
+        fundidoJob?.cancel()
+        fundidoJob = null
+
+        val aplica = conFundido && scope.isActive && playerInitialized.value &&
+            FundidoAlElegir.aplica(
+                activo = dataStore.get(FundidoAlElegirKey, true),
+                // Si otro fundido iba a medias (la anterior ya bajando), este sigue desde ahi.
+                sonando = enCurso || player.isPlaying,
+                transmitiendo = castConnectionHandler?.isCasting?.value == true,
+                enTransicion = isCrossfading.value,
+                silenciado = isMuted.value,
+                playWhenReady = playWhenReady,
+            )
+        if (!aplica) {
+            // El fundido anterior se cancelo y nadie lo reemplaza: el volumen vuelve ya.
+            if (enCurso) runCatching { player.volume = volumenObjetivo() }
+            playQueueYa(queue, playWhenReady)
+            return
+        }
+
+        val jugador = player
+        fundidoJob = scope.launch {
+            var etapa = "bajar"
+            try {
+                // Bajar, desde donde este: si otro fundido ya la habia bajado a medias,
+                // tarda solo lo que le falta.
+                val objetivo = volumenObjetivo().coerceAtLeast(0.01f)
+                val desde = runCatching { jugador.volume }.getOrDefault(0f)
+                val msBajar = (FundidoAlElegir.BAJAR_MS * (desde / objetivo)).toLong()
+                    .coerceIn(0L, FundidoAlElegir.BAJAR_MS)
+                android.util.Log.i("LifeMusicFundido", "empieza desde=$desde bajar=${msBajar}ms")
+                rampaDeVolumen(jugador, msBajar) { p -> desde * FundidoAlElegir.bajada(p) }
+                if (player !== jugador) return@launch
+                jugador.volume = 0f
+
+                // Cambiar, con el volumen en cero: el playQueue de siempre.
+                etapa = "esperar"
+                val listaAntes = cambiosDeLista
+                val carga = playQueueYa(queue, playWhenReady)
+
+                // Esperar a que la elegida suene de verdad. Sin cambio de lista y con la
+                // carga ya terminada, no hubo cambio (fallo la red): vuelve la de antes.
+                val limite = android.os.SystemClock.elapsedRealtime() + FundidoAlElegir.ESPERA_MAXIMA_MS
+                while (isActive && player === jugador) {
+                    val entro = cambiosDeLista != listaAntes
+                    if (entro && jugador.isPlaying) break
+                    if (!entro && carga?.isActive != true) { etapa = "sin cambio"; return@launch }
+                    if (entro && (!jugador.playWhenReady || jugador.playerError != null)) { etapa = "pausa o error"; return@launch }
+                    if (android.os.SystemClock.elapsedRealtime() > limite) { etapa = "espera agotada"; return@launch }
+                    delay(50)
+                }
+                if (player !== jugador) return@launch
+
+                // Subir. El objetivo se relee en cada paso: si mueves el volumen, se respeta.
+                etapa = "subir"
+                rampaDeVolumen(jugador, FundidoAlElegir.SUBIR_MS) { p -> volumenObjetivo() * FundidoAlElegir.subida(p) }
+                etapa = "listo"
+            } finally {
+                // Red de seguridad: nunca queda mudo. Solo si nadie tomo el relevo.
+                if (fundidoGeneracion == generacion) {
+                    runCatching { player.volume = volumenObjetivo() }
+                    fundidoJob = null
+                }
+                android.util.Log.i("LifeMusicFundido", "termina etapa=$etapa relevo=${fundidoGeneracion != generacion}")
+            }
+        }
+    }
+
+    private suspend fun rampaDeVolumen(jugador: ExoPlayer, ms: Long, ganancia: (Float) -> Float) {
+        if (ms <= 0L) return
+        val pasos = FundidoAlElegir.pasos(ms)
+        val espera = ms / pasos
+        for (i in 1..pasos) {
+            if (player !== jugador) return
+            try {
+                jugador.volume = ganancia(i / pasos.toFloat())
+            } catch (e: Exception) {
+                return
+            }
+            delay(espera)
+        }
+    }
+
+    /** El playQueue de siempre, sin fundido. Devuelve la carga de la cola, si la lanzo. */
+    private fun playQueueYa(
+        queue: Queue,
+        playWhenReady: Boolean = true,
+    ): Job? {
         if (!scope.isActive) scope = CoroutineScope(Dispatchers.Main) + Job()
 
-        
+
         if (!playerInitialized.value) {
             Timber.tag(TAG).w("playQueue called before player initialization, queuing request")
             scope.launch {
                 playerInitialized.first { it }
-                playQueue(queue, playWhenReady)
+                playQueueYa(queue, playWhenReady)
             }
-            return
+            return null
         }
 
         currentQueue = queue
@@ -1774,7 +1891,7 @@ class MusicService :
             player.prepare()
             player.playWhenReady = playWhenReady
         }
-        scope.launch(SilentHandler) {
+        return scope.launch(SilentHandler) {
             val initialStatus =
                 withContext(Dispatchers.IO) {
                     queue.getInitialStatus()
@@ -4391,6 +4508,9 @@ class MusicService :
 
     private fun startCrossfade(plan: AutomixPlan? = null) {
         if (isCrossfading.value) return
+        // A mitad de un fundido al elegir, la que suena ya se va: mezclarla con la
+        // siguiente de la cola dejaria el volumen a medias. La nueva re-arma el suyo.
+        if (fundidoJob?.isActive == true) return
 
         val savedRepeatMode = runBlocking { dataStore.get(RepeatModeKey, REPEAT_MODE_OFF) }
         val savedShuffleEnabled = runBlocking { dataStore.get(ShuffleModeKey, false) }

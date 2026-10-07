@@ -178,6 +178,9 @@ val CrossfadeGaplessKey = booleanPreferencesKey("crossfadeGapless")
 val AutomixCrossfadeKey = booleanPreferencesKey("automixCrossfade")
 val AutomixDebugOverlayKey = booleanPreferencesKey("automixDebugOverlay")
 
+/** 1.3.1: al elegir otra cancion mientras suena una, la que suena baja y la nueva sube. Encendido de fabrica. */
+val FundidoAlElegirKey = booleanPreferencesKey("fundidoAlElegir")
+
 /**
  * Cuanta musica puede recortar Automix en cada extremo de la pista.
  *  - CANCION_COMPLETA: se respeta la intro y la salida; solo se salta el silencio.

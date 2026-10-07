@@ -231,7 +231,8 @@ class PlayerConnection(
             Timber.tag(TAG).w("playQueue called before player ready; delegating to service")
         }
         try {
-            service.playQueue(queue)
+            // Escuchar juntos (allowInternalSync) sigue al anfitrion: sin los 0,4 s del fundido.
+            service.playQueue(queue, conFundido = !allowInternalSync)
         } catch (e: Exception) {
             Timber.tag(TAG).e(e, "Error in playQueue")
             throw e

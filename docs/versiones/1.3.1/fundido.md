@@ -83,7 +83,7 @@ caso `PlayerConnection` pasa `conFundido = false`.
 
 ### 3.3 La parte que se puede probar sin teléfono
 
-`playback/audio/FundidoAlElegir.kt` va junto a `ConduccionAutomix` y no depende de Android:
+`FundidoAlElegir.kt` va en el módulo `:playback`, junto a `ConduccionAutomix`, y no depende de Android:
 
 ```kotlin
 object FundidoAlElegir {
@@ -134,7 +134,7 @@ de todos modos tiene que poner los bytes y el sha256 del APK.
 
 ## 6. Pruebas
 
-**Automáticas (`:app:testArm64FossDebugUnitTest`):**
+**Automáticas (`:playback:testFossDebugUnitTest`, `FundidoAlElegirTest`, y `:app:testArm64FossDebugUnitTest`):**
 
 - las curvas empiezan y terminan exacto (1→0 y 0→1) y nunca suben al bajar ni bajan al subir;
 - `aplica` da falso en cada caso de «cuándo no hay fundido»;
