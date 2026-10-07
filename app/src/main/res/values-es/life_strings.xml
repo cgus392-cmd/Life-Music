@@ -1140,4 +1140,8 @@
     <string name="update_minutos">%1$d min</string>
     <string name="update_solo_wifi">Descargar solo con wifi</string>
     <string name="update_solo_wifi_desc">Las actualizaciones esperan a una red sin límite de datos</string>
+    <string name="update_hoja_eyebrow">Nueva versión</string>
+    <string name="update_hoja_titulo">Life Music %1$s</string>
+    <string name="update_hoja_tamano">Descarga de %1$s MB</string>
+    <string name="update_actualizar_ahora">Actualizar ahora</string>
 </resources>

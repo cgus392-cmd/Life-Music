@@ -1520,4 +1520,8 @@
     <string name="update_minutos">%1$d min</string>
     <string name="update_solo_wifi">Download only on Wi-Fi</string>
     <string name="update_solo_wifi_desc">Updates wait for a network without a data limit</string>
+    <string name="update_hoja_eyebrow">New version</string>
+    <string name="update_hoja_titulo">Life Music %1$s</string>
+    <string name="update_hoja_tamano">%1$s MB download</string>
+    <string name="update_actualizar_ahora">Update now</string>
 </resources>

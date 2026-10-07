@@ -487,6 +487,8 @@ class MainActivity : ComponentActivity() {
         var availableUpdateVersion by remember { androidx.compose.runtime.mutableStateOf("") }
         var availableUpdateChangelog by remember { androidx.compose.runtime.mutableStateOf<List<com.cglabs.lifemusic.appcore.updater.ChangelogSection>>(emptyList()) }
         var availableUpdateDescription by remember { androidx.compose.runtime.mutableStateOf<String?>(null) }
+        var availableUpdateSize by remember { androidx.compose.runtime.mutableStateOf("") }
+        var availableUpdateApkUrl by remember { androidx.compose.runtime.mutableStateOf<String?>(null) }
 
         LaunchedEffect(Unit) {
             val prefs = context.dataStore.data.first()
@@ -496,15 +498,18 @@ class MainActivity : ComponentActivity() {
                 delay(2000L)
                 checkForUpdate(
                     context = context,
-                    onSuccess = { latestVersion, isAvailable, changelog, _, _, description, _, _ ->
+                    onSuccess = { latestVersion, isAvailable, changelog, size, _, description, _, apkUrl ->
                         val currentVersion = BuildConfig.VERSION_NAME
                         Log.d("UpdateCheck", "Startup check success. Latest: $latestVersion, Current: $currentVersion, isAvailable: $isAvailable")
                         saveUpdateAvailableState(context, isAvailable)
                         
-                        if (isAvailable) {
+                        // «Mas tarde» aparta esa version 3 dias; la notificacion sale igual una sola vez.
+                        if (isAvailable && !com.cglabs.lifemusic.appcore.updater.estaPospuesta(context, latestVersion)) {
                             availableUpdateVersion = latestVersion
                             availableUpdateChangelog = changelog
                             availableUpdateDescription = description
+                            availableUpdateSize = size
+                            availableUpdateApkUrl = apkUrl
                             showUpdateDialog = true
                         }
 
@@ -655,70 +660,27 @@ class MainActivity : ComponentActivity() {
                 val navController = rememberNavController()
 
                 if (showUpdateDialog) {
-                    // Antes el boton abria la web de publicaciones de GitHub en
-                    // el navegador: un segundo camino, distinto del actualizador
-                    // de Ajustes, y mucha gente no sabe descargar desde ahi.
-                    // Ahora lleva a esa misma pantalla, que descarga e instala.
-                    AlertDialog(
-                        onDismissRequest = { showUpdateDialog = false },
-                        title = { Text(stringResource(R.string.update_available_title)) },
-                        text = {
-                            Column(modifier = Modifier.fillMaxWidth()) {
-                                Text(stringResource(R.string.update_dialog_body, availableUpdateVersion.removePrefix("v")))
-                                if (availableUpdateChangelog.isNotEmpty() || !availableUpdateDescription.isNullOrEmpty()) {
-                                    Spacer(modifier = Modifier.height(16.dp))
-                                    Text(
-                                        text = stringResource(R.string.changelog),
-                                        style = MaterialTheme.typography.titleMedium,
-                                        fontWeight = FontWeight.Bold
-                                    )
-                                    Spacer(modifier = Modifier.height(8.dp))
-                                    Column(
-                                        modifier = Modifier
-                                            .fillMaxWidth()
-                                            .weight(1f, fill = false)
-                                            .verticalScroll(rememberScrollState())
-                                    ) {
-                                        if (availableUpdateChangelog.isNotEmpty()) {
-                                            availableUpdateChangelog.forEach { section ->
-                                                Text(
-                                                    text = section.title,
-                                                    style = MaterialTheme.typography.titleSmall,
-                                                    fontWeight = FontWeight.SemiBold,
-                                                    modifier = Modifier.padding(top = 8.dp, bottom = 4.dp)
-                                                )
-                                                section.items.forEach { item ->
-                                                    Text(
-                                                        text = "• $item",
-                                                        style = MaterialTheme.typography.bodyMedium,
-                                                        modifier = Modifier.padding(start = 8.dp, bottom = 2.dp)
-                                                    )
-                                                }
-                                            }
-                                        } else if (!availableUpdateDescription.isNullOrEmpty()) {
-                                            Text(
-                                                text = availableUpdateDescription!!,
-                                                style = MaterialTheme.typography.bodyMedium,
-                                                modifier = Modifier.padding(top = 8.dp, bottom = 4.dp)
-                                            )
-                                        }
-                                    }
-                                }
+                    // 1.3.1: la hoja con la imagen de la version y sus funciones (antes,
+                    // una ventana sencilla). «Actualizar ahora» empieza a bajar y lleva a
+                    // la pantalla del actualizador, que muestra el progreso e instala.
+                    val novedadesNuevas by com.cglabs.lifemusic.appcore.updater.Novedades.disponibles.collectAsState()
+                    com.cglabs.lifemusic.appcore.updater.HojaDeActualizacion(
+                        version = availableUpdateVersion,
+                        tamanoMb = availableUpdateSize,
+                        novedades = novedadesNuevas,
+                        changelog = availableUpdateChangelog,
+                        descripcion = availableUpdateDescription,
+                        onActualizar = {
+                            showUpdateDialog = false
+                            availableUpdateApkUrl?.let { url ->
+                                com.cglabs.lifemusic.appcore.updater.encolarDescarga(context, availableUpdateVersion, url, availableUpdateSize)
                             }
+                            navController.navigate("update") { launchSingleTop = true }
                         },
-                        confirmButton = {
-                            Button(onClick = {
-                                showUpdateDialog = false
-                                navController.navigate("update") { launchSingleTop = true }
-                            }) {
-                                Text(stringResource(R.string.update_available))
-                            }
+                        onMasTarde = {
+                            showUpdateDialog = false
+                            com.cglabs.lifemusic.appcore.updater.posponerActualizacion(context, availableUpdateVersion)
                         },
-                        dismissButton = {
-                            TextButton(onClick = { showUpdateDialog = false }) {
-                                Text(stringResource(R.string.later))
-                            }
-                        }
                     )
                 }
                 val homeViewModel: HomeViewModel = hiltViewModel()

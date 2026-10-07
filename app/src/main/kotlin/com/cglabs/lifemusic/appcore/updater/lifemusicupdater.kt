@@ -547,6 +547,25 @@ const val KEY_LAST_CHECKED_TIME = "last_checked_time"
 const val KEY_BETA_UPDATES = "beta_updates"
 const val KEY_UPDATE_AVAILABLE = "update_available"
 const val KEY_SOLO_WIFI = "actualizar_solo_wifi"
+private const val KEY_POSPUESTA_VERSION = "actualizacion_pospuesta_version"
+private const val KEY_POSPUESTA_EN = "actualizacion_pospuesta_en"
+private const val DIAS_DE_RESPIRO = 3
+
+/** «Mas tarde» en la hoja de actualizacion: esa version no vuelve a interrumpir en 3 dias. */
+fun posponerActualizacion(context: Context, version: String) {
+    context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE).edit()
+        .putString(KEY_POSPUESTA_VERSION, version)
+        .putLong(KEY_POSPUESTA_EN, System.currentTimeMillis())
+        .apply()
+}
+
+/** Se pospuso [version] hace menos de 3 dias. Una version mas nueva vuelve a salir enseguida. */
+fun estaPospuesta(context: Context, version: String): Boolean {
+    val p = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+    if (p.getString(KEY_POSPUESTA_VERSION, null) != version) return false
+    val hace = System.currentTimeMillis() - p.getLong(KEY_POSPUESTA_EN, 0L)
+    return hace in 0 until DIAS_DE_RESPIRO * 24L * 60 * 60 * 1000
+}
 
 /** «Descargar solo con wifi» (1.3.1): apagado de serie. */
 fun getSoloWifiSetting(context: Context): Boolean =
