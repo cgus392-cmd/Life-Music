@@ -112,7 +112,29 @@ private fun ContenidoBoletin(
                         .verticalScroll(rememberScrollState()),
                 ) {
                     Spacer(Modifier.height(28.dp))
+                    CuerpoDeBoletin(boletin, animar)
+                    Spacer(Modifier.height(16.dp))
+                }
 
+                BarraBoletin(
+                    conAjustes = boletin.rutaAjustes != null && onAbrirAjustes != null,
+                    textoBoton = boletin.textoBoton,
+                    onAjustes = { boletin.rutaAjustes?.let { onAbrirAjustes?.invoke(it) } },
+                    onCerrar = onCerrar,
+                )
+            }
+        }
+    }
+}
+
+/**
+ * Lo que cuenta un boletin: la etiqueta de la version, el titulo, la imagen,
+ * la introduccion, los azulejos y el «Ademas». Lo usan el boletin a pantalla
+ * completa y el historial de versiones (Ajustes > Actualizaciones).
+ */
+@Composable
+internal fun CuerpoDeBoletin(boletin: BoletinDeVersion, animar: Boolean) {
+    Column {
                     Escalonado(0, animar) {
                         Chip(
                             icono = if (boletin.grande) R.drawable.star else R.drawable.info,
@@ -183,18 +205,6 @@ private fun ContenidoBoletin(
                             }
                         }
                     }
-
-                    Spacer(Modifier.height(16.dp))
-                }
-
-                BarraBoletin(
-                    conAjustes = boletin.rutaAjustes != null && onAbrirAjustes != null,
-                    textoBoton = boletin.textoBoton,
-                    onAjustes = { boletin.rutaAjustes?.let { onAbrirAjustes?.invoke(it) } },
-                    onCerrar = onCerrar,
-                )
-            }
-        }
     }
 }
 
@@ -287,18 +297,21 @@ private fun HeroImagen(recurso: Int, animar: Boolean) {
         )
         z
     } else 1f
+    val pintura = painterResource(recurso)
+    val tamano = pintura.intrinsicSize
+    val proporcion = if (tamano.width > 0f && tamano.height > 0f && tamano.width.isFinite() && tamano.height.isFinite()) tamano.width / tamano.height else 1200f / 896f
     Surface(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(20.dp),
         color = Color(0xFF07100C),
     ) {
         Image(
-            painter = painterResource(recurso),
+            painter = pintura,
             contentDescription = null,
             contentScale = ContentScale.Crop,
             modifier = Modifier
                 .fillMaxWidth()
-                .aspectRatio(1200f / 896f)
+                .aspectRatio(proporcion)
                 .graphicsLayer { scaleX = zoom; scaleY = zoom },
         )
     }

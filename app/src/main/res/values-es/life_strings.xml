@@ -1144,4 +1144,17 @@
     <string name="update_hoja_titulo">Life Music %1$s</string>
     <string name="update_hoja_tamano">Descarga de %1$s MB</string>
     <string name="update_actualizar_ahora">Actualizar ahora</string>
+    <string name="historial_versiones">Historial de versiones</string>
+    <string name="historial_versiones_desc">Lo que trajo cada versión, con su imagen</string>
+    <string name="historial_version_actual">%1$s · la tuya</string>
+    <string name="historial_vacio">Todavía no hay versiones para mostrar.</string>
+    <string name="boletin_v1131_titulo_1">Tu TV,</string>
+    <string name="boletin_v1131_titulo_2">con más estilo</string>
+    <string name="boletin_v1131_intro">Dos temas PRO para el TV, Life Music en cualquier televisor que tenga navegador y un actualizador nuevo, con una imagen propia para cada versión.</string>
+    <string name="boletin_v1131_temas_t">Temas PRO del TV</string>
+    <string name="boletin_v1131_temas">Atardecer cambia con la hora: amanecer, atardecer y noche con luna. Tocadiscos pone tu carátula a girar en un disco de verdad, en dos fotos: V1 de cerca y V2 en plano abierto.</string>
+    <string name="boletin_v1131_tv_t">Life Music TV en el navegador</string>
+    <string name="boletin_v1131_tv">¿Tu TV no tiene Cast? Abre lifemusic.pages.dev/tv en su navegador, toca transmitir → TV con navegador y escribe el código. El TV se acuerda para la próxima vez.</string>
+    <string name="boletin_v1131_actualizador_t">Actualizador renovado</string>
+    <string name="boletin_v1131_actualizador">Cada versión llega con su imagen y sus novedades, la descarga pesa menos en la mayoría de teléfonos, dice cuánto falta y sigue donde iba si se corta. El historial de versiones está en Ajustes → Actualizaciones.</string>
 </resources>

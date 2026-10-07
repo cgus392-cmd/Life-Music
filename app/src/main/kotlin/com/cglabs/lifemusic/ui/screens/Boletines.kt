@@ -224,7 +224,25 @@ object Boletines {
         grande = true,
     )
 
-    val todos: List<BoletinDeVersion> = listOf(v115, v116, v117, v118, v119, v1110, v1120, v1130)
+    private val v1131 = BoletinDeVersion(
+        versionCode = 15,
+        versionName = "1.3.1",
+        tituloLinea1 = R.string.boletin_v1131_titulo_1,
+        tituloLinea2 = R.string.boletin_v1131_titulo_2,
+        intro = R.string.boletin_v1131_intro,
+        apartados = listOf(
+            ApartadoBoletin(R.drawable.palette, Color(0xFFFFCC80),
+                R.string.boletin_v1131_temas_t, R.string.boletin_v1131_temas),
+            ApartadoBoletin(R.drawable.cast_tv, Color(0xFFCE93D8),
+                R.string.boletin_v1131_tv_t, R.string.boletin_v1131_tv),
+            ApartadoBoletin(R.drawable.update, Color(0xFFA5D6A7),
+                R.string.boletin_v1131_actualizador_t, R.string.boletin_v1131_actualizador),
+        ),
+        // La imagen de la version (estilo elegido por CG el 07-10: acrilico y cromo verde menta).
+        heroImagen = R.drawable.novedades_131,
+    )
+
+    val todos: List<BoletinDeVersion> = listOf(v115, v116, v117, v118, v119, v1110, v1120, v1130, v1131)
 
     /** El boletin de una version, o null si esa version no tiene nada que contar. */
     fun para(versionCode: Int): BoletinDeVersion? = todos.firstOrNull { it.versionCode == versionCode }

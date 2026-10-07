@@ -150,6 +150,15 @@ fun UpdateSettings(
                         { mostrarBoletin = true }
                     } else null
                 ),
+
+                // 1.3.1: una pastilla por version, con su imagen y lo que trajo.
+                Material3SettingsItem(
+                    isHighlighted = (highlightKey == stringResource(R.string.historial_versiones)),
+                    icon = painterResource(R.drawable.history),
+                    title = { Text(stringResource(R.string.historial_versiones)) },
+                    description = { Text(stringResource(R.string.historial_versiones_desc)) },
+                    onClick = { navController.navigate("settings/changelog") }
+                ),
                 
                 Material3SettingsItem(
     isHighlighted = (highlightKey == stringResource(R.string.auto_update_check)),

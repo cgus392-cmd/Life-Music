@@ -1524,4 +1524,17 @@
     <string name="update_hoja_titulo">Life Music %1$s</string>
     <string name="update_hoja_tamano">%1$s MB download</string>
     <string name="update_actualizar_ahora">Update now</string>
+    <string name="historial_versiones">Version history</string>
+    <string name="historial_versiones_desc">What each version brought, with its image</string>
+    <string name="historial_version_actual">%1$s · yours</string>
+    <string name="historial_vacio">No versions to show yet.</string>
+    <string name="boletin_v1131_titulo_1">Your TV,</string>
+    <string name="boletin_v1131_titulo_2">with more style</string>
+    <string name="boletin_v1131_intro">Two PRO themes for the TV, Life Music on any TV with a browser and a new updater, with its own image for every version.</string>
+    <string name="boletin_v1131_temas_t">PRO TV themes</string>
+    <string name="boletin_v1131_temas">Sunset changes with the time of day: sunrise, sunset and a moonlit night. Turntable spins your cover on a real record, in two photos: V1 up close and V2 wide.</string>
+    <string name="boletin_v1131_tv_t">Life Music TV in the browser</string>
+    <string name="boletin_v1131_tv">No Cast on your TV? Open lifemusic.pages.dev/tv in its browser, tap cast → TV with a browser and type the code. The TV remembers it next time.</string>
+    <string name="boletin_v1131_actualizador_t">Renewed updater</string>
+    <string name="boletin_v1131_actualizador">Every version arrives with its image and news, the download is smaller on most phones, shows how long is left and resumes if it gets cut. The version history is in Settings → Updates.</string>
 </resources>
