@@ -1,0 +1,15 @@
+# Relevo de Life Music TV: pasa mensajes entre el telefono y el receptor web
+# abierto en el navegador de un TV. Ver docs/versiones/1.3.1/tv-por-codigo.md.
+# Plan gratis de Cloudflare: si se pasa de los limites, falla; nunca cobra.
+name = "lifemusic-enlace"
+main = "src/index.js"
+compatibility_date = "2026-09-01"
+workers_dev = true
+
+[[durable_objects.bindings]]
+name = "CUARTOS"
+class_name = "Cuarto"
+
+[[migrations]]
+tag = "v1"
+new_sqlite_classes = ["Cuarto"]
