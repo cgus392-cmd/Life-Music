@@ -22,7 +22,7 @@
   ninguna cancion).
 -->
 <link rel="icon" type="image/png" href="../img/lifemusic.png">
-<link rel="stylesheet" href="receptor.css?v=20260924c">
+<link rel="stylesheet" href="receptor.css?v=20261007a">
 <script src="https://www.gstatic.com/cast/sdk/libs/caf_receiver/v3/cast_receiver_framework.js"></script>
 </head>
 <body class="tema-ambiente">
@@ -38,6 +38,29 @@
   <div id="galeria-fondo" aria-hidden="true"><canvas class="gf" width="48" height="48"></canvas><canvas class="gf" width="48" height="48"></canvas></div>
   <!-- Tema Vinilo: grano y vineta calidos por encima del fondo. -->
   <div id="vinilo-grano" aria-hidden="true"></div>
+  <!-- Temas pro con paisaje real (video en bucle): dos copias que se funden en
+       el empalme y una sombra abajo para que se lea la cancion. -->
+  <div id="paisaje" aria-hidden="true">
+    <video class="pj" muted playsinline preload="none"></video>
+    <video class="pj" muted playsinline preload="none"></video>
+    <div class="pj-sombra"></div>
+  </div>
+  <!-- Tema Tocadiscos (pro): una foto real del tocadiscos; encima, la caratula
+       pegada en la etiqueta con la perspectiva de la foto y girando, la luz de
+       la foto sobre la caratula, el eje por delante y polvo en el aire. -->
+  <div id="tocadiscos" aria-hidden="true">
+    <div id="td-marco">
+      <div id="td-escena">
+        <img id="td-foto" alt="">
+        <div id="td-etiqueta"><img id="td-caratula" alt=""></div>
+        <canvas id="td-sombreado"></canvas>
+        <canvas id="td-eje"></canvas>
+        <div id="td-luz"></div>
+      </div>
+    </div>
+    <canvas id="td-polvo"></canvas>
+    <div class="td-sombra"></div>
+  </div>
 
   <main id="escena" class="vacia">
     <header class="marca">
@@ -111,6 +134,38 @@
       <p id="noc-linea"></p>
       <p id="noc-cancion"></p>
     </section>
+
+    <!-- Tema Atardecer (pro): el paisaje manda; la cancion abajo a la izquierda,
+         como un reproductor de sala, y la barra completa con los tiempos. -->
+    <section id="atardecer">
+      <p id="atd-linea"></p>
+      <div id="atd-info">
+        <img id="atd-caratula" alt="">
+        <div id="atd-textos">
+          <h2 id="atd-titulo"></h2>
+          <p id="atd-artista"></p>
+        </div>
+      </div>
+      <div id="atd-fila">
+        <span id="atd-tiempo">0:00</span>
+        <div id="atd-progreso"><div id="atd-barra"></div></div>
+        <span id="atd-duracion">0:00</span>
+      </div>
+    </section>
+
+    <!-- Tema Tocadiscos (pro): la letra a la derecha con brillo calido, la
+         cancion abajo a la derecha. -->
+    <section id="td-ui">
+      <div id="td-letra">
+        <p id="td-linea"></p>
+        <p id="td-siguiente"></p>
+      </div>
+      <div id="td-info">
+        <p id="td-titulo"></p>
+        <p id="td-artista"></p>
+        <div id="td-progreso"><div id="td-barra"></div></div>
+      </div>
+    </section>
   </main>
 
   <!-- El saludo de entrada de la app, en el TV: llega del telefono al conectar. -->
@@ -119,6 +174,6 @@
     <p id="saludo-frase"></p>
   </section>
 
-  <script src="receptor.js?v=20260924c"></script>
+  <script src="receptor.js?v=20261007a"></script>
 </body>
 </html>

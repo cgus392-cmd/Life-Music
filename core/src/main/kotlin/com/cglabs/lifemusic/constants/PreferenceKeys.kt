@@ -351,8 +351,10 @@ val DisableScreenshotKey = booleanPreferencesKey("disableScreenshot")
 
 
 val EnableGoogleCastKey = booleanPreferencesKey("enableGoogleCast")
-/** Tema del receptor de Cast en el TV: "ambiente", "cristal" o "escenario" (web/cast/receptor.js). */
+/** Tema del receptor de Cast en el TV: "ambiente", "cristal", "escenario"… (TEMAS en web/cast/receptor.js). */
 val CastTemaKey = stringPreferencesKey("castTema")
+/** Foto del tema pro Tocadiscos en el TV: 1 (de cerca) o 2 (plano abierto); PLACAS_TD en receptor.js. */
+val CastTocadiscosVersionKey = intPreferencesKey("castTocadiscosVersion")
 
 
 val ListenTogetherServerUrlKey = stringPreferencesKey("listenTogetherServerUrl")

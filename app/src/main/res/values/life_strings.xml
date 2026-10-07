@@ -1193,6 +1193,11 @@
     <string name="cast_tema_vinilo">Vinyl</string>
     <string name="cast_tema_galeria">Gallery</string>
     <string name="cast_tema_nocturno">Night</string>
+    <string name="cast_tema_atardecer">Sunset</string>
+    <string name="cast_tema_tocadiscos">Turntable</string>
+    <string name="cast_tema_pro">PRO</string>
+    <string name="cast_tema_version">Version</string>
+    <string name="cast_tema_atardecer_nota">Changes with the time of day: sunrise in the morning, sunset in the afternoon, moon at night.</string>
     <string name="cast_tema_cristal_nota">Uses your app glass: the tint, lens and vibrancy from Appearance → Liquid Glass.</string>
     <string name="cast_error_conectar">Couldn’t connect to %1$s</string>
     <string name="cast_error_cancion">The device couldn’t play this song</string>

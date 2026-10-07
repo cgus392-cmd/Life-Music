@@ -808,6 +808,11 @@
     <string name="cast_tema_vinilo">Vinilo</string>
     <string name="cast_tema_galeria">Galería</string>
     <string name="cast_tema_nocturno">Nocturno</string>
+    <string name="cast_tema_atardecer">Atardecer</string>
+    <string name="cast_tema_tocadiscos">Tocadiscos</string>
+    <string name="cast_tema_pro">PRO</string>
+    <string name="cast_tema_version">Versión</string>
+    <string name="cast_tema_atardecer_nota">Cambia con la hora: amanecer en la mañana, atardecer en la tarde y luna de noche.</string>
     <string name="cast_tema_cristal_nota">Usa tu cristal de la app: el tinte, la lente y la vibrancia de Apariencia → Liquid Glass.</string>
     <string name="cast_error_conectar">No se pudo conectar con %1$s</string>
     <string name="cast_error_cancion">El aparato no pudo reproducir esta canción</string>

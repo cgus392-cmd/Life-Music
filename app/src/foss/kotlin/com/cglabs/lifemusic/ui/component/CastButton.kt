@@ -1,5 +1,6 @@
 package com.cglabs.lifemusic.ui.component
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -39,6 +40,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.cglabs.lifemusic.LocalPlayerConnection
 import com.cglabs.lifemusic.R
 import com.cglabs.lifemusic.cast.DescubridorCast
@@ -165,6 +167,33 @@ private fun HojaDeCast(handler: CastConnectionHandler, onCerrar: () -> Unit) {
                         TarjetaDeTema(CastConnectionHandler.TEMA_GALERIA, R.string.cast_tema_galeria, temaActual, Modifier.weight(1f), handler::ponerTema)
                         TarjetaDeTema(CastConnectionHandler.TEMA_NOCTURNO, R.string.cast_tema_nocturno, temaActual, Modifier.weight(1f), handler::ponerTema)
                     }
+                    Spacer(Modifier.height(10.dp))
+                    // Temas pro: paisaje o foto real de fondo (ver web/cast/temas/).
+                    Row(horizontalArrangement = Arrangement.spacedBy(10.dp), modifier = Modifier.fillMaxWidth()) {
+                        TarjetaDeTema(CastConnectionHandler.TEMA_ATARDECER, R.string.cast_tema_atardecer, temaActual, Modifier.weight(1f), handler::ponerTema, pro = true)
+                        TarjetaDeTema(CastConnectionHandler.TEMA_TOCADISCOS, R.string.cast_tema_tocadiscos, temaActual, Modifier.weight(1f), handler::ponerTema, pro = true)
+                        Spacer(Modifier.weight(1f))
+                    }
+                    if (temaActual == CastConnectionHandler.TEMA_TOCADISCOS) {
+                        // Mini menu: cual de las dos fotos del tocadiscos.
+                        val version by handler.versionTocadiscos.collectAsState()
+                        Spacer(Modifier.height(10.dp))
+                        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                            Text(stringResource(R.string.cast_tema_version), style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                            Spacer(Modifier.width(4.dp))
+                            for (v in 1..2) {
+                                androidx.compose.material3.FilterChip(
+                                    selected = version == v,
+                                    onClick = { handler.ponerVersionTocadiscos(v) },
+                                    label = { Text("V$v", fontWeight = FontWeight.SemiBold) },
+                                )
+                            }
+                        }
+                    }
+                    if (temaActual == CastConnectionHandler.TEMA_ATARDECER) {
+                        Spacer(Modifier.height(8.dp))
+                        Text(stringResource(R.string.cast_tema_atardecer_nota), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    }
                     if (temaActual == CastConnectionHandler.TEMA_CRISTAL) {
                         Spacer(Modifier.height(8.dp))
                         Text(stringResource(R.string.cast_tema_cristal_nota), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
@@ -262,6 +291,7 @@ private fun TarjetaDeTema(
     actual: String,
     modifier: Modifier = Modifier,
     alElegir: (String) -> Unit,
+    pro: Boolean = false,
 ) {
     val elegida = id == actual
     val forma = RoundedCornerShape(16.dp)
@@ -277,12 +307,30 @@ private fun TarjetaDeTema(
             .clickable { alElegir(id) }
             .padding(6.dp),
     ) {
-        androidx.compose.foundation.Canvas(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(58.dp)
-                .clip(RoundedCornerShape(11.dp)),
-        ) { vistaPrevia(id) }
+        Box(Modifier.fillMaxWidth()) {
+            androidx.compose.foundation.Canvas(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(58.dp)
+                    .clip(RoundedCornerShape(11.dp)),
+            ) { vistaPrevia(id) }
+            // Sello PRO: dorado, en la esquina de la miniatura.
+            if (pro) {
+                Text(
+                    stringResource(R.string.cast_tema_pro),
+                    fontSize = 9.sp,
+                    fontWeight = FontWeight.Bold,
+                    letterSpacing = 0.8.sp,
+                    color = Color(0xFF2A1A05),
+                    modifier = Modifier
+                        .align(Alignment.TopEnd)
+                        .padding(4.dp)
+                        .clip(RoundedCornerShape(6.dp))
+                        .background(androidx.compose.ui.graphics.Brush.linearGradient(listOf(Color(0xFFFFE08A), Color(0xFFE8A93A))))
+                        .padding(horizontal = 5.dp, vertical = 1.dp),
+                )
+            }
+        }
         Spacer(Modifier.height(6.dp))
         Text(
             stringResource(nombre),
@@ -369,6 +417,34 @@ private fun androidx.compose.ui.graphics.drawscope.DrawScope.vistaPrevia(tema: S
             caja(0.36f, 0.10f, 0.28f, 0.50f, caratula, 0.06f)
             renglon(0.34f, 0.70f, 0.32f, 0.9f, 0.06f)
             renglon(0.40f, 0.82f, 0.20f, 0.45f, 0.045f)
+        }
+        "atardecer" -> {
+            // Cielo de atardecer, el sol en el horizonte y su reflejo; la cancion abajo a la izquierda.
+            drawRect(androidx.compose.ui.graphics.Brush.verticalGradient(
+                0f to Color(0xFF3B1A10), 0.5f to Color(0xFFF2963F), 0.5f to Color(0xFF6B3417), 1f to Color(0xFF120804),
+            ))
+            val sol = androidx.compose.ui.geometry.Offset(0.5f * w, 0.5f * h)
+            drawCircle(androidx.compose.ui.graphics.Brush.radialGradient(listOf(Color(0xCCFFD27A), Color.Transparent), center = sol, radius = 0.42f * h), radius = 0.42f * h, center = sol)
+            drawCircle(Color(0xFFFFF1C9), radius = 0.12f * h, center = sol)
+            drawRect(Color(0xFF120804), topLeft = androidx.compose.ui.geometry.Offset(0f, 0.5f * h), size = androidx.compose.ui.geometry.Size(w, 0.5f * h), alpha = 0.35f)
+            for (k in 0..3) caja(0.5f - 0.05f + 0.012f * k, 0.56f + 0.07f * k, 0.1f - 0.024f * k, 0.025f, Color(0xFFFFD27A).copy(alpha = 0.7f - 0.15f * k), 0.012f)
+            caja(0.06f, 0.70f, 0.08f, 0.14f, caratula, 0.03f)
+            renglon(0.17f, 0.72f, 0.22f, 0.95f, 0.06f)
+            renglon(0.06f, 0.90f, 0.88f, 0.55f, 0.025f)
+        }
+        "tocadiscos" -> {
+            // Sala calida: el disco en perspectiva con la caratula de etiqueta, el brazo y la letra a la derecha.
+            drawRect(Color(0xFF140B06))
+            luz(Color(0xFFE8933A).copy(alpha = 0.5f), 0.78f, 0.25f, 0.45f)
+            for ((bx, by) in listOf(0.66f to 0.2f, 0.74f to 0.14f, 0.84f to 0.22f)) drawCircle(Color(0xFFFFC27A).copy(alpha = 0.35f), radius = 0.05f * h, center = androidx.compose.ui.geometry.Offset(bx * w, by * h))
+            fun ovalo(cx: Float, cy: Float, rx: Float, ry: Float, color: Color) = drawOval(color, topLeft = androidx.compose.ui.geometry.Offset((cx - rx) * w, (cy - ry) * h), size = androidx.compose.ui.geometry.Size(2 * rx * w, 2 * ry * h))
+            ovalo(0.27f, 0.58f, 0.27f, 0.40f, Color(0xFF6B4226))
+            ovalo(0.26f, 0.55f, 0.23f, 0.34f, Color(0xFF0E0C0B))
+            ovalo(0.26f, 0.55f, 0.09f, 0.13f, caratula)
+            ovalo(0.26f, 0.55f, 0.012f, 0.02f, Color(0xFFDADADA))
+            drawLine(Color(0xFFD9D4CC), start = androidx.compose.ui.geometry.Offset(0.50f * w, 0.12f * h), end = androidx.compose.ui.geometry.Offset(0.42f * w, 0.70f * h), strokeWidth = 1.4.dp.toPx())
+            renglon(0.60f, 0.40f, 0.32f, 0.95f, 0.09f)
+            renglon(0.60f, 0.58f, 0.24f, 0.4f, 0.06f)
         }
         "nocturno" -> {
             // Negro, la hora grande y la linea que suena.

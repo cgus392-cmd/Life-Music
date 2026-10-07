@@ -357,8 +357,12 @@ class CastConnectionHandler(
     // ── Tema del TV ──────────────────────────────────────────────────────────
 
     private val _tema = MutableStateFlow(context.dataStore.get(com.cglabs.lifemusic.constants.CastTemaKey, TEMA_AMBIENTE))
-    /** Tema del receptor: [TEMA_AMBIENTE], [TEMA_CRISTAL] o [TEMA_ESCENARIO]. */
+    /** Tema del receptor: [TEMA_AMBIENTE], [TEMA_CRISTAL], [TEMA_ESCENARIO]… (ver TEMA_*). */
     val tema: StateFlow<String> = _tema.asStateFlow()
+
+    private val _versionTocadiscos = MutableStateFlow(context.dataStore.get(com.cglabs.lifemusic.constants.CastTocadiscosVersionKey, 1))
+    /** Foto del tema [TEMA_TOCADISCOS]: 1 (de cerca) o 2 (plano abierto). */
+    val versionTocadiscos: StateFlow<Int> = _versionTocadiscos.asStateFlow()
 
     private val _receptorPropio = MutableStateFlow(false)
     /** Se transmite a nuestro receptor (y no al reproductor por defecto): solo entonces hay temas. */
@@ -369,6 +373,15 @@ class CastConnectionHandler(
         _tema.value = nuevo
         scope.launch(Dispatchers.IO) {
             runCatching { context.dataStore.edit { it[com.cglabs.lifemusic.constants.CastTemaKey] = nuevo } }
+        }
+        cliente?.let { enviarAjustes(it) }
+    }
+
+    /** Elige la foto del Tocadiscos (V1/V2): se guarda y, si se transmite, el TV cambia al momento. */
+    fun ponerVersionTocadiscos(version: Int) {
+        _versionTocadiscos.value = version
+        scope.launch(Dispatchers.IO) {
+            runCatching { context.dataStore.edit { it[com.cglabs.lifemusic.constants.CastTocadiscosVersionKey] = version } }
         }
         cliente?.let { enviarAjustes(it) }
     }
@@ -392,7 +405,7 @@ class CastConnectionHandler(
                 .put("aberracion", ds.get(com.cglabs.lifemusic.constants.LiquidGlassChromaticAberrationKey, true))
                 .put("profundidad", ds.get(com.cglabs.lifemusic.constants.LiquidGlassDepthEffectKey, true))
                 .put("desenfoque", ds.get(com.cglabs.lifemusic.constants.LiquidGlassBlurRadiusKey, 8f).toDouble())
-            c.enviarPropio(JSONObject().put("tipo", "ajustes").put("tema", _tema.value).put("cristal", cristal).put("idioma", java.util.Locale.getDefault().toLanguageTag()))
+            c.enviarPropio(JSONObject().put("tipo", "ajustes").put("tema", _tema.value).put("placa", _versionTocadiscos.value).put("cristal", cristal).put("idioma", java.util.Locale.getDefault().toLanguageTag()))
             com.cglabs.lifemusic.cast.DiagnosticoCast.log("tema enviado: ${_tema.value}")
         }
     }
@@ -738,5 +751,8 @@ class CastConnectionHandler(
         const val TEMA_VINILO = "vinilo"
         const val TEMA_GALERIA = "galeria"
         const val TEMA_NOCTURNO = "nocturno"
+        // Temas pro: fondo real (video o foto en web/cast/temas/), sin limites de uso por ahora.
+        const val TEMA_ATARDECER = "atardecer"
+        const val TEMA_TOCADISCOS = "tocadiscos"
     }
 }

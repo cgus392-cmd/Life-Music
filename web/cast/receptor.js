@@ -4,7 +4,7 @@
 (function () {
   "use strict";
 
-  var VERSION = "2026-09-24c";
+  var VERSION = "2026-10-07a";
   var NS = "urn:x-cast:com.cglabs.lifemusic";
 
   // ── Rendimiento ───────────────────────────────────────────────────────────
@@ -111,8 +111,12 @@
     elEscArtista.textContent = c.artista || "";
     elGalTitulo.textContent = c.titulo || "";
     elGalArtista.textContent = c.artista || "";
+    elAtdTitulo.textContent = c.titulo || "";
+    elTdTitulo.textContent = c.titulo || "";
+    elTdArtista.textContent = c.artista || "";
+    elAtdArtista.textContent = c.artista || "";
     elNocCancion.textContent = (c.titulo || "") + (c.artista ? " · " + c.artista : "");
-    if (cambio) { escIdx = -2; lineaSolaIdx = -2; }
+    if (cambio) { escIdx = -2; lineaSolaIdx = -2; tdIdx = -2; }
     if (letraDeId !== c.id) ponerLetra([], null);
   }
 
@@ -186,6 +190,8 @@
     elEscCaratula.src = url;
     elEtiqueta.src = url;
     elGalCaratula.src = url;
+    elAtdCaratula.src = url;
+    caratulaTocadiscos(url);
     ponerGaleriaFondo(url);
     cargarArteGL(url);
   }
@@ -409,7 +415,7 @@
 
   var ultimoFotograma = 0;
   function dibujarFondo(ahora) {
-    if (tema === "galeria" || tema === "nocturno") return false;
+    if (tema === "galeria" || tema === "nocturno" || tema === "atardecer" || tema === "tocadiscos") return false;
     // En pausa o en la bienvenida no hay latido que seguir: menos fotogramas.
     var fps = cancion ? (sonando ? FPS_FONDO : 12) : Math.min(FPS_FONDO, 15);
     if (ahora - ultimoFotograma < 1000 / fps) return false;
@@ -454,7 +460,7 @@
   // «ambiente» (el de siempre), «cristal» (paneles de cristal liquido, la
   // receta de la app) y «escenario» (una linea enorme al centro, para fiestas).
   // Llega del telefono en «ajustes»; la escena se funde a negro y vuelve.
-  var TEMAS = ["ambiente", "cristal", "escenario", "vinilo", "galeria", "nocturno"];
+  var TEMAS = ["ambiente", "cristal", "escenario", "vinilo", "galeria", "nocturno", "atardecer", "tocadiscos"];
   var tema = "ambiente";
   var cambioTema = null;
   function ponerTema(nuevo) {
@@ -465,6 +471,9 @@
       tema = nuevo;
       document.body.classList.add("tema-" + tema);
       if (tema === "cristal") prepararGL();
+      prepararPaisaje();
+      prepararTocadiscos();
+      tdIdx = -2;
       escIdx = -2;
       lineaSolaIdx = -2;
       ultimoReloj = 0;
@@ -823,10 +832,361 @@
     }
   }
 
+  // ── Temas con paisaje real (pro) ──────────────────────────────────────────
+  // El fondo es un video real en bucle (generado en Flow, en temas/), no un
+  // dibujo: el realismo viene del material y lo vivo (la cancion) va encima.
+  // El clip no empalma consigo mismo (el agua del final no es la del inicio),
+  // asi que hay dos copias: antes de que una acabe, la otra arranca desde cero
+  // y se funde por encima; la de abajo sigue a opacidad completa hasta que la
+  // de arriba la tapa, para que el empalme no oscurezca la pantalla.
+  // Solo se descarga si se elige el tema, y al salir se suelta el decodificador
+  // (un TV flojo no puede tener dos videos abiertos sin motivo).
+  var PAISAJES = {
+    // Por hora (desde, hasta): la primera que encaje; si no hay ninguna, la ultima.
+    // «zoom» amplia el clip lo justo para esconder defectos del borde (el
+    // atardecer trae bordes de pelicula y un rayon arriba a la derecha).
+    atardecer: [
+      { desde: 5, hasta: 12, src: "temas/amanecer.mp4", zoom: 1.02 },
+      { desde: 12, hasta: 19, src: "temas/atardecer.mp4", zoom: 1.16 },
+      { desde: 19, hasta: 24, src: "temas/noche.mp4", zoom: 1.02 },
+      { desde: 0, hasta: 5, src: "temas/noche.mp4", zoom: 1.02 },
+    ],
+  };
+  var FUNDIDO_PAISAJE = 1.6; // s
+  var elPaisaje = $("paisaje"), pjVideos = document.querySelectorAll("#paisaje .pj");
+  var pjActual = 0, pjSrc = null, pjFundiendo = false, pjRevisado = 0, pjHoraRevisada = 0;
+  var horaForzada = null; // la demo la pone con ?hora=
+
+  function paisajeDeAhora(lista) {
+    var h = horaForzada !== null ? horaForzada : new Date().getHours();
+    for (var i = 0; i < lista.length; i++) if (h >= lista[i].desde && h < lista[i].hasta) return lista[i];
+    return lista[lista.length - 1];
+  }
+  function prepararPaisaje() {
+    var lista = PAISAJES[tema];
+    if (!lista) { soltarPaisaje(); return; }
+    var p = paisajeDeAhora(lista), src = p.src;
+    if (src === pjSrc) return;
+    soltarPaisaje();
+    pjSrc = src;
+    for (var i = 0; i < pjVideos.length; i++) {
+      pjVideos[i].preload = "auto";
+      pjVideos[i].style.transform = "scale(" + (p.zoom || 1) + ")";
+      pjVideos[i].src = src;
+    }
+    var v = pjVideos[pjActual];
+    v.style.zIndex = "1";
+    v.onplaying = function () { v.classList.add("visible"); v.onplaying = null; };
+    v.onerror = function () { diag("paisaje: no cargo " + src); };
+    var pr = v.play();
+    if (pr && pr.catch) pr.catch(function (e) { diag("paisaje: " + (e && e.name)); });
+  }
+  function soltarPaisaje() {
+    if (!pjSrc) return;
+    pjSrc = null;
+    pjFundiendo = false;
+    for (var i = 0; i < pjVideos.length; i++) {
+      var v = pjVideos[i];
+      v.pause();
+      v.classList.remove("visible");
+      v.removeAttribute("src");
+      v.load();
+    }
+  }
+  function cuidarPaisaje(ahora) {
+    if (!pjSrc || pjFundiendo || ahora - pjRevisado < 100) return;
+    // Cada minuto: si cambio la franja del dia (amanecer → atardecer), otro paisaje.
+    if (ahora - pjHoraRevisada > 60000) { pjHoraRevisada = ahora; if (paisajeDeAhora(PAISAJES[tema]).src !== pjSrc) { prepararPaisaje(); return; } }
+    pjRevisado = ahora;
+    var v = pjVideos[pjActual];
+    if (!v.duration || v.currentTime < v.duration - FUNDIDO_PAISAJE - 0.3) return; // margen: un TV lento no llega al final congelado
+    // Empalme: la otra copia arranca desde cero y se funde encima de esta.
+    pjFundiendo = true;
+    var sig = 1 - pjActual, n = pjVideos[sig];
+    n.currentTime = 0;
+    n.style.zIndex = "2";
+    v.style.zIndex = "1";
+    var p = n.play();
+    if (p && p.catch) p.catch(function () { /* sigue la vieja; se reintenta en el proximo empalme */ });
+    n.classList.add("visible");
+    setTimeout(function () {
+      v.classList.remove("visible");
+      v.pause();
+      pjActual = sig;
+      pjFundiendo = false;
+    }, FUNDIDO_PAISAJE * 1000 + 50);
+  }
+
+  // ── Tocadiscos (pro) ──────────────────────────────────────────────────────
+  // Una foto real (generada en Flow, en temas/) con la etiqueta del disco en
+  // blanco. La etiqueta se midio en la foto (contorno ajustado a una elipse):
+  // la caratula se dibuja como un circulo que gira y se aplana a esa elipse,
+  // que es exactamente como se ve un disco girando desde arriba en diagonal.
+  // Encima van, sacados de la misma foto: la luz y el papel de la etiqueta
+  // (multiplicados sobre la caratula, para que la caratula tenga la luz de la
+  // escena y no parezca pegada) y el eje plateado (siempre por delante).
+  // Todo lo que esta en «escena» va en pixeles de la foto; se escala entero.
+  var PLACAS_TD = [
+    { src: "temas/tocadiscos-1.jpg", w: 2000, h: 1116,
+      etiqueta: { x: 630.1, y: 540.5, a: 216.2, b: 174.9, ang: 49.3 },
+      eje: { x: 618, y: 512, r: 36 },
+      luz: { x: 1460, y: 330, r: 420 } },
+    { src: "temas/tocadiscos-2.jpg", w: 2000, h: 1116,
+      etiqueta: { x: 480.4, y: 559.8, a: 154.8, b: 90.0, ang: 0 },
+      eje: { x: 483, y: 549, r: 30 },
+      luz: { x: 1420, y: 300, r: 460 } },
+  ];
+  var RPM_TD = 33.333;
+  var elTd = $("tocadiscos"), elTdMarco = $("td-marco"), elTdEscena = $("td-escena"), elTdFoto = $("td-foto");
+  var elTdEtiqueta = $("td-etiqueta"), elTdCaratula = $("td-caratula"), elTdSombreado = $("td-sombreado"), elTdEje = $("td-eje");
+  var elTdLuz = $("td-luz"), elTdPolvo = $("td-polvo");
+  var elTdLinea = $("td-linea"), elTdSiguiente = $("td-siguiente"), elTdTitulo = $("td-titulo"), elTdArtista = $("td-artista"), elTdBarra = $("td-barra");
+  var tdPlaca = null, tdListo = false, tdAngulo = 0, tdVel = 0, tdUltimo = 0, tdLatido = 0;
+  var tdIdx = -2, tdPalabras = [], tdUltimaLetra = 0, tdCaratulaUrl = null;
+  var placaForzada = null; // la demo la pone con ?placa=
+
+  function prepararTocadiscos() {
+    if (tema !== "tocadiscos") { soltarTocadiscos(); return; }
+    var p = PLACAS_TD[(placaForzada || 1) - 1] || PLACAS_TD[0];
+    if (tdPlaca === p) return;
+    tdPlaca = p; tdListo = false;
+    elTd.classList.remove("listo");
+    elTdFoto.onload = function () {
+      if (tdPlaca !== p) return;
+      colocarTocadiscos();
+      try { pintarSombreado(p); pintarEje(p); } catch (e) { diag("tocadiscos: " + e.message); }
+      tdListo = true;
+      elTd.classList.add("listo");
+    };
+    elTdFoto.onerror = function () { diag("tocadiscos: no cargo " + p.src); };
+    elTdFoto.src = p.src;
+    tdIdx = -2;
+  }
+  function soltarTocadiscos() {
+    if (!tdPlaca) return;
+    tdPlaca = null; tdListo = false;
+    elTd.classList.remove("listo");
+    elTdFoto.removeAttribute("src");
+  }
+
+  // La escena mide lo que la foto; el marco la escala para cubrir la pantalla.
+  function colocarTocadiscos() {
+    var p = tdPlaca; if (!p) return;
+    elTdEscena.style.width = p.w + "px"; elTdEscena.style.height = p.h + "px";
+    elTdMarco.style.width = p.w + "px"; elTdMarco.style.height = p.h + "px";
+    elTdMarco.style.marginLeft = (-p.w / 2) + "px"; elTdMarco.style.marginTop = (-p.h / 2) + "px";
+    var k = Math.max(innerWidth / p.w, innerHeight / p.h);
+    elTdMarco.style.transform = "scale(" + k + ")";
+    var e = p.etiqueta, R = 100;
+    elTdEtiqueta.style.left = (e.x - R) + "px"; elTdEtiqueta.style.top = (e.y - R) + "px";
+    elTdEtiqueta.style.transform = "rotate(" + e.ang + "deg) scale(" + (e.a / R) + "," + (e.b / R) + ")";
+    elTdEscena.style.transformOrigin = e.x + "px " + e.y + "px";
+    var l = p.luz;
+    elTdLuz.style.left = (l.x - l.r) + "px"; elTdLuz.style.top = (l.y - l.r) + "px";
+    elTdLuz.style.width = elTdLuz.style.height = (2 * l.r) + "px";
+    elTdPolvo.width = Math.round(innerWidth / 2); elTdPolvo.height = Math.round(innerHeight / 2);
+  }
+  window.addEventListener("resize", function () { if (tdPlaca) colocarTocadiscos(); });
+
+  // Punto (x, y) de la foto → coordenada normalizada en el circulo de la etiqueta (1 = el borde).
+  function enEtiqueta(e, x, y) {
+    var c = Math.cos(-e.ang * Math.PI / 180), s = Math.sin(-e.ang * Math.PI / 180);
+    var dx = x - e.x, dy = y - e.y;
+    var u = (dx * c - dy * s) / e.a, v = (dx * s + dy * c) / e.b;
+    return Math.sqrt(u * u + v * v);
+  }
+
+  // El papel de la etiqueta tal como lo ilumina la foto, normalizado para que
+  // el papel quede casi blanco: multiplicado sobre la caratula le pone la
+  // misma luz, sombras y textura, y el tono calido de la sala.
+  function pintarSombreado(p) {
+    var e = p.etiqueta, m = Math.ceil(Math.max(e.a, e.b)) + 2;
+    var x0 = Math.floor(e.x - m), y0 = Math.floor(e.y - m), lado = 2 * m;
+    var cv = elTdSombreado; cv.width = lado; cv.height = lado;
+    cv.style.left = x0 + "px"; cv.style.top = y0 + "px";
+    var g = cv.getContext("2d");
+    g.drawImage(elTdFoto, x0, y0, lado, lado, 0, 0, lado, lado);
+    var img = g.getImageData(0, 0, lado, lado), d = img.data;
+    // Referencia: el papel mas claro (percentil 92 de la luminancia dentro de la etiqueta).
+    var lums = [];
+    for (var j = 0; j < lado; j += 3) for (var i = 0; i < lado; i += 3) {
+      if (enEtiqueta(e, x0 + i, y0 + j) < 0.9) { var q = (j * lado + i) * 4; lums.push((d[q] + d[q + 1] + d[q + 2]) / 3); }
+    }
+    lums.sort(function (a, b) { return a - b; });
+    var ref = lums[Math.floor(lums.length * 0.92)] || 220;
+    for (var y = 0; y < lado; y++) for (var x = 0; x < lado; x++) {
+      var o = (y * lado + x) * 4, rr = enEtiqueta(e, x0 + x, y0 + y);
+      if (rr > 1.01) { d[o + 3] = 0; continue; }
+      var lum = (d[o] + d[o + 1] + d[o + 2]) / 3;
+      for (var c = 0; c < 3; c++) {
+        // 60 % del color del papel, 40 % gris: conserva lo calido sin teñir de crema la caratula.
+        var val = (0.6 * d[o + c] + 0.4 * lum) * 255 / ref;
+        d[o + c] = val > 255 ? 255 : val;
+      }
+      // Borde suave de 1,5 px para que no se vea un corte.
+      d[o + 3] = rr < 0.99 ? 255 : Math.max(0, 255 * (1.01 - rr) / 0.02);
+    }
+    g.putImageData(img, 0, 0);
+  }
+
+  // El eje: solo los pixeles que no son papel (el metal es gris; el papel, crema).
+  function pintarEje(p) {
+    var j = p.eje, lado = 2 * j.r, x0 = j.x - j.r, y0 = j.y - j.r;
+    var cv = elTdEje; cv.width = lado; cv.height = lado;
+    cv.style.left = x0 + "px"; cv.style.top = y0 + "px";
+    var g = cv.getContext("2d");
+    g.drawImage(elTdFoto, x0, y0, lado, lado, 0, 0, lado, lado);
+    var img = g.getImageData(0, 0, lado, lado), d = img.data, alfa = new Float32Array(lado * lado);
+    for (var y = 0; y < lado; y++) for (var x = 0; x < lado; x++) {
+      var o = (y * lado + x) * 4, r = d[o], gg = d[o + 1], b = d[o + 2];
+      var mx = Math.max(r, gg, b), mn = Math.min(r, gg, b), sat = mx ? (mx - mn) / mx : 0;
+      var dist = Math.sqrt((x - j.r) * (x - j.r) + (y - j.r) * (y - j.r)) / j.r;
+      // Metal: poco color. El papel crema tiene saturacion ~0,2; la sombra del eje, oscura y calida, la pone el sombreado.
+      var a = sat < 0.14 ? 1 : sat < 0.2 ? (0.2 - sat) / 0.06 : 0;
+      alfa[y * lado + x] = dist > 1 ? 0 : a;
+    }
+    // Un desenfoque de 3×3 a la mascara para que el borde del metal no se vea recortado.
+    for (var y2 = 0; y2 < lado; y2++) for (var x2 = 0; x2 < lado; x2++) {
+      var s = 0, n = 0;
+      for (var dy = -1; dy <= 1; dy++) for (var dx = -1; dx <= 1; dx++) {
+        var xx = x2 + dx, yy = y2 + dy;
+        if (xx >= 0 && yy >= 0 && xx < lado && yy < lado) { s += alfa[yy * lado + xx]; n++; }
+      }
+      d[(y2 * lado + x2) * 4 + 3] = 255 * s / n;
+    }
+    g.putImageData(img, 0, 0);
+  }
+
+  // Polvo en el aire: motas calidas que flotan despacio y titilan con la luz.
+  var tdMotas = [];
+  for (var mi = 0; mi < 46; mi++) {
+    tdMotas.push({ x: Math.random(), y: Math.random(), vx: (Math.random() - 0.5) * 0.004, vy: -0.002 - Math.random() * 0.006,
+      t: Math.random() * 6.28, f: 0.4 + Math.random() * 1.2, r: 0.6 + Math.random() * 1.8 });
+  }
+  var tdSprite = (function () {
+    var c = document.createElement("canvas"); c.width = c.height = 32;
+    var g = c.getContext("2d"), gr = g.createRadialGradient(16, 16, 0, 16, 16, 16);
+    gr.addColorStop(0, "rgba(255,226,180,1)"); gr.addColorStop(0.35, "rgba(255,190,120,0.45)"); gr.addColorStop(1, "rgba(255,170,90,0)");
+    g.fillStyle = gr; g.fillRect(0, 0, 32, 32); return c;
+  })();
+  var tdUltimoPolvo = 0;
+  function pintarPolvo(ahora, dt) {
+    if (ahora - tdUltimoPolvo < 33) return; // 30 fps bastan para algo tan lento
+    tdUltimoPolvo = ahora;
+    var cv = elTdPolvo, g = cv.getContext("2d"), W2 = cv.width, H2 = cv.height;
+    g.clearRect(0, 0, W2, H2);
+    g.globalCompositeOperation = "lighter";
+    var seg = dt / 1000;
+    for (var i = 0; i < tdMotas.length; i++) {
+      var m = tdMotas[i];
+      m.x += m.vx * seg; m.y += m.vy * seg; m.t += m.f * seg;
+      if (m.y < -0.05) { m.y = 1.05; m.x = Math.random(); }
+      if (m.x < -0.05) m.x = 1.05; else if (m.x > 1.05) m.x = -0.05;
+      // Mas visibles donde hay luz (arriba a la derecha de la foto), casi nada en lo oscuro.
+      var luz = 0.35 + 0.65 * Math.max(0, 1 - Math.hypot(m.x - 0.62, m.y - 0.3) / 0.7);
+      var a = luz * (0.35 + 0.65 * (0.5 + 0.5 * Math.sin(m.t)));
+      var r = m.r * (H2 / 540) * 3;
+      g.globalAlpha = a;
+      g.drawImage(tdSprite, m.x * W2 - r, m.y * H2 - r, 2 * r, 2 * r);
+    }
+    g.globalAlpha = 1;
+  }
+
+  // Cada fotograma: el giro (33⅓, con arranque y frenada de plato real), la
+  // deriva lenta de camara, la luz del fondo que respira con el tempo y el polvo.
+  function animarTocadiscos(ahora) {
+    if (!tdListo) return;
+    var dt = tdUltimo ? Math.min(100, ahora - tdUltimo) : 16;
+    tdUltimo = ahora;
+    var objetivo = (cancion && sonando) ? RPM_TD * 6 : 0; // grados por segundo
+    // Arranca en ~0,6 s; frena en ~1,8 s, como un plato que se apaga.
+    tdVel += (objetivo - tdVel) * Math.min(1, dt / (objetivo > tdVel ? 220 : 650));
+    if (tdVel < 0.05 && objetivo === 0) tdVel = 0;
+    tdAngulo = (tdAngulo + tdVel * dt / 1000) % 360;
+    elTdCaratula.style.transform = "rotate(" + tdAngulo.toFixed(2) + "deg)";
+    // Camara: acercamiento de 2,5 % en un ciclo de 48 s, centrado en la etiqueta.
+    var s = 1 + 0.0125 * (1 - Math.cos(ahora / 48000 * 6.2832));
+    elTdEscena.style.transform = "scale(" + s.toFixed(5) + ")";
+    var p = cancion ? pulso(posicion()) : 0;
+    tdLatido += ((sonando ? p : 0) - tdLatido) * Math.min(1, dt / 120);
+    elTdLuz.style.opacity = (0.22 + 0.2 * tdLatido + 0.06 * Math.sin(ahora / 3100)).toFixed(3);
+    pintarPolvo(ahora, dt);
+  }
+
+  // La letra: la linea que suena en grande, palabra a palabra; la siguiente, tenue.
+  function actualizarTocadiscos(ms) {
+    var idx = -1;
+    for (var i = 0; i < lineas.length; i++) { if (lineas[i].t <= ms) idx = i; else break; }
+    if (idx !== tdIdx) {
+      tdIdx = idx;
+      elTdLinea.classList.add("cambia");
+      elTdSiguiente.classList.add("cambia");
+      setTimeout(function () {
+        if (tdIdx !== idx) return;
+        elTdLinea.textContent = ""; tdPalabras = [];
+        var l = idx >= 0 ? lineas[idx] : null;
+        if (!lineas.length) {
+          // Sin letra: el titulo ocupa el sitio de la letra.
+          elTdLinea.textContent = cancion ? (cancion.titulo || "") : "";
+        } else if (l) {
+          var ps = (l.palabras && l.palabras.length) ? l.palabras : [{ t: l.t, w: l.texto || "" }];
+          for (var k = 0; k < ps.length; k++) {
+            var sp = document.createElement("span");
+            sp.textContent = (k ? " " : "") + ps[k].w;
+            elTdLinea.appendChild(sp);
+            tdPalabras.push({ t: ps[k].t, el: sp });
+          }
+        }
+        var sig = lineas[idx + 1];
+        elTdSiguiente.textContent = sig ? (sig.texto || "").trim() : "";
+        elTdLinea.classList.remove("cambia");
+        elTdSiguiente.classList.remove("cambia");
+      }, 360);
+    }
+    var ahora = performance.now();
+    if (ahora - tdUltimaLetra > 80) {
+      tdUltimaLetra = ahora;
+      for (var w = 0; w < tdPalabras.length; w++) tdPalabras[w].el.classList.toggle("dicha", tdPalabras[w].t <= ms);
+      var dur = cancion.duracionMs || 0;
+      elTdBarra.style.width = dur > 0 ? Math.min(100, 100 * ms / dur) + "%" : "0%";
+    }
+  }
+  function caratulaTocadiscos(url) {
+    if (!url || url === tdCaratulaUrl) return;
+    tdCaratulaUrl = url;
+    elTdCaratula.classList.add("cambia");
+    var img = new Image();
+    img.onload = function () {
+      if (tdCaratulaUrl !== url) return;
+      setTimeout(function () { elTdCaratula.src = url; elTdCaratula.classList.remove("cambia"); }, 300);
+    };
+    img.src = url;
+  }
+
+  // ── Atardecer ─────────────────────────────────────────────────────────────
+  var elAtdCaratula = $("atd-caratula"), elAtdTitulo = $("atd-titulo"), elAtdArtista = $("atd-artista");
+  var elAtdLinea = $("atd-linea"), elAtdBarra = $("atd-barra"), elAtdTiempo = $("atd-tiempo"), elAtdDuracion = $("atd-duracion");
+  var ultimoAtd = 0;
+  function mmss(ms) {
+    var s = Math.max(0, Math.floor(ms / 1000));
+    return Math.floor(s / 60) + ":" + ("0" + (s % 60)).slice(-2);
+  }
+  function actualizarAtardecer(ms) {
+    var ahora = performance.now();
+    if (ahora - ultimoAtd < 250) return;
+    ultimoAtd = ahora;
+    var dur = cancion.duracionMs || 0;
+    elAtdTiempo.textContent = mmss(ms);
+    elAtdDuracion.textContent = dur > 0 ? mmss(dur) : "";
+    elAtdBarra.style.width = dur > 0 ? Math.min(100, 100 * ms / dur) + "%" : "0%";
+  }
+
   // ── Bucle ────────────────────────────────────────────────────────────────
   var ultimaBarra = 0;
   function bucle(ahora) {
     medirFotograma(ahora);
+    cuidarPaisaje(ahora);
+    animarTocadiscos(ahora);
     if (dibujarFondo(ahora)) {
       if (cristalGL && tema === "cristal") dibujarCristalGL(ahora); else dibujarVidrios(ahora);
     }
@@ -843,6 +1203,8 @@
       else if (tema === "vinilo") girarDisco(ahora);
       else if (tema === "galeria") actualizarLineaSola(elGalLinea, ms);
       else if (tema === "nocturno") { actualizarLineaSola(elNocLinea, ms); actualizarNocturno(ahora); }
+      else if (tema === "atardecer") { actualizarLineaSola(elAtdLinea, ms); actualizarAtardecer(ms); }
+      else if (tema === "tocadiscos") actualizarTocadiscos(ms);
       sincronizarCanvas();
     }
     requestAnimationFrame(bucle);
@@ -865,6 +1227,7 @@
       case "ajustes":
         if (d.cristal) ponerCristal(d.cristal);
         if (typeof d.idioma === "string" && d.idioma) { idioma = d.idioma; ultimoReloj = 0; }
+        if (d.placa === 1 || d.placa === 2) { placaForzada = d.placa; if (tema === "tocadiscos") prepararTocadiscos(); }
         if (typeof d.tema === "string") ponerTema(d.tema);
         if (typeof d.manchas === "boolean") ajustes.manchas = d.manchas;
         if (typeof d.latido === "boolean") ajustes.latido = d.latido;
@@ -970,6 +1333,8 @@
     posicion = function () { return (Date.now() - t0) % largo; };
     var params = {};
     location.search.slice(1).split("&").forEach(function (p) { var kv = p.split("="); if (kv[0]) params[kv[0]] = decodeURIComponent(kv[1] || ""); });
+    if (params.hora) horaForzada = +params.hora;
+    if (params.placa) placaForzada = +params.placa;
     if (params.tema) ponerTema(params.tema);
     // En el navegador, la tecla T pasa al tema siguiente.
     document.addEventListener("keydown", function (e) { if (e.key === "t" || e.key === "T") ponerTema(TEMAS[(TEMAS.indexOf(tema) + 1) % TEMAS.length]); });
