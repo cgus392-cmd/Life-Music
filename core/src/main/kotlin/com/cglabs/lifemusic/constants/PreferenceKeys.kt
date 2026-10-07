@@ -355,6 +355,8 @@ val EnableGoogleCastKey = booleanPreferencesKey("enableGoogleCast")
 val CastTemaKey = stringPreferencesKey("castTema")
 /** Foto del tema pro Tocadiscos en el TV: 1 (de cerca) o 2 (plano abierto); PLACAS_TD en receptor.js. */
 val CastTocadiscosVersionKey = intPreferencesKey("castTocadiscosVersion")
+/** TV con navegador ya enlazados (lifemusic.pages.dev/tv): JSON [{token, nombre}], el mas reciente primero. */
+val CastTvsWebKey = stringPreferencesKey("castTvsWeb")
 
 
 val ListenTogetherServerUrlKey = stringPreferencesKey("listenTogetherServerUrl")

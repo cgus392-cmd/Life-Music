@@ -264,6 +264,8 @@ private fun HojaDeCast(handler: CastConnectionHandler, onCerrar: () -> Unit) {
                         }
                     }
                 }
+                // TV con navegador (lifemusic.pages.dev/tv): los ya enlazados y el enlace por codigo.
+                SeccionTvWeb(handler = handler, conectando = conectando, onConectado = onCerrar)
                 Spacer(Modifier.height(8.dp))
                 Text(stringResource(R.string.cast_nota_red), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 // Para los probadores: copia las ultimas lineas del registro de Cast al
@@ -277,6 +279,114 @@ private fun HojaDeCast(handler: CastConnectionHandler, onCerrar: () -> Unit) {
             }
         }
     }
+}
+
+/**
+ * TV que abren lifemusic.pages.dev/tv en su navegador: los ya enlazados se tocan
+ * y entran sin codigo; «Enlazar un TV con código» abre el dialogo del codigo.
+ */
+@Composable
+private fun SeccionTvWeb(handler: CastConnectionHandler, conectando: Boolean, onConectado: () -> Unit) {
+    val tvs by handler.tvsWeb.collectAsState()
+    var dialogo by remember { mutableStateOf(false) }
+    Spacer(Modifier.height(12.dp))
+    Text(stringResource(R.string.cast_web_titulo), style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.onSurfaceVariant)
+    Spacer(Modifier.height(4.dp))
+    tvs.forEach { tv ->
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(16.dp),
+            modifier = Modifier
+                .fillMaxWidth()
+                .clip(RoundedCornerShape(16.dp))
+                .clickable(enabled = !conectando) { handler.conectarTvWeb(tv); onConectado() }
+                .padding(start = 8.dp, top = 6.dp, bottom = 6.dp),
+        ) {
+            Icon(painterResource(R.drawable.cast_tv), contentDescription = null, modifier = Modifier.size(28.dp))
+            Column(Modifier.weight(1f)) {
+                Text(tv.nombre, style = MaterialTheme.typography.bodyLarge)
+                Text(stringResource(R.string.cast_web_recordado), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            }
+            androidx.compose.material3.IconButton(onClick = { handler.olvidarTvWeb(tv) }) {
+                Icon(painterResource(R.drawable.close), contentDescription = stringResource(R.string.cast_web_olvidar), modifier = Modifier.size(20.dp))
+            }
+        }
+    }
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(16.dp),
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(16.dp))
+            .clickable(enabled = !conectando) { dialogo = true }
+            .padding(horizontal = 8.dp, vertical = 14.dp),
+    ) {
+        Icon(painterResource(R.drawable.link), contentDescription = null, modifier = Modifier.size(28.dp))
+        Text(stringResource(R.string.cast_web_enlazar), style = MaterialTheme.typography.bodyLarge)
+    }
+    if (dialogo) DialogoCodigoTv(handler = handler, codigoInicial = "", onCerrar = { dialogo = false }, onEnlazado = onConectado)
+}
+
+/** Pide el codigo de 6 caracteres que muestra el TV y enlaza con el. */
+@Composable
+internal fun DialogoCodigoTv(
+    handler: CastConnectionHandler,
+    codigoInicial: String,
+    onCerrar: () -> Unit,
+    onEnlazado: () -> Unit,
+) {
+    var texto by remember { mutableStateOf(codigoInicial) }
+    var error by remember { mutableStateOf<String?>(null) }
+    var enlazando by remember { mutableStateOf(false) }
+    fun enlazar() {
+        if (texto.length != 6 || enlazando) return
+        enlazando = true
+        handler.enlazarTvWeb(texto) { e ->
+            enlazando = false
+            if (e == null) { onCerrar(); onEnlazado() } else error = e
+        }
+    }
+    androidx.compose.material3.AlertDialog(
+        onDismissRequest = { if (!enlazando) onCerrar() },
+        icon = { Icon(painterResource(R.drawable.cast_tv), contentDescription = null) },
+        title = { Text(stringResource(R.string.cast_web_enlazar)) },
+        text = {
+            Column {
+                Text(stringResource(R.string.cast_web_desc), style = MaterialTheme.typography.bodyMedium)
+                Spacer(Modifier.height(16.dp))
+                androidx.compose.material3.OutlinedTextField(
+                    value = texto,
+                    onValueChange = { v -> texto = v.uppercase().filter { it.isLetterOrDigit() }.take(6); error = null },
+                    label = { Text(stringResource(R.string.cast_web_codigo)) },
+                    singleLine = true,
+                    isError = error != null,
+                    supportingText = error?.let { e -> { Text(e) } },
+                    textStyle = MaterialTheme.typography.headlineSmall.copy(
+                        fontFamily = androidx.compose.ui.text.font.FontFamily.Monospace,
+                        letterSpacing = 4.sp,
+                        fontWeight = FontWeight.SemiBold,
+                    ),
+                    keyboardOptions = androidx.compose.foundation.text.KeyboardOptions(
+                        capitalization = androidx.compose.ui.text.input.KeyboardCapitalization.Characters,
+                        autoCorrectEnabled = false,
+                        keyboardType = androidx.compose.ui.text.input.KeyboardType.Ascii,
+                        imeAction = androidx.compose.ui.text.input.ImeAction.Done,
+                    ),
+                    keyboardActions = androidx.compose.foundation.text.KeyboardActions(onDone = { enlazar() }),
+                    modifier = Modifier.fillMaxWidth(),
+                )
+            }
+        },
+        confirmButton = {
+            Button(onClick = { enlazar() }, enabled = texto.length == 6 && !enlazando) {
+                if (enlazando) CircularProgressIndicator(modifier = Modifier.size(18.dp), strokeWidth = 2.dp)
+                else Text(stringResource(R.string.cast_web_conectar))
+            }
+        },
+        dismissButton = {
+            androidx.compose.material3.TextButton(onClick = onCerrar, enabled = !enlazando) { Text(stringResource(android.R.string.cancel)) }
+        },
+    )
 }
 
 /**

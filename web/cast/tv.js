@@ -260,7 +260,7 @@
 
   function avisarListo() {
     enviar({
-      tipo: "listo", version: R.version, nombre: nombreDelTV(), perfil: capacidades.perfil,
+      tipo: "listo", version: R.version, nombre: nombreDelTV(), perfil: capacidades.perfil, id: idActual,
       capacidades: { opus: capacidades.opus, aac: capacidades.aac, webgl: capacidades.webgl, video: capacidades.video, hls: capacidades.hls },
     });
     enviarEstado();

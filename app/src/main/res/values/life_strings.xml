@@ -1495,4 +1495,18 @@
     <string name="widget_me_gusta">Liked</string>
     <string name="widget_descargas">Downloads</string>
     <string name="widget_buscar">Search</string>
+
+    <!-- TV with a browser (lifemusic.pages.dev/tv), 1.3.1 -->
+    <string name="cast_web_titulo">TV with a browser</string>
+    <string name="cast_web_enlazar">Link a TV with a code</string>
+    <string name="cast_web_desc">On the TV, open lifemusic.pages.dev/tv in its browser and type the code it shows.</string>
+    <string name="cast_web_codigo">TV code</string>
+    <string name="cast_web_conectar">Link</string>
+    <string name="cast_web_recordado">Browser · linked</string>
+    <string name="cast_web_olvidar">Forget this TV</string>
+    <string name="cast_web_codigo_invalido">The code has 6 letters and numbers</string>
+    <string name="cast_web_codigo_no_existe">That code does not exist or already changed. Check the one on the TV now.</string>
+    <string name="cast_web_sin_conexion">No connection. Check the phone\'s internet.</string>
+    <string name="cast_web_no_suena">The TV could not play the song. Are the phone and the TV on the same Wi-Fi?</string>
+    <string name="cast_web_enlazar_con">Link with the TV showing %1$s?</string>
 </resources>

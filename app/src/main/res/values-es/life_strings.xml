@@ -1115,4 +1115,18 @@
     <string name="widget_me_gusta">Me gusta</string>
     <string name="widget_descargas">Descargas</string>
     <string name="widget_buscar">Buscar</string>
+
+    <!-- TV con navegador (lifemusic.pages.dev/tv), 1.3.1 -->
+    <string name="cast_web_titulo">TV con navegador</string>
+    <string name="cast_web_enlazar">Enlazar un TV con código</string>
+    <string name="cast_web_desc">En el TV, abre lifemusic.pages.dev/tv en su navegador y escribe el código que aparece.</string>
+    <string name="cast_web_codigo">Código del TV</string>
+    <string name="cast_web_conectar">Enlazar</string>
+    <string name="cast_web_recordado">Navegador · enlazado</string>
+    <string name="cast_web_olvidar">Olvidar este TV</string>
+    <string name="cast_web_codigo_invalido">El código tiene 6 letras y números</string>
+    <string name="cast_web_codigo_no_existe">Ese código no existe o ya cambió. Mira el que muestra el TV ahora.</string>
+    <string name="cast_web_sin_conexion">No hay conexión. Revisa el internet del teléfono.</string>
+    <string name="cast_web_no_suena">El TV no pudo reproducir la canción. ¿El teléfono y el TV están en el mismo wifi?</string>
+    <string name="cast_web_enlazar_con">¿Enlazar con el TV que muestra %1$s?</string>
 </resources>

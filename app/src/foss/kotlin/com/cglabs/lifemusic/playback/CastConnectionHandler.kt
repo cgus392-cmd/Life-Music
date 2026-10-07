@@ -6,6 +6,7 @@ import android.widget.Toast
 import com.cglabs.lifemusic.R
 import com.cglabs.lifemusic.cast.CastCliente
 import com.cglabs.lifemusic.cast.DescubridorCast
+import com.cglabs.lifemusic.cast.EnlaceWeb
 import com.cglabs.lifemusic.clip.RenderizadorDeClip
 import com.cglabs.lifemusic.lyrics.LyricsUtils
 import kotlinx.coroutines.flow.first
@@ -268,6 +269,200 @@ class CastConnectionHandler(
         servidor?.detener()
     }
 
+    // ── TV con navegador (lifemusic.pages.dev/tv) ────────────────────────────
+    // Un TV sin Cast ni DLNA abre la pagina del receptor en su navegador y se
+    // enlaza con un codigo ([EnlaceWeb], por el relevo). Se maneja como Cast: la
+    // cola vive en el telefono, al TV se le carga una cancion a la vez con la URL
+    // de YouTube (misma casa, misma IP publica) y avisa «fin» para avanzar. En
+    // «listo» dice que formatos reproduce: sin Opus, se le manda AAC.
+
+    private var sesionWeb: EnlaceWeb? = null
+    private var tvWebActual: EnlaceWeb.Tv? = null
+    @Volatile private var tvWebOpus = true
+    /** Canciones que el TV no pudo tocar y ya se reintentaron en AAC con URL nueva. */
+    private val reintentadasWeb = java.util.Collections.synchronizedSet(mutableSetOf<String>())
+
+    private val _tvsWeb = MutableStateFlow(leerTvsWeb())
+    /** TV con navegador ya enlazados: se tocan en la hoja y entran sin codigo. */
+    val tvsWeb: StateFlow<List<EnlaceWeb.Tv>> = _tvsWeb.asStateFlow()
+
+    private fun nombreDelTelefono(): String =
+        runCatching { android.provider.Settings.Global.getString(context.contentResolver, android.provider.Settings.Global.DEVICE_NAME) }
+            .getOrNull()?.takeIf { it.isNotBlank() } ?: android.os.Build.MODEL
+
+    private fun leerTvsWeb(): List<EnlaceWeb.Tv> = runCatching {
+        val a = JSONArray(context.dataStore.get(com.cglabs.lifemusic.constants.CastTvsWebKey, "[]"))
+        (0 until a.length()).mapNotNull { i ->
+            val o = a.optJSONObject(i) ?: return@mapNotNull null
+            o.optString("token").takeIf { it.startsWith("t-") }?.let { EnlaceWeb.Tv(it, o.optString("nombre", "TV")) }
+        }
+    }.getOrDefault(emptyList())
+
+    private fun guardarTvsWeb(lista: List<EnlaceWeb.Tv>) {
+        _tvsWeb.value = lista
+        val a = JSONArray(lista.map { JSONObject().put("token", it.token).put("nombre", it.nombre) })
+        scope.launch(Dispatchers.IO) {
+            runCatching { context.dataStore.edit { it[com.cglabs.lifemusic.constants.CastTvsWebKey] = a.toString() } }
+        }
+    }
+
+    /**
+     * Enlaza con el TV que muestra [codigo] y transmite a el. [alTerminar] recibe
+     * null si salio bien, o el texto del error para el dialogo.
+     */
+    fun enlazarTvWeb(codigo: String, alTerminar: (String?) -> Unit) {
+        val limpio = EnlaceWeb.normalizarCodigo(codigo)
+        if (limpio == null) { alTerminar(context.getString(R.string.cast_web_codigo_invalido)); return }
+        scope.launch(Dispatchers.IO) {
+            EnlaceWeb.enlazar(limpio, nombreDelTelefono())
+                .onSuccess { tv ->
+                    com.cglabs.lifemusic.cast.DiagnosticoCast.log("TV web: enlazado con ${tv.nombre}")
+                    guardarTvsWeb(listOf(tv) + _tvsWeb.value.filter { it.token != tv.token }.take(4))
+                    withContext(Dispatchers.Main) { alTerminar(null); conectarTvWeb(tv) }
+                }
+                .onFailure { e ->
+                    val fallo = (e as? EnlaceWeb.EnlaceFallido)?.fallo
+                    com.cglabs.lifemusic.cast.DiagnosticoCast.log("TV web: no se pudo enlazar ($fallo)")
+                    val texto = context.getString(
+                        if (fallo == EnlaceWeb.Fallo.CODIGO_NO_EXISTE) R.string.cast_web_codigo_no_existe else R.string.cast_web_sin_conexion,
+                    )
+                    withContext(Dispatchers.Main) { alTerminar(texto) }
+                }
+        }
+    }
+
+    /** Olvida un TV recordado; si se transmite a el, el TV vuelve a mostrar su codigo. */
+    fun olvidarTvWeb(tv: EnlaceWeb.Tv) {
+        if (tvWebActual?.token == tv.token) {
+            sesionWeb?.enviar(JSONObject().put("tipo", "olvidar"))
+            disconnect()
+        }
+        guardarTvsWeb(_tvsWeb.value.filter { it.token != tv.token })
+    }
+
+    /** Transmite al TV recordado [tv]: entra a su cuarto y le pasa la cancion actual. */
+    fun conectarTvWeb(tv: EnlaceWeb.Tv) {
+        if (_isConnecting.value) return
+        if (cliente != null || sesionDlna != null || sesionWeb != null) disconnect(reanudar = false)
+        val s = EnlaceWeb(scope, nombreDelTelefono())
+        s.alMensaje = { m -> alMensajeWeb(s, m) }
+        s.alTvPresente = { presente ->
+            com.cglabs.lifemusic.cast.DiagnosticoCast.log(if (presente) "TV web: el TV esta en linea" else "TV web: el TV salio")
+        }
+        s.alPerder = {
+            scope.launch(Dispatchers.Main) {
+                if (sesionWeb === s) { aviso(context.getString(R.string.cast_conexion_perdida)); disconnect(porUsuario = false) }
+            }
+        }
+        sesionWeb = s
+        tvWebActual = tv
+        tvWebOpus = true
+        reintentadasWeb.clear()
+        _receptorPropio.value = true
+        _castDeviceName.value = tv.nombre
+        _deviceType.value = CastDeviceKind.TV
+        s.conectar(tv.token)
+        // El telefono deja de sonar y pasa a ser el mando, como con Cast.
+        quieroSonar = musicService.player.isPlaying || musicService.player.playWhenReady
+        _castPosition.value = musicService.player.currentPosition.coerceAtLeast(0L)
+        _isCasting.value = true
+        conSincronia { musicService.player.pause() }
+        loadCurrentMedia()
+        com.cglabs.lifemusic.cast.ServicioDeCast.alDevolver = { disconnect() }
+        com.cglabs.lifemusic.cast.ServicioDeCast.iniciar(context, tv.nombre)
+        aviso(context.getString(R.string.cast_conectado_a, tv.nombre))
+    }
+
+    private fun alMensajeWeb(s: EnlaceWeb, m: JSONObject) {
+        if (sesionWeb !== s) return
+        when (m.optString("tipo")) {
+            "listo" -> {
+                m.optJSONObject("capacidades")?.let { tvWebOpus = it.optBoolean("opus", true) }
+                com.cglabs.lifemusic.cast.DiagnosticoCast.log("TV web listo: ${m.optString("version")} perfil=${m.optString("perfil")} opus=$tvWebOpus")
+                ajustesJson()?.let { s.enviar(it) }
+                saludoJson()?.let { s.enviar(it) }
+                // El TV recien abierto (o que recargo la pagina) no tiene la cancion: se le repite.
+                val enElTv = m.optString("id")
+                if (idCargado != null && enElTv != idCargado) scope.launch(Dispatchers.Main) { idCargado = null; loadCurrentMedia() }
+            }
+            "estado" -> {
+                if (m.optString("id") != idCargado) return
+                val cargandoTv = m.optBoolean("cargando")
+                _castIsBuffering.value = cargandoTv
+                _castIsPlaying.value = m.optBoolean("sonando") || (cargandoTv && quieroSonar)
+                if (!cargandoTv) _castPosition.value = m.optLong("posMs", _castPosition.value)
+                m.optLong("durMs").takeIf { it > 0 }?.let { _castDuration.value = it }
+                if (m.has("volumen")) _castVolume.value = m.optDouble("volumen", 1.0).toFloat()
+            }
+            "fin" -> if (m.optString("id") == idCargado) scope.launch(Dispatchers.Main) {
+                val p = musicService.player
+                if (p.hasNextMediaItem()) p.seekToNext() else { _castIsPlaying.value = false; quieroSonar = false }
+            }
+            "error" -> {
+                val id = m.optString("id")
+                if (id != idCargado) return
+                com.cglabs.lifemusic.cast.DiagnosticoCast.log("TV web: no pudo tocar $id (codigo ${m.optInt("codigo")})")
+                if (reintentadasWeb.add(id)) {
+                    // Segundo intento con una URL nueva en AAC, lo mas compatible.
+                    scope.launch(Dispatchers.Main) {
+                        val meta = musicService.player.currentMetadata
+                        if (meta?.id == id && sesionWeb === s) {
+                            cargando?.cancel()
+                            cargando = scope.launch(Dispatchers.IO) { cargarWeb(s, meta, _castPosition.value, forzarAac = true) }
+                        }
+                    }
+                } else {
+                    _castIsBuffering.value = false
+                    aviso(context.getString(R.string.cast_web_no_suena))
+                }
+            }
+            "diag" -> com.cglabs.lifemusic.cast.DiagnosticoCast.log("TV web: " + m.optString("texto"))
+        }
+    }
+
+    private suspend fun cargarWeb(s: EnlaceWeb, m: MediaMetadata, desdeMs: Long, forzarAac: Boolean = false) {
+        _castIsBuffering.value = true
+        _castPosition.value = desdeMs
+        var url: String? = null
+        var tipo = "audio/mp4"
+        if (tvWebOpus && !forzarAac) {
+            url = musicService.getStreamUrl(m.id)
+            if (url != null && (url.contains("mime=audio%2Fwebm") || url.contains("mime=audio/webm"))) tipo = "audio/webm"
+        }
+        if (url == null) url = musicService.urlAacParaDlna(m.id)?.first
+        if (url == null) {
+            _castIsBuffering.value = false
+            if (idCargado == m.id) idCargado = null
+            aviso(context.getString(R.string.cast_error_cancion))
+            return
+        }
+        s.enviar(
+            JSONObject()
+                .put("tipo", "cargar")
+                .put("id", m.id)
+                .put("url", url)
+                .put("tipoAudio", tipo)
+                .put("desdeMs", desdeMs)
+                .put("reproducir", quieroSonar)
+                .put("titulo", m.title)
+                .put("artista", m.artists.joinToString { it.name })
+                .put("caratula", m.thumbnailUrl?.resize(1080, 1080))
+                .put("duracionMs", m.duration * 1000L),
+        )
+        com.cglabs.lifemusic.cast.DiagnosticoCast.log("TV web: cargada ${m.id} ($tipo${if (forzarAac) ", reintento" else ""})")
+        enviarAmbiente({ s.enviar(it) }, { sesionWeb === s && idCargado == m.id }, m)
+    }
+
+    private fun soltarWeb() {
+        val s = sesionWeb ?: return
+        sesionWeb = null
+        tvWebActual = null
+        // El TV se queda en su bienvenida, listo para la proxima vez.
+        s.enviar(JSONObject().put("tipo", "pausa"))
+        s.enviar(JSONObject().put("tipo", "vaciar"))
+        s.cerrar()
+    }
+
     /** Conecta con [aparato], lanza el reproductor del receptor y le pasa la cancion actual. */
     fun conectar(aparato: DescubridorCast.Aparato) {
         if (_isConnecting.value) return
@@ -315,7 +510,7 @@ class CastConnectionHandler(
                         if (actual != null) scope.launch(Dispatchers.IO) {
                             val meta = withContext(Dispatchers.Main) { musicService.player.currentMetadata }
                             val vivo = cliente
-                            if (meta != null && meta.id == actual && vivo != null) enviarAmbiente(vivo, meta)
+                            if (meta != null && meta.id == actual && vivo != null) enviarAmbiente({ vivo.enviarPropio(it) }, { cliente === vivo && idCargado == meta.id }, meta)
                         }
                     }
                 }
@@ -375,6 +570,7 @@ class CastConnectionHandler(
             runCatching { context.dataStore.edit { it[com.cglabs.lifemusic.constants.CastTemaKey] = nuevo } }
         }
         cliente?.let { enviarAjustes(it) }
+        sesionWeb?.let { s -> ajustesJson()?.let { s.enviar(it) } }
     }
 
     /** Elige la foto del Tocadiscos (V1/V2): se guarda y, si se transmite, el TV cambia al momento. */
@@ -384,6 +580,7 @@ class CastConnectionHandler(
             runCatching { context.dataStore.edit { it[com.cglabs.lifemusic.constants.CastTocadiscosVersionKey] = version } }
         }
         cliente?.let { enviarAjustes(it) }
+        sesionWeb?.let { s -> ajustesJson()?.let { s.enviar(it) } }
     }
 
     /**
@@ -393,6 +590,13 @@ class CastConnectionHandler(
      */
     private fun enviarAjustes(c: CastCliente) {
         if (c.appActiva != APP_LIFE_MUSIC) return
+        ajustesJson()?.let {
+            c.enviarPropio(it)
+            com.cglabs.lifemusic.cast.DiagnosticoCast.log("tema enviado: ${_tema.value}")
+        }
+    }
+
+    private fun ajustesJson(): JSONObject? =
         runCatching {
             val ds = context.dataStore
             val tinte = ds.get(com.cglabs.lifemusic.constants.LiquidGlassSurfaceTintColorKey, 0)
@@ -405,19 +609,21 @@ class CastConnectionHandler(
                 .put("aberracion", ds.get(com.cglabs.lifemusic.constants.LiquidGlassChromaticAberrationKey, true))
                 .put("profundidad", ds.get(com.cglabs.lifemusic.constants.LiquidGlassDepthEffectKey, true))
                 .put("desenfoque", ds.get(com.cglabs.lifemusic.constants.LiquidGlassBlurRadiusKey, 8f).toDouble())
-            c.enviarPropio(JSONObject().put("tipo", "ajustes").put("tema", _tema.value).put("placa", _versionTocadiscos.value).put("cristal", cristal).put("idioma", java.util.Locale.getDefault().toLanguageTag()))
-            com.cglabs.lifemusic.cast.DiagnosticoCast.log("tema enviado: ${_tema.value}")
-        }
-    }
+            JSONObject().put("tipo", "ajustes").put("tema", _tema.value).put("placa", _versionTocadiscos.value).put("cristal", cristal).put("idioma", java.util.Locale.getDefault().toLanguageTag())
+        }.getOrNull()
 
     private fun enviarSaludo(c: CastCliente) {
         if (c.appActiva != APP_LIFE_MUSIC) return
-        if (!context.dataStore.get(com.cglabs.lifemusic.constants.GreetingEnabledKey, true)) return
-        runCatching {
+        saludoJson()?.let { c.enviarPropio(it) }
+    }
+
+    private fun saludoJson(): JSONObject? {
+        if (!context.dataStore.get(com.cglabs.lifemusic.constants.GreetingEnabledKey, true)) return null
+        return runCatching {
             val recientes = context.dataStore.get(com.cglabs.lifemusic.constants.RecentGreetingsKey, "").split(',').filter { it.isNotBlank() }
             val f = com.cglabs.lifemusic.ui.component.fraseDeSaludo(context, diasSinAbrir = 0, recientes = recientes)
-            c.enviarPropio(JSONObject().put("tipo", "saludo").put("cabecera", f.cabecera).put("frase", f.frase))
-        }
+            JSONObject().put("tipo", "saludo").put("cabecera", f.cabecera).put("frase", f.frase)
+        }.getOrNull()
     }
 
     /**
@@ -427,9 +633,10 @@ class CastConnectionHandler(
      */
     fun disconnect(porUsuario: Boolean = true, reanudar: Boolean = true) {
         val c = cliente
-        if (c == null && sesionDlna == null) return
+        if (c == null && sesionDlna == null && sesionWeb == null) return
         cliente = null
         soltarDlna()
+        soltarWeb()
         aparatoActual = null
         _receptorPropio.value = false
         com.cglabs.lifemusic.cast.ServicioDeCast.parar(context)
@@ -527,6 +734,13 @@ class CastConnectionHandler(
     @Volatile private var sesionSuperada = -1
 
     private fun loadMedia(metadata: MediaMetadata, desdeMs: Long) {
+        sesionWeb?.let { s ->
+            if (idCargado == metadata.id) return
+            idCargado = metadata.id
+            cargando?.cancel()
+            cargando = scope.launch(Dispatchers.IO) { cargarWeb(s, metadata, desdeMs) }
+            return
+        }
         sesionDlna?.let { s ->
             if (idCargado == metadata.id) return
             idCargado = metadata.id
@@ -567,7 +781,7 @@ class CastConnectionHandler(
                 if (idCargado == metadata.id) idCargado = null
                 aviso(context.getString(R.string.cast_error_cancion))
             } else if (c.appActiva == APP_LIFE_MUSIC) {
-                enviarAmbiente(c, metadata)
+                enviarAmbiente({ c.enviarPropio(it) }, { cliente === c && idCargado == metadata.id }, metadata)
             }
         }
     }
@@ -578,7 +792,7 @@ class CastConnectionHandler(
      * lo hay) y la letra sincronizada (de la base; si no esta, se pide como
      * hace el reproductor y se guarda).
      */
-    private suspend fun enviarAmbiente(c: CastCliente, metadata: MediaMetadata) {
+    private suspend fun enviarAmbiente(enviar: (JSONObject) -> Unit, vigente: () -> Boolean, metadata: MediaMetadata) {
         runCatching {
             val colores = RenderizadorDeClip.coloresDeCaratula(context, metadata.thumbnailUrl)
             val beat = runCatching { musicService.database.beatInfo(metadata.id) }.getOrNull()
@@ -601,15 +815,15 @@ class CastConnectionHandler(
             if (conTempo) {
                 cancion.put("bpm", beat!!.bpm.toDouble()).put("primerBeatMs", beat.firstBeatOffsetMs)
             }
-            c.enviarPropio(cancion)
+            enviar(cancion)
             if (!conTempo) {
                 // Sin analisis previo (solo Automix lo hace), el TV respiraria a un
                 // ritmo fijo. Se analiza ahora y se le manda el tempo en cuanto este,
                 // sin retener la letra ni los colores.
                 scope.launch(Dispatchers.IO) {
                     val t = runCatching { musicService.tempoDe(metadata.id) }.getOrNull()
-                    if (t != null && cliente === c && idCargado == metadata.id) {
-                        c.enviarPropio(JSONObject().put("tipo", "tempo").put("id", metadata.id).put("bpm", t.bpm.toDouble()).put("primerBeatMs", t.firstBeatOffsetMs))
+                    if (t != null && vigente()) {
+                        enviar(JSONObject().put("tipo", "tempo").put("id", metadata.id).put("bpm", t.bpm.toDouble()).put("primerBeatMs", t.firstBeatOffsetMs))
                         com.cglabs.lifemusic.cast.DiagnosticoCast.log("tempo analizado y enviado: ${t.bpm}")
                     } else com.cglabs.lifemusic.cast.DiagnosticoCast.log("tempo: sin resultado para ${metadata.id}")
                 }
@@ -637,7 +851,7 @@ class CastConnectionHandler(
                 }
                 json.put(linea)
             }
-            c.enviarPropio(JSONObject().put("tipo", "letra").put("id", metadata.id).put("lineas", json))
+            enviar(JSONObject().put("tipo", "letra").put("id", metadata.id).put("lineas", json))
             com.cglabs.lifemusic.cast.DiagnosticoCast.log("ambiente enviado: colores=${colores.size} bpm=${beat?.bpm} canvas=${canvas?.let { runCatching { android.net.Uri.parse(it).host }.getOrNull() }} lineas=${lineas.size}")
         }.onFailure { com.cglabs.lifemusic.cast.DiagnosticoCast.log("enviarAmbiente fallo", it) }
     }
@@ -646,21 +860,25 @@ class CastConnectionHandler(
 
     fun play() {
         quieroSonar = true
+        sesionWeb?.let { it.enviar(JSONObject().put("tipo", "play")); return }
         sesionDlna?.let { s -> scope.launch(Dispatchers.IO) { runCatching { s.play() } }; return }
         cliente?.play()
     }
     fun pause() {
         quieroSonar = false
+        sesionWeb?.let { it.enviar(JSONObject().put("tipo", "pausa")); return }
         sesionDlna?.let { s -> scope.launch(Dispatchers.IO) { runCatching { s.pause() } }; return }
         cliente?.pause()
     }
     fun seekTo(position: Long) {
         _castPosition.value = position
+        sesionWeb?.let { it.enviar(JSONObject().put("tipo", "ir").put("ms", position)); return }
         sesionDlna?.let { s -> scope.launch(Dispatchers.IO) { runCatching { s.seek(position) } }; return }
         cliente?.seek(position / 1000.0)
     }
     fun setVolume(volume: Float) {
         _castVolume.value = volume.coerceIn(0f, 1f)
+        sesionWeb?.let { it.enviar(JSONObject().put("tipo", "volumen").put("v", volume.coerceIn(0f, 1f).toDouble())); return }
         sesionDlna?.let { s -> scope.launch(Dispatchers.IO) { runCatching { s.ponerVolumen(volume) } }; return }
         cliente?.setVolumen(volume)
     }
