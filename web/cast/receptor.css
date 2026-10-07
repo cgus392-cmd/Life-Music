@@ -564,3 +564,11 @@ body.sin-video #paisaje {
   background: #2A1A2E;
   background: linear-gradient(180deg, #1C2748 0%, #6B3F6E 38%, #D9746A 58%, #F2B26B 66%, #3A2433 67%, #140E18 100%);
 }
+
+/* Pantalla vertical (alguien abre /tv en un celular o una tablet parada): uno debajo del otro. */
+@media (orientation: portrait) {
+  #enlace { -webkit-flex-direction: column; flex-direction: column; -webkit-justify-content: center; justify-content: center; padding: 6vmin 6vmin 14vmin; }
+  .enlace-texto { -webkit-flex: none; flex: none; max-width: none; width: 100%; margin: 0 0 5vmin; }
+  .enlace-codigo { font-size: 12vmin; }
+  .enlace-compat { left: 6vmin; right: 6vmin; bottom: 3vmin; }
+}
