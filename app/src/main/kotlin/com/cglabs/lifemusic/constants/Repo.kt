@@ -25,8 +25,10 @@ object Repo {
     /** Contenido crudo de la rama principal. */
     const val RAW_MAIN = "https://raw.githubusercontent.com/$SLUG/refs/heads/main"
 
-    /** Nombre del artefacto publicado en cada release. */
+    /** Nombre del artefacto publicado en cada release (universal, todas las arquitecturas). */
     const val APK_ASSET = "lifemusic.apk"
+    /** El de arm64, ~40 % mas liviano: el actualizador lo prefiere en los telefonos arm64. */
+    const val APK_ARM64_ASSET = "lifemusic-arm64.apk"
 
     // --- URLs derivadas, para no repetir concatenaciones por ahi ---
 

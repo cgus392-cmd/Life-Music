@@ -677,27 +677,6 @@ private fun leerJsonDeGitHub(url: String): String {
 }
 
 /**
- * Elige el APK de una publicacion.
- *
- * Prefiere el nombre declarado en [Repo.APK_ASSET]; si no esta, se queda con
- * cualquier .apk que no sea de depuracion. Asi el sistema no se rompe si un dia
- * el artefacto sale con otro nombre, pero el nombre canonico manda cuando existe.
- */
-private fun elegirApk(assets: JSONArray): Pair<String, Long>? {
-    var respaldo: Pair<String, Long>? = null
-    for (j in 0 until assets.length()) {
-        val asset = assets.getJSONObject(j)
-        val nombre = asset.getString("name")
-        if (!nombre.endsWith(".apk", ignoreCase = true)) continue
-        if (nombre.contains("debug", ignoreCase = true)) continue
-        val par = asset.getString("browser_download_url") to asset.getLong("size")
-        if (nombre.equals(Repo.APK_ASSET, ignoreCase = true)) return par
-        if (respaldo == null) respaldo = par
-    }
-    return respaldo
-}
-
-/**
  * Lanza el instalador del sistema para [apk].
  *
  * canRequestPackageInstalls() lanza SecurityException si REQUEST_INSTALL_PACKAGES
@@ -773,7 +752,23 @@ suspend fun checkForUpdate(
                 val changelogList = mutableListOf<ChangelogSection>()
                 var description: String? = null
                 var imageUrl: String? = null
-                try {
+                // 1.3.1: primero las novedades publicadas en la web, con su imagen y
+                // sus funciones (lifemusic.pages.dev/novedades/<version>.json). Si no
+                // estan, el changelog.json de la publicacion y, si tampoco, su texto.
+                val novedades = runCatching {
+                    Novedades.leer(leerJsonDeGitHub(Novedades.url(targetTagName)), java.util.Locale.getDefault().language)
+                }.getOrNull()
+                Novedades.recordar(novedades)
+                if (novedades != null) {
+                    description = novedades.resumen
+                    imageUrl = novedades.imagen
+                    if (novedades.funciones.isNotEmpty()) {
+                        changelogList.add(ChangelogSection(context.getString(R.string.update_novedades_titulo), novedades.funciones.map { it.titulo + ": " + it.texto }))
+                    }
+                    if (novedades.arreglos.isNotEmpty()) {
+                        changelogList.add(ChangelogSection(context.getString(R.string.update_arreglos_titulo), novedades.arreglos))
+                    }
+                } else try {
                     val changelogJson = leerJsonDeGitHub(Repo.changelogUrl(targetTagName))
                     val changelogData = JSONObject(changelogJson)
 
@@ -806,13 +801,14 @@ suspend fun checkForUpdate(
                 }
 
                 val formattedReleaseDate = formatGitHubDate(targetRelease.getString("published_at"))
-                val apk = elegirApk(targetRelease.getJSONArray("assets"))
+                // El de arm64 en los telefonos arm64: ~40 % menos que el universal.
+                val apk = Novedades.elegirApk(Novedades.adjuntos(targetRelease.optJSONArray("assets")), Build.SUPPORTED_ABIS.toList())
 
                 if (apk != null) {
-                    val (apkDownloadUrl, apkSizeInBytes) = apk
-                    val apkSizeInMB = String.format("%.1f", apkSizeInBytes / (1024.0 * 1024.0))
+                    val apkSizeInMB = String.format("%.1f", apk.bytes / (1024.0 * 1024.0))
+                    Log.d("UpdateCheck", "APK elegido: " + apk.nombre + " (" + apkSizeInMB + " MB)")
                     withContext(Dispatchers.Main) {
-                        onSuccess(targetTagName, true, changelogList, apkSizeInMB, formattedReleaseDate, description, imageUrl, apkDownloadUrl)
+                        onSuccess(targetTagName, true, changelogList, apkSizeInMB, formattedReleaseDate, description, imageUrl, apk.url)
                     }
                     return@withContext
                 }
@@ -821,6 +817,7 @@ suspend fun checkForUpdate(
                 Log.w("UpdateCheck", "La publicacion " + targetTagName + " no trae APK; se ignora")
             }
 
+            Novedades.recordar(null)
             withContext(Dispatchers.Main) {
                 onSuccess(currentVersion, false, emptyList(), "", "", null, null, null)
             }

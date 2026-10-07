@@ -315,6 +315,10 @@ dependencies {
     implementation(project(":core"))
     implementation(project(":playback"))
 
+    // Pruebas de la JVM (actualizador: novedades y eleccion del APK).
+    testImplementation(libs.junit)
+    testImplementation(libs.json.org)
+
 
 
     // Firebase - GMS flavor only (excluded from F-Droid / FOSS builds)

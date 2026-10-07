@@ -1129,4 +1129,8 @@
     <string name="cast_web_sin_conexion">No hay conexión. Revisa el internet del teléfono.</string>
     <string name="cast_web_no_suena">El TV no pudo reproducir la canción. ¿El teléfono y el TV están en el mismo wifi?</string>
     <string name="cast_web_enlazar_con">¿Enlazar con el TV que muestra %1$s?</string>
+
+    <!-- Actualizador renovado, 1.3.1 -->
+    <string name="update_novedades_titulo">Novedades</string>
+    <string name="update_arreglos_titulo">Arreglos</string>
 </resources>
