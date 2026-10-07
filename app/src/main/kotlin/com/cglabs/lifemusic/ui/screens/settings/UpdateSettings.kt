@@ -76,6 +76,7 @@ fun UpdateSettings(
     var autoUpdateEnabled by remember { mutableStateOf(getAutoUpdateCheckSetting(context)) }
     var updateNotificationsEnabled by remember { mutableStateOf(getUpdateNotificationsSetting(context)) }
     var betaUpdatesEnabled by remember { mutableStateOf(getBetaUpdatesSetting(context)) }
+    var soloWifi by remember { mutableStateOf(com.cglabs.lifemusic.appcore.updater.getSoloWifiSetting(context)) }
     val isUpdateAvailable = getUpdateAvailableState(context) && autoUpdateEnabled
     var apkCount by remember { mutableStateOf(getDownloadedApkCount(context)) }
     var showInfoDialog by remember { mutableStateOf(false) }
@@ -217,6 +218,34 @@ fun UpdateSettings(
                     onClick = {
                         updateNotificationsEnabled = !updateNotificationsEnabled
                         saveUpdateNotificationsSetting(context, updateNotificationsEnabled)
+                    }
+                ),
+
+                // 1.3.1: la descarga espera a una red sin limite de datos.
+                Material3SettingsItem(
+                    isHighlighted = (highlightKey == stringResource(R.string.update_solo_wifi)),
+                    icon = painterResource(R.drawable.download),
+                    title = { Text(stringResource(R.string.update_solo_wifi)) },
+                    description = { Text(stringResource(R.string.update_solo_wifi_desc)) },
+                    trailingContent = {
+                        Switch(
+                            checked = soloWifi,
+                            onCheckedChange = { enabled ->
+                                soloWifi = enabled
+                                com.cglabs.lifemusic.appcore.updater.saveSoloWifiSetting(context, enabled)
+                            },
+                            thumbContent = {
+                                Icon(
+                                    painter = painterResource(id = if (soloWifi) R.drawable.check else R.drawable.close),
+                                    contentDescription = null,
+                                    modifier = Modifier.size(SwitchDefaults.IconSize)
+                                )
+                            }
+                        )
+                    },
+                    onClick = {
+                        soloWifi = !soloWifi
+                        com.cglabs.lifemusic.appcore.updater.saveSoloWifiSetting(context, soloWifi)
                     }
                 ),
 

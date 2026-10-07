@@ -1513,4 +1513,11 @@
     <!-- Renewed updater, 1.3.1 -->
     <string name="update_novedades_titulo">What\'s new</string>
     <string name="update_arreglos_titulo">Fixes</string>
+    <string name="update_descarga_danada">The download arrived incomplete. Tap Update to download it again.</string>
+    <string name="update_progreso_detalle">%1$s of %2$s · %3$s left</string>
+    <string name="update_progreso_sin_total">%1$s · %2$s/s</string>
+    <string name="update_segundos">%1$d s</string>
+    <string name="update_minutos">%1$d min</string>
+    <string name="update_solo_wifi">Download only on Wi-Fi</string>
+    <string name="update_solo_wifi_desc">Updates wait for a network without a data limit</string>
 </resources>

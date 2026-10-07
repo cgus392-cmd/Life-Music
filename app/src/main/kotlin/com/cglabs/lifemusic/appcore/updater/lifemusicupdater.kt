@@ -137,6 +137,7 @@ fun UpdateScreen(navController: NavHostController) {
     var status by remember { mutableStateOf<UpdateStatus>(UpdateStatus.NoUpdate(BuildConfig.VERSION_NAME)) }
     var isDownloading by remember { mutableStateOf(false) }
     var downloadProgress by remember { mutableStateOf(0f) }
+    var detalleDescarga by remember { mutableStateOf<String?>(null) }
     var isDownloadComplete by remember { mutableStateOf(false) }
     var downloadedFile by remember { mutableStateOf<File?>(null) }
     val snackbarHostState = remember { SnackbarHostState() }
@@ -158,6 +159,12 @@ fun UpdateScreen(navController: NavHostController) {
                     WorkInfo.State.RUNNING -> {
                         isDownloading = true
                         downloadProgress = workInfo.progress.getFloat("progress", 0f)
+                        val bajados = workInfo.progress.getLong("bajados", -1L)
+                        if (bajados >= 0) {
+                            detalleDescarga = com.cglabs.lifemusic.appcore.updater.downloadmanager.ProgresoDeDescarga.detalle(
+                                context, bajados, workInfo.progress.getLong("total", -1L), workInfo.progress.getDouble("velocidad", 0.0),
+                            )
+                        }
                     }
                     WorkInfo.State.SUCCEEDED -> {
                         isDownloading = false
@@ -319,23 +326,7 @@ fun UpdateScreen(navController: NavHostController) {
                                             }
                                             instalarApk(context, file)
                                         } else {
-                                            val urlToDownload = currentStatus.apkUrl ?: Repo.apkUrl(currentStatus.version)
-                                            
-                                            val constraints = Constraints.Builder()
-                                                .setRequiredNetworkType(NetworkType.CONNECTED)
-                                                .build()
-
-                                            val downloadRequest = OneTimeWorkRequestBuilder<UpdateDownloadWorker>()
-                                                .setInputData(workDataOf("apk_url" to urlToDownload, "version" to currentStatus.version, "file_size" to currentStatus.size))
-                                                .setConstraints(constraints)
-                                                .setBackoffCriteria(
-                                                    BackoffPolicy.EXPONENTIAL,
-                                                    10,
-                                                    java.util.concurrent.TimeUnit.SECONDS
-                                                )
-                                                .addTag("update_download")
-                                                .build()
-                                            WorkManager.getInstance(context).enqueueUniqueWork("update_download", ExistingWorkPolicy.REPLACE, downloadRequest)
+                                            encolarDescarga(context, currentStatus.version, currentStatus.apkUrl ?: Repo.apkUrl(currentStatus.version), currentStatus.size)
                                             isDownloading = true
                                         }
                                     },
@@ -506,6 +497,14 @@ fun UpdateScreen(navController: NavHostController) {
                                     }
 
                                     if (isDownloading) {
+                                        detalleDescarga?.let {
+                                            Text(
+                                                text = it,
+                                                style = MaterialTheme.typography.bodyMedium,
+                                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                                modifier = Modifier.padding(bottom = 8.dp),
+                                            )
+                                        }
                                         if (downloadProgress > 0f) {
                                             androidx.compose.material3.LinearProgressIndicator(
                                                 progress = downloadProgress,
@@ -547,6 +546,38 @@ const val KEY_AUTO_UPDATE_CHECK = "auto_update_check"
 const val KEY_LAST_CHECKED_TIME = "last_checked_time"
 const val KEY_BETA_UPDATES = "beta_updates"
 const val KEY_UPDATE_AVAILABLE = "update_available"
+const val KEY_SOLO_WIFI = "actualizar_solo_wifi"
+
+/** «Descargar solo con wifi» (1.3.1): apagado de serie. */
+fun getSoloWifiSetting(context: Context): Boolean =
+    context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE).getBoolean(KEY_SOLO_WIFI, false)
+
+fun saveSoloWifiSetting(context: Context, enabled: Boolean) {
+    context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE).edit().putBoolean(KEY_SOLO_WIFI, enabled).apply()
+}
+
+/**
+ * Pone a bajar el APK de [version]. Con «solo con wifi», el trabajo espera a
+ * una red sin limite de datos. Si se publicaron, le pasa el tamano exacto y la
+ * huella del APK elegido para que lo verifique antes de instalar.
+ */
+fun encolarDescarga(context: Context, version: String, apkUrl: String, tamanoTexto: String) {
+    val nombre = apkUrl.substringAfterLast('/')
+    val publicado = Novedades.disponibles.value?.apks?.get(nombre)
+    val restricciones = Constraints.Builder()
+        .setRequiredNetworkType(if (getSoloWifiSetting(context)) NetworkType.UNMETERED else NetworkType.CONNECTED)
+        .build()
+    val datos = mutableListOf<Pair<String, Any?>>("apk_url" to apkUrl, "version" to version, "file_size" to tamanoTexto)
+    publicado?.bytes?.takeIf { it > 0 }?.let { datos += "bytes" to it }
+    publicado?.sha256?.let { datos += "sha256" to it }
+    val peticion = OneTimeWorkRequestBuilder<UpdateDownloadWorker>()
+        .setInputData(workDataOf(*datos.toTypedArray()))
+        .setConstraints(restricciones)
+        .setBackoffCriteria(BackoffPolicy.EXPONENTIAL, 10, java.util.concurrent.TimeUnit.SECONDS)
+        .addTag("update_download")
+        .build()
+    WorkManager.getInstance(context).enqueueUniqueWork("update_download", ExistingWorkPolicy.REPLACE, peticion)
+}
 
 fun getUpdateAvailableState(context: Context): Boolean {
     val sharedPrefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)

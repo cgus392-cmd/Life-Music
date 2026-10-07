@@ -50,12 +50,17 @@ object DownloadNotificationManager {
     }
 
     
-    fun getDownloadProgressNotification(progress: Int, version: String): Notification {
+    fun getDownloadProgressNotification(progress: Int, version: String, detalle: String? = null): Notification {
         return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.BAKLAVA) {
-            buildDownloadProgressModern(progress, version)
+            buildDownloadProgressModern(progress, version, detalle)
         } else {
-            buildDownloadProgressLegacy(progress, version)
+            buildDownloadProgressLegacy(progress, version, detalle)
         }
+    }
+
+    /** El progreso con MB y tiempo restante («18,4 de 41 MB · quedan 11 s»). */
+    fun showDownloadProgress(progress: Int, version: String, detalle: String) {
+        notificationManager.notify(NOTIFICATION_ID, getDownloadProgressNotification(progress, version, detalle))
     }
 
     
@@ -101,9 +106,9 @@ object DownloadNotificationManager {
                         Notification.ProgressStyle.Segment(25)
                             .setColor(
                                 if (i % 2 == 0) {
-                                    "#4285F4".toColorInt() 
+                                    "#34D399".toColorInt() 
                                 } else {
-                                    "#8E24AA".toColorInt() 
+                                    "#0F5C43".toColorInt() 
                                 }
                             )
                     )
@@ -130,7 +135,7 @@ object DownloadNotificationManager {
     }
 
     @RequiresApi(Build.VERSION_CODES.BAKLAVA)
-    private fun buildDownloadProgressModern(progress: Int, version: String): Notification {
+    private fun buildDownloadProgressModern(progress: Int, version: String, detalle: String?): Notification {
         val progressStyle = Notification.ProgressStyle()
             .also {
                 
@@ -139,9 +144,9 @@ object DownloadNotificationManager {
                         Notification.ProgressStyle.Segment(25)
                             .setColor(
                                 if (i % 2 == 0) {
-                                    "#4285F4".toColorInt() 
+                                    "#34D399".toColorInt() 
                                 } else {
-                                    "#8E24AA".toColorInt() 
+                                    "#0F5C43".toColorInt() 
                                 }
                             )
                     )
@@ -152,7 +157,7 @@ object DownloadNotificationManager {
         val builder = Notification.Builder(appContext, CHANNEL_ID)
             .setSmallIcon(R.drawable.ic_launcher_foreground) 
             .setContentTitle(appContext.getString(R.string.downloading_update))
-            .setContentText(appContext.getString(R.string.version_progress, version, progress))
+            .setContentText(detalle ?: appContext.getString(R.string.version_progress, version, progress))
             .setOngoing(progress < 100)
             .setOnlyAlertOnce(true)
             .setStyle(progressStyle)
@@ -197,9 +202,9 @@ object DownloadNotificationManager {
                         Notification.ProgressStyle.Segment(25)
                             .setColor(
                                 if (i % 2 == 0) {
-                                    "#4285F4".toColorInt() 
+                                    "#34D399".toColorInt() 
                                 } else {
-                                    "#8E24AA".toColorInt() 
+                                    "#0F5C43".toColorInt() 
                                 }
                             )
                     )
@@ -265,11 +270,11 @@ object DownloadNotificationManager {
             .build()
     }
 
-    private fun buildDownloadProgressLegacy(progress: Int, version: String): Notification {
+    private fun buildDownloadProgressLegacy(progress: Int, version: String, detalle: String?): Notification {
         return NotificationCompat.Builder(appContext, CHANNEL_ID)
             .setSmallIcon(R.drawable.ic_launcher) 
             .setContentTitle(appContext.getString(R.string.downloading_update))
-            .setContentText(appContext.getString(R.string.version_progress, version, progress))
+            .setContentText(detalle ?: appContext.getString(R.string.version_progress, version, progress))
             .setProgress(100, progress, false)
             .setOngoing(progress < 100)
             .setOnlyAlertOnce(true)
