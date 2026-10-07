@@ -21,9 +21,17 @@
   de mentira (la caratula se dibuja aqui, la letra es de relleno, no es de
   ninguna cancion).
 -->
+<!-- La misma pagina sirve en /tv (TV con navegador): con la base, todo lo
+     relativo (temas, cristal.js, imagenes) se busca siempre en /cast/. -->
+<base href="/cast/">
 <link rel="icon" type="image/png" href="../img/lifemusic.png">
-<link rel="stylesheet" href="receptor.css?v=20261007a">
-<script src="https://www.gstatic.com/cast/sdk/libs/caf_receiver/v3/cast_receiver_framework.js"></script>
+<link rel="stylesheet" href="receptor.css?v=20261007b">
+<script>
+  // En un Chromecast se carga el SDK de Cast como siempre (bloqueante, antes del
+  // body). En /tv no hace falta: alli enlaza tv.js por el relevo.
+  window.MODO_TV = /^\/tv\/?$/.test(location.pathname) || /[?&]tv=1/.test(location.search);
+  if (!window.MODO_TV) document.write('<script src="https://www.gstatic.com/cast/sdk/libs/caf_receiver/v3/cast_receiver_framework.js"><\/script>');
+</script>
 </head>
 <body class="tema-ambiente">
   <!-- El reproductor de CAF existe pero no se ve: la pantalla es nuestra. -->
@@ -174,6 +182,41 @@
     <p id="saludo-frase"></p>
   </section>
 
-  <script src="receptor.js?v=20261007a"></script>
+  <!-- TV con navegador: el enlace con codigo y QR. -->
+  <section id="enlace" class="oculto" aria-live="polite">
+    <div class="enlace-texto">
+      <p class="enlace-marca">Life Music TV</p>
+      <h1 id="enlace-titulo">Enlaza tu teléfono</h1>
+      <ol class="enlace-pasos">
+        <li>Abre Life Music en tu teléfono.</li>
+        <li>Toca transmitir y elige <b>TV con navegador</b>.</li>
+        <li>Escribe este código:</li>
+      </ol>
+      <p id="enlace-codigo" class="enlace-codigo">··· ···</p>
+      <p id="enlace-estado" class="enlace-estado"></p>
+      <p id="enlace-nota" class="enlace-nota"></p>
+    </div>
+    <div class="enlace-qr-marco">
+      <canvas id="enlace-qr" width="440" height="440" aria-label="Código QR para enlazar"></canvas>
+      <p>O escanéalo con la cámara del teléfono</p>
+    </div>
+    <p id="enlace-compat" class="enlace-compat"></p>
+  </section>
+
+  <!-- Algunos navegadores no dejan sonar audio hasta que se toca algo. -->
+  <section id="activar" class="oculto">
+    <button id="activar-boton" type="button">Presiona OK para activar el sonido</button>
+  </section>
+
+  <!-- Mandos del TV con navegador: aparecen al tocar una tecla del control. -->
+  <nav id="mandos-tv" aria-label="Opciones del TV">
+    <button id="btn-pantalla" type="button">Pantalla completa</button>
+    <button id="btn-codigo" type="button" style="display:none">Enlazar otro teléfono</button>
+  </nav>
+
+  <script>
+    if (window.MODO_TV) document.write('<script src="qrcode.js?v=20261007b"><\/script><script src="tv.js?v=20261007b"><\/script>');
+  </script>
+  <script src="receptor.js?v=20261007b"></script>
 </body>
 </html>

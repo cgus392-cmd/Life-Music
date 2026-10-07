@@ -507,3 +507,60 @@ body.tema-tocadiscos #td-ui { display: block; }
 #td-progreso { margin-top: 1.4vmin; margin-left: auto; width: 100%; height: 0.45vmin; border-radius: 0.3vmin; background: rgba(255, 236, 210, 0.2); overflow: hidden; }
 #td-barra { width: 0%; height: 100%; background: rgba(255, 228, 190, 0.9); transition: width 260ms linear; }
 #escena.pausa #td-progreso { opacity: 0.5; }
+
+/* ── TV con navegador (lifemusic.pages.dev/tv): enlace por codigo o QR ──────
+   Sin inset, sin gap y con colores literales antes de cada var(): esta parte
+   la tiene que pintar bien hasta un navegador de TV muy viejo. */
+#enlace {
+  position: fixed; top: 0; left: 0; right: 0; bottom: 0; z-index: 30;
+  display: -webkit-flex; display: flex; -webkit-align-items: center; align-items: center; -webkit-justify-content: center; justify-content: center;
+  padding: 6vmin 9vmin;
+  background: #050807;
+  background: radial-gradient(120% 90% at 18% 22%, rgba(52, 211, 153, 0.20), rgba(5, 8, 7, 0) 62%), #050807;
+  opacity: 1; transition: opacity 600ms ease, visibility 0s linear 0s;
+}
+#enlace.oculto { opacity: 0; visibility: hidden; pointer-events: none; transition: opacity 600ms ease, visibility 0s linear 600ms; }
+.enlace-texto { -webkit-flex: 1 1 auto; flex: 1 1 auto; max-width: 62vw; margin-right: 7vmin; }
+.enlace-marca { font-size: 2.2vmin; font-weight: 700; letter-spacing: 0.18em; text-transform: uppercase; color: #34D399; }
+#enlace h1 { margin: 1.6vmin 0 3.2vmin; font-size: 6.2vmin; line-height: 1.05; font-weight: 700; letter-spacing: -0.02em; color: #F2F5F3; }
+.enlace-pasos { padding-left: 3.6vmin; font-size: 2.9vmin; line-height: 1.65; color: rgba(242, 245, 243, 0.74); }
+.enlace-pasos b { color: #F2F5F3; font-weight: 700; }
+.enlace-codigo {
+  margin-top: 2.4vmin; white-space: nowrap;
+  font-family: "JetBrains Mono", "Roboto Mono", "DejaVu Sans Mono", Consolas, monospace;
+  font-size: 13vmin; font-weight: 700; letter-spacing: 0.08em; line-height: 1.1; color: #F2F5F3;
+}
+.enlace-estado { min-height: 3.6vmin; margin-top: 1.4vmin; font-size: 2.7vmin; color: #34D399; }
+.enlace-nota { margin-top: 1vmin; font-size: 2.1vmin; color: rgba(242, 245, 243, 0.5); }
+.enlace-qr-marco { -webkit-flex: 0 0 auto; flex: 0 0 auto; text-align: center; }
+#enlace-qr { display: block; width: 34vmin; height: 34vmin; border-radius: 2.4vmin; background: #FFFFFF; box-shadow: 0 3vmin 8vmin rgba(0, 0, 0, 0.6); }
+.enlace-qr-marco p { margin-top: 2.2vmin; font-size: 2.3vmin; color: rgba(242, 245, 243, 0.62); }
+.enlace-compat { position: absolute; left: 9vmin; right: 30vmin; bottom: 4vmin; font-family: monospace; font-size: 1.8vmin; color: rgba(242, 245, 243, 0.4); }
+
+#activar {
+  position: fixed; top: 0; left: 0; right: 0; bottom: 0; z-index: 40;
+  display: -webkit-flex; display: flex; -webkit-align-items: center; align-items: center; -webkit-justify-content: center; justify-content: center;
+  background: rgba(0, 0, 0, 0.74);
+}
+#activar.oculto { display: none; }
+#activar-boton {
+  padding: 2.8vmin 6.4vmin; border: 0; border-radius: 10vmin; cursor: pointer;
+  font: inherit; font-size: 3.8vmin; font-weight: 700; color: #062016; background: #34D399;
+  box-shadow: 0 2vmin 6vmin rgba(52, 211, 153, 0.35);
+}
+
+#mandos-tv { display: none; }
+body.modo-tv #mandos-tv { display: block; position: fixed; right: 4vmin; bottom: 4vmin; z-index: 35; opacity: 0; transition: opacity 400ms ease; }
+body.modo-tv #escena.vacia ~ #mandos-tv, body.modo-tv.mandos #mandos-tv { opacity: 1; }
+#mandos-tv button {
+  margin-left: 1.4vmin; padding: 1.3vmin 2.8vmin; border-radius: 10vmin; cursor: pointer;
+  font: inherit; font-size: 2.3vmin; font-weight: 600; color: #F2F5F3;
+  background: rgba(255, 255, 255, 0.08); border: 1px solid rgba(255, 255, 255, 0.18);
+}
+#mandos-tv button:focus, #activar-boton:focus { outline: 0.5vmin solid #34D399; outline-offset: 0.4vmin; }
+
+/* Sin video H.264: el Atardecer se queda con un cielo pintado, quieto. */
+body.sin-video #paisaje {
+  background: #2A1A2E;
+  background: linear-gradient(180deg, #1C2748 0%, #6B3F6E 38%, #D9746A 58%, #F2B26B 66%, #3A2433 67%, #140E18 100%);
+}

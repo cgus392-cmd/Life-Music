@@ -4,7 +4,7 @@
 (function () {
   "use strict";
 
-  var VERSION = "2026-10-07a";
+  var VERSION = "2026-10-07b";
   var NS = "urn:x-cast:com.cglabs.lifemusic";
 
   // ── Rendimiento ───────────────────────────────────────────────────────────
@@ -856,6 +856,7 @@
   var elPaisaje = $("paisaje"), pjVideos = document.querySelectorAll("#paisaje .pj");
   var pjActual = 0, pjSrc = null, pjFundiendo = false, pjRevisado = 0, pjHoraRevisada = 0;
   var horaForzada = null; // la demo la pone con ?hora=
+  var sinVideo = false;   // TV con navegador que no reproduce H.264: paisaje quieto
 
   function paisajeDeAhora(lista) {
     var h = horaForzada !== null ? horaForzada : new Date().getHours();
@@ -864,7 +865,7 @@
   }
   function prepararPaisaje() {
     var lista = PAISAJES[tema];
-    if (!lista) { soltarPaisaje(); return; }
+    if (!lista || sinVideo) { soltarPaisaje(); return; }
     var p = paisajeDeAhora(lista), src = p.src;
     if (src === pjSrc) return;
     soltarPaisaje();
@@ -1389,9 +1390,38 @@
     }, 3000);
   }
 
+  // ── TV con navegador (lifemusic.pages.dev/tv) ─────────────────────────────
+  // tv.js enlaza con el telefono por el relevo y toca el audio; aqui solo se le
+  // dan los ganchos para dibujar como en Cast.
+  function iniciarTV() {
+    if (!window.LifeMusicTV) { estado("No cargo tv.js (¿el TV tiene internet?)"); return; }
+    window.LifeMusicTV.iniciar({
+      version: VERSION,
+      manejar: manejar,
+      diag: diag,
+      estado: estado,
+      estadoSaludo: estadoSaludo,
+      ponerPosicion: function (f) { posicion = f; },
+      ponerSonando: function (si, pausado) {
+        sonando = si;
+        document.body.classList.toggle("sonando", si);
+        escena.classList.toggle("pausa", !!pausado);
+      },
+      ligero: function () { if (!ligero) activarLigero(); },
+      sinVideo: function () { sinVideo = true; document.body.classList.add("sin-video"); soltarPaisaje(); },
+      ponerMandarDiag: function (f) {
+        mandarDiag = f;
+        for (var i = 0; i < diagPendiente.length; i++) f(diagPendiente[i]);
+        diagPendiente = [];
+      },
+    });
+  }
+
   var demo = /[?&]demo=1/.test(location.search);
   if (demo) {
     iniciarDemo();
+  } else if (window.MODO_TV) {
+    try { iniciarTV(); } catch (e) { estado("Error al iniciar el TV: " + (e && e.message ? e.message : e)); }
   } else {
     // En el TV nunca se cae a la demo: si Cast no arranca, se ve el error escrito.
     try { iniciarCast(); } catch (e) { estado("Error al iniciar Cast: " + (e && e.message ? e.message : e)); }

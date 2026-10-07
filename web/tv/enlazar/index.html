@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Enlazar con Life Music TV</title>
+<meta name="robots" content="noindex">
+<meta name="theme-color" content="#0B0F0D">
+<link rel="icon" type="image/png" href="/img/lifemusic.png">
+<!--
+  Destino del QR que muestra lifemusic.pages.dev/tv. Con Life Music instalado,
+  Android abre la app directo (App Link) y esta pagina no se ve. Sin la app,
+  explica que hacer y lleva a descargarla.
+-->
+<style>
+  :root { --fondo: #0B0F0D; --superficie: #131A16; --borde: rgba(255,255,255,.09); --texto: #F2F5F3; --texto-2: #A9B4AE; --verde: #34D399; }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; min-height: 100vh; padding: 32px 18px; display: flex; align-items: center; justify-content: center;
+    background: var(--fondo); color: var(--texto);
+    font: 16px/1.55 "Segoe UI", Roboto, system-ui, -apple-system, sans-serif;
+  }
+  main { width: 100%; max-width: 420px; text-align: center; }
+  img { width: 72px; height: 72px; border-radius: 18px; }
+  h1 { margin: 18px 0 6px; font-size: 26px; line-height: 1.15; }
+  p { margin: 0 0 14px; color: var(--texto-2); }
+  .codigo {
+    margin: 18px 0; padding: 14px; border-radius: 16px; background: var(--superficie); border: 1px solid var(--borde);
+    font: 700 40px/1 "JetBrains Mono", "Roboto Mono", Consolas, monospace; letter-spacing: .1em; color: var(--texto);
+  }
+  ol { text-align: left; color: var(--texto-2); padding-left: 22px; margin: 0 0 22px; }
+  li { margin: 6px 0; }
+  li b { color: var(--texto); }
+  a.boton {
+    display: block; padding: 14px 18px; border-radius: 999px; text-decoration: none; font-weight: 700;
+    background: var(--verde); color: #062016;
+  }
+  a.secundario { display: inline-block; margin-top: 14px; color: var(--verde); }
+</style>
+</head>
+<body>
+<main>
+  <img src="/img/lifemusic.png" alt="Life Music">
+  <h1>Enlaza tu TV con Life Music</h1>
+  <p>Este es el código que muestra tu TV:</p>
+  <div class="codigo" id="codigo">——————</div>
+  <ol>
+    <li>Abre <b>Life Music</b> en este teléfono.</li>
+    <li>Toca el botón de transmitir y elige <b>TV con navegador</b>.</li>
+    <li>Escribe el código de arriba.</li>
+  </ol>
+  <a class="boton" href="/apk">Descargar Life Music para Android</a>
+  <a class="secundario" href="/">Qué es Life Music</a>
+</main>
+<script>
+  // Solo el codigo de la direccion (?c=XXXXXX), con el mismo alfabeto del TV.
+  var c = (location.search.match(/[?&]c=([2-9A-HJKMNP-Z]{6})/) || [])[1];
+  if (c) document.getElementById("codigo").textContent = c.slice(0, 3) + " " + c.slice(3);
+</script>
+</body>
+</html>
