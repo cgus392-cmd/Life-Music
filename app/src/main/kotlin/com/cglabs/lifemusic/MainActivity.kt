@@ -1077,6 +1077,8 @@ class MainActivity : ComponentActivity() {
                     LocalGlassEffectConfig provides glassEffectConfig,
                     LocalAppBackdrop provides appBackdrop,
                 ) {
+                    // El dialogo del QR de Life Music TV, si la app se abrio por el (foss).
+                    com.cglabs.lifemusic.ui.component.EnlaceTvDesdeQr()
 
                     Scaffold(
                         snackbarHost = { SnackbarHost(snackbarHostState) },
@@ -1585,6 +1587,13 @@ class MainActivity : ComponentActivity() {
             }
         }
         if (uri == null) return
+
+        // 1.3.1: el QR de Life Music TV abre la app con el codigo del TV.
+        com.cglabs.lifemusic.cast.EnlaceTvPendiente.desdeUri(uri)?.let { codigo ->
+            intent.data = null
+            com.cglabs.lifemusic.cast.EnlaceTvPendiente.codigo.value = codigo
+            return
+        }
 
         intent.data = null
         intent.removeExtra(Intent.EXTRA_TEXT)

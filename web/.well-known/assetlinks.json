@@ -1,0 +1,12 @@
+[
+  {
+    "relation": ["delegate_permission/common.handle_all_urls"],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "com.cglabs.lifemusic",
+      "sha256_cert_fingerprints": [
+        "93:E9:5E:0A:71:7B:D0:EC:D5:3E:E7:0A:46:5E:D3:CA:A5:B1:45:9F:A7:12:F4:7C:4A:0A:0F:21:02:B5:7D:03"
+      ]
+    }
+  }
+]

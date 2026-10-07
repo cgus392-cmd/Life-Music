@@ -36,6 +36,7 @@
     background: var(--verde); color: #062016;
   }
   a.secundario { display: inline-block; margin-top: 14px; color: var(--verde); }
+  [hidden] { display: none !important; }
 </style>
 </head>
 <body>
@@ -49,13 +50,27 @@
     <li>Toca el botón de transmitir y elige <b>TV con navegador</b>.</li>
     <li>Escribe el código de arriba.</li>
   </ol>
-  <a class="boton" href="/apk">Descargar Life Music para Android</a>
+  <a class="boton" id="abrir" href="/apk" hidden>Abrir Life Music</a>
+  <a class="boton" id="descargar" href="/apk">Descargar Life Music para Android</a>
   <a class="secundario" href="/">Qué es Life Music</a>
 </main>
 <script>
   // Solo el codigo de la direccion (?c=XXXXXX), con el mismo alfabeto del TV.
   var c = (location.search.match(/[?&]c=([2-9A-HJKMNP-Z]{6})/) || [])[1];
-  if (c) document.getElementById("codigo").textContent = c.slice(0, 3) + " " + c.slice(3);
+  if (c) {
+    document.getElementById("codigo").textContent = c.slice(0, 3) + " " + c.slice(3);
+    // Si Android no abrio la app solo (App Link sin verificar), este boton la abre
+    // por su esquema propio; sin la app instalada, el navegador lleva a /apk.
+    if (/Android/i.test(navigator.userAgent)) {
+      var abrir = document.getElementById("abrir");
+      abrir.href = "intent://tv/enlazar?c=" + c + "#Intent;scheme=lifemusic;package=com.cglabs.lifemusic;S.browser_fallback_url=" +
+        encodeURIComponent(location.origin + "/apk") + ";end";
+      abrir.hidden = false;
+      var bajar = document.getElementById("descargar");
+      bajar.className = "secundario";
+      bajar.textContent = "¿No la tienes? Descárgala";
+    }
+  }
 </script>
 </body>
 </html>

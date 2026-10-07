@@ -352,7 +352,12 @@ internal fun DialogoCodigoTv(
         title = { Text(stringResource(R.string.cast_web_enlazar)) },
         text = {
             Column {
-                Text(stringResource(R.string.cast_web_desc), style = MaterialTheme.typography.bodyMedium)
+                // Desde el QR, el codigo ya viene puesto: solo se confirma.
+                Text(
+                    if (codigoInicial.length == 6) stringResource(R.string.cast_web_enlazar_con, codigoInicial.take(3) + " " + codigoInicial.drop(3))
+                    else stringResource(R.string.cast_web_desc),
+                    style = MaterialTheme.typography.bodyMedium,
+                )
                 Spacer(Modifier.height(16.dp))
                 androidx.compose.material3.OutlinedTextField(
                     value = texto,

@@ -121,6 +121,31 @@
                 <data android:host="listen" />
             </intent-filter>
 
+            <!-- Life Music TV (1.3.1): el QR del TV con navegador abre la app con el codigo.
+                 App Link verificado con web/.well-known/assetlinks.json. -->
+            <intent-filter android:autoVerify="true">
+                <action android:name="android.intent.action.VIEW" />
+
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+
+                <data android:scheme="https" />
+                <data android:host="lifemusic.pages.dev" />
+                <data android:host="prueba.lifemusic.pages.dev" />
+                <data android:pathPrefix="/tv/enlazar" />
+            </intent-filter>
+
+            <!-- El mismo enlace por esquema propio: el boton de la pagina del QR si el App Link no se verifico. -->
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+
+                <data android:scheme="lifemusic" />
+                <data android:host="tv" />
+            </intent-filter>
+
             <!-- Life Music Share Links -->
             <intent-filter android:autoVerify="true">
                 <action android:name="android.intent.action.VIEW" />

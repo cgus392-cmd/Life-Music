@@ -26,7 +26,7 @@
   });
 
   var RELEVO = params.relevo || "wss://lifemusic-enlace.cho--usic.workers.dev";
-  var ENLAZAR = "https://lifemusic.pages.dev/tv/enlazar?c=";
+  var ENLAZAR = (/^https:\/\/([a-z0-9-]+\.)?lifemusic\.pages\.dev$/.test(location.origin) ? location.origin : "https://lifemusic.pages.dev") + "/tv/enlazar?c=";
   var ALFABETO = "23456789ABCDEFGHJKMNPQRSTUVWXYZ";
   var VIDA_CODIGO = 10 * 60 * 1000;
   var CLAVE_TOKEN = "lm.tv.token", CLAVE_TELEFONO = "lm.tv.telefono";
