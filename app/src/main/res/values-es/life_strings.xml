@@ -1157,6 +1157,10 @@
     <string name="boletin_v1131_tv">¿Tu TV no tiene Cast? Abre lifemusic.pages.dev/tv en su navegador, toca transmitir → TV con navegador y escribe el código. El TV se acuerda para la próxima vez.</string>
     <string name="boletin_v1131_actualizador_t">Actualizador renovado</string>
     <string name="boletin_v1131_actualizador">Cada versión llega con su imagen y sus novedades, la descarga pesa menos en la mayoría de teléfonos, dice cuánto falta y sigue donde iba si se corta. El historial de versiones está en Ajustes → Actualizaciones.</string>
+    <string name="boletin_v1131_fundido_t">Cambios sin cortes</string>
+    <string name="boletin_v1131_fundido">Si suena una canción y eliges otra, la que suena baja suave y la nueva entra subiendo, sin el corte en seco. Se apaga en Ajustes → Reproductor.</string>
+    <string name="fundido_al_elegir">Fundido al elegir otra canción</string>
+    <string name="fundido_al_elegir_desc">La que suena baja suave y la nueva entra subiendo, sin cortes en seco</string>
     <string name="update_permiso_titulo">Un permiso para instalar</string>
     <string name="update_permiso_texto">Para instalar la versión nueva, Android te pedirá permitir que Life Music instale apps. Solo se usa para sus propias actualizaciones. Activa el interruptor y vuelve: la instalación sigue sola.</string>
     <string name="update_permiso_boton">Ir a dar el permiso</string>

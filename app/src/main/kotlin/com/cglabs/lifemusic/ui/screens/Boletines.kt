@@ -237,6 +237,8 @@ object Boletines {
                 R.string.boletin_v1131_tv_t, R.string.boletin_v1131_tv),
             ApartadoBoletin(R.drawable.update, Color(0xFFA5D6A7),
                 R.string.boletin_v1131_actualizador_t, R.string.boletin_v1131_actualizador),
+            ApartadoBoletin(R.drawable.graphic_eq, Color(0xFF80DEEA),
+                R.string.boletin_v1131_fundido_t, R.string.boletin_v1131_fundido),
         ),
         // La imagen de la version (estilo elegido por CG el 07-10: acrilico y cromo verde menta).
         heroImagen = R.drawable.novedades_131,

@@ -123,6 +123,10 @@ highlightKey: String? = null) {
         CrossfadeEnabledKey,
         defaultValue = false
     )
+    val (fundidoAlElegir, onFundidoAlElegirChange) = rememberPreference(
+        com.cglabs.lifemusic.constants.FundidoAlElegirKey,
+        defaultValue = true
+    )
     val (crossfadeDuration, onCrossfadeDurationChange) = rememberPreference(
         CrossfadeDurationKey,
         defaultValue = 5f
@@ -562,6 +566,29 @@ highlightKey: String? = null) {
                     onClick = { showPlaybackEngineDialog = true }
                 ))
 
+                // 1.3.1: al elegir otra cancion, bajar, cambiar, subir (encendido de fabrica).
+                add(Material3SettingsItem(
+                    isHighlighted = (highlightKey == stringResource(R.string.fundido_al_elegir)),
+                    icon = painterResource(R.drawable.graphic_eq),
+                    title = { Text(stringResource(R.string.fundido_al_elegir)) },
+                    description = { Text(stringResource(R.string.fundido_al_elegir_desc)) },
+                    trailingContent = {
+                        Switch(
+                            checked = fundidoAlElegir,
+                            onCheckedChange = onFundidoAlElegirChange,
+                            thumbContent = {
+                                Icon(
+                                    painter = painterResource(
+                                        id = if (fundidoAlElegir) R.drawable.check else R.drawable.close
+                                    ),
+                                    contentDescription = null,
+                                    modifier = Modifier.size(SwitchDefaults.IconSize)
+                                )
+                            }
+                        )
+                    },
+                    onClick = { onFundidoAlElegirChange(!fundidoAlElegir) }
+                ))
 
                 add(Material3SettingsItem(
     isHighlighted = (highlightKey == stringResource(R.string.crossfade)),

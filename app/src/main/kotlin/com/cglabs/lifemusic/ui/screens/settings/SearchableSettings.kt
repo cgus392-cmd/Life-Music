@@ -97,6 +97,7 @@ fun getAllSearchableSettings(): List<SearchableSetting> {
             SearchableSetting(stringResource(R.string.crossfade_beta_title), stringResource(R.string.crossfade_beta_title_desc), "Player and audio", "settings/player"),
             SearchableSetting(stringResource(R.string.crossfade_duration), stringResource(R.string.crossfade_duration_desc), "Player and audio", "settings/player"),
             SearchableSetting(stringResource(R.string.crossfade_gapless), stringResource(R.string.crossfade_gapless_desc), "Player and audio", "settings/player"),
+            SearchableSetting(stringResource(R.string.fundido_al_elegir), stringResource(R.string.fundido_al_elegir_desc), "Player and audio", "settings/player"),
             SearchableSetting(stringResource(R.string.dark_theme_follow_system), stringResource(R.string.dark_theme_follow_system_desc), "Appearance", "settings/appearance"),
             SearchableSetting(stringResource(R.string.default_), stringResource(R.string.default__desc), "Appearance", "settings/appearance"),
             SearchableSetting(stringResource(R.string.default_lib_chips), stringResource(R.string.default_lib_chips_desc), "Appearance", "settings/appearance"),

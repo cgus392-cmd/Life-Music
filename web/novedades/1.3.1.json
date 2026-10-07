@@ -6,7 +6,8 @@
     "funciones": [
       { "icono": "palette", "titulo": "Temas PRO del TV", "texto": "Atardecer, que cambia con la hora del día, y Tocadiscos, con tu carátula girando en un disco de verdad (V1 y V2)." },
       { "icono": "tv", "titulo": "Life Music TV en el navegador", "texto": "¿Tu TV no tiene Cast? Abre lifemusic.pages.dev/tv, enlaza con el código y listo. El TV se acuerda para la próxima vez." },
-      { "icono": "update", "titulo": "Actualizador renovado", "texto": "Cada versión con su imagen, historial de versiones, descargas más livianas y progreso con tiempo restante." }
+      { "icono": "update", "titulo": "Actualizador renovado", "texto": "Cada versión con su imagen, historial de versiones, descargas más livianas y progreso con tiempo restante." },
+      { "icono": "graphic_eq", "titulo": "Cambios sin cortes", "texto": "Si suena una canción y eliges otra, la que suena baja suave y la nueva entra subiendo, sin el corte en seco." }
     ],
     "arreglos": []
   },
@@ -15,7 +16,8 @@
     "funciones": [
       { "icono": "palette", "titulo": "PRO TV themes", "texto": "Sunset, which changes with the time of day, and Turntable, with your cover spinning on a real record (V1 and V2)." },
       { "icono": "tv", "titulo": "Life Music TV in the browser", "texto": "No Cast on your TV? Open lifemusic.pages.dev/tv, link it with the code and you are set. The TV remembers it next time." },
-      { "icono": "update", "titulo": "Renewed updater", "texto": "Every version with its own image, a version history, lighter downloads and progress with time remaining." }
+      { "icono": "update", "titulo": "Renewed updater", "texto": "Every version with its own image, a version history, lighter downloads and progress with time remaining." },
+      { "icono": "graphic_eq", "titulo": "No more hard cuts", "texto": "When a song is playing and you pick another, the current one fades down and the new one fades in, instead of cutting off." }
     ],
     "arreglos": []
   },
