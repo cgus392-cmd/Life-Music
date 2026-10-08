@@ -6,7 +6,7 @@
 <title>Estado de Life Music</title>
 <meta name="description" content="Estado en vivo de los servicios de Life Music: TV con navegador, comunidad, descargas y web.">
 <meta name="theme-color" content="#0B0F0D">
-<link rel="canonical" href="https://lifemusic.pages.dev/estado">
+<link rel="canonical" href="https://lifemusic.app/estado">
 <link rel="icon" type="image/png" href="/img/lifemusic.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -55,7 +55,7 @@
     { nombre: "TV con navegador", detalle: "El relevo que enlaza el teléfono con el TV", url: "https://lifemusic-enlace.cho--usic.workers.dev/salud", ok: function (j) { return j && j.estado === "ok"; } },
     { nombre: "Comunidad", detalle: "Calificaciones y prerregistro del concurso", url: "https://lifemusic-comunidad.cho--usic.workers.dev/salud", ok: function (j) { return j && j.estado === "ok"; } },
     { nombre: "Descargas", detalle: "La última versión en GitHub", url: "https://api.github.com/repos/cgus392-cmd/Life-Music/releases/latest", ok: function (j) { return j && !!j.tag_name; } },
-    { nombre: "Web", detalle: "lifemusic.pages.dev y la pantalla del TV", url: "/novedades/1.3.1.json", ok: function (j) { return !!j; } },
+    { nombre: "Web", detalle: "lifemusic.app y la pantalla del TV", url: "/novedades/1.3.2.json", ok: function (j) { return !!j; } },
   ];
   var LENTO_MS = 1500;
   function fila(s) {

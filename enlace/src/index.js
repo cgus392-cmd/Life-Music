@@ -30,7 +30,7 @@ import { DurableObject } from "cloudflare:workers";
 const CUARTO = /^(c-[2-9A-HJKMNP-Z]{6}|t-[0-9a-f]{32})$/;
 const TOKEN = /^t-[0-9a-f]{32}$/;
 const DISPOSITIVO = /^[0-9a-f-]{8,64}$/;
-const ORIGENES = [/^https:\/\/([a-z0-9-]+\.)?lifemusic\.pages\.dev$/, /^http:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/];
+const ORIGENES = [/^https:\/\/([a-z0-9-]+\.)?lifemusic\.pages\.dev$/, /^https:\/\/(www\.)?lifemusic\.app$/, /^http:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/];
 const MAX_MENSAJE = 512 * 1024; // la letra con palabras cronometradas cabe de sobra
 // 1.3.2: un codigo vale 5 minutos y el relevo lo hace cumplir (antes solo el TV lo cambiaba).
 const VIDA_CODIGO_MS = 5 * 60 * 1000;

@@ -3,4 +3,4 @@ Allow: /
 Disallow: /apk
 Disallow: /apk-arm64
 
-Sitemap: https://lifemusic.pages.dev/sitemap.xml
+Sitemap: https://lifemusic.app/sitemap.xml

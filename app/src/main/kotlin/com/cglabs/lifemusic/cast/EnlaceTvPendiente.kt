@@ -17,7 +17,8 @@ object EnlaceTvPendiente {
     /** null cuando no hay ninguno esperando. */
     val codigo = MutableStateFlow<String?>(null)
 
-    private val HOSTS = setOf("lifemusic.pages.dev", "prueba.lifemusic.pages.dev")
+    // lifemusic.app desde el 08-10 (dominio propio); los de pages.dev siguen valiendo.
+    private val HOSTS = setOf("lifemusic.app", "www.lifemusic.app", "lifemusic.pages.dev", "prueba.lifemusic.pages.dev")
     private val CODIGO = Regex("^[2-9A-HJKMNP-Z]{6}$")
 
     /** El codigo si [uri] es un enlace del QR del TV; null si es otra cosa. */

@@ -17,7 +17,7 @@
    Las escrituras solo llegan desde la app: un navegador siempre manda Origin en
    un POST de otro sitio, y aqui se rechaza. La app no lo manda. */
 
-const ORIGENES = [/^https:\/\/([a-z0-9-]+\.)?lifemusic\.pages\.dev$/, /^http:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/];
+const ORIGENES = [/^https:\/\/([a-z0-9-]+\.)?lifemusic\.pages\.dev$/, /^https:\/\/(www\.)?lifemusic\.app$/, /^http:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/];
 const MAX_CUERPO = 4096;
 const MIN_VISIBLE = 25; // menos calificaciones que esto no se muestran en publico
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;

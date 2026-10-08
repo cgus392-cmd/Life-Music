@@ -1,4 +1,4 @@
-/* Life Music TV en el navegador (lifemusic.pages.dev/tv).
+/* Life Music TV en el navegador (lifemusic.app/tv, y tambien lifemusic.pages.dev/tv).
 
    Para televisores sin Cast ni DLNA pero con navegador. La pagina es la misma
    del receptor de Cast (mismo dibujo, mismos temas); cambia como llegan las
@@ -32,6 +32,9 @@
   });
 
   var RELEVO = params.relevo || "wss://lifemusic-enlace.cho--usic.workers.dev";
+  // El QR sigue en lifemusic.pages.dev aunque la pagina se abra en lifemusic.app: la
+  // app 1.3.2 solo reconoce ese App Link. Cuando la version que acepta lifemusic.app
+  // este en la mayoria de telefonos, el QR puede pasar al dominio nuevo.
   var ENLAZAR = (/^https:\/\/([a-z0-9-]+\.)?lifemusic\.pages\.dev$/.test(location.origin) ? location.origin : "https://lifemusic.pages.dev") + "/tv/enlazar?c=";
   var ALFABETO = "23456789ABCDEFGHJKMNPQRSTUVWXYZ";
   var RELEVO_HTTP = RELEVO.replace(/^ws/, "http");

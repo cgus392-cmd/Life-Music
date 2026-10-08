@@ -1499,7 +1499,7 @@
     <!-- TV with a browser (lifemusic.pages.dev/tv), 1.3.1 -->
     <string name="cast_web_titulo">TV with a browser</string>
     <string name="cast_web_enlazar">Link a TV with a code</string>
-    <string name="cast_web_desc">On the TV, open lifemusic.pages.dev/tv in its browser and type the code it shows.</string>
+    <string name="cast_web_desc">On the TV, open lifemusic.app/tv in its browser and type the code it shows.</string>
     <string name="cast_web_codigo">TV code</string>
     <string name="cast_web_conectar">Link</string>
     <string name="cast_web_recordado">Browser · linked</string>
@@ -1515,7 +1515,7 @@
     <string name="cast_web_servidor_ok">Server online</string>
     <string name="cast_web_servidor_mal">Server not responding</string>
     <string name="cast_web_en_linea">Online · tap to cast</string>
-    <string name="cast_web_sin_abrir">Open lifemusic.pages.dev/tv on that TV</string>
+    <string name="cast_web_sin_abrir">Open lifemusic.app/tv on that TV</string>
     <string name="cast_web_no_suena">The TV could not play the song. Are the phone and the TV on the same Wi-Fi?</string>
     <string name="cast_web_enlazar_con">Link with the TV showing %1$s?</string>
 
@@ -1543,7 +1543,7 @@
     <string name="boletin_v1131_temas_t">PRO TV themes</string>
     <string name="boletin_v1131_temas">Sunset changes with the time of day: sunrise, sunset and a moonlit night. Turntable spins your cover on a real record, in two photos: V1 up close and V2 wide.</string>
     <string name="boletin_v1131_tv_t">Life Music TV in the browser</string>
-    <string name="boletin_v1131_tv">No Cast on your TV? Open lifemusic.pages.dev/tv in its browser, tap cast → TV with a browser and type the code. The TV remembers it next time.</string>
+    <string name="boletin_v1131_tv">No Cast on your TV? Open lifemusic.app/tv in its browser, tap cast → TV with a browser and type the code. The TV remembers it next time.</string>
     <string name="boletin_v1131_actualizador_t">Renewed updater</string>
     <string name="boletin_v1131_actualizador">Every version arrives with its image and news, the download is smaller on most phones, shows how long is left and resumes if it gets cut. The version history is in Settings → Updates.</string>
     <string name="boletin_v1131_fundido_t">No more hard cuts</string>
@@ -1552,7 +1552,7 @@
     <string name="fundido_al_elegir_desc">The current song fades down and the new one fades in, no hard cuts</string>
     <string name="boletin_v1132_intro">The version that brings it all together: PRO TV themes, Life Music on any TV with a browser, a new updater, song changes with no hard cuts, star ratings and the pre-registration for the new contest. And the browser TV, now safer.</string>
     <string name="boletin_v1132_seguro_t">A safer browser TV</string>
-    <string name="boletin_v1132_seguro">The TV code expires after 5 minutes with a countdown, «Link another phone» asks for confirmation, and the phone and the TV tell each other when the connection is lost. The linking screen is new, and the system status is at lifemusic.pages.dev/estado.</string>
+    <string name="boletin_v1132_seguro">The TV code expires after 5 minutes with a countdown, «Link another phone» asks for confirmation, and the phone and the TV tell each other when the connection is lost. The linking screen is new, and the system status is at lifemusic.app/estado.</string>
     <string name="boletin_v1132_ademas_1">The progress bar on the browser TV now moves from the first connection.</string>
     <string name="boletin_v1132_ademas_2">The cast button shows up whenever you have a browser TV linked, and the sheet tells you if it is online.</string>
     <string name="boletin_v1132_ademas_3">One phone per TV at a time; if the TV closes, the phone stops casting and tells you.</string>

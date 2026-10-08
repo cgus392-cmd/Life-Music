@@ -130,6 +130,8 @@
                 <category android:name="android.intent.category.BROWSABLE" />
 
                 <data android:scheme="https" />
+                <data android:host="lifemusic.app" />
+                <data android:host="www.lifemusic.app" />
                 <data android:host="lifemusic.pages.dev" />
                 <data android:host="prueba.lifemusic.pages.dev" />
                 <data android:pathPrefix="/tv/enlazar" />
