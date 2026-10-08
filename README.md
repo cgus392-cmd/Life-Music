@@ -89,6 +89,13 @@ El título de la pantalla de inicio se releva con el wordmark de CG LABS y vuelv
 con un fundido encadenado de casi dos segundos. La marca aparece sin ocupar
 espacio propio en la barra.
 
+### Comunidad, sin cuentas
+Desde la 1.3.1 se puede **calificar la app con estrellas** y **prerregistrarse en
+los concursos** sin crear ninguna cuenta. Solo sale algo cuando se toca el botón,
+va a un servidor propio en Cloudflare (`comunidad/`) y en público solo se ven
+contadores y promedios, nunca nombres ni correos. Los detalles están en la
+[política de privacidad](PRIVACY_POLICY.md).
+
 ### Correcciones sobre la base heredada
 - La letra de la canción **se descargaba en el hilo principal**, congelando la
   interfaz en cada cambio de pista. Ahora va en `Dispatchers.IO`.

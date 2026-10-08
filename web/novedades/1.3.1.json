@@ -25,5 +25,14 @@
     ],
     "arreglos": []
   },
-  "apk": {}
+  "apk": {
+    "lifemusic.apk": {
+      "bytes": 69993113,
+      "sha256": "a548ef216074cfdf9da32a6cffd82f30cf0b7692ade95c5dd9028c3fc12118a1"
+    },
+    "lifemusic-arm64.apk": {
+      "bytes": 41004348,
+      "sha256": "5da65aa38034724c5b63d0bd872108df8bc3cfca856fe0ec8d960c6464283dd2"
+    }
+  }
 }

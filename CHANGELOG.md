@@ -15,6 +15,52 @@ esa base**; para la historia anterior, consulte el repositorio de origen.
 
 ---
 
+## [1.3.1] — 2026-10-07
+
+### Añadido
+
+- **Temas PRO del TV: Atardecer y Tocadiscos.** Atardecer pone un paisaje que
+  cambia con la hora: amanecer en la mañana, atardecer en la tarde y noche con
+  luna. Tocadiscos pone tu carátula a girar en la etiqueta de un disco de
+  verdad, en dos fotos: V1 de cerca y V2 en plano abierto. Están en la tercera
+  fila de temas de la hoja de transmitir.
+- **Life Music TV en el navegador.** Para los TV sin Cast ni DLNA pero con
+  navegador:
+  - abre `lifemusic.pages.dev/tv` en el TV, que muestra un código y un QR;
+  - en el teléfono, toca transmitir → **TV con navegador** y escribe el código,
+    o escanea el QR con la cámara, que abre Life Music con el código puesto;
+  - el TV se acuerda del teléfono para la próxima vez;
+  - la página revisa qué puede hacer el navegador del TV y se adapta;
+  - tiene botón de pantalla completa.
+- **Actualizador renovado.**
+  - Cada versión llega con su imagen y sus novedades, en una hoja con
+    «Actualizar ahora» y «Más tarde» (que espera 3 días).
+  - En los teléfonos arm64 la descarga es la versión ligera, de unos 41 MB en
+    vez de 70.
+  - La descarga muestra MB, velocidad y tiempo restante, sigue donde iba si se
+    corta y se verifica antes de instalar.
+  - Instala en un paso: si falta el permiso, lo explica y sigue sola al volver.
+  - Nuevo **historial de versiones** con pastillas, en Ajustes →
+    Actualizaciones, y la opción «Descargar solo con wifi».
+- **Cambios sin cortes.** Si suena una canción y eliges otra (desde la
+  búsqueda, un álbum, una lista o Inicio), la que suena baja suave y la nueva
+  entra subiendo, en vez del corte en seco. Se apaga en Ajustes → Reproductor →
+  «Fundido al elegir otra canción».
+- **Califica Life Music.** Una pregunta con estrellas, sin registrarte en nada,
+  que aparece cuando ya llevas unos días usando la app (una vez por versión).
+  Con 4 o 5 estrellas puedes darnos una estrella en GitHub o compartir la app;
+  con menos, contarnos qué mejorarías. También está en Ajustes → Acerca de.
+- **Prerregistro del nuevo concurso.** Vuelve la copa a Inicio, con el video
+  del concurso, el premio (un **JBL PartyBox 330**) y el contador de personas
+  prerregistradas. Solo se pide nombre y correo, y nunca hay una lista pública.
+  Cuando lleguemos a 100, empieza un concurso por misiones. Bases en
+  `lifemusic.pages.dev/concurso/bases`.
+
+### Cambiado
+
+- La **política de privacidad** explica la calificación, el prerregistro y el
+  relevo del TV: solo sale algo cuando tocas el botón.
+
 ## [1.3.0] — 2026-09-27
 
 ### Añadido
