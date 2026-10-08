@@ -278,6 +278,9 @@ class CastConnectionHandler(
 
     private var sesionWeb: EnlaceWeb? = null
     private var tvWebActual: EnlaceWeb.Tv? = null
+    /** Espera de gracia cuando el TV sale del cuarto (1.3.2). */
+    private var ausenciaTv: kotlinx.coroutines.Job? = null
+    private val GRACIA_TV_MS = 15_000L
     @Volatile private var tvWebOpus = true
     /** Canciones que el TV no pudo tocar y ya se reintentaron en AAC con URL nueva. */
     private val reintentadasWeb = java.util.Collections.synchronizedSet(mutableSetOf<String>())
@@ -290,17 +293,48 @@ class CastConnectionHandler(
         runCatching { android.provider.Settings.Global.getString(context.contentResolver, android.provider.Settings.Global.DEVICE_NAME) }
             .getOrNull()?.takeIf { it.isNotBlank() } ?: android.os.Build.MODEL
 
+    /** Los TV recordados; los que llevan 30 dias sin usarse se olvidan (1.3.2). */
     private fun leerTvsWeb(): List<EnlaceWeb.Tv> = runCatching {
         val a = JSONArray(context.dataStore.get(com.cglabs.lifemusic.constants.CastTvsWebKey, "[]"))
+        val ahora = System.currentTimeMillis()
         (0 until a.length()).mapNotNull { i ->
             val o = a.optJSONObject(i) ?: return@mapNotNull null
-            o.optString("token").takeIf { it.startsWith("t-") }?.let { EnlaceWeb.Tv(it, o.optString("nombre", "TV")) }
+            val usado = o.optLong("usado", ahora) // los de la 1.3.1 no lo tenian: cuentan desde hoy
+            o.optString("token").takeIf { it.startsWith("t-") && ahora - usado < EnlaceWeb.VIDA_RECUERDO_MS }
+                ?.let { EnlaceWeb.Tv(it, o.optString("nombre", "TV"), usado) }
         }
     }.getOrDefault(emptyList())
 
+    /** Numero al azar de este telefono para el relevo (una sola sesion por TV). */
+    private val dispositivoWeb: String by lazy {
+        context.dataStore.get(com.cglabs.lifemusic.constants.CastDispositivoWebKey, "").ifBlank {
+            java.util.UUID.randomUUID().toString().also { nuevo ->
+                scope.launch(Dispatchers.IO) {
+                    runCatching { context.dataStore.edit { it[com.cglabs.lifemusic.constants.CastDispositivoWebKey] = nuevo } }
+                }
+            }
+        }
+    }
+
+    private val _tvsWebEnLinea = MutableStateFlow<Map<String, Boolean>>(emptyMap())
+    /** Que TV recordados tienen la pagina /tv abierta ahora (se pregunta al abrir la hoja). */
+    val tvsWebEnLinea: StateFlow<Map<String, Boolean>> = _tvsWebEnLinea.asStateFlow()
+    private val _servidorWeb = MutableStateFlow<Boolean?>(null)
+    /** Estado del relevo del TV con navegador: true en linea, false sin respuesta, null sin saber. */
+    val servidorWeb: StateFlow<Boolean?> = _servidorWeb.asStateFlow()
+
+    /** Pregunta al relevo si responde y que TV recordados estan en linea. Solo al abrir la hoja. */
+    fun revisarTvsWeb() {
+        scope.launch(Dispatchers.IO) {
+            _servidorWeb.value = EnlaceWeb.salud()
+            val mapa = _tvsWeb.value.associate { it.token to (EnlaceWeb.presencia(it.token) ?: false) }
+            _tvsWebEnLinea.value = mapa
+        }
+    }
+
     private fun guardarTvsWeb(lista: List<EnlaceWeb.Tv>) {
         _tvsWeb.value = lista
-        val a = JSONArray(lista.map { JSONObject().put("token", it.token).put("nombre", it.nombre) })
+        val a = JSONArray(lista.map { JSONObject().put("token", it.token).put("nombre", it.nombre).put("usado", it.usado) })
         scope.launch(Dispatchers.IO) {
             runCatching { context.dataStore.edit { it[com.cglabs.lifemusic.constants.CastTvsWebKey] = a.toString() } }
         }
@@ -317,14 +351,18 @@ class CastConnectionHandler(
             EnlaceWeb.enlazar(limpio, nombreDelTelefono())
                 .onSuccess { tv ->
                     com.cglabs.lifemusic.cast.DiagnosticoCast.log("TV web: enlazado con ${tv.nombre}")
-                    guardarTvsWeb(listOf(tv) + _tvsWeb.value.filter { it.token != tv.token }.take(4))
+                    guardarTvsWeb(listOf(tv.copy(usado = System.currentTimeMillis())) + _tvsWeb.value.filter { it.token != tv.token }.take(4))
                     withContext(Dispatchers.Main) { alTerminar(null); conectarTvWeb(tv) }
                 }
                 .onFailure { e ->
                     val fallo = (e as? EnlaceWeb.EnlaceFallido)?.fallo
                     com.cglabs.lifemusic.cast.DiagnosticoCast.log("TV web: no se pudo enlazar ($fallo)")
                     val texto = context.getString(
-                        if (fallo == EnlaceWeb.Fallo.CODIGO_NO_EXISTE) R.string.cast_web_codigo_no_existe else R.string.cast_web_sin_conexion,
+                        when (fallo) {
+                            EnlaceWeb.Fallo.CODIGO_NO_EXISTE -> R.string.cast_web_codigo_no_existe
+                            EnlaceWeb.Fallo.CODIGO_VENCIDO -> R.string.cast_web_codigo_vencido
+                            else -> R.string.cast_web_sin_conexion
+                        },
                     )
                     withContext(Dispatchers.Main) { alTerminar(texto) }
                 }
@@ -344,10 +382,30 @@ class CastConnectionHandler(
     fun conectarTvWeb(tv: EnlaceWeb.Tv) {
         if (_isConnecting.value) return
         if (cliente != null || sesionDlna != null || sesionWeb != null) disconnect(reanudar = false)
-        val s = EnlaceWeb(scope, nombreDelTelefono())
+        val s = EnlaceWeb(scope, nombreDelTelefono(), dispositivoWeb)
         s.alMensaje = { m -> alMensajeWeb(s, m) }
         s.alTvPresente = { presente ->
             com.cglabs.lifemusic.cast.DiagnosticoCast.log(if (presente) "TV web: el TV esta en linea" else "TV web: el TV salio")
+            // 1.3.2: si el TV no esta (o se va), 15 s de gracia por si es una recarga;
+            // despues se sale de la transmision en vez de seguir «conectado» a nadie.
+            ausenciaTv?.cancel()
+            if (!presente) ausenciaTv = scope.launch(Dispatchers.Main) {
+                delay(GRACIA_TV_MS)
+                if (sesionWeb === s) { aviso(context.getString(R.string.cast_web_tv_perdido)); disconnect(porUsuario = false) }
+            }
+        }
+        s.alTvCallado = {
+            scope.launch(Dispatchers.Main) {
+                if (sesionWeb === s) { aviso(context.getString(R.string.cast_web_tv_perdido)); disconnect(porUsuario = false) }
+            }
+        }
+        s.alCerrado = { motivo ->
+            scope.launch(Dispatchers.Main) {
+                if (sesionWeb === s) {
+                    aviso(context.getString(if (motivo == "ocupado") R.string.cast_web_tv_ocupado else R.string.cast_web_otra_conexion))
+                    disconnect(porUsuario = false)
+                }
+            }
         }
         s.alPerder = {
             scope.launch(Dispatchers.Main) {
@@ -356,6 +414,7 @@ class CastConnectionHandler(
         }
         sesionWeb = s
         tvWebActual = tv
+        guardarTvsWeb(_tvsWeb.value.map { if (it.token == tv.token) it.copy(usado = System.currentTimeMillis()) else it })
         tvWebOpus = true
         reintentadasWeb.clear()
         _receptorPropio.value = true
@@ -417,6 +476,15 @@ class CastConnectionHandler(
                 }
             }
             "diag" -> com.cglabs.lifemusic.cast.DiagnosticoCast.log("TV web: " + m.optString("texto"))
+            // 1.3.2: en el TV tocaron «Enlazar otro telefono» y confirmaron: ese TV ya
+            // no nos conoce. Se olvida aqui tambien y se sale de la transmision.
+            "desenlazado" -> scope.launch(Dispatchers.Main) {
+                val tv = tvWebActual
+                com.cglabs.lifemusic.cast.DiagnosticoCast.log("TV web: el TV se desenlazo")
+                if (tv != null) guardarTvsWeb(_tvsWeb.value.filter { it.token != tv.token })
+                aviso(context.getString(R.string.cast_web_desenlazado))
+                disconnect(porUsuario = false)
+            }
         }
     }
 
@@ -457,10 +525,11 @@ class CastConnectionHandler(
         val s = sesionWeb ?: return
         sesionWeb = null
         tvWebActual = null
+        ausenciaTv?.cancel()
         // El TV se queda en su bienvenida, listo para la proxima vez.
         s.enviar(JSONObject().put("tipo", "pausa"))
         s.enviar(JSONObject().put("tipo", "vaciar"))
-        s.cerrar()
+        s.despedirseYCerrar()
     }
 
     /** Conecta con [aparato], lanza el reproductor del receptor y le pasa la cancion actual. */

@@ -1507,6 +1507,15 @@
     <string name="cast_web_codigo_invalido">The code has 6 letters and numbers</string>
     <string name="cast_web_codigo_no_existe">That code does not exist or already changed. Check the one on the TV now.</string>
     <string name="cast_web_sin_conexion">No connection. Check the phone\'s internet.</string>
+    <string name="cast_web_codigo_vencido">That code expired. Use the one the TV shows now.</string>
+    <string name="cast_web_tv_perdido">Lost the connection with the TV</string>
+    <string name="cast_web_tv_ocupado">That TV is already connected to another phone</string>
+    <string name="cast_web_otra_conexion">Another connection took over this TV</string>
+    <string name="cast_web_desenlazado">The TV unlinked. To come back, link it with the code it shows.</string>
+    <string name="cast_web_servidor_ok">Server online</string>
+    <string name="cast_web_servidor_mal">Server not responding</string>
+    <string name="cast_web_en_linea">Online · tap to cast</string>
+    <string name="cast_web_sin_abrir">Open lifemusic.pages.dev/tv on that TV</string>
     <string name="cast_web_no_suena">The TV could not play the song. Are the phone and the TV on the same Wi-Fi?</string>
     <string name="cast_web_enlazar_con">Link with the TV showing %1$s?</string>
 

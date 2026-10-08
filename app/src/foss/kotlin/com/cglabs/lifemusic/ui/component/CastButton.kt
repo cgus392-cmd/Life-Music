@@ -288,9 +288,35 @@ private fun HojaDeCast(handler: CastConnectionHandler, onCerrar: () -> Unit) {
 @Composable
 private fun SeccionTvWeb(handler: CastConnectionHandler, conectando: Boolean, onConectado: () -> Unit) {
     val tvs by handler.tvsWeb.collectAsState()
+    val enLinea by handler.tvsWebEnLinea.collectAsState()
+    val servidor by handler.servidorWeb.collectAsState()
     var dialogo by remember { mutableStateOf(false) }
+    // 1.3.2: al abrir la hoja se pregunta una vez si el relevo responde y que TV estan en linea.
+    androidx.compose.runtime.LaunchedEffect(Unit) { handler.revisarTvsWeb() }
     Spacer(Modifier.height(12.dp))
-    Text(stringResource(R.string.cast_web_titulo), style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.onSurfaceVariant)
+    Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth()) {
+        Text(
+            stringResource(R.string.cast_web_titulo),
+            style = MaterialTheme.typography.labelLarge,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier.weight(1f),
+        )
+        // Estado del sistema: «● Servidor en línea».
+        servidor?.let { bien ->
+            androidx.compose.foundation.layout.Box(
+                Modifier
+                    .size(8.dp)
+                    .clip(androidx.compose.foundation.shape.CircleShape)
+                    .background(if (bien) androidx.compose.ui.graphics.Color(0xFF34D399) else MaterialTheme.colorScheme.error),
+            )
+            Spacer(Modifier.size(6.dp))
+            Text(
+                stringResource(if (bien) R.string.cast_web_servidor_ok else R.string.cast_web_servidor_mal),
+                style = MaterialTheme.typography.labelSmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+        }
+    }
     Spacer(Modifier.height(4.dp))
     tvs.forEach { tv ->
         Row(
@@ -305,7 +331,18 @@ private fun SeccionTvWeb(handler: CastConnectionHandler, conectando: Boolean, on
             Icon(painterResource(R.drawable.cast_tv), contentDescription = null, modifier = Modifier.size(28.dp))
             Column(Modifier.weight(1f)) {
                 Text(tv.nombre, style = MaterialTheme.typography.bodyLarge)
-                Text(stringResource(R.string.cast_web_recordado), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                val enLineaTv = enLinea[tv.token]
+                Text(
+                    stringResource(
+                        when (enLineaTv) {
+                            true -> R.string.cast_web_en_linea
+                            false -> R.string.cast_web_sin_abrir
+                            null -> R.string.cast_web_recordado
+                        },
+                    ),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = if (enLineaTv == true) androidx.compose.ui.graphics.Color(0xFF34D399) else MaterialTheme.colorScheme.onSurfaceVariant,
+                )
             }
             androidx.compose.material3.IconButton(onClick = { handler.olvidarTvWeb(tv) }) {
                 Icon(painterResource(R.drawable.close), contentDescription = stringResource(R.string.cast_web_olvidar), modifier = Modifier.size(20.dp))

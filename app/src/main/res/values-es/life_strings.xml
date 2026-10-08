@@ -1127,6 +1127,15 @@
     <string name="cast_web_codigo_invalido">El código tiene 6 letras y números</string>
     <string name="cast_web_codigo_no_existe">Ese código no existe o ya cambió. Mira el que muestra el TV ahora.</string>
     <string name="cast_web_sin_conexion">No hay conexión. Revisa el internet del teléfono.</string>
+    <string name="cast_web_codigo_vencido">Ese código venció. Usa el que muestra el TV ahora.</string>
+    <string name="cast_web_tv_perdido">Se perdió la conexión con el TV</string>
+    <string name="cast_web_tv_ocupado">Ese TV ya está conectado con otro teléfono</string>
+    <string name="cast_web_otra_conexion">Otra conexión tomó este TV</string>
+    <string name="cast_web_desenlazado">El TV se desenlazó. Para volver, enlázalo con el código que muestra.</string>
+    <string name="cast_web_servidor_ok">Servidor en línea</string>
+    <string name="cast_web_servidor_mal">Servidor sin respuesta</string>
+    <string name="cast_web_en_linea">En línea · toca para transmitir</string>
+    <string name="cast_web_sin_abrir">Abre lifemusic.pages.dev/tv en ese TV</string>
     <string name="cast_web_no_suena">El TV no pudo reproducir la canción. ¿El teléfono y el TV están en el mismo wifi?</string>
     <string name="cast_web_enlazar_con">¿Enlazar con el TV que muestra %1$s?</string>
 

@@ -376,6 +376,8 @@ val CastTemaKey = stringPreferencesKey("castTema")
 val CastTocadiscosVersionKey = intPreferencesKey("castTocadiscosVersion")
 /** TV con navegador ya enlazados (lifemusic.pages.dev/tv): JSON [{token, nombre}], el mas reciente primero. */
 val CastTvsWebKey = stringPreferencesKey("castTvsWeb")
+/** 1.3.2: numero al azar de este telefono ante el relevo del TV (una sola sesion por TV). */
+val CastDispositivoWebKey = stringPreferencesKey("castDispositivoWeb")
 
 
 val ListenTogetherServerUrlKey = stringPreferencesKey("listenTogetherServerUrl")
