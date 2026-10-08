@@ -1,12 +1,16 @@
 # Política de privacidad
 
-**Life Music no recoge, almacena ni transmite datos personales a ningún servidor
-de CG LABS.** No hay servidores de CG LABS.
+**Life Music no recoge datos personales por su cuenta.** No hay analítica, ni
+informes de fallos, ni publicidad, ni cuenta con nosotros. A un servidor de CG
+LABS solo llega algo **cuando usted lo pide con un botón**: calificar la app o
+prerregistrarse en un concurso (ver «Comunidad», más abajo).
 
-> **In English** — Life Music collects nothing. There is no CG LABS server, no
-> analytics, no crash reporting, no advertising and no account with us. Everything
-> the app stores lives on your device. Sections below list the third-party
-> services the app talks to and why.
+> **In English** — Life Music collects nothing on its own: no analytics, no crash
+> reporting, no advertising and no account with us. Everything the app stores
+> lives on your device. Something reaches a CG LABS server only when you ask for
+> it with a button: rating the app or pre-registering for a contest (see
+> «Comunidad» below). Sections below also list the third-party services the app
+> talks to and why.
 
 Esta no es una declaración de intenciones: es una consecuencia de cómo está
 construida la aplicación, y se puede comprobar en el código fuente.
@@ -84,6 +88,41 @@ inscripción constituye su autorización previa, expresa e informada para ese
 tratamiento (Ley 1581 de 2012, Colombia), limitada a la finalidad y al plazo
 descritos. Al terminar el concurso el módulo se desactiva y la tabla se elimina.
 
+## Comunidad (desde la 1.3.1): calificación y prerregistro
+
+Las dos van a un servidor de CG LABS en Cloudflare
+(`lifemusic-comunidad.cho--usic.workers.dev`), y **solo cuando usted toca el
+botón**. Nada se envía solo.
+
+**Calificación con estrellas.** Si toca **Enviar**, se guardan las estrellas,
+el comentario si escribió uno, la versión de la app, el idioma y un número al
+azar creado en su teléfono. Ese número sirve para que cada teléfono cuente una
+sola vez y pueda cambiar su voto.
+- No se guarda nombre, correo ni dirección IP.
+- En público solo se muestran el promedio y el total, desde 25 calificaciones.
+- Los comentarios solo los lee CG LABS.
+- El número al azar es distinto del del prerregistro: no se puede saber quién
+  puso qué estrellas.
+
+**Prerregistro del nuevo concurso.** Si toca **Prerregistrarme**, se guardan su
+**nombre**, su **correo**, que confirmó ser mayor de edad, la versión de la app,
+un número al azar de su teléfono y la huella (hash) de un secreto que solo
+conoce su teléfono.
+- **No hay ninguna lista pública**: solo se muestra cuántas personas van.
+- El nombre y el correo sirven únicamente para avisarle cuando empiece el
+  concurso y para contactar a quien gane. No se venden ni se comparten.
+- **Se borran al terminar el concurso.**
+- Con **Salir del prerregistro** se borran del servidor al momento.
+- Prerregistrarse constituye su autorización previa, expresa e informada para
+  ese tratamiento (Ley 1581 de 2012, Colombia), limitada a esa finalidad y a
+  ese plazo. Bases completas: <https://lifemusic.pages.dev/concurso/bases>.
+
+**Life Music TV en el navegador.** Para enlazar un TV con código, el teléfono y
+el TV se conectan a un relevo de CG LABS en Cloudflare
+(`lifemusic-enlace.cho--usic.workers.dev`) que pasa sus mensajes de uno a otro.
+El relevo **no guarda nada**: ni canciones ni códigos. El audio va del TV a
+YouTube directamente, sin pasar por él.
+
 ## Modo de ahorro de datos
 
 Activarlo reduce las peticiones a terceros: entre otras cosas, deja de
@@ -100,8 +139,9 @@ enciende el micrófono.
 
 ## Menores
 
-El proyecto no está dirigido a menores de 13 años y no recoge datos de nadie, de
-ninguna edad.
+El proyecto no está dirigido a menores de 13 años. Los concursos y su
+prerregistro son solo para mayores de edad, y lo piden confirmar antes de enviar
+nada.
 
 ## Cambios
 
@@ -114,4 +154,4 @@ Si esta política cambia, quedará reflejado en el
 
 ---
 
-*Última revisión: 7 de septiembre de 2026 · Life Music 1.1.0*
+*Última revisión: 7 de octubre de 2026 · Life Music 1.3.1*

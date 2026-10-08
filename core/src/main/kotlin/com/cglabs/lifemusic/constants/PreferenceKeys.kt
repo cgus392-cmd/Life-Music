@@ -181,6 +181,22 @@ val AutomixDebugOverlayKey = booleanPreferencesKey("automixDebugOverlay")
 /** 1.3.1: al elegir otra cancion mientras suena una, la que suena baja y la nueva sube. Encendido de fabrica. */
 val FundidoAlElegirKey = booleanPreferencesKey("fundidoAlElegir")
 
+/** 1.3.1, prerregistro del concurso: numero al azar y secreto de este telefono (solo para esto) y si ya esta dentro. */
+val PrerregistroIdKey = stringPreferencesKey("prerregistroId")
+val PrerregistroSecretoKey = stringPreferencesKey("prerregistroSecreto")
+val PrerregistroDentroKey = booleanPreferencesKey("prerregistroDentro")
+val PrerregistroNombreKey = stringPreferencesKey("prerregistroNombre")
+val PrerregistroCorreoKey = stringPreferencesKey("prerregistroCorreo")
+
+/**
+ * 1.3.1, calificacion con estrellas. El id es OTRO numero al azar, distinto del
+ * del prerregistro: nunca se puede saber quien puso que estrellas.
+ */
+val CalificacionIdKey = stringPreferencesKey("calificacionId")
+val CalificacionEstrellasKey = intPreferencesKey("calificacionEstrellas")
+val CalificacionVersionPreguntadaKey = intPreferencesKey("calificacionVersionPreguntada")
+val CalificacionAhoraNoKey = longPreferencesKey("calificacionAhoraNo")
+
 /**
  * Cuanta musica puede recortar Automix en cada extremo de la pista.
  *  - CANCION_COMPLETA: se respeta la intro y la salida; solo se salta el silencio.

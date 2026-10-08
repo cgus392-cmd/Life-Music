@@ -2,22 +2,26 @@
   "version": "1.3.1",
   "imagen": "https://lifemusic.pages.dev/novedades/1.3.1.webp",
   "es": {
-    "resumen": "Tu TV con más estilo: temas nuevos, Life Music en cualquier TV con navegador y un actualizador renovado.",
+    "resumen": "Tu TV con más estilo, Life Music en cualquier TV con navegador, un actualizador renovado, cambios sin cortes, calificación con estrellas y el prerregistro del nuevo concurso.",
     "funciones": [
       { "icono": "palette", "titulo": "Temas PRO del TV", "texto": "Atardecer, que cambia con la hora del día, y Tocadiscos, con tu carátula girando en un disco de verdad (V1 y V2)." },
       { "icono": "tv", "titulo": "Life Music TV en el navegador", "texto": "¿Tu TV no tiene Cast? Abre lifemusic.pages.dev/tv, enlaza con el código y listo. El TV se acuerda para la próxima vez." },
       { "icono": "update", "titulo": "Actualizador renovado", "texto": "Cada versión con su imagen, historial de versiones, descargas más livianas y progreso con tiempo restante." },
-      { "icono": "graphic_eq", "titulo": "Cambios sin cortes", "texto": "Si suena una canción y eliges otra, la que suena baja suave y la nueva entra subiendo, sin el corte en seco." }
+      { "icono": "graphic_eq", "titulo": "Cambios sin cortes", "texto": "Si suena una canción y eliges otra, la que suena baja suave y la nueva entra subiendo, sin el corte en seco." },
+      { "icono": "star", "titulo": "Califica Life Music", "texto": "Dinos qué tanto te gusta con estrellas, sin registrarte en nada. Es anónimo." },
+      { "icono": "trophy", "titulo": "Nuevo concurso: prerregistro", "texto": "Viene un concurso por misiones con un JBL PartyBox 330. Toca la copa de Inicio: cuando seamos 100, arranca." }
     ],
     "arreglos": []
   },
   "en": {
-    "resumen": "A more stylish TV: new themes, Life Music on any TV with a browser and a renewed updater.",
+    "resumen": "A more stylish TV, Life Music on any TV with a browser, a renewed updater, no more hard cuts, star ratings and the pre-registration for the new contest.",
     "funciones": [
       { "icono": "palette", "titulo": "PRO TV themes", "texto": "Sunset, which changes with the time of day, and Turntable, with your cover spinning on a real record (V1 and V2)." },
       { "icono": "tv", "titulo": "Life Music TV in the browser", "texto": "No Cast on your TV? Open lifemusic.pages.dev/tv, link it with the code and you are set. The TV remembers it next time." },
       { "icono": "update", "titulo": "Renewed updater", "texto": "Every version with its own image, a version history, lighter downloads and progress with time remaining." },
-      { "icono": "graphic_eq", "titulo": "No more hard cuts", "texto": "When a song is playing and you pick another, the current one fades down and the new one fades in, instead of cutting off." }
+      { "icono": "graphic_eq", "titulo": "No more hard cuts", "texto": "When a song is playing and you pick another, the current one fades down and the new one fades in, instead of cutting off." },
+      { "icono": "star", "titulo": "Rate Life Music", "texto": "Tell us how much you like it with stars, without signing up for anything. It is anonymous." },
+      { "icono": "trophy", "titulo": "New contest: pre-registration", "texto": "A mission-based contest is coming, with a JBL PartyBox 330. Tap the cup on Home: once we are 100, it starts." }
     ],
     "arreglos": []
   },

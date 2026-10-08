@@ -24,7 +24,7 @@ class NovedadesTest {
         val es = Novedades.leer(publicado("1.3.1"), "es")!!
         assertEquals("1.3.1", es.version)
         assertEquals("https://lifemusic.pages.dev/novedades/1.3.1.webp", es.imagen)
-        assertTrue(es.funciones.size in 3..5) // la regla de la marca: de 3 a 5 funciones
+        assertTrue(es.funciones.size in 3..6) // la regla de la marca es de 3 a 5; la 1.3.1 lleva 6 por excepcion de CG
         assertEquals("Temas PRO del TV", es.funciones.first().titulo)
 
         val en = Novedades.leer(publicado("1.3.1"), "en")!!

@@ -100,6 +100,8 @@ object Novedades {
         "shuffle" -> R.drawable.shuffle
         "replay" -> R.drawable.replay
         "timer" -> R.drawable.timer
+        "star" -> R.drawable.estrella_llena
+        "trophy" -> R.drawable.trophy
         else -> R.drawable.star
     }
 

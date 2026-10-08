@@ -239,6 +239,10 @@ object Boletines {
                 R.string.boletin_v1131_actualizador_t, R.string.boletin_v1131_actualizador),
             ApartadoBoletin(R.drawable.graphic_eq, Color(0xFF80DEEA),
                 R.string.boletin_v1131_fundido_t, R.string.boletin_v1131_fundido),
+            ApartadoBoletin(R.drawable.estrella_llena, Color(0xFFFFE082),
+                R.string.boletin_v1131_calificacion_t, R.string.boletin_v1131_calificacion),
+            ApartadoBoletin(R.drawable.trophy, Color(0xFFF8BBD0),
+                R.string.boletin_v1131_prerregistro_t, R.string.boletin_v1131_prerregistro),
         ),
         // La imagen de la version (estilo elegido por CG el 07-10: acrilico y cromo verde menta).
         heroImagen = R.drawable.novedades_131,

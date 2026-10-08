@@ -133,6 +133,11 @@ fun NavGraphBuilder.navigationBuilder(
         com.cglabs.lifemusic.concurso.ConcursoScreen(navController, scrollBehavior)
     }
 
+    // 1.3.1: prerregistro del nuevo concurso (la copa de Inicio).
+    composable("prerregistro") {
+        com.cglabs.lifemusic.comunidad.PrerregistroScreen(navController, scrollBehavior)
+    }
+
     composable("mood_and_genres") {
         MoodAndGenresScreen(navController, scrollBehavior)
     }

@@ -965,6 +965,24 @@ class MainActivity : ComponentActivity() {
                     com.cglabs.lifemusic.concurso.ConcursoRepository.sincronizar(this@MainActivity, database)
                 }
 
+                // 1.3.1: «¿Te gusta Life Music?». Nunca al abrir ni en la misma sesion
+                // que otra ventana (bienvenida, boletin, actualizacion); la regla de
+                // cuando preguntar esta en Calificacion.debePreguntar.
+                var mostrarCalificacion by remember { mutableStateOf(false) }
+                var otraVentanaEnSesion by remember { mutableStateOf(false) }
+                LaunchedEffect(showWelcomeDialog, mostrarBoletin, showUpdateDialog) {
+                    if (showWelcomeDialog || mostrarBoletin || showUpdateDialog) otraVentanaEnSesion = true
+                }
+                LaunchedEffect(Unit) {
+                    delay(45_000)
+                    if (otraVentanaEnSesion) return@LaunchedEffect
+                    val canciones = runCatching { database.eventCount().first() }.getOrDefault(0)
+                    if (com.cglabs.lifemusic.comunidad.Calificacion.debePreguntar(this@MainActivity, canciones, BuildConfig.VERSION_CODE)) {
+                        com.cglabs.lifemusic.comunidad.Calificacion.marcarPreguntada(this@MainActivity, BuildConfig.VERSION_CODE)
+                        mostrarCalificacion = true
+                    }
+                }
+
                 LaunchedEffect(Unit) {
                     if (pendingIntent != null) {
                         handleDeepLinkIntent(pendingIntent!!, navController)
@@ -1103,6 +1121,16 @@ class MainActivity : ComponentActivity() {
                                             )
                                         },
                                         actions = {
+                                            // 1.3.1: la copa del prerregistro del nuevo concurso, desde
+                                            // que el servidor lo abre. Se refresca cada vez que se ve Inicio.
+                                            val estadoPrerregistro by com.cglabs.lifemusic.comunidad.Prerregistro.estado.collectAsState()
+                                            LaunchedEffect(Unit) { com.cglabs.lifemusic.comunidad.Prerregistro.actualizar() }
+                                            if (com.cglabs.lifemusic.comunidad.Prerregistro.copaVisible(estadoPrerregistro)) {
+                                                com.cglabs.lifemusic.comunidad.CopaPrerregistro(
+                                                    abierto = estadoPrerregistro?.abierto == true,
+                                                    onClick = { navController.navigate("prerregistro") },
+                                                )
+                                            }
                                             // Transmitir: solo aparece cuando hay un aparato en la red
                                             // (o ya se transmite). El resto del tiempo, la barra respira.
                                             com.cglabs.lifemusic.ui.component.CastEnBarra()
@@ -1553,6 +1581,14 @@ class MainActivity : ComponentActivity() {
                                 },
                             )
                         }
+                    }
+
+                    if (mostrarCalificacion) {
+                        val alcance = rememberCoroutineScope()
+                        com.cglabs.lifemusic.comunidad.HojaDeCalificacion(onCerrar = { ahoraNo ->
+                            mostrarCalificacion = false
+                            if (ahoraNo) alcance.launch { com.cglabs.lifemusic.comunidad.Calificacion.ahoraNo(this@MainActivity) }
+                        })
                     }
 
                     // Ultimo hijo del BoxWithConstraints raiz: queda encima de todo.

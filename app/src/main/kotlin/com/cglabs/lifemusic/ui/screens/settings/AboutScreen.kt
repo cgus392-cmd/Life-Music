@@ -18,6 +18,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.material3.ripple
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.mutableStateOf
@@ -114,6 +115,39 @@ highlightKey: String? = null) {
             verticalArrangement = Arrangement.spacedBy(14.dp),
         ) {
             item { AboutAppCard() }
+
+            // 1.3.1: calificar con estrellas, sin registrarse. Aqui se puede cambiar el voto.
+            item {
+                var hojaCalificacion by remember { mutableStateOf(false) }
+                val misEstrellas by com.cglabs.lifemusic.comunidad.Calificacion.estrellas(context)
+                    .collectAsState(initial = 0)
+                var resumen by remember { mutableStateOf<com.cglabs.lifemusic.comunidad.ResumenCalificaciones?>(null) }
+                androidx.compose.runtime.LaunchedEffect(hojaCalificacion) {
+                    if (!hojaCalificacion) resumen = com.cglabs.lifemusic.comunidad.ComunidadApi.resumen()
+                }
+                val promedio = resumen?.takeIf { it.visible && it.promedio != null }?.let {
+                    stringResource(
+                        R.string.calificacion_promedio,
+                        String.format(java.util.Locale.getDefault(), "%.1f", it.promedio),
+                        java.text.NumberFormat.getInstance().format(it.total),
+                    )
+                }
+                val tuVoto = if (misEstrellas > 0) stringResource(R.string.calificacion_acerca_tu_voto, misEstrellas)
+                else stringResource(R.string.calificacion_acerca_desc)
+                AboutSectionCard(title = stringResource(R.string.calificacion_acerca)) {
+                    AboutActionRow(
+                        icon = painterResource(R.drawable.estrella_llena),
+                        title = promedio ?: stringResource(R.string.calificacion_titulo),
+                        subtitle = tuVoto,
+                        onClick = { hojaCalificacion = true },
+                    )
+                }
+                if (hojaCalificacion) {
+                    com.cglabs.lifemusic.comunidad.HojaDeCalificacion(estrellasIniciales = misEstrellas) {
+                        hojaCalificacion = false
+                    }
+                }
+            }
 
             item {
                 AboutSectionCard(title = "Desarrollado por") {
