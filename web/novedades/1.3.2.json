@@ -39,5 +39,14 @@
       "A renewed TV linking screen and the system status at lifemusic.pages.dev/estado."
     ]
   },
-  "apk": {}
+  "apk": {
+    "lifemusic.apk": {
+      "bytes": 70008489,
+      "sha256": "3f475763df7af03742b4c687da96267adba5d0d48bd62042c3cf45539aa472e1"
+    },
+    "lifemusic-arm64.apk": {
+      "bytes": 41019724,
+      "sha256": "1f0a29478f6d93a15a061e745603fa8f8960bb5865f4fd40f6449a8316c1929b"
+    }
+  }
 }

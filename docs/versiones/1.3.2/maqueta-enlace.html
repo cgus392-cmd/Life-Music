@@ -222,6 +222,9 @@
     document.getElementById("aro").style.strokeDashoffset = LARGO * (1 - quedan / VIDA);
   }, 1000);
 
+  // ?limpia: sin el selector (para capturas de la landing)
+  if (/[?&]limpia/.test(location.search)) document.querySelector(".maqueta").style.display = "none";
+
   // Selector de estados de la maqueta
   var chip = document.getElementById("chip-servidor");
   document.querySelectorAll(".maqueta button").forEach(function (b) {

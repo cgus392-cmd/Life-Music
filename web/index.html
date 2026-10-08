@@ -41,7 +41,7 @@
   "description": "Cliente de música para Android con Automix (transiciones de DJ), Life Line, letras sincronizadas y sin anuncios. Gratis y de código abierto.",
   "applicationCategory": "MusicApplication",
   "operatingSystem": "Android 8.0+",
-  "softwareVersion": "1.1.6",
+  "softwareVersion": "1.3.2",
   "url": "https://lifemusic.pages.dev/",
   "downloadUrl": "https://lifemusic.pages.dev/apk",
   "installUrl": "https://lifemusic.pages.dev/apk",
@@ -145,10 +145,10 @@
   .marca small{display:flex;align-items:center;gap:6px;font-size:11px;color:var(--texto-3);letter-spacing:.14em;text-transform:uppercase;font-weight:600;margin-top:-2px}
   .marca small img{width:14px;height:14px;border-radius:50%;opacity:.9}
   nav{display:flex;justify-content:space-between;align-items:center;gap:16px}
-  nav .enlaces{display:flex;gap:22px;font-size:14px;color:var(--texto-2)}
+  nav .enlaces{display:flex;gap:18px;font-size:14px;color:var(--texto-2);white-space:nowrap}
   nav .enlaces a{text-decoration:none}
   nav .enlaces a:hover{color:var(--texto)}
-  @media (max-width:640px){nav .enlaces{display:none}}
+  @media (max-width:1180px){nav .enlaces{display:none}}
   @media (max-width:480px){.marca small{display:none}}
   .tema{display:inline-flex;gap:2px;padding:3px;border-radius:999px;background:var(--superficie);border:1px solid var(--borde)}
   .tema button{appearance:none;border:0;background:transparent;color:var(--texto-3);width:34px;height:30px;border-radius:999px;display:grid;place-items:center;cursor:pointer;transition:background .2s ease,color .2s ease}
@@ -156,6 +156,25 @@
   .tema button[aria-pressed="true"]{background:var(--superficie-2);color:var(--texto)}
   .tema button:hover{color:var(--texto)}
   nav .derecha{display:flex;align-items:center;gap:18px}
+  /* Atajos siempre visibles (1.3.2): abrir el receptor del TV y el estado del sistema. */
+  .atajos{display:flex;gap:8px}
+  .atajo{display:inline-flex;align-items:center;gap:7px;padding:7px 13px;border-radius:999px;text-decoration:none;font-size:13px;font-weight:700;white-space:nowrap;
+    color:var(--texto);background:var(--superficie);border:1px solid var(--borde);transition:border-color .2s ease,transform .2s ease}
+  .atajo:hover{border-color:var(--verde-texto);transform:translateY(-1px)}
+  .atajo svg{width:16px;height:16px;flex:none}
+  .atajo .punto-estado{width:8px;height:8px;border-radius:50%;background:var(--texto-3)}
+  .atajo.ok .punto-estado{background:var(--verde-texto);box-shadow:0 0 0 3px rgba(52,211,153,.18)}
+  .atajo.mal .punto-estado{background:#F87171}
+  @media (max-width:640px){.atajo .largo{display:none}.atajo{padding:7px 10px}nav .derecha{gap:8px}.atajos{gap:6px}}
+  @media (max-width:420px){.tema{display:none}.marca b{font-size:16px;white-space:nowrap}}
+  /* Sección del TV */
+  .reto.tv-tarjeta .imagen{aspect-ratio:16/9}
+  .reto.tv-tarjeta .imagen img{animation:none;object-fit:cover}
+  .estado-tv{display:flex;align-items:center;gap:8px;font-weight:600;margin:0 0 16px}
+  .estado-tv .punto-estado{width:9px;height:9px;border-radius:50%;background:var(--texto-3)}
+  .estado-tv.ok .punto-estado{background:var(--verde-texto)}
+  .estado-tv.mal .punto-estado{background:#F87171}
+  .botones-fila{display:flex;gap:10px;flex-wrap:wrap}
 
   /* ───────────── héroe ───────────── */
   .heroe{display:grid;grid-template-columns:1.1fr .9fr;gap:40px;align-items:center;padding:36px 0 56px;min-height:0}
@@ -277,9 +296,14 @@
     <div class="derecha">
       <div class="enlaces">
         <a href="#reto">Nuevo concurso</a>
+        <a href="#tv">Life Music TV</a>
         <a href="#funciones">Qué hace</a>
         <a href="#instalar">Cómo instalar</a>
         <a href="/github" rel="noopener">Código</a>
+      </div>
+      <div class="atajos">
+        <a class="atajo" href="/tv" title="Abrir el receptor de Life Music TV en este navegador"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 16a6 6 0 0 1 6 6M2 12a10 10 0 0 1 10 10"/><path d="M2 8V6a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2h-6"/></svg>TV<span class="largo">&nbsp;· abrir receptor</span></a>
+        <a class="atajo" id="atajoEstado" href="/estado" title="Estado del sistema"><span class="punto-estado" aria-hidden="true"></span>Estado</a>
       </div>
       <div class="tema" role="group" aria-label="Tema">
         <button type="button" data-tema="system" title="Como el sistema" aria-label="Como el sistema"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="12" rx="2"/><path d="M8 20h8M12 16v4"/></svg></button>
@@ -303,7 +327,7 @@
           Descargar Life Music
         </a>
         <a class="boton secundario" href="#instalar">Cómo se instala</a>
-        <div class="meta"><span>Versión <b id="version">1.1.6</b></span><span>APK <b id="tamano">67 MB</b></span><span>Android 8 o superior</span><span><a href="/apk-arm64" style="color:var(--texto-2)">Versión ligera (arm64, 38 MB)</a></span><span id="calificacion" hidden style="color:var(--verde-texto);font-weight:700"></span></div>
+        <div class="meta"><span>Versión <b id="version">1.3.2</b></span><span>APK <b id="tamano">70 MB</b></span><span>Android 8 o superior</span><span><a href="/apk-arm64" style="color:var(--texto-2)">Versión ligera (arm64, 41 MB)</a></span><span id="calificacion" hidden style="color:var(--verde-texto);font-weight:700"></span></div>
       </div>
     </div>
     <div class="telefono-caja escalonado">
@@ -331,6 +355,22 @@
           <li>Se gana completando misiones, no por sorteo.</li>
         </ul>
         <a class="boton" href="/concurso">Ver el prerregistro</a>
+      </div>
+    </div>
+  </section>
+
+  <section class="seccion" id="tv">
+    <p class="titulo-seccion revela">Life Music TV</p>
+    <div class="reto tv-tarjeta revela">
+      <div class="imagen"><img src="/img/tv-enlace.webp" alt="La pantalla de enlace de Life Music TV, con el código y el QR" width="1200" height="675" loading="lazy"></div>
+      <div>
+        <h2>¿Tu TV no tiene Cast?<br><i>Tiene navegador.</i></h2>
+        <p>Abre <b>lifemusic.pages.dev/tv</b> en el navegador del TV, escanea el QR o escribe el código en la app, y listo: tu música, con letra y temas, en la pantalla grande. El TV se acuerda de tu teléfono para la próxima vez.</p>
+        <p class="estado-tv" id="estadoTv" aria-live="polite"><span class="punto-estado" aria-hidden="true"></span><span id="estadoTvTexto">Revisando el servidor del TV…</span></p>
+        <div class="botones-fila">
+          <a class="boton" href="/tv">Abrir el receptor</a>
+          <a class="boton secundario" href="/estado">Estado del sistema</a>
+        </div>
       </div>
     </div>
   </section>
@@ -366,12 +406,15 @@
     <div class="fila">
       <a class="marca" href="/"><img src="/img/lifemusic.png" alt=""><span><b>Life Music</b><small>Un desarrollo de CG LABS</small></span></a>
       <div style="display:flex;gap:20px;flex-wrap:wrap">
+        <a href="/tv">Life Music TV</a>
+        <a href="/concurso">Nuevo concurso</a>
+        <a href="/estado">Estado del sistema</a>
         <a href="/github" rel="noopener">Código en GitHub</a>
         <a href="/privacidad" rel="noopener">Política de privacidad</a>
         <a href="/novedades" rel="noopener">Novedades</a>
       </div>
     </div>
-    <p>Software libre bajo GPL-3.0, heredada de Echo Music, Metrolist e InnerTune. Sin telemetría, sin publicidad, sin venta. YouTube y YouTube Music son marcas de Google; AirPods es marca de Apple. Ninguno tiene relación con este proyecto.</p>
+    <p>Software libre bajo GPL-3.0, heredada de Echo Music, Metrolist e InnerTune. Sin telemetría, sin publicidad, sin venta. YouTube y YouTube Music son marcas de Google; JBL es marca de Harman. Ninguno tiene relación con este proyecto.</p>
     <div class="cglabs">
       <a href="https://github.com/cgus392-cmd" rel="noopener" aria-label="CG LABS en GitHub">
         <img class="logo-oscuro" src="/img/cglabs_lockup_blanco.webp" alt="CG LABS" height="28">
@@ -432,6 +475,17 @@
       : `¡Llegamos a ${e.meta}! Pronto empieza el concurso.`;
     document.getElementById("prerregistroCuenta").textContent = t;
   }).catch(() => { document.getElementById("prerregistroCuenta").textContent = "El prerregistro abre muy pronto."; });
+  // ── Estado del sistema en vivo (1.3.2): el punto del atajo «Estado» y la sección del TV ──
+  const RELEVO_TV = "https://lifemusic-enlace.cho--usic.workers.dev";
+  const salud = (url) => fetch(url + "/salud", { cache: "no-store" }).then(r => r.ok ? r.json() : null).then(j => !!j && j.estado === "ok").catch(() => false);
+  Promise.all([salud(RELEVO_TV), salud(COMUNIDAD)]).then(([tv, comunidad]) => {
+    const atajo = document.getElementById("atajoEstado");
+    atajo.classList.add(tv && comunidad ? "ok" : "mal");
+    atajo.title = tv && comunidad ? "Todo funciona sin problemas" : "Algún servicio no responde";
+    const fila = document.getElementById("estadoTv");
+    fila.classList.add(tv ? "ok" : "mal");
+    document.getElementById("estadoTvTexto").textContent = tv ? "Servidor del TV en línea" : "El servidor del TV no responde ahora mismo";
+  });
   fetch(COMUNIDAD + "/calificaciones/resumen").then(r => r.json()).then(c => {
     if (!c.visible) return;
     const el = document.getElementById("calificacion");
@@ -444,7 +498,7 @@
     .then(r => r.ok ? r.json() : null)
     .then(rel => {
       if (!rel) return;
-      document.getElementById("version").textContent = (rel.tag_name || "").replace(/^v/, "") || "1.1.6";
+      document.getElementById("version").textContent = (rel.tag_name || "").replace(/^v/, "") || "1.3.2";
       const apk = (rel.assets || []).find(a => a.name === "lifemusic.apk");
       if (apk) document.getElementById("tamano").textContent = Math.round(apk.size / 1048576) + " MB";
     }).catch(() => {});

@@ -15,7 +15,7 @@ esa base**; para la historia anterior, consulte el repositorio de origen.
 
 ---
 
-## [1.3.2] — sin publicar
+## [1.3.2] — 2026-10-08
 
 La versión oficial de esta tanda. Trae todo lo de la 1.3.1, que casi nadie
 llegó a bajar, y le suma un TV con navegador más seguro.
