@@ -25,7 +25,7 @@
      relativo (temas, cristal.js, imagenes) se busca siempre en /cast/. -->
 <base href="/cast/">
 <link rel="icon" type="image/png" href="../img/lifemusic.png">
-<link rel="stylesheet" href="receptor.css?v=20261007d">
+<link rel="stylesheet" href="receptor.css?v=20261008a">
 <script>
   // En un Chromecast se carga el SDK de Cast como siempre (bloqueante, antes del
   // body). En /tv no hace falta: alli enlaza tv.js por el relevo.
@@ -182,23 +182,35 @@
     <p id="saludo-frase"></p>
   </section>
 
-  <!-- TV con navegador: el enlace con codigo y QR. -->
+  <!-- TV con navegador: el enlace con codigo y QR (diseno 1.3.2, maqueta aprobada
+       por CG: docs/versiones/1.3.2/maqueta-enlace.html). -->
   <section id="enlace" class="oculto" aria-live="polite">
-    <div class="enlace-texto">
-      <p class="enlace-marca">Life Music TV</p>
-      <h1 id="enlace-titulo">Enlaza tu teléfono</h1>
-      <ol class="enlace-pasos">
-        <li>Abre Life Music en tu teléfono.</li>
-        <li>Toca transmitir y elige <b>TV con navegador</b>.</li>
-        <li>Escribe este código:</li>
-      </ol>
-      <p id="enlace-codigo" class="enlace-codigo">··· ···</p>
-      <p id="enlace-estado" class="enlace-estado"></p>
-      <p id="enlace-nota" class="enlace-nota"></p>
-    </div>
-    <div class="enlace-qr-marco">
-      <canvas id="enlace-qr" width="440" height="440" aria-label="Código QR para enlazar"></canvas>
-      <p>O escanéalo con la cámara del teléfono</p>
+    <div class="enl-aurora" aria-hidden="true"><i></i><i></i><i></i></div>
+    <header class="enl-cabecera">
+      <div class="enl-marca"><img src="../img/lifemusic.png" alt="" width="40" height="40"><span>Life Music<small>TV</small></span></div>
+      <span id="enl-servidor" class="enl-chip"><span class="enl-punto"></span><span id="enl-servidor-texto">Conectando con el servidor…</span></span>
+    </header>
+    <div class="enl-cuerpo">
+      <div class="enlace-texto">
+        <p class="enlace-marca">Enlaza tu teléfono</p>
+        <h1 id="enlace-titulo">Tu música, <i>en grande.</i></h1>
+        <ol class="enl-pasos">
+          <li><span class="enl-ico"><svg viewBox="0 0 24 24"><rect x="7" y="2" width="10" height="20" rx="2.5"/><path d="M11 18h2"/></svg></span><span>Abre <b>Life Music</b> en tu teléfono</span></li>
+          <li><span class="enl-ico"><svg viewBox="0 0 24 24"><path d="M2 16a6 6 0 0 1 6 6M2 12a10 10 0 0 1 10 10"/><path d="M2 8V6a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2h-6"/></svg></span><span>Toca transmitir → <b>TV con navegador</b></span></li>
+          <li><span class="enl-ico"><svg viewBox="0 0 24 24"><rect x="2" y="6" width="20" height="12" rx="2"/><path d="M6 10h.01M10 10h.01M14 10h.01M18 10h.01M7 14h10"/></svg></span><span>Escribe este <b>código</b></span></li>
+        </ol>
+        <div id="enlace-codigo" class="enl-codigo" aria-label="Código"></div>
+        <div id="enl-vigencia" class="enl-vigencia"><span class="enl-barra"><i id="enl-barra"></i></span><span id="enl-vence"></span></div>
+        <p id="enlace-estado" class="enlace-estado"></p>
+        <p id="enlace-nota" class="enlace-nota"></p>
+      </div>
+      <div class="enlace-qr-marco">
+        <div class="enl-anillo">
+          <svg class="enl-aro" viewBox="0 0 100 100" aria-hidden="true"><circle class="enl-aro-fondo" cx="50" cy="50" r="47"/><circle id="enl-aro" class="enl-aro-vivo" cx="50" cy="50" r="47"/></svg>
+          <canvas id="enlace-qr" width="440" height="440" aria-label="Código QR para enlazar"></canvas>
+        </div>
+        <p>O escanéalo con la cámara del teléfono</p>
+      </div>
     </div>
     <p id="enlace-compat" class="enlace-compat"></p>
   </section>
@@ -208,11 +220,25 @@
     <button id="activar-boton" type="button">Presiona OK para activar el sonido</button>
   </section>
 
-  <!-- Mandos del TV con navegador: aparecen al tocar una tecla del control. -->
+  <!-- Mandos del TV con navegador: iconos que aparecen al tocar una tecla del
+       control; el que tiene el foco muestra su nombre. -->
   <nav id="mandos-tv" aria-label="Opciones del TV">
-    <button id="btn-pantalla" type="button">Pantalla completa</button>
-    <button id="btn-codigo" type="button" style="display:none">Enlazar otro teléfono</button>
+    <button id="btn-pantalla" type="button" class="boton-ico" aria-label="Pantalla completa"><svg viewBox="0 0 24 24"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg><span class="etiqueta">Pantalla completa</span></button>
+    <button id="btn-codigo" type="button" class="boton-ico" aria-label="Enlazar otro teléfono" style="display:none"><svg viewBox="0 0 24 24"><rect x="5" y="2" width="10" height="20" rx="2.5"/><path d="M19 8v6M16 11h6"/></svg><span class="etiqueta">Enlazar otro teléfono</span></button>
   </nav>
+
+  <!-- Dialogos del TV (1.3.2): confirmar «enlazar otro», telefono perdido, otra pestana. -->
+  <section id="tv-dialogo" class="tv-capa oculto" role="dialog" aria-modal="true" aria-labelledby="tv-dialogo-titulo">
+    <div class="tv-dialogo">
+      <div id="tv-dialogo-ico" class="tv-dialogo-ico"></div>
+      <h2 id="tv-dialogo-titulo"></h2>
+      <p id="tv-dialogo-texto"></p>
+      <div class="tv-dialogo-acciones">
+        <button id="tv-dialogo-no" type="button"></button>
+        <button id="tv-dialogo-si" type="button" class="primario"></button>
+      </div>
+    </div>
+  </section>
 
   <script>
     if (window.MODO_TV) document.write('<script src="qrcode.js?v=20261007b"><\/script><script src="tv.js?v=20261008a"><\/script>');

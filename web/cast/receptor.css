@@ -509,33 +509,98 @@ body.tema-tocadiscos #td-ui { display: block; }
 #escena.pausa #td-progreso { opacity: 0.5; }
 
 /* ── TV con navegador (lifemusic.pages.dev/tv): enlace por codigo o QR ──────
+   Diseno 1.3.2 (maqueta aprobada por CG): aurora verde menta, el codigo en
+   fichas, el QR en cristal con un anillo que se vacia en los 5 minutos de
+   vigencia, el estado del servidor y los mandos con icono.
    Sin inset, sin gap y con colores literales antes de cada var(): esta parte
    la tiene que pintar bien hasta un navegador de TV muy viejo. */
 #enlace {
-  position: fixed; top: 0; left: 0; right: 0; bottom: 0; z-index: 30;
-  display: -webkit-flex; display: flex; -webkit-align-items: center; align-items: center; -webkit-justify-content: center; justify-content: center;
-  padding: 6vmin 9vmin;
-  background: #050807;
-  background: radial-gradient(120% 90% at 18% 22%, rgba(52, 211, 153, 0.20), rgba(5, 8, 7, 0) 62%), #050807;
+  position: fixed; top: 0; left: 0; right: 0; bottom: 0; z-index: 30; overflow: hidden;
+  display: -webkit-flex; display: flex; -webkit-flex-direction: column; flex-direction: column;
+  padding: 5vmin 7vmin 4vmin;
+  background: #070A09;
   opacity: 1; transition: opacity 600ms ease, visibility 0s linear 0s;
 }
 #enlace.oculto { opacity: 0; visibility: hidden; pointer-events: none; transition: opacity 600ms ease, visibility 0s linear 600ms; }
-.enlace-texto { -webkit-flex: 1 1 auto; flex: 1 1 auto; max-width: 62vw; margin-right: 7vmin; }
-.enlace-marca { font-size: 2.2vmin; font-weight: 700; letter-spacing: 0.18em; text-transform: uppercase; color: #34D399; }
-#enlace h1 { margin: 1.6vmin 0 3.2vmin; font-size: 6.2vmin; line-height: 1.05; font-weight: 700; letter-spacing: -0.02em; color: #F2F5F3; }
-.enlace-pasos { padding-left: 3.6vmin; font-size: 2.9vmin; line-height: 1.65; color: rgba(242, 245, 243, 0.74); }
-.enlace-pasos b { color: #F2F5F3; font-weight: 700; }
-.enlace-codigo {
-  margin-top: 2.4vmin; white-space: nowrap;
-  font-family: "JetBrains Mono", "Roboto Mono", "DejaVu Sans Mono", Consolas, monospace;
-  font-size: 13vmin; font-weight: 700; letter-spacing: 0.08em; line-height: 1.1; color: #F2F5F3;
+
+/* Aurora: tres manchas de luz que derivan. Son degradados (sin blur): baratos. */
+.enl-aurora { position: absolute; top: -20%; left: -20%; right: -20%; bottom: -20%; z-index: -1; pointer-events: none; }
+.enl-aurora i { position: absolute; display: block; border-radius: 50%; -webkit-animation: enl-deriva 22s ease-in-out infinite alternate; animation: enl-deriva 22s ease-in-out infinite alternate; }
+.enl-aurora i:nth-child(1) { width: 80vmin; height: 80vmin; left: 6%; top: 4%; background: radial-gradient(circle, rgba(52, 211, 153, 0.42), rgba(52, 211, 153, 0) 68%); }
+.enl-aurora i:nth-child(2) { width: 70vmin; height: 70vmin; right: 6%; top: 28%; background: radial-gradient(circle, rgba(248, 187, 208, 0.20), rgba(248, 187, 208, 0) 68%); -webkit-animation-duration: 28s; animation-duration: 28s; }
+.enl-aurora i:nth-child(3) { width: 64vmin; height: 64vmin; left: 38%; bottom: 0; background: radial-gradient(circle, rgba(144, 202, 249, 0.16), rgba(144, 202, 249, 0) 68%); -webkit-animation-duration: 34s; animation-duration: 34s; }
+@-webkit-keyframes enl-deriva { to { -webkit-transform: translate(6vmin, -5vmin) scale(1.12); } }
+@keyframes enl-deriva { to { transform: translate(6vmin, -5vmin) scale(1.12); } }
+body.ligero .enl-aurora i { -webkit-animation: none; animation: none; }
+
+/* Cabecera: marca y estado del servidor */
+.enl-cabecera { display: -webkit-flex; display: flex; -webkit-align-items: center; align-items: center; -webkit-justify-content: space-between; justify-content: space-between; }
+.enl-marca { display: -webkit-flex; display: flex; -webkit-align-items: center; align-items: center; font-size: 2.8vmin; font-weight: 800; color: #F2F5F3; }
+.enl-marca img { width: 5vmin; height: 5vmin; margin-right: 1.6vmin; border-radius: 1.2vmin; }
+.enl-marca small { display: block; font-size: 1.5vmin; font-weight: 600; letter-spacing: 0.16em; color: rgba(242, 245, 243, 0.45); }
+.enl-chip {
+  display: -webkit-flex; display: flex; -webkit-align-items: center; align-items: center;
+  padding: 1vmin 2vmin; border-radius: 10vmin; font-size: 1.8vmin; font-weight: 600; color: rgba(242, 245, 243, 0.72);
+  background: rgba(255, 255, 255, 0.06); border: 1px solid rgba(255, 255, 255, 0.12);
 }
-.enlace-estado { min-height: 3.6vmin; margin-top: 1.4vmin; font-size: 2.7vmin; color: #34D399; }
-.enlace-nota { margin-top: 1vmin; font-size: 2.1vmin; color: rgba(242, 245, 243, 0.5); }
-.enlace-qr-marco { -webkit-flex: 0 0 auto; flex: 0 0 auto; text-align: center; }
-#enlace-qr { display: block; width: 34vmin; height: 34vmin; border-radius: 2.4vmin; background: #FFFFFF; box-shadow: 0 3vmin 8vmin rgba(0, 0, 0, 0.6); }
-.enlace-qr-marco p { margin-top: 2.2vmin; font-size: 2.3vmin; color: rgba(242, 245, 243, 0.62); }
-.enlace-compat { position: absolute; left: 9vmin; right: 30vmin; bottom: 4vmin; font-family: monospace; font-size: 1.8vmin; color: rgba(242, 245, 243, 0.4); }
+.enl-punto { width: 1.1vmin; height: 1.1vmin; margin-right: 1.1vmin; border-radius: 50%; background: #6F7B75; }
+.enl-chip.ok .enl-punto { background: #34D399; -webkit-animation: enl-late 1.8s infinite; animation: enl-late 1.8s infinite; }
+.enl-chip.mal .enl-punto { background: #F87171; }
+.enl-chip.mal { color: #FCA5A5; }
+@-webkit-keyframes enl-late { 70% { box-shadow: 0 0 0 1.2vmin rgba(52, 211, 153, 0); } 0% { box-shadow: 0 0 0 0 rgba(52, 211, 153, 0.6); } }
+@keyframes enl-late { 0% { box-shadow: 0 0 0 0 rgba(52, 211, 153, 0.6); } 70% { box-shadow: 0 0 0 1.2vmin rgba(52, 211, 153, 0); } 100% { box-shadow: 0 0 0 0 rgba(52, 211, 153, 0); } }
+
+/* Cuerpo: texto y codigo a la izquierda, QR a la derecha */
+.enl-cuerpo { -webkit-flex: 1 1 auto; flex: 1 1 auto; display: -webkit-flex; display: flex; -webkit-align-items: center; align-items: center; -webkit-justify-content: space-between; justify-content: space-between; }
+.enlace-texto { -webkit-flex: 1 1 auto; flex: 1 1 auto; max-width: 64vw; margin-right: 6vmin; }
+.enlace-marca { font-size: 1.9vmin; font-weight: 700; letter-spacing: 0.18em; text-transform: uppercase; color: #34D399; }
+#enlace h1 { margin: 1.6vmin 0 4vmin; font-size: 8vmin; line-height: 1; font-weight: 800; letter-spacing: -0.035em; color: #F2F5F3; }
+#enlace h1 i { color: #34D399; font-style: italic; }
+.enl-pasos { margin: 0 0 4.6vmin; padding: 0; list-style: none; }
+.enl-pasos li { display: -webkit-flex; display: flex; -webkit-align-items: center; align-items: center; margin-bottom: 1.6vmin; font-size: 2.5vmin; color: rgba(242, 245, 243, 0.72); }
+.enl-pasos b { color: #F2F5F3; font-weight: 700; }
+.enl-ico {
+  -webkit-flex: none; flex: none; width: 5vmin; height: 5vmin; margin-right: 2vmin; border-radius: 1.6vmin;
+  display: -webkit-flex; display: flex; -webkit-align-items: center; align-items: center; -webkit-justify-content: center; justify-content: center;
+  background: rgba(255, 255, 255, 0.06); border: 1px solid rgba(255, 255, 255, 0.12);
+}
+.enl-ico svg, .boton-ico svg { width: 2.7vmin; height: 2.7vmin; fill: none; stroke: #34D399; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.enl-codigo { display: -webkit-flex; display: flex; -webkit-align-items: center; align-items: center; min-height: 12vmin; }
+.enl-ficha {
+  width: 9.6vmin; height: 12vmin; margin-right: 1.4vmin; border-radius: 2.2vmin;
+  display: -webkit-flex; display: flex; -webkit-align-items: center; align-items: center; -webkit-justify-content: center; justify-content: center;
+  font-family: "JetBrains Mono", "Roboto Mono", "DejaVu Sans Mono", Consolas, monospace; font-size: 7vmin; font-weight: 700; color: #F2F5F3;
+  background: rgba(255, 255, 255, 0.07);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.11), rgba(255, 255, 255, 0.03));
+  border: 1px solid rgba(255, 255, 255, 0.13);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.18), 0 2vmin 4vmin rgba(0, 0, 0, 0.35);
+  -webkit-animation: enl-entra 0.5s both; animation: enl-entra 0.5s both;
+}
+.enl-separa { width: 2vmin; height: 0.6vmin; margin-right: 1.4vmin; border-radius: 1vmin; background: rgba(242, 245, 243, 0.3); }
+@-webkit-keyframes enl-entra { from { opacity: 0; -webkit-transform: translateY(1.6vmin) scale(0.9); } }
+@keyframes enl-entra { from { opacity: 0; transform: translateY(1.6vmin) scale(0.9); } }
+.enl-vigencia { display: -webkit-flex; display: flex; -webkit-align-items: center; align-items: center; margin-top: 2.8vmin; font-size: 1.9vmin; color: rgba(242, 245, 243, 0.62); }
+.enl-vigencia.oculto { visibility: hidden; }
+.enl-barra { width: 38vmin; height: 0.8vmin; margin-right: 1.8vmin; border-radius: 1vmin; background: rgba(255, 255, 255, 0.08); overflow: hidden; }
+.enl-barra i { display: block; height: 100%; width: 100%; background: #34D399; background: linear-gradient(90deg, #0F5C43, #34D399); transition: width 1s linear; }
+#enl-vence b { font-family: "JetBrains Mono", "Roboto Mono", Consolas, monospace; color: #F2F5F3; }
+.enlace-estado { min-height: 3.4vmin; margin-top: 2vmin; font-size: 2.4vmin; color: #34D399; }
+.enlace-nota { margin-top: 0.6vmin; font-size: 1.9vmin; color: rgba(242, 245, 243, 0.5); }
+
+/* QR en cristal con el anillo de vigencia */
+.enlace-qr-marco {
+  -webkit-flex: 0 0 auto; flex: 0 0 auto; text-align: center; padding: 3.4vmin; border-radius: 4vmin;
+  background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.12);
+  box-shadow: 0 5vmin 10vmin rgba(0, 0, 0, 0.45);
+}
+.enl-anillo { position: relative; width: 44vmin; height: 44vmin; display: -webkit-flex; display: flex; -webkit-align-items: center; align-items: center; -webkit-justify-content: center; justify-content: center; }
+.enl-aro { position: absolute; top: 0; left: 0; width: 100%; height: 100%; -webkit-transform: rotate(-90deg); transform: rotate(-90deg); }
+.enl-aro circle { fill: none; }
+.enl-aro-fondo { stroke: rgba(255, 255, 255, 0.08); stroke-width: 2; }
+.enl-aro-vivo { stroke: #34D399; stroke-width: 2.4; stroke-linecap: round; stroke-dasharray: 295.3; stroke-dashoffset: 0; transition: stroke-dashoffset 1s linear; }
+#enlace-qr { display: block; width: 29vmin; height: 29vmin; border-radius: 2.4vmin; background: #FFFFFF; }
+.enlace-qr-marco p { margin-top: 2vmin; font-size: 2vmin; color: rgba(242, 245, 243, 0.62); }
+.enlace-compat { margin-top: 1vmin; font-family: monospace; font-size: 1.6vmin; color: rgba(242, 245, 243, 0.38); }
 
 #activar {
   position: fixed; top: 0; left: 0; right: 0; bottom: 0; z-index: 40;
@@ -549,15 +614,59 @@ body.tema-tocadiscos #td-ui { display: block; }
   box-shadow: 0 2vmin 6vmin rgba(52, 211, 153, 0.35);
 }
 
+/* Mandos con icono: el nombre aparece en una etiqueta solo con el foco. */
 #mandos-tv { display: none; }
-body.modo-tv #mandos-tv { display: block; position: fixed; right: 4vmin; bottom: 4vmin; z-index: 35; opacity: 0; transition: opacity 400ms ease; }
-body.modo-tv #escena.vacia ~ #mandos-tv, body.modo-tv.mandos #mandos-tv { opacity: 1; }
-#mandos-tv button {
-  margin-left: 1.4vmin; padding: 1.3vmin 2.8vmin; border-radius: 10vmin; cursor: pointer;
-  font: inherit; font-size: 2.3vmin; font-weight: 600; color: #F2F5F3;
-  background: rgba(255, 255, 255, 0.08); border: 1px solid rgba(255, 255, 255, 0.18);
+body.modo-tv #mandos-tv { display: -webkit-flex; display: flex; position: fixed; right: 5vmin; bottom: 4vmin; z-index: 35; opacity: 0; transition: opacity 400ms ease; }
+body.modo-tv #escena.vacia ~ #mandos-tv, body.modo-tv.mandos #mandos-tv, body.modo-tv.enlazando #mandos-tv { opacity: 1; }
+.boton-ico {
+  position: relative; width: 7vmin; height: 7vmin; margin-left: 1.8vmin; border-radius: 50%; cursor: pointer; padding: 0;
+  display: -webkit-flex; display: flex; -webkit-align-items: center; align-items: center; -webkit-justify-content: center; justify-content: center;
+  color: #F2F5F3; background: rgba(255, 255, 255, 0.08); border: 1px solid rgba(255, 255, 255, 0.16);
+  transition: transform 200ms ease, background 200ms ease;
 }
-#mandos-tv button:focus, #activar-boton:focus { outline: 0.5vmin solid #34D399; outline-offset: 0.4vmin; }
+.boton-ico svg { stroke: #F2F5F3; }
+.boton-ico:focus, .boton-ico:hover { outline: none; -webkit-transform: scale(1.1); transform: scale(1.1); background: rgba(52, 211, 153, 0.2); box-shadow: 0 0 0 0.5vmin #34D399; }
+.boton-ico .etiqueta {
+  position: absolute; bottom: 125%; right: 0; white-space: nowrap; padding: 0.9vmin 1.8vmin; border-radius: 1.2vmin;
+  font-size: 1.9vmin; font-weight: 600; color: #F2F5F3; background: #0F1512; border: 1px solid rgba(255, 255, 255, 0.14);
+  opacity: 0; pointer-events: none; transition: opacity 200ms ease;
+}
+.boton-ico:focus .etiqueta, .boton-ico:hover .etiqueta { opacity: 1; }
+#activar-boton:focus { outline: 0.5vmin solid #34D399; outline-offset: 0.4vmin; }
+
+/* Dialogos del TV (1.3.2) */
+.tv-capa {
+  position: fixed; top: 0; left: 0; right: 0; bottom: 0; z-index: 45;
+  display: -webkit-flex; display: flex; -webkit-align-items: center; align-items: center; -webkit-justify-content: center; justify-content: center;
+  background: rgba(4, 6, 5, 0.8);
+}
+.tv-capa.oculto { display: none; }
+.tv-dialogo {
+  width: 78vmin; padding: 5.4vmin; border-radius: 4vmin; text-align: center;
+  background: #111814; background: linear-gradient(180deg, #141C17, #0D1310);
+  border: 1px solid rgba(255, 255, 255, 0.12); box-shadow: 0 6vmin 14vmin rgba(0, 0, 0, 0.6);
+  -webkit-animation: enl-entra 0.35s both; animation: enl-entra 0.35s both;
+}
+.tv-dialogo-ico {
+  width: 9vmin; height: 9vmin; margin: 0 auto 2.6vmin; border-radius: 2.6vmin;
+  display: -webkit-flex; display: flex; -webkit-align-items: center; align-items: center; -webkit-justify-content: center; justify-content: center;
+  background: rgba(52, 211, 153, 0.14);
+}
+.tv-dialogo-ico svg { width: 4.6vmin; height: 4.6vmin; fill: none; stroke: #34D399; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.tv-dialogo.alerta .tv-dialogo-ico { background: rgba(248, 113, 113, 0.14); }
+.tv-dialogo.alerta .tv-dialogo-ico svg { stroke: #F87171; }
+.tv-dialogo h2 { margin: 0 0 1.6vmin; font-size: 4vmin; line-height: 1.15; letter-spacing: -0.02em; color: #F2F5F3; }
+.tv-dialogo p { margin: 0 0 4vmin; font-size: 2.3vmin; line-height: 1.5; color: rgba(242, 245, 243, 0.72); }
+.tv-dialogo p b { color: #F2F5F3; }
+.tv-dialogo-acciones { display: -webkit-flex; display: flex; -webkit-justify-content: center; justify-content: center; }
+.tv-dialogo-acciones button {
+  margin: 0 1vmin; padding: 1.8vmin 4vmin; border-radius: 10vmin; cursor: pointer;
+  font: inherit; font-size: 2.2vmin; font-weight: 700; color: #F2F5F3;
+  background: rgba(255, 255, 255, 0.06); border: 1px solid rgba(255, 255, 255, 0.14);
+}
+.tv-dialogo-acciones button.primario { color: #062016; background: #34D399; border-color: #34D399; }
+.tv-dialogo-acciones button:focus { outline: none; box-shadow: 0 0 0 0.5vmin #34D399; }
+.tv-dialogo-acciones button[hidden] { display: none; }
 
 /* Sin video H.264: el Atardecer se queda con un cielo pintado, quieto. */
 body.sin-video #paisaje {
@@ -567,8 +676,19 @@ body.sin-video #paisaje {
 
 /* Pantalla vertical (alguien abre /tv en un celular o una tablet parada): uno debajo del otro. */
 @media (orientation: portrait) {
-  #enlace { -webkit-flex-direction: column; flex-direction: column; -webkit-justify-content: center; justify-content: center; padding: 6vmin 6vmin 14vmin; }
-  .enlace-texto { -webkit-flex: none; flex: none; max-width: none; width: 100%; margin: 0 0 5vmin; }
-  .enlace-codigo { font-size: 12vmin; }
-  .enlace-compat { left: 6vmin; right: 6vmin; bottom: 3vmin; }
+  #enlace { overflow-y: auto; padding: 5vmin 6vmin; }
+  .enl-cuerpo { -webkit-flex-direction: column; flex-direction: column; -webkit-justify-content: center; justify-content: center; -webkit-flex: none; flex: none; margin-top: 6vmin; }
+  .enlace-texto { -webkit-flex: none; flex: none; max-width: none; width: 100%; margin: 0 0 6vmin; }
+  #enlace h1 { font-size: 11vmin; }
+  .enl-pasos li { font-size: 4vmin; }
+  .enl-ico { width: 8vmin; height: 8vmin; }
+  .enl-ico svg { width: 4.4vmin; height: 4.4vmin; }
+  .enl-ficha { width: 12.6vmin; height: 16vmin; font-size: 9.6vmin; margin-right: 1.6vmin; }
+  .enl-barra { width: 50vmin; }
+  .enl-vigencia, .enlace-estado, .enlace-marca { font-size: 3.2vmin; }
+  .enl-anillo { width: 74vmin; height: 74vmin; }
+  #enlace-qr { width: 50vmin; height: 50vmin; }
+  .enlace-qr-marco p, .enl-chip { font-size: 3vmin; }
+  .enlace-compat { font-size: 2.6vmin; }
+  .tv-dialogo { width: 88vmin; }
 }
