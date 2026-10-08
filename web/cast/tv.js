@@ -364,6 +364,11 @@
   audio.addEventListener("loadedmetadata", function () {
     if (desdeMs > 0) { try { audio.currentTime = desdeMs / 1000; } catch (e) {} desdeMs = 0; }
   });
+  // La barra de progreso usa la duracion real del audio (1.3.2), no solo la que
+  // mando el telefono, que a veces no la sabe todavia.
+  audio.addEventListener("durationchange", function () {
+    if (isFinite(audio.duration) && audio.duration > 0 && R.ponerDuracion) R.ponerDuracion(idActual, Math.round(audio.duration * 1000));
+  });
   audio.addEventListener("playing", function () { cargando = false; reflejar(); });
   audio.addEventListener("pause", reflejar);
   audio.addEventListener("waiting", function () { cargando = true; reflejar(); });

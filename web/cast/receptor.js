@@ -4,7 +4,7 @@
 (function () {
   "use strict";
 
-  var VERSION = "2026-10-07b";
+  var VERSION = "2026-10-08a";
   var NS = "urn:x-cast:com.cglabs.lifemusic";
 
   // ── Rendimiento ───────────────────────────────────────────────────────────
@@ -1402,6 +1402,12 @@
       estado: estado,
       estadoSaludo: estadoSaludo,
       ponerPosicion: function (f) { posicion = f; },
+      // 1.3.2: la duracion real del audio del TV, como hace CAF con la suya. Sin
+      // esto, si el telefono no la sabia (cancion recien elegida), la barra de
+      // progreso se quedaba en cero hasta la siguiente conexion.
+      ponerDuracion: function (id, ms) {
+        if (cancion && cancion.id === id && ms > 0 && Math.abs((cancion.duracionMs || 0) - ms) > 500) cancion.duracionMs = ms;
+      },
       ponerSonando: function (si, pausado) {
         sonando = si;
         document.body.classList.toggle("sonando", si);
