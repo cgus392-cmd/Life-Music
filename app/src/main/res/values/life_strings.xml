@@ -1550,6 +1550,12 @@
     <string name="boletin_v1131_fundido">When a song is playing and you pick another, the current one fades down and the new one fades in, instead of cutting off. Turn it off in Settings → Player.</string>
     <string name="fundido_al_elegir">Fade when picking another song</string>
     <string name="fundido_al_elegir_desc">The current song fades down and the new one fades in, no hard cuts</string>
+    <string name="boletin_v1132_intro">The version that brings it all together: PRO TV themes, Life Music on any TV with a browser, a new updater, song changes with no hard cuts, star ratings and the pre-registration for the new contest. And the browser TV, now safer.</string>
+    <string name="boletin_v1132_seguro_t">A safer browser TV</string>
+    <string name="boletin_v1132_seguro">The TV code expires after 5 minutes with a countdown, «Link another phone» asks for confirmation, and the phone and the TV tell each other when the connection is lost. The linking screen is new, and the system status is at lifemusic.pages.dev/estado.</string>
+    <string name="boletin_v1132_ademas_1">The progress bar on the browser TV now moves from the first connection.</string>
+    <string name="boletin_v1132_ademas_2">The cast button shows up whenever you have a browser TV linked, and the sheet tells you if it is online.</string>
+    <string name="boletin_v1132_ademas_3">One phone per TV at a time; if the TV closes, the phone stops casting and tells you.</string>
     <string name="boletin_v1131_calificacion_t">Rate Life Music</string>
     <string name="boletin_v1131_calificacion">Tell us how much you like it with stars, without signing up for anything. It is anonymous, and if something bugs you, tell us what you would improve. Also in Settings → About.</string>
     <string name="boletin_v1131_prerregistro_t">New contest: pre-registration</string>

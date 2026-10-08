@@ -33,6 +33,19 @@ class NovedadesTest {
     }
 
     @Test
+    fun la132RepiteLasFuncionesDeLa131YSumaSusArreglos() {
+        // CG (08-10): la 1.3.2 es la oficial y vuelve a contar todo lo de la 1.3.1.
+        for (idioma in listOf("es", "en")) {
+            val anterior = Novedades.leer(publicado("1.3.1"), idioma)!!
+            val nueva = Novedades.leer(publicado("1.3.2"), idioma)!!
+            assertEquals("1.3.2", nueva.version)
+            assertEquals("https://lifemusic.pages.dev/novedades/1.3.2.webp", nueva.imagen)
+            assertEquals(anterior.funciones.map { it.titulo }, nueva.funciones.map { it.titulo })
+            assertTrue(nueva.arreglos.size >= 3)
+        }
+    }
+
+    @Test
     fun unIdiomaQueNoEstaCaeAlInglesYDespuesAlEspanol() {
         val ambos = """{"version":"9.9.9","es":{"resumen":"hola"},"en":{"resumen":"hello"}}"""
         assertEquals("hello", Novedades.leer(ambos, "fr")!!.resumen)

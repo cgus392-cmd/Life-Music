@@ -15,6 +15,39 @@ esa base**; para la historia anterior, consulte el repositorio de origen.
 
 ---
 
+## [1.3.2] — sin publicar
+
+La versión oficial de esta tanda. Trae todo lo de la 1.3.1, que casi nadie
+llegó a bajar, y le suma un TV con navegador más seguro.
+
+### Añadido
+
+- **TV con navegador, más seguro.**
+  - El código del TV vence a los 5 minutos, con una cuenta regresiva en
+    pantalla. El servidor tampoco acepta uno vencido.
+  - «Enlazar otro teléfono» en el TV pide confirmación, para la música y
+    desconecta de verdad al teléfono anterior, que se entera.
+  - El teléfono y el TV se mandan un latido: si uno se pierde, el otro lo dice
+    en pantalla en vez de seguir como si nada.
+  - Un solo teléfono por TV a la vez.
+  - Un TV recordado que no se usa en 30 días se olvida solo.
+- **Pantalla de enlace del TV nueva**, con el código en fichas, el QR con su
+  anillo de vigencia, el estado del servidor y botones con íconos.
+- **Estado del sistema** en `lifemusic.pages.dev/estado`. También dice
+  «Servidor en línea» en el TV y en la hoja de transmitir.
+
+### Cambiado
+
+- El botón de transmitir aparece siempre que tengas un TV con navegador
+  enlazado, y la hoja te dice si ese TV está en línea.
+
+### Corregido
+
+- La barra de progreso del TV con navegador se quedaba en cero hasta la
+  segunda conexión.
+- Si el TV con navegador se cerraba, el teléfono seguía «transmitiendo» sin
+  avisar.
+
 ## [1.3.1] — 2026-10-07
 
 ### Añadido

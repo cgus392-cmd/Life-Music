@@ -1,0 +1,43 @@
+{
+  "version": "1.3.2",
+  "imagen": "https://lifemusic.pages.dev/novedades/1.3.2.webp",
+  "es": {
+    "resumen": "La versión que lo reúne todo: temas PRO del TV, Life Music en cualquier TV con navegador, actualizador renovado, cambios sin cortes, calificación y el prerregistro del nuevo concurso. Y el TV con navegador, más seguro.",
+    "funciones": [
+      { "icono": "palette", "titulo": "Temas PRO del TV", "texto": "Atardecer, que cambia con la hora del día, y Tocadiscos, con tu carátula girando en un disco de verdad (V1 y V2)." },
+      { "icono": "tv", "titulo": "Life Music TV en el navegador", "texto": "¿Tu TV no tiene Cast? Abre lifemusic.pages.dev/tv, enlaza con el código y listo. El TV se acuerda para la próxima vez." },
+      { "icono": "update", "titulo": "Actualizador renovado", "texto": "Cada versión con su imagen, historial de versiones, descargas más livianas y progreso con tiempo restante." },
+      { "icono": "graphic_eq", "titulo": "Cambios sin cortes", "texto": "Si suena una canción y eliges otra, la que suena baja suave y la nueva entra subiendo, sin el corte en seco." },
+      { "icono": "star", "titulo": "Califica Life Music", "texto": "Dinos qué tanto te gusta con estrellas, sin registrarte en nada. Es anónimo." },
+      { "icono": "trophy", "titulo": "Nuevo concurso: prerregistro", "texto": "Viene un concurso por misiones con un JBL PartyBox 330. Toca la copa de Inicio: cuando seamos 100, arranca." }
+    ],
+    "arreglos": [
+      "El código del TV vence a los 5 minutos, con cuenta regresiva en pantalla.",
+      "«Enlazar otro teléfono» en el TV pide confirmación y desconecta de verdad al anterior.",
+      "El teléfono y el TV se avisan si se pierde la conexión.",
+      "La barra de progreso del TV con navegador ya avanza desde la primera conexión.",
+      "El botón de transmitir aparece siempre que tengas un TV con navegador enlazado.",
+      "Pantalla de enlace del TV renovada y estado del sistema en lifemusic.pages.dev/estado."
+    ]
+  },
+  "en": {
+    "resumen": "The version that brings it all together: PRO TV themes, Life Music on any TV with a browser, a renewed updater, no more hard cuts, star ratings and the new contest pre-registration. And a safer browser TV.",
+    "funciones": [
+      { "icono": "palette", "titulo": "PRO TV themes", "texto": "Sunset, which changes with the time of day, and Turntable, with your cover spinning on a real record (V1 and V2)." },
+      { "icono": "tv", "titulo": "Life Music TV in the browser", "texto": "No Cast on your TV? Open lifemusic.pages.dev/tv, link it with the code and you are set. The TV remembers it next time." },
+      { "icono": "update", "titulo": "Renewed updater", "texto": "Every version with its own image, a version history, lighter downloads and progress with time remaining." },
+      { "icono": "graphic_eq", "titulo": "No more hard cuts", "texto": "When a song is playing and you pick another, the current one fades down and the new one fades in, instead of cutting off." },
+      { "icono": "star", "titulo": "Rate Life Music", "texto": "Tell us how much you like it with stars, without signing up for anything. It is anonymous." },
+      { "icono": "trophy", "titulo": "New contest: pre-registration", "texto": "A mission-based contest is coming, with a JBL PartyBox 330. Tap the cup on Home: once we are 100, it starts." }
+    ],
+    "arreglos": [
+      "The TV code expires after 5 minutes, with an on-screen countdown.",
+      "«Link another phone» on the TV asks for confirmation and really disconnects the previous one.",
+      "The phone and the TV tell each other when the connection is lost.",
+      "The progress bar on the browser TV now moves from the first connection.",
+      "The cast button shows up whenever you have a browser TV linked.",
+      "A renewed TV linking screen and the system status at lifemusic.pages.dev/estado."
+    ]
+  },
+  "apk": {}
+}

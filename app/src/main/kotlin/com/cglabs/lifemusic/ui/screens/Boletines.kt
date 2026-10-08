@@ -248,7 +248,18 @@ object Boletines {
         heroImagen = R.drawable.novedades_131,
     )
 
-    val todos: List<BoletinDeVersion> = listOf(v115, v116, v117, v118, v119, v1110, v1120, v1130, v1131)
+    // 1.3.2: la oficial. CG (08-10): «se repiten las mismas funciones», porque casi
+    // nadie bajo la 1.3.1; se suman el TV con navegador mas seguro y los arreglos.
+    private val v1132 = v1131.copy(
+        versionCode = 16,
+        versionName = "1.3.2",
+        intro = R.string.boletin_v1132_intro,
+        apartados = v1131.apartados + ApartadoBoletin(R.drawable.cast_tv, Color(0xFF80CBC4),
+            R.string.boletin_v1132_seguro_t, R.string.boletin_v1132_seguro),
+        ademas = listOf(R.string.boletin_v1132_ademas_1, R.string.boletin_v1132_ademas_2, R.string.boletin_v1132_ademas_3),
+    )
+
+    val todos: List<BoletinDeVersion> = listOf(v115, v116, v117, v118, v119, v1110, v1120, v1130, v1131, v1132)
 
     /** El boletin de una version, o null si esa version no tiene nada que contar. */
     fun para(versionCode: Int): BoletinDeVersion? = todos.firstOrNull { it.versionCode == versionCode }

@@ -1170,6 +1170,12 @@
     <string name="boletin_v1131_fundido">Si suena una canción y eliges otra, la que suena baja suave y la nueva entra subiendo, sin el corte en seco. Se apaga en Ajustes → Reproductor.</string>
     <string name="fundido_al_elegir">Fundido al elegir otra canción</string>
     <string name="fundido_al_elegir_desc">La que suena baja suave y la nueva entra subiendo, sin cortes en seco</string>
+    <string name="boletin_v1132_intro">La versión que lo reúne todo: temas PRO para el TV, Life Music en cualquier televisor con navegador, un actualizador nuevo, cambios sin cortes, calificación con estrellas y el prerregistro del nuevo concurso. Y el TV con navegador, ahora más seguro.</string>
+    <string name="boletin_v1132_seguro_t">TV con navegador, más seguro</string>
+    <string name="boletin_v1132_seguro">El código del TV vence a los 5 minutos con cuenta regresiva, «Enlazar otro teléfono» pide confirmación y el teléfono y el TV se avisan si se pierde la conexión. La pantalla de enlace es nueva, y el estado del sistema está en lifemusic.pages.dev/estado.</string>
+    <string name="boletin_v1132_ademas_1">La barra de progreso del TV con navegador ya avanza desde la primera conexión.</string>
+    <string name="boletin_v1132_ademas_2">El botón de transmitir aparece siempre que tengas un TV con navegador enlazado, y la hoja te dice si está en línea.</string>
+    <string name="boletin_v1132_ademas_3">Un solo teléfono por TV a la vez; si el TV se cierra, el teléfono deja de transmitir y te avisa.</string>
     <string name="boletin_v1131_calificacion_t">Califica Life Music</string>
     <string name="boletin_v1131_calificacion">Dinos qué tanto te gusta con estrellas, sin registrarte en nada. Es anónimo, y si algo no te convence, cuéntanos qué mejorarías. También en Ajustes → Acerca de.</string>
     <string name="boletin_v1131_prerregistro_t">Nuevo concurso: prerregistro</string>
