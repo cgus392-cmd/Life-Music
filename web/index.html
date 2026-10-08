@@ -276,7 +276,7 @@
     </a>
     <div class="derecha">
       <div class="enlaces">
-        <a href="#reto">Reto de la semana</a>
+        <a href="#reto">Nuevo concurso</a>
         <a href="#funciones">Qué hace</a>
         <a href="#instalar">Cómo instalar</a>
         <a href="/github" rel="noopener">Código</a>
@@ -303,7 +303,7 @@
           Descargar Life Music
         </a>
         <a class="boton secundario" href="#instalar">Cómo se instala</a>
-        <div class="meta"><span>Versión <b id="version">1.1.6</b></span><span>APK <b id="tamano">67 MB</b></span><span>Android 8 o superior</span><span><a href="/apk-arm64" style="color:var(--texto-2)">Versión ligera (arm64, 38 MB)</a></span></div>
+        <div class="meta"><span>Versión <b id="version">1.1.6</b></span><span>APK <b id="tamano">67 MB</b></span><span>Android 8 o superior</span><span><a href="/apk-arm64" style="color:var(--texto-2)">Versión ligera (arm64, 38 MB)</a></span><span id="calificacion" hidden style="color:var(--verde-texto);font-weight:700"></span></div>
       </div>
     </div>
     <div class="telefono-caja escalonado">
@@ -318,20 +318,19 @@
   </section>
 
   <section class="seccion" id="reto">
-    <p class="titulo-seccion revela">Reto de la semana · 13 al 19 de septiembre</p>
+    <p class="titulo-seccion revela">Nuevo concurso · Prerregistro</p>
     <div class="reto revela">
-      <div class="imagen"><img src="/img/reto.webp" alt="Life Music y unos AirPods Pro" width="1200" height="896" loading="lazy"></div>
+      <div class="imagen"><video src="/concurso/video.mp4" controls playsinline preload="metadata" style="width:100%;display:block;border-radius:inherit;background:#000;aspect-ratio:16/9" aria-label="Video del nuevo concurso"></video></div>
       <div>
-        <h2>Gana unos <i>AirPods Pro</i><br>escuchando música.</h2>
-        <p>Quien más minutos escuche en Life Music esta semana se los lleva. Cuenta solo la reproducción real, con tope de 6 horas al día: gana la constancia.</p>
-        <div class="cuenta" id="cuenta" aria-label="Tiempo restante"></div>
+        <h2>Viene un <i>JBL PartyBox 330</i>.<br>Faltan ustedes.</h2>
+        <p>Es un prerregistro: cuando seamos 100, arranca un concurso por misiones, y participan las personas prerregistradas. Solo nombre y correo, desde la copa de Inicio en la app.</p>
+        <p style="font-weight:700" id="prerregistroCuenta" aria-live="polite"></p>
         <ul class="reglas">
-          <li>Descarga la app, toca el trofeo de Inicio y pulsa <b>Participar</b>. Tus minutos desde el día 13 ya cuentan.</li>
-          <li>Pausa no cuenta; una canción cuenta si suena más de 30 s. Una participación por persona.</li>
-          <li>El premio se entrega únicamente en el departamento del Atlántico.</li>
-          <li>El ganador se anuncia el 20 de septiembre en Instagram y en los canales de WhatsApp de Life Music.</li>
+          <li>Dura 6 días; si no llegamos a 100, sigue abierto hasta llegar.</li>
+          <li>Sin listas públicas: solo se muestra cuántos van.</li>
+          <li>Se gana completando misiones, no por sorteo.</li>
         </ul>
-        <a class="boton" href="/apk">Descargar y participar</a>
+        <a class="boton" href="/concurso">Ver el prerregistro</a>
       </div>
     </div>
   </section>
@@ -424,20 +423,21 @@
   // Red de seguridad: pase lo que pase, a los tres segundos se ve todo.
   setTimeout(() => revelables.forEach(el => el.classList.add("visto")), 3000);
 
-  // ── Cuenta atrás del reto (hora de Colombia) ──
-  const fin = new Date("2026-09-20T00:00:00-05:00");
-  const inicio = new Date("2026-09-13T00:00:00-05:00");
-  const cuenta = document.getElementById("cuenta");
-  function pintarCuenta() {
-    const ahora = new Date();
-    const seccion = document.getElementById("reto");
-    if (ahora > new Date("2026-09-23T00:00:00-05:00")) { seccion.hidden = true; return; }
-    if (ahora >= fin) { cuenta.innerHTML = "<div><b>Terminó</b><small>ganador el 20</small></div>"; return; }
-    const ms = Math.max(0, (ahora < inicio ? inicio : fin) - ahora);
-    const d = Math.floor(ms / 864e5), h = Math.floor(ms % 864e5 / 36e5), m = Math.floor(ms % 36e5 / 6e4);
-    cuenta.innerHTML = `<div><b>${d}</b><small>días</small></div><div><b>${h}</b><small>horas</small></div><div><b>${m}</b><small>min</small></div>`;
-  }
-  pintarCuenta(); setInterval(pintarCuenta, 30000);
+  // ── Comunidad (1.3.1): cuántos van en el prerregistro y la calificación ──
+  // Solo números: el servidor nunca devuelve nombres, correos ni comentarios.
+  const COMUNIDAD = "https://lifemusic-comunidad.cho--usic.workers.dev";
+  fetch(COMUNIDAD + "/prerregistro/estado").then(r => r.json()).then(e => {
+    const t = !e.empezo ? "El prerregistro abre muy pronto."
+      : e.abierto ? `Van ${e.contador} de ${e.meta}.`
+      : `¡Llegamos a ${e.meta}! Pronto empieza el concurso.`;
+    document.getElementById("prerregistroCuenta").textContent = t;
+  }).catch(() => { document.getElementById("prerregistroCuenta").textContent = "El prerregistro abre muy pronto."; });
+  fetch(COMUNIDAD + "/calificaciones/resumen").then(r => r.json()).then(c => {
+    if (!c.visible) return;
+    const el = document.getElementById("calificacion");
+    el.textContent = `★ ${String(c.promedio).replace(".", ",")} · ${c.total.toLocaleString("es-CO")} calificaciones`;
+    el.hidden = false;
+  }).catch(() => {});
 
   // ── Versión y tamaño reales, desde la última publicación ──
   fetch("https://api.github.com/repos/cgus392-cmd/Life-Music/releases/latest", { headers: { Accept: "application/vnd.github+json" } })
