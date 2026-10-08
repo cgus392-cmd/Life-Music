@@ -203,6 +203,15 @@ export default {
 
     if (request.method === "GET") {
       if (ruta === "/") return json({ servicio: "lifemusic-comunidad", estado: "ok" });
+      // Estado del sistema (1.3.2): el Worker responde y su base tambien.
+      if (ruta === "/salud") {
+        try {
+          await env.DB.prepare("select 1").first();
+          return json({ servicio: "lifemusic-comunidad", estado: "ok", base: "ok", hora: new Date().toISOString() });
+        } catch {
+          return json({ servicio: "lifemusic-comunidad", estado: "falla", base: "sin-respuesta" }, 503);
+        }
+      }
       if (ruta === "/prerregistro/estado") return json(await estado(env), 200, { "cache-control": "public, max-age=30" });
       if (ruta === "/calificaciones/resumen") return json(await resumen(env), 200, { "cache-control": "public, max-age=300" });
       if (ruta === "/insignia.svg") {
