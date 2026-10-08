@@ -1,0 +1,239 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Maqueta · Enlace de Life Music TV</title>
+<!--
+  MAQUETA 1.3.2 para que CG apruebe el diseno antes de programarlo en
+  web/cast (ficha docs/versiones/1.3.2/tv-enlace-seguro.md, seccion I).
+  Arriba hay un selector de estados que no va en la pagina real.
+-->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,500;0,600;0,700;0,800;1,800&family=JetBrains+Mono:wght@600;700&display=swap">
+<style>
+  :root{
+    --fondo:#070A09;--texto:#F2F5F3;--texto-2:#A9B4AE;--texto-3:#6F7B75;
+    --verde:#34D399;--verde-oscuro:#0F5C43;--rosa:#F8BBD0;--azul:#90CAF9;
+    --vidrio:rgba(255,255,255,.06);--vidrio-borde:rgba(255,255,255,.12);
+    --display:"Plus Jakarta Sans",system-ui,"Segoe UI",Roboto,sans-serif;
+    --mono:"JetBrains Mono",ui-monospace,Consolas,monospace;
+  }
+  *{box-sizing:border-box}
+  html{background:var(--fondo)}
+  html,body{margin:0;height:100%;color:var(--texto);font-family:var(--display);overflow:hidden}
+  /* Todo se mide en vw: un TV de 1080p y uno de 4K ven lo mismo. */
+  .tv{position:fixed;inset:0;display:grid;grid-template-rows:auto 1fr auto;padding:3.2vw 4vw 2.4vw}
+
+  /* Aurora viva, como la landing */
+  .aurora{position:fixed;inset:-20%;z-index:-2;filter:blur(6vw);opacity:.9}
+  .aurora i{position:absolute;border-radius:50%;mix-blend-mode:screen;animation:deriva 22s ease-in-out infinite alternate}
+  .aurora i:nth-child(1){width:46vw;height:46vw;left:8%;top:6%;background:radial-gradient(circle,rgba(52,211,153,.75),transparent 62%)}
+  .aurora i:nth-child(2){width:40vw;height:40vw;right:6%;top:30%;background:radial-gradient(circle,rgba(248,187,208,.42),transparent 62%);animation-duration:28s}
+  .aurora i:nth-child(3){width:36vw;height:36vw;left:38%;bottom:-4%;background:radial-gradient(circle,rgba(144,202,249,.32),transparent 62%);animation-duration:34s}
+  @keyframes deriva{to{transform:translate(4vw,-3vw) scale(1.12)}}
+  .grano{position:fixed;inset:0;z-index:-1;opacity:.06;pointer-events:none;
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='3'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")}
+
+  /* Cabecera */
+  header{display:flex;align-items:center;justify-content:space-between}
+  .marca{display:flex;align-items:center;gap:1vw;font-weight:800;font-size:1.5vw;letter-spacing:-.01em}
+  .marca .logo{width:2.6vw;height:2.6vw;border-radius:.7vw;background:linear-gradient(135deg,var(--verde),#0F5C43);display:grid;place-items:center;color:#062016;font-size:1.4vw}
+  .marca small{display:block;font-size:.85vw;font-weight:600;color:var(--texto-3);letter-spacing:.14em;text-transform:uppercase}
+  .chips{display:flex;gap:.8vw}
+  .chip{display:flex;align-items:center;gap:.6vw;padding:.55vw 1vw;border-radius:99vw;background:var(--vidrio);border:1px solid var(--vidrio-borde);
+    backdrop-filter:blur(1.2vw);font-size:.95vw;font-weight:600;color:var(--texto-2)}
+  .chip .punto{width:.6vw;height:.6vw;border-radius:50%;background:var(--verde);box-shadow:0 0 0 0 rgba(52,211,153,.6);animation:late 1.8s infinite}
+  .chip.mal .punto{background:#F87171;animation:none}
+  @keyframes late{70%{box-shadow:0 0 0 .7vw rgba(52,211,153,0)}100%{box-shadow:0 0 0 0 rgba(52,211,153,0)}}
+
+  /* Cuerpo */
+  main{display:grid;grid-template-columns:1.15fr .85fr;gap:4vw;align-items:center}
+  .eyebrow{font-size:1vw;font-weight:700;letter-spacing:.18em;text-transform:uppercase;color:var(--verde)}
+  h1{font-size:4.4vw;line-height:1;letter-spacing:-.035em;margin:1vw 0 2.4vw;font-weight:800}
+  h1 i{color:var(--verde);font-style:italic}
+  .pasos{display:flex;flex-direction:column;gap:.9vw;margin-bottom:2.6vw}
+  .paso{display:flex;align-items:center;gap:1.1vw;font-size:1.35vw;color:var(--texto-2)}
+  .paso b{color:var(--texto)}
+  .paso .ico{flex:none;width:2.8vw;height:2.8vw;border-radius:.9vw;display:grid;place-items:center;background:var(--vidrio);border:1px solid var(--vidrio-borde)}
+  .paso .ico svg{width:1.5vw;height:1.5vw;stroke:var(--verde)}
+  .codigo{display:flex;align-items:center;gap:.8vw}
+  .ficha{width:5.4vw;height:6.8vw;border-radius:1.2vw;display:grid;place-items:center;font:700 3.9vw/1 var(--mono);
+    background:linear-gradient(180deg,rgba(255,255,255,.10),rgba(255,255,255,.03));border:1px solid var(--vidrio-borde);
+    box-shadow:inset 0 1px 0 rgba(255,255,255,.18),0 1.2vw 2.4vw rgba(0,0,0,.35);animation:entra .5s both}
+  .ficha:nth-child(2){animation-delay:.05s}.ficha:nth-child(3){animation-delay:.1s}.ficha:nth-child(5){animation-delay:.15s}.ficha:nth-child(6){animation-delay:.2s}.ficha:nth-child(7){animation-delay:.25s}
+  .separa{width:1.2vw;height:.35vw;border-radius:1vw;background:var(--texto-3)}
+  @keyframes entra{from{opacity:0;transform:translateY(1vw) scale(.9)}}
+  .vigencia{display:flex;align-items:center;gap:1vw;margin-top:1.6vw;font-size:1.05vw;color:var(--texto-2)}
+  .vigencia .barra{width:22vw;height:.45vw;border-radius:1vw;background:rgba(255,255,255,.08);overflow:hidden}
+  .vigencia .barra i{display:block;height:100%;background:linear-gradient(90deg,var(--verde-oscuro),var(--verde));transition:width 1s linear}
+  .vigencia b{font-family:var(--mono);color:var(--texto)}
+
+  /* QR en cristal con anillo de vigencia */
+  .qr-tarjeta{justify-self:center;position:relative;padding:2vw;border-radius:2.4vw;background:var(--vidrio);border:1px solid var(--vidrio-borde);
+    backdrop-filter:blur(2vw);box-shadow:0 3vw 6vw rgba(0,0,0,.45);text-align:center}
+  .anillo{position:relative;width:24vw;height:24vw;display:grid;place-items:center}
+  .anillo svg.aro{position:absolute;inset:0;transform:rotate(-90deg)}
+  .anillo .fondo-aro{stroke:rgba(255,255,255,.08)}
+  .anillo .aro-vivo{stroke:var(--verde);stroke-linecap:round;transition:stroke-dashoffset 1s linear;filter:drop-shadow(0 0 .5vw rgba(52,211,153,.6))}
+  .qr{width:15.5vw;height:15.5vw;border-radius:1.4vw;background:#fff;padding:1.1vw;display:grid;place-items:center}
+  .qr canvas{width:100%;height:100%;image-rendering:pixelated}
+  .qr-tarjeta p{margin:1.2vw 0 0;font-size:1.05vw;color:var(--texto-2)}
+
+  /* Pie: compatibilidad y botones con icono */
+  footer{display:flex;align-items:center;justify-content:space-between}
+  .compat{font-size:.9vw;color:var(--texto-3)}
+  .botones{display:flex;gap:1vw}
+  .boton-ico{position:relative;width:3.6vw;height:3.6vw;border-radius:50%;display:grid;place-items:center;cursor:pointer;
+    background:var(--vidrio);border:1px solid var(--vidrio-borde);color:var(--texto);transition:transform .2s,background .2s,box-shadow .2s}
+  .boton-ico svg{width:1.6vw;height:1.6vw;stroke:currentColor}
+  .boton-ico:focus,.boton-ico:hover{outline:none;transform:scale(1.1);background:rgba(52,211,153,.18);box-shadow:0 0 0 .25vw var(--verde)}
+  .boton-ico .etiqueta{position:absolute;bottom:125%;left:50%;transform:translate(-50%,.4vw);white-space:nowrap;padding:.45vw .9vw;border-radius:.6vw;
+    background:#0F1512;border:1px solid var(--vidrio-borde);font-size:.95vw;font-weight:600;opacity:0;pointer-events:none;transition:.2s}
+  .boton-ico:focus .etiqueta,.boton-ico:hover .etiqueta{opacity:1;transform:translate(-50%,0)}
+
+  /* Confirmacion y perdida (capas) */
+  .capa{position:fixed;inset:0;display:none;place-items:center;background:rgba(4,6,5,.72);backdrop-filter:blur(1.4vw);z-index:5}
+  .capa.ver{display:grid}
+  .dialogo{width:44vw;padding:3vw;border-radius:2.4vw;background:linear-gradient(180deg,#141C17,#0D1310);border:1px solid var(--vidrio-borde);text-align:center;
+    box-shadow:0 4vw 8vw rgba(0,0,0,.6);animation:entra .35s both}
+  .dialogo .grande{width:5vw;height:5vw;margin:0 auto 1.4vw;border-radius:1.4vw;display:grid;place-items:center;background:rgba(52,211,153,.14)}
+  .dialogo .grande svg{width:2.6vw;height:2.6vw;stroke:var(--verde)}
+  .dialogo.alerta .grande{background:rgba(248,113,113,.14)}.dialogo.alerta .grande svg{stroke:#F87171}
+  .dialogo h2{margin:0 0 .8vw;font-size:2.2vw;letter-spacing:-.02em}
+  .dialogo p{margin:0 0 2.2vw;font-size:1.25vw;color:var(--texto-2);line-height:1.5}
+  .dialogo p b{color:var(--texto)}
+  .dialogo .acciones{display:flex;gap:1vw;justify-content:center}
+  .dialogo button{font:700 1.2vw var(--display);padding:1vw 2.2vw;border-radius:99vw;border:1px solid var(--vidrio-borde);background:var(--vidrio);color:var(--texto);cursor:pointer}
+  .dialogo button.primario{background:var(--verde);color:#062016;border-color:transparent}
+  .dialogo button:focus{outline:none;box-shadow:0 0 0 .25vw var(--verde)}
+
+  /* Selector de la maqueta (no va en la pagina real) */
+  .maqueta{position:fixed;top:.8vw;left:50%;transform:translateX(-50%);z-index:9;display:flex;gap:.4vw;padding:.4vw;border-radius:99vw;
+    background:rgba(0,0,0,.55);border:1px dashed rgba(255,255,255,.25);font:600 .85vw var(--display)}
+  .maqueta button{font:inherit;color:#fff;background:none;border:0;padding:.4vw .9vw;border-radius:99vw;cursor:pointer}
+  .maqueta button.on{background:var(--verde);color:#062016}
+
+  @media (prefers-reduced-motion:reduce){.aurora i,.chip .punto{animation:none}}
+  /* Vertical (TV girado o telefono): apilado */
+  @media (orientation:portrait){
+    html,body{overflow:auto}
+    .tv{position:static;min-height:100vh;gap:6vw;padding:6vw 5vw}
+    main{grid-template-columns:1fr;gap:6vw}
+    h1{font-size:9vw}.eyebrow,.paso,.vigencia,.chip,.compat{font-size:3vw}
+    .ficha{width:12vw;height:15vw;font-size:8.5vw;border-radius:2.6vw}
+    .paso .ico{width:7vw;height:7vw}.paso .ico svg{width:4vw;height:4vw}
+    .anillo{width:70vw;height:70vw}.qr{width:45vw;height:45vw}
+    .vigencia .barra{width:50vw}.marca{font-size:4vw}.marca .logo{width:7vw;height:7vw}
+  }
+</style>
+</head>
+<body>
+<div class="aurora"><i></i><i></i><i></i></div>
+<div class="grano"></div>
+
+<nav class="maqueta" aria-label="Estados de la maqueta">
+  <button class="on" data-estado="enlace">Enlace</button>
+  <button data-estado="confirmar">Enlazar otro teléfono</button>
+  <button data-estado="perdido">Teléfono perdido</button>
+  <button data-estado="caido">Servidor caído</button>
+</nav>
+
+<div class="tv">
+  <header>
+    <div class="marca"><div class="logo">♪</div><div>Life Music<small>TV</small></div></div>
+    <div class="chips">
+      <span class="chip" id="chip-servidor"><span class="punto"></span><span id="texto-servidor">Servidor en línea</span></span>
+      <span class="chip">Este TV: completo</span>
+    </div>
+  </header>
+
+  <main>
+    <section>
+      <div class="eyebrow">Enlaza tu teléfono</div>
+      <h1>Tu música,<br><i>en grande.</i></h1>
+      <div class="pasos">
+        <div class="paso"><span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="7" y="2" width="10" height="20" rx="2.5"/><path d="M11 18h2"/></svg></span>Abre <b>Life Music</b> en tu teléfono</div>
+        <div class="paso"><span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 16a6 6 0 0 1 6 6M2 12a10 10 0 0 1 10 10"/><path d="M2 8V6a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2h-6"/></svg></span>Toca transmitir → <b>TV con navegador</b></div>
+        <div class="paso"><span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="6" width="20" height="12" rx="2"/><path d="M6 10h.01M10 10h.01M14 10h.01M18 10h.01M7 14h10"/></svg></span>Escribe este <b>código</b></div>
+      </div>
+      <div class="codigo" aria-label="Código K7P 2XQ">
+        <span class="ficha">K</span><span class="ficha">7</span><span class="ficha">P</span>
+        <span class="separa"></span>
+        <span class="ficha">2</span><span class="ficha">X</span><span class="ficha">Q</span>
+      </div>
+      <div class="vigencia"><span class="barra"><i id="barra-vigencia" style="width:100%"></i></span>Vence en <b id="tiempo">5:00</b> · luego sale otro solo</div>
+    </section>
+
+    <section class="qr-tarjeta">
+      <div class="anillo">
+        <svg class="aro" viewBox="0 0 100 100"><circle class="fondo-aro" cx="50" cy="50" r="47" fill="none" stroke-width="2"/><circle class="aro-vivo" id="aro" cx="50" cy="50" r="47" fill="none" stroke-width="2.4" stroke-dasharray="295.3" stroke-dashoffset="0"/></svg>
+        <div class="qr"><canvas id="qr" width="330" height="330"></canvas></div>
+      </div>
+      <p>O escanéalo con la cámara del teléfono</p>
+    </section>
+  </main>
+
+  <footer>
+    <span class="compat">Este navegador: audio Opus y AAC · video · pantalla completa</span>
+    <div class="botones">
+      <button class="boton-ico" aria-label="Pantalla completa"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg><span class="etiqueta">Pantalla completa</span></button>
+      <button class="boton-ico" aria-label="Enlazar otro teléfono" id="btn-otro"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="2" width="10" height="20" rx="2.5"/><path d="M19 8v6M16 11h6"/></svg><span class="etiqueta">Enlazar otro teléfono</span></button>
+    </div>
+  </footer>
+</div>
+
+<div class="capa" id="capa-confirmar">
+  <div class="dialogo">
+    <div class="grande"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="2" width="10" height="20" rx="2.5"/><path d="M19 8v6M16 11h6"/></svg></div>
+    <h2>¿Enlazar otro teléfono?</h2>
+    <p>Esto desconecta a <b>Galaxy S25 de Camilo</b> y para la música. Después sale un código nuevo.</p>
+    <div class="acciones"><button>Volver</button><button class="primario" autofocus>Sí, desconectar</button></div>
+  </div>
+</div>
+
+<div class="capa" id="capa-perdido">
+  <div class="dialogo alerta">
+    <div class="grande"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 8.8a15 15 0 0 1 20 0M5 12.6a10 10 0 0 1 14 0M8.5 16.4a5 5 0 0 1 7 0M12 20h.01"/><path d="M3 3l18 18"/></svg></div>
+    <h2>Se perdió la conexión con tu teléfono</h2>
+    <p><b>Galaxy S25 de Camilo</b> no responde hace 30 s. La canción termina aquí y no sigue con otra. Si vuelve, seguimos solos.</p>
+    <div class="acciones"><button class="primario">Enlazar otro teléfono</button></div>
+  </div>
+</div>
+
+<script src="../../../web/cast/qrcode.js"></script>
+<script>
+  // QR de verdad, al enlace de siempre
+  try {
+    var q = qrcode(0, "M"); q.addData("https://lifemusic.pages.dev/tv/enlazar?c=K7P2XQ"); q.make();
+    var n = q.getModuleCount(), cv = document.getElementById("qr"), cx = cv.getContext("2d"), t = cv.width / n;
+    cx.fillStyle = "#fff"; cx.fillRect(0, 0, cv.width, cv.height); cx.fillStyle = "#0B0F0D";
+    for (var r = 0; r < n; r++) for (var c = 0; c < n; c++) if (q.isDark(r, c)) cx.fillRect(Math.floor(c * t), Math.floor(r * t), Math.ceil(t), Math.ceil(t));
+  } catch (e) {}
+
+  // Cuenta regresiva de 5 minutos (en la maqueta corre de verdad)
+  var VIDA = 300, quedan = VIDA, LARGO = 295.3;
+  setInterval(function () {
+    quedan = quedan <= 0 ? VIDA : quedan - 1;
+    var m = Math.floor(quedan / 60), s = quedan % 60;
+    document.getElementById("tiempo").textContent = m + ":" + (s < 10 ? "0" : "") + s;
+    document.getElementById("barra-vigencia").style.width = (quedan / VIDA * 100) + "%";
+    document.getElementById("aro").style.strokeDashoffset = LARGO * (1 - quedan / VIDA);
+  }, 1000);
+
+  // Selector de estados de la maqueta
+  var chip = document.getElementById("chip-servidor");
+  document.querySelectorAll(".maqueta button").forEach(function (b) {
+    b.onclick = function () {
+      document.querySelectorAll(".maqueta button").forEach(function (x) { x.className = x === b ? "on" : ""; });
+      var e = b.getAttribute("data-estado");
+      document.getElementById("capa-confirmar").className = "capa" + (e === "confirmar" ? " ver" : "");
+      document.getElementById("capa-perdido").className = "capa" + (e === "perdido" ? " ver" : "");
+      chip.className = "chip" + (e === "caido" ? " mal" : "");
+      document.getElementById("texto-servidor").textContent = e === "caido" ? "Servidor sin respuesta · reintentando" : "Servidor en línea";
+    };
+  });
+</script>
+</body>
+</html>
