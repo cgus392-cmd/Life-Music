@@ -4,8 +4,34 @@
 (function () {
   "use strict";
 
-  var VERSION = "2026-10-08a";
+  var VERSION = "2026-10-09a";
   var NS = "urn:x-cast:com.cglabs.lifemusic";
+
+  // ── Navegadores viejos (1.3.3) ────────────────────────────────────────────
+  // El TV Hisense (VIDAA) trae un Chrome viejo: sin gap en flex (< 84) y, en
+  // los mas viejos, sin grid (< 57). La hoja tiene el respaldo con margenes
+  // bajo html.sin-gap y html.sin-grid. ?compat=viejo los fuerza para probar.
+  (function () {
+    var forzar = /[?&]compat=viejo/.test(location.search);
+    var sinGrid = forzar, sinGap = forzar;
+    if (!sinGrid) {
+      try { sinGrid = !(window.CSS && CSS.supports && CSS.supports("display", "grid")); } catch (e) { sinGrid = true; }
+    }
+    if (!sinGap) {
+      try {
+        var f = document.createElement("div");
+        f.style.cssText = "display:flex;flex-direction:column;row-gap:1px;position:absolute;visibility:hidden";
+        f.appendChild(document.createElement("div"));
+        f.appendChild(document.createElement("div"));
+        document.body.appendChild(f);
+        sinGap = f.scrollHeight !== 1;
+        document.body.removeChild(f);
+      } catch (e) { sinGap = true; }
+    }
+    var raiz = document.documentElement;
+    if (sinGrid) raiz.className += " sin-grid";
+    if (sinGap) raiz.className += " sin-gap";
+  })();
 
   // ── Rendimiento ───────────────────────────────────────────────────────────
   // Los Android TV van desde un Chromecast viejo hasta un Shield: la pagina

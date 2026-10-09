@@ -125,13 +125,20 @@
     });
   }
 
+  /** «Chrome 72» si el navegador lo dice (1.3.3: para saber que tan viejo es). */
+  function motor() {
+    var m = /Chrome\/(\d+)/.exec(navigator.userAgent || "");
+    return m ? "Chrome " + m[1] : "";
+  }
+
   function lineaDeCompatibilidad(c) {
     var partes = [];
+    if (motor()) partes.push(motor());
     partes.push(c.opus ? "audio Opus" : c.aac ? "audio AAC" : "sin audio compatible");
     partes.push(c.webgl ? "cristal GPU" : "cristal 2D");
     if (!c.video) partes.push("paisajes quietos");
     if (!c.hls) partes.push("sin canvas");
-    partes.push("perfil " + c.perfil);
+    partes.push("perfil " + c.perfil + (c.perfil === "completo" ? "" : " (" + c.fps + " fps" + (c.nucleos ? ", " + c.nucleos + " núcleos" : "") + ")"));
     return "Este TV: " + partes.join(" · ");
   }
 
@@ -140,6 +147,7 @@
     var ua = navigator.userAgent || "";
     if (/Web0S|webOS/i.test(ua)) return "TV LG";
     if (/Tizen/i.test(ua)) return "TV Samsung";
+    if (/VIDAA|Hisense/i.test(ua)) return "TV Hisense";
     if (/Android/i.test(ua)) return "TV Android";
     if (/CrKey/i.test(ua)) return "Chromecast";
     if (/Windows|Macintosh|Linux/i.test(ua)) return "Navegador del computador";
@@ -630,13 +638,151 @@
   });
 
   // ── 5. Pantalla completa ──────────────────────────────────────────────────
+  // 1.3.3: el navegador del Hisense tiene la funcion pero no hace nada (ni falla
+  // ni cambia). Si en 1,5 s no paso nada, o el navegador dice que no, se avisa
+  // en pantalla y el boton se va: un boton que no hace nada confunde.
+  var pidioPantalla = 0;
+  function enPantallaCompleta() {
+    return !!(document.fullscreenElement || document.webkitFullscreenElement || document.mozFullScreenElement || document.msFullscreenElement);
+  }
+  function noDejaPantallaCompleta(motivo) {
+    if (!pidioPantalla) return;
+    pidioPantalla = 0;
+    R.diag("pantalla completa: no se pudo" + (motivo ? " (" + motivo + ")" : ""));
+    anotarDiag("pantalla completa: no (" + (motivo || "?") + ")");
+    avisar("Este navegador no deja poner pantalla completa desde la página. Si ves sus barras, búscala en el menú del navegador.");
+    var bp = $("btn-pantalla");
+    if (bp) { bp.style.display = "none"; enfocarPrimero(); }
+  }
   function alternarPantallaCompleta() {
     var d = document.documentElement;
-    var dentro = document.fullscreenElement || document.webkitFullscreenElement || document.mozFullScreenElement || document.msFullscreenElement;
+    var dentro = enPantallaCompleta();
     try {
-      if (dentro) (document.exitFullscreen || document.webkitExitFullscreen || document.mozCancelFullScreen || document.msExitFullscreen).call(document);
-      else (d.requestFullscreen || d.webkitRequestFullscreen || d.webkitRequestFullScreen || d.mozRequestFullScreen || d.msRequestFullscreen).call(d);
-    } catch (e) { R.diag("pantalla completa: " + (e && e.message)); }
+      var r;
+      if (dentro) r = (document.exitFullscreen || document.webkitExitFullscreen || document.mozCancelFullScreen || document.msExitFullscreen).call(document);
+      else {
+        pidioPantalla = Date.now();
+        r = (d.requestFullscreen || d.webkitRequestFullscreen || d.webkitRequestFullScreen || d.mozRequestFullScreen || d.msRequestFullscreen).call(d);
+        setTimeout(function () { if (!enPantallaCompleta()) noDejaPantallaCompleta("sin respuesta"); else pidioPantalla = 0; }, 1500);
+      }
+      if (r && typeof r.then === "function") r.then(null, function (e) { noDejaPantallaCompleta(e && (e.message || e.name)); });
+    } catch (e) { noDejaPantallaCompleta(e && e.message); }
+  }
+  function alCambiarPantalla() { if (enPantallaCompleta()) pidioPantalla = 0; anotarDiag("pantalla completa: " + (enPantallaCompleta() ? "sí" : "no")); }
+  function alFallarPantalla() { noDejaPantallaCompleta("error del navegador"); }
+  var eventosPantalla = ["fullscreenchange", "webkitfullscreenchange", "mozfullscreenchange", "MSFullscreenChange"];
+  var erroresPantalla = ["fullscreenerror", "webkitfullscreenerror", "mozfullscreenerror", "MSFullscreenError"];
+  for (var ep = 0; ep < eventosPantalla.length; ep++) {
+    document.addEventListener(eventosPantalla[ep], alCambiarPantalla);
+    document.addEventListener(erroresPantalla[ep], alFallarPantalla);
+  }
+
+  // Aviso corto abajo al centro (1.3.3).
+  var elAviso = null, relojAviso = null;
+  function avisar(texto) {
+    if (!elAviso) {
+      elAviso = document.createElement("div");
+      elAviso.className = "tv-aviso";
+      elAviso.setAttribute("role", "status");
+      document.body.appendChild(elAviso);
+    }
+    elAviso.textContent = texto;
+    alternarClase(elAviso, "visible", true);
+    clearTimeout(relojAviso);
+    relojAviso = setTimeout(function () { alternarClase(elAviso, "visible", false); }, 7000);
+  }
+
+  // ── 5b. Control remoto (1.3.3) ────────────────────────────────────────────
+  // Hay navegadores de TV que no convierten el OK en un clic sobre el boton con
+  // foco, y casi ninguno mueve el foco con las flechas. Aqui se hace a mano, solo
+  // cuando el foco esta en uno de nuestros botones (para no pelear con el
+  // cursor que algunos navegadores mueven con las flechas).
+  function botonesVisibles() {
+    var capa = $("tv-dialogo"), act = $("activar");
+    var ids = capa && !/oculto/.test(capa.className) ? ["tv-dialogo-no", "tv-dialogo-si"]
+      : act && !/oculto/.test(act.className) ? ["activar-boton"]
+      : ["btn-pantalla", "btn-codigo"];
+    var r = [];
+    for (var i = 0; i < ids.length; i++) {
+      var b = $(ids[i]);
+      if (b && !b.hidden && b.style.display !== "none") r.push(b);
+    }
+    return r;
+  }
+  function enfocarPrimero() {
+    var b = botonesVisibles();
+    if (b.length) { try { b[0].focus(); } catch (e) {} }
+  }
+  function mandosALaVista() {
+    var cls = document.body.className;
+    return /\bmandos\b/.test(cls) || /\benlazando\b/.test(cls) || /\bvacia\b/.test($("escena") ? $("escena").className : "");
+  }
+  function alTeclear(e) {
+    var k = e.keyCode || e.which || 0;
+    anotarDiag("tecla " + (e.key || "?") + " · código " + k + " · foco " + describir(document.activeElement));
+    var botones = botonesVisibles(), foco = document.activeElement, i = -1;
+    for (var j = 0; j < botones.length; j++) if (botones[j] === foco) i = j;
+    if (i < 0) return;
+    var esMando = foco.id === "btn-pantalla" || foco.id === "btn-codigo";
+    var esOK = k === 13 || e.key === "Enter";
+    var esFlecha = k >= 37 && k <= 40;
+    if (!esOK && !esFlecha) return;
+    e.preventDefault();
+    // Con los mandos escondidos, la primera tecla solo los muestra.
+    if (esMando && !mandosALaVista()) return;
+    if (esOK) { foco.click(); return; }
+    var paso = (k === 37 || k === 38) ? -1 : 1;
+    try { botones[(i + paso + botones.length) % botones.length].focus(); } catch (er) {}
+  }
+
+  // ── 5c. Diagnostico en pantalla (?diag=1, 1.3.3) ──────────────────────────
+  // Lo que hace falta saber de un TV nuevo, para fotografiarlo: navegador,
+  // pantalla, que entiende y que teclas manda el control. No sale del TV.
+  var diagActivo = params.diag === "1";
+  var lineasDiag = [];
+  function siNo(b) { return b ? "sí" : "no"; }
+  function describir(el) {
+    if (!el || el === document.body) return "ninguno";
+    return el.id ? "#" + el.id : (el.tagName || "?").toLowerCase();
+  }
+  function apiPantalla() {
+    var d = document.documentElement;
+    return d.requestFullscreen ? "requestFullscreen" : d.webkitRequestFullscreen ? "webkitRequestFullscreen"
+      : d.webkitRequestFullScreen ? "webkitRequestFullScreen" : d.mozRequestFullScreen ? "mozRequestFullScreen"
+      : d.msRequestFullscreen ? "msRequestFullscreen" : "ninguna";
+  }
+  function anotarDiag(t) {
+    if (!diagActivo) return;
+    var d = new Date();
+    lineasDiag.unshift(("0" + d.getMinutes()).slice(-2) + ":" + ("0" + d.getSeconds()).slice(-2) + "  " + t);
+    if (lineasDiag.length > 9) lineasDiag.length = 9;
+    pintarDiag();
+  }
+  function pintarDiag() {
+    if (!diagActivo || !R) return;
+    var el = $("tv-diag");
+    if (!el) { el = document.createElement("pre"); el.id = "tv-diag"; document.body.appendChild(el); }
+    var c = capacidades || {}, raiz = document.documentElement.className;
+    el.textContent = [
+      "Life Music TV · diagnóstico · " + R.version,
+      "Navegador: " + (navigator.userAgent || "?"),
+      "Pantalla: " + window.innerWidth + "×" + window.innerHeight + " @" + (window.devicePixelRatio || 1) + " · screen " + screen.width + "×" + screen.height,
+      "CSS: inset " + siNo(soporta("inset", "0")) + " · gap en flex " + siNo(!/sin-gap/.test(raiz)) + " · grid " + siNo(!/sin-grid/.test(raiz)) +
+        " · variables " + siNo(soporta("--x", "0")) + " · conic " + siNo(soporta("background-image", "conic-gradient(red, blue)")),
+      "Pantalla completa: " + apiPantalla() + " · ahora " + siNo(enPantallaCompleta()) + " · pantalla encendida " + siNo(c.despierta),
+      "Perfil: " + (c.perfil || "…") + " · " + (c.fps || "?") + " fps · núcleos " + (c.nucleos || "?") + " · memoria " + (c.memoriaGb || "?") + " GB",
+      "Audio: Opus " + siNo(c.opus) + " · AAC " + siNo(c.aac) + " · video " + siNo(c.video) + " · WebGL " + siNo(c.webgl),
+      "Foco: " + describir(document.activeElement),
+      "",
+      "Últimos eventos (toca teclas del control y el botón de pantalla completa):",
+    ].concat(lineasDiag).join("\n");
+  }
+  if (diagActivo) {
+    var movidas = 0;
+    document.addEventListener("click", function (e) { anotarDiag("clic en " + describir(e.target)); }, true);
+    document.addEventListener("mousemove", function () { if (++movidas % 25 === 1) anotarDiag("cursor movido (" + movidas + ")"); }, true);
+    document.addEventListener("focus", function () { pintarDiag(); }, true);
+    window.addEventListener("resize", function () { pintarDiag(); });
   }
 
   // ── 6. Pantalla encendida ─────────────────────────────────────────────────
@@ -674,13 +820,17 @@
       clearTimeout(temporizadorMandos);
       temporizadorMandos = setTimeout(function () { document.body.className = document.body.className.replace(/\s*\bmandos\b/g, ""); }, 6000);
     }
+    // alTeclear va antes que mostrarMandos: tiene que ver si los mandos estaban escondidos.
+    document.addEventListener("keydown", alTeclear);
     document.addEventListener("keydown", mostrarMandos);
     document.addEventListener("mousemove", mostrarMandos);
+    pintarDiag();
 
     evaluar(function (c) {
       capacidades = c;
       ponerTexto("enlace-compat", lineaDeCompatibilidad(c));
       R.diag("tv: " + lineaDeCompatibilidad(c) + " · " + c.fps + " fps");
+      pintarDiag();
       if (bp && !c.pantallaCompleta) bp.style.display = "none";
       if (c.perfil !== "completo") R.ligero();
       if (!c.video) R.sinVideo();
@@ -713,7 +863,7 @@
       } else {
         pedirCodigo();
       }
-      if (bp && c.pantallaCompleta) { try { bp.focus(); } catch (e) {} }
+      enfocarPrimero();
     });
   }
 

@@ -25,22 +25,22 @@ cast-media-player { display: none; }
    proposito: un blur de pantalla completa por fotograma era lo mas caro de la
    pagina en un TV flojo, y las luces ya son degradados suaves. */
 #fondo {
-  position: fixed; inset: 0; width: 100vw; height: 100vh;
+  position: fixed; top: 0; right: 0; bottom: 0; left: 0; width: 100vw; height: 100vh;
   image-rendering: auto;
 }
 
-#escena { position: fixed; inset: 0; padding: var(--seguro); }
+#escena { position: fixed; top: 0; right: 0; bottom: 0; left: 0; padding: var(--seguro); }
 
 .marca {
   position: absolute; top: var(--seguro); right: var(--seguro); z-index: 3;
-  display: flex; align-items: center; gap: 0.8vmin;
+  display: flex; align-items: center;
   font-size: 2.1vmin; font-weight: 600; letter-spacing: 0.02em; color: var(--texto-2);
 }
-.marca img { width: 2.8vmin; height: 2.8vmin; border-radius: 0.7vmin; }
+.marca img { width: 2.8vmin; height: 2.8vmin; margin-right: 0.8vmin; border-radius: 0.7vmin; }
 
 /* ── Bienvenida (sin cancion) ─────────────────────────────────────────── */
 #bienvenida {
-  position: absolute; inset: 0;
+  position: absolute; top: 0; right: 0; bottom: 0; left: 0;
   display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1.2vmin;
   text-align: center;
   transition: opacity 700ms var(--suave), transform 700ms var(--suave), visibility 0s linear 700ms;
@@ -51,7 +51,7 @@ cast-media-player { display: none; }
 /* El logo llega primero, con un halo que respira; el texto sube detras. */
 .logo-halo { position: relative; width: 14vmin; height: 14vmin; margin-bottom: 1.6vmin; animation: aparece 900ms var(--suave) both; }
 .logo-halo::before {
-  content: ""; position: absolute; inset: -3vmin; border-radius: 50%;
+  content: ""; position: absolute; top: -3vmin; right: -3vmin; bottom: -3vmin; left: -3vmin; border-radius: 50%;
   background: radial-gradient(circle, rgba(52, 211, 153, 0.35) 0%, rgba(52, 211, 153, 0) 70%);
   animation: respira 3200ms ease-in-out infinite;
 }
@@ -74,8 +74,8 @@ cast-media-player { display: none; }
 
 /* ── Ambiente (con cancion) ───────────────────────────────────────────── */
 #ambiente {
-  position: absolute; inset: var(--seguro);
-  display: grid; grid-template-columns: 40fr 60fr; gap: 6vmin; align-items: center;
+  position: absolute; top: var(--seguro); right: var(--seguro); bottom: var(--seguro); left: var(--seguro);
+  display: grid; grid-template-columns: 40fr 60fr; grid-gap: 6vmin; gap: 6vmin; align-items: center;
   transition: opacity 800ms var(--suave) 150ms, transform 800ms var(--suave) 150ms, visibility 0s linear 950ms;
 }
 #escena.vacia #ambiente { opacity: 0; transform: scale(0.96); visibility: hidden; }
@@ -93,12 +93,12 @@ cast-media-player { display: none; }
 }
 /* Cada caratula nueva entra encima de la anterior y se funde; la vieja se retira despues. */
 #caratula-marco .caratula {
-  position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; display: block;
+  position: absolute; top: 0; right: 0; bottom: 0; left: 0; width: 100%; height: 100%; object-fit: cover; display: block;
   opacity: 1; transform: none;
   transition: opacity 800ms var(--suave), transform 800ms var(--suave);
 }
 #caratula-marco .caratula.entra { opacity: 0; transform: scale(1.06); }
-#canvas { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; opacity: 0; transition: opacity 600ms; pointer-events: none; }
+#canvas { position: absolute; top: 0; right: 0; bottom: 0; left: 0; width: 100%; height: 100%; object-fit: cover; opacity: 0; transition: opacity 600ms; pointer-events: none; }
 #caratula-marco.con-canvas #canvas { opacity: 1; }
 #escena.pausa #caratula-marco { transform: scale(0.96); }
 
@@ -118,7 +118,7 @@ cast-media-player { display: none; }
 
 /* Letra: la linea viva al centro, las demas se desvanecen hacia arriba y abajo. */
 #derecha { position: relative; height: 84vh; min-width: 0; }
-#letra-ventana { position: absolute; inset: 0; overflow: hidden;
+#letra-ventana { position: absolute; top: 0; right: 0; bottom: 0; left: 0; overflow: hidden;
   -webkit-mask-image: linear-gradient(to bottom, transparent 0, #000 22%, #000 78%, transparent 100%);
   mask-image: linear-gradient(to bottom, transparent 0, #000 22%, #000 78%, transparent 100%); }
 /* Los paneles de vidrio solo existen en el tema Cristal. */
@@ -149,7 +149,7 @@ cast-media-player { display: none; }
 
 /* ── Saludo de entrada (el de la app, al conectar el telefono) ─────────── */
 #saludo-pantalla {
-  position: fixed; inset: 0; z-index: 5;
+  position: fixed; top: 0; right: 0; bottom: 0; left: 0; z-index: 5;
   display: flex; flex-direction: column; align-items: center; justify-content: center;
   text-align: center; padding: 0 12vmin;
   background: radial-gradient(ellipse at 50% 42%, rgba(52, 211, 153, 0.18) 0%, rgba(52, 211, 153, 0) 60%), rgba(3, 5, 4, 0.9);
@@ -180,7 +180,7 @@ cast-media-player { display: none; }
    hilo de color en las orillas. El fondo refractado no es backdrop-filter
    (carisimo en un Chromecast): lo pinta receptor.js en el <canvas.vidrio>
    de cada panel a partir del lienzo del fondo, que es nuestro. */
-body.tema-cristal #ambiente { gap: 4vmin; }
+body.tema-cristal #ambiente { grid-gap: 4vmin; gap: 4vmin; }
 body.tema-cristal #izquierda,
 body.tema-cristal #derecha {
   --radio-vidrio: 4.2vmin;
@@ -194,7 +194,7 @@ body.tema-cristal #derecha {
   isolation: isolate;
 }
 body.tema-cristal .vidrio {
-  display: block; position: absolute; inset: 0; width: 100%; height: 100%;
+  display: block; position: absolute; top: 0; right: 0; bottom: 0; left: 0; width: 100%; height: 100%;
   border-radius: var(--radio-vidrio); z-index: -1;
 }
 /* El canto de luz: un borde que brilla fuerte en la esquina de arriba a la
@@ -203,7 +203,7 @@ body.tema-cristal .vidrio {
    reflejo difuso de la superficie lo pinta receptor.js dentro del vidrio. */
 body.tema-cristal #izquierda::before,
 body.tema-cristal #derecha::before {
-  content: ""; position: absolute; inset: 0; border-radius: var(--radio-vidrio); pointer-events: none;
+  content: ""; position: absolute; top: 0; right: 0; bottom: 0; left: 0; border-radius: var(--radio-vidrio); pointer-events: none;
   padding: 1.5px;
   background: linear-gradient(135deg, rgba(255, 255, 255, 0.75) 0%, rgba(255, 255, 255, 0.10) 28%, rgba(255, 255, 255, 0.04) 55%, rgba(255, 255, 255, 0.38) 100%);
   -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
@@ -213,7 +213,7 @@ body.tema-cristal #derecha::before {
 /* Aberracion cromatica: rojo y cian desplazados en las orillas, muy sutil. */
 body.tema-cristal.aberracion #izquierda::after,
 body.tema-cristal.aberracion #derecha::after {
-  content: ""; position: absolute; inset: 0; border-radius: var(--radio-vidrio); pointer-events: none;
+  content: ""; position: absolute; top: 0; right: 0; bottom: 0; left: 0; border-radius: var(--radio-vidrio); pointer-events: none;
   box-shadow: inset 2px 1px 1px -1px rgba(255, 90, 110, 0.45), inset -2px -1px 1px -1px rgba(80, 210, 255, 0.45);
 }
 body.tema-cristal.sin-profundidad #izquierda,
@@ -224,7 +224,7 @@ body.tema-cristal #izquierda { padding: 3.2vmin; }
 body.tema-cristal #caratula-marco { width: 46vmin; height: 46vmin; border-radius: 2.6vmin; box-shadow: 0 1.6vmin 4vmin rgba(0, 0, 0, 0.35); }
 body.tema-cristal #titulo, body.tema-cristal #artista, body.tema-cristal #progreso { max-width: 46vmin; }
 body.tema-cristal #progreso { width: 46vmin; }
-body.tema-cristal #letra-ventana { inset: 2vmin 3.6vmin; }
+body.tema-cristal #letra-ventana { top: 2vmin; right: 3.6vmin; bottom: 2vmin; left: 3.6vmin; }
 body.tema-cristal #letra .linea { text-shadow: 0 0.2vmin 1.2vmin rgba(0, 0, 0, 0.25); }
 
 /* ── Escenario ───────────────────────────────────────────────────────────
@@ -232,7 +232,7 @@ body.tema-cristal #letra .linea { text-shadow: 0 0.2vmin 1.2vmin rgba(0, 0, 0, 0
    siguiente, pequena debajo; la cancion en una esquina. El fondo golpea
    mas fuerte y hay un destello en cada beat (receptor.js). */
 #escenario {
-  position: absolute; inset: var(--seguro); display: none;
+  position: absolute; top: var(--seguro); right: var(--seguro); bottom: var(--seguro); left: var(--seguro); display: none;
   flex-direction: column; align-items: center; justify-content: center; text-align: center;
   transition: opacity 800ms var(--suave) 150ms, transform 800ms var(--suave) 150ms, visibility 0s linear 950ms;
 }
@@ -262,11 +262,11 @@ body.tema-escenario #escenario { display: flex; }
 }
 #esc-info {
   position: absolute; left: 0; bottom: 0;
-  display: flex; align-items: center; gap: 2vmin; max-width: 46vw;
+  display: flex; align-items: center; max-width: 46vw;
   padding: 1.4vmin 2.4vmin 1.4vmin 1.4vmin; border-radius: 2.6vmin; text-align: left;
   background: rgba(0, 0, 0, 0.28); box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.10);
 }
-#esc-caratula { width: 10vmin; height: 10vmin; border-radius: 1.6vmin; object-fit: cover; background: #111; flex: none; }
+#esc-caratula { margin-right: 2vmin; width: 10vmin; height: 10vmin; border-radius: 1.6vmin; object-fit: cover; background: #111; flex: none; }
 #esc-textos { min-width: 0; }
 #esc-titulo { font-size: 2.8vmin; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 #esc-artista { font-size: 2.2vmin; color: var(--texto-2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
@@ -274,7 +274,7 @@ body.tema-escenario #escenario { display: flex; }
 #esc-barra { width: 0; height: 100%; background: var(--texto); transition: width 400ms linear; }
 
 #destello {
-  position: fixed; inset: 0; pointer-events: none; opacity: 0;
+  position: fixed; top: 0; right: 0; bottom: 0; left: 0; pointer-events: none; opacity: 0;
   background: radial-gradient(ellipse at 50% 45%, rgba(255, 255, 255, 0.55) 0%, rgba(255, 255, 255, 0) 65%);
 }
 body:not(.tema-escenario) #destello { display: none; }
@@ -286,7 +286,7 @@ body.ligero .esc-linea .p.dicha, body.ligero .esc-linea.sin-palabras, body.liger
    Con WebGL, el lienzo dibuja la caratula, las luces y el vidrio con su
    refraccion, canto y sombra: los paneles HTML quedan transparentes y solo
    llevan el contenido. Sin WebGL se queda el vidrio 2D de arriba. */
-#fondo-cristal { position: fixed; inset: 0; width: 100vw; height: 100vh; opacity: 0; pointer-events: none; transition: opacity 500ms var(--suave); }
+#fondo-cristal { position: fixed; top: 0; right: 0; bottom: 0; left: 0; width: 100vw; height: 100vh; opacity: 0; pointer-events: none; transition: opacity 500ms var(--suave); }
 body.tema-cristal.gl.con-cancion #fondo-cristal { opacity: 1; }
 body.tema-cristal.gl .vidrio { display: none; }
 body.tema-cristal.gl #izquierda, body.tema-cristal.gl #derecha { box-shadow: none; }
@@ -303,7 +303,7 @@ body.tema-vinilo { --texto: #F4E9D8; --texto-2: rgba(244, 233, 216, 0.62); --tex
 body.tema-vinilo #caratula-marco { display: none; }
 body.tema-vinilo #vinilo { display: block; position: relative; width: 56vmin; height: 56vmin; margin: 0 4vmin 1vmin 0; }
 #disco {
-  position: absolute; inset: 0; border-radius: 50%;
+  position: absolute; top: 0; right: 0; bottom: 0; left: 0; border-radius: 50%;
   background:
     radial-gradient(circle closest-side, rgba(0, 0, 0, 0) 0 38%, rgba(255, 255, 255, 0.06) 38.5% 39%, rgba(0, 0, 0, 0) 39.5% 97%, rgba(255, 255, 255, 0.05) 97.5% 98%, rgba(0, 0, 0, 0) 98.5%),
     repeating-radial-gradient(circle closest-side, #0c0c0d 0 0.55%, #19191b 0.55% 1.1%);
@@ -313,7 +313,7 @@ body.tema-vinilo #vinilo { display: block; position: relative; width: 56vmin; he
 #etiqueta { position: absolute; left: 32%; top: 32%; width: 36%; height: 36%; border-radius: 50%; object-fit: cover; background: #3a2a1a; }
 #disco .eje { position: absolute; left: 48.9%; top: 48.9%; width: 2.2%; height: 2.2%; border-radius: 50%; background: #d8d8d8; box-shadow: 0 0 0 0.25vmin rgba(0, 0, 0, 0.45); }
 #brillo-disco {
-  position: absolute; inset: 0; border-radius: 50%; pointer-events: none;
+  position: absolute; top: 0; right: 0; bottom: 0; left: 0; border-radius: 50%; pointer-events: none;
   background: conic-gradient(from 25deg, rgba(255, 255, 255, 0) 0deg, rgba(255, 255, 255, 0.11) 28deg, rgba(255, 255, 255, 0) 64deg, rgba(255, 255, 255, 0) 190deg, rgba(255, 255, 255, 0.08) 222deg, rgba(255, 255, 255, 0) 256deg);
   -webkit-mask: radial-gradient(circle closest-side, transparent 0 37%, #000 38%);
   mask: radial-gradient(circle closest-side, transparent 0 37%, #000 38%);
@@ -335,7 +335,7 @@ body.tema-vinilo #titulo { font-family: "Noto Serif", Georgia, "Times New Roman"
 body.tema-vinilo #artista { font-style: italic; }
 body.tema-vinilo #letra .linea { font-family: "Noto Serif", Georgia, "Times New Roman", serif; font-weight: 600; letter-spacing: 0; }
 body.tema-vinilo #vinilo-grano {
-  display: block; position: fixed; inset: 0; pointer-events: none;
+  display: block; position: fixed; top: 0; right: 0; bottom: 0; left: 0; pointer-events: none;
   background:
     radial-gradient(ellipse at 50% 50%, rgba(0, 0, 0, 0) 40%, rgba(0, 0, 0, 0.55) 100%),
     linear-gradient(rgba(255, 150, 60, 0.07), rgba(255, 150, 60, 0.07)),
@@ -346,7 +346,7 @@ body.tema-vinilo #vinilo-grano {
    Como un cuadro en la pared: la caratula flotando despacio, el titulo fino
    y una sola linea de letra, sobre la misma caratula difuminada a pantalla
    completa. Sin luces animadas: es el tema mas liviano. */
-#galeria-fondo { position: fixed; inset: 0; display: none; overflow: hidden; }
+#galeria-fondo { position: fixed; top: 0; right: 0; bottom: 0; left: 0; display: none; overflow: hidden; }
 body.tema-galeria #galeria-fondo { display: block; }
 body.tema-galeria #fondo, body.tema-nocturno #fondo { visibility: hidden; }
 #galeria-fondo .gf {
@@ -356,7 +356,7 @@ body.tema-galeria #fondo, body.tema-nocturno #fondo { visibility: hidden; }
 }
 #galeria-fondo .gf.visible { opacity: 1; }
 #galeria, #nocturno {
-  position: absolute; inset: var(--seguro); display: none;
+  position: absolute; top: var(--seguro); right: var(--seguro); bottom: var(--seguro); left: var(--seguro); display: none;
   flex-direction: column; align-items: center; justify-content: center; text-align: center;
   transition: opacity 800ms var(--suave) 150ms, visibility 0s linear 950ms;
 }
@@ -394,17 +394,17 @@ body.tema-nocturno .marca { visibility: hidden; }
    Un video real a pantalla completa (receptor.js funde dos copias en el
    empalme). Se amplia un poco para que no se vean los bordes del clip, y
    una sombra abajo deja leer la cancion sin tapar el paisaje. */
-#paisaje { position: fixed; inset: 0; display: none; overflow: hidden; background: #000; }
+#paisaje { position: fixed; top: 0; right: 0; bottom: 0; left: 0; display: none; overflow: hidden; background: #000; }
 body.tema-atardecer #paisaje { display: block; }
 body.tema-atardecer #fondo { visibility: hidden; }
 #paisaje .pj {
-  position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover;
+  position: absolute; top: 0; right: 0; bottom: 0; left: 0; width: 100%; height: 100%; object-fit: cover;
   transform-origin: 50% 45%; /* el zoom de cada clip lo pone receptor.js */
   opacity: 0; transition: opacity 1600ms linear;
 }
 #paisaje .pj.visible { opacity: 1; }
 #paisaje .pj-sombra {
-  position: absolute; inset: 0; z-index: 3; pointer-events: none;
+  position: absolute; top: 0; right: 0; bottom: 0; left: 0; z-index: 3; pointer-events: none;
   background:
     linear-gradient(to top, rgba(0, 0, 0, 0.74) 0%, rgba(0, 0, 0, 0.42) 24%, rgba(0, 0, 0, 0) 52%),
     linear-gradient(to bottom, rgba(0, 0, 0, 0.28) 0%, rgba(0, 0, 0, 0) 16%);
@@ -415,7 +415,7 @@ body.tema-atardecer #fondo { visibility: hidden; }
    caratula, el titulo y el artista; debajo, la barra a todo lo ancho con
    los tiempos; encima, la linea de letra que suena. */
 #atardecer {
-  position: absolute; inset: var(--seguro); padding: 0 2vmin 1vmin; display: none;
+  position: absolute; top: var(--seguro); right: var(--seguro); bottom: var(--seguro); left: var(--seguro); padding: 0 2vmin 1vmin; display: none;
   flex-direction: column; justify-content: flex-end;
   transition: opacity 900ms var(--suave) 150ms, visibility 0s linear 1050ms;
   text-shadow: 0 0.3vmin 2.4vmin rgba(0, 0, 0, 0.45);
@@ -430,9 +430,9 @@ body.tema-atardecer #atardecer { display: flex; }
   transition: opacity 380ms ease;
 }
 #atd-linea.cambia { opacity: 0; }
-#atd-info { display: flex; align-items: center; gap: 2.6vmin; }
+#atd-info { display: flex; align-items: center; }
 #atd-caratula {
-  width: 12vmin; height: 12vmin; flex: none; border-radius: 1.1vmin; object-fit: cover; background: rgba(255, 255, 255, 0.08);
+  width: 12vmin; height: 12vmin; margin-right: 2.6vmin; flex: none; border-radius: 1.1vmin; object-fit: cover; background: rgba(255, 255, 255, 0.08);
   box-shadow: 0 1.2vmin 4vmin rgba(0, 0, 0, 0.5);
 }
 #atd-textos { min-width: 0; }
@@ -441,10 +441,10 @@ body.tema-atardecer #atardecer { display: flex; }
   white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
 }
 #atd-artista { margin-top: 0.7vmin; font-size: 2.6vmin; font-weight: 500; color: rgba(255, 246, 236, 0.74); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-#atd-fila { display: flex; align-items: center; gap: 2vmin; margin-top: 3.4vmin; font-size: 1.9vmin; font-weight: 500; color: rgba(255, 246, 236, 0.78); font-variant-numeric: tabular-nums; }
+#atd-fila { display: flex; align-items: center; margin-top: 3.4vmin; font-size: 1.9vmin; font-weight: 500; color: rgba(255, 246, 236, 0.78); font-variant-numeric: tabular-nums; }
 #atd-tiempo, #atd-duracion { min-width: 5vmin; }
 #atd-duracion { text-align: right; }
-#atd-progreso { flex: 1; height: 0.55vmin; border-radius: 0.3vmin; background: rgba(255, 255, 255, 0.24); overflow: hidden; }
+#atd-progreso { flex: 1; margin: 0 2vmin; height: 0.55vmin; border-radius: 0.3vmin; background: rgba(255, 255, 255, 0.24); overflow: hidden; }
 #atd-barra { width: 0%; height: 100%; border-radius: inherit; background: rgba(255, 250, 244, 0.94); transition: width 260ms linear; }
 #escena.pausa #atd-fila { opacity: 0.55; }
 
@@ -453,7 +453,7 @@ body.tema-atardecer #atardecer { display: flex; }
    para cubrir la pantalla (receptor.js). La caratula es un circulo que gira
    dentro de #td-etiqueta, aplanado a la elipse medida en la foto; encima, la
    luz del papel multiplicada y el eje por delante. */
-#tocadiscos { position: fixed; inset: 0; display: none; overflow: hidden; background: #0b0705; }
+#tocadiscos { position: fixed; top: 0; right: 0; bottom: 0; left: 0; display: none; overflow: hidden; background: #0b0705; }
 body.tema-tocadiscos #tocadiscos { display: block; }
 body.tema-tocadiscos #fondo { visibility: hidden; }
 #td-marco { position: absolute; left: 50%; top: 50%; transform-origin: 50% 50%; opacity: 0; transition: opacity 1200ms ease; }
@@ -472,14 +472,14 @@ body.tema-tocadiscos #fondo { visibility: hidden; }
   position: absolute; border-radius: 50%; mix-blend-mode: screen; opacity: 0.25; pointer-events: none;
   background: radial-gradient(circle, rgba(255, 176, 92, 0.55) 0%, rgba(255, 150, 70, 0.18) 45%, rgba(255, 140, 60, 0) 70%);
 }
-#td-polvo { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; }
+#td-polvo { position: absolute; top: 0; right: 0; bottom: 0; left: 0; width: 100%; height: 100%; pointer-events: none; }
 #tocadiscos .td-sombra {
-  position: absolute; inset: 0; pointer-events: none;
+  position: absolute; top: 0; right: 0; bottom: 0; left: 0; pointer-events: none;
   background: linear-gradient(to left, rgba(8, 4, 2, 0.55) 0%, rgba(8, 4, 2, 0.25) 30%, rgba(8, 4, 2, 0) 46%);
 }
 
 body.tema-tocadiscos #ambiente { display: none; }
-#td-ui { position: absolute; inset: var(--seguro); display: none; transition: opacity 900ms var(--suave) 150ms, visibility 0s linear 1050ms; }
+#td-ui { position: absolute; top: var(--seguro); right: var(--seguro); bottom: var(--seguro); left: var(--seguro); display: none; transition: opacity 900ms var(--suave) 150ms, visibility 0s linear 1050ms; }
 body.tema-tocadiscos #td-ui { display: block; }
 #escena.vacia #td-ui { opacity: 0; visibility: hidden; }
 #escena.con-cancion #td-ui { opacity: 1; visibility: visible; transition-delay: 0s; }
@@ -507,6 +507,29 @@ body.tema-tocadiscos #td-ui { display: block; }
 #td-progreso { margin-top: 1.4vmin; margin-left: auto; width: 100%; height: 0.45vmin; border-radius: 0.3vmin; background: rgba(255, 236, 210, 0.2); overflow: hidden; }
 #td-barra { width: 0%; height: 100%; background: rgba(255, 228, 190, 0.9); transition: width 260ms linear; }
 #escena.pausa #td-progreso { opacity: 0.5; }
+
+/* ── Navegadores viejos (1.3.3) ──────────────────────────────────────────
+   El navegador del TV Hisense (VIDAA) es un Chrome viejo: no entendia inset
+   (por eso esta hoja ya no lo usa: top/right/bottom/left) ni gap en flex
+   (Chrome < 84). receptor.js lo detecta y pone html.sin-gap (y html.sin-grid
+   si tampoco hay grid, Chrome < 57); aqui van los mismos espacios con
+   margenes. Con ?compat=viejo se fuerzan las dos para probar en un PC. */
+.sin-gap #bienvenida > * + * { margin-top: 1.2vmin; }
+.sin-gap #bienvenida .saludo-estado { margin-top: 2.6vmin; }
+.sin-gap #titulo { margin-top: 2.6vmin; }
+.sin-gap #artista { margin-top: 1.6vmin; }
+.sin-gap #progreso { margin-top: 2.2vmin; }
+.sin-grid #ambiente { display: -webkit-flex; display: flex; -webkit-align-items: center; align-items: center; gap: 0; }
+.sin-grid #izquierda { -webkit-flex: 40 1 0%; flex: 40 1 0%; margin-right: 6vmin; }
+.sin-grid #derecha { -webkit-flex: 60 1 0%; flex: 60 1 0%; }
+.sin-grid body.tema-cristal #izquierda { margin-right: 4vmin; }
+.sin-grid #escena.sin-letra #ambiente { -webkit-justify-content: center; justify-content: center; }
+.sin-grid #escena.sin-letra #izquierda { -webkit-flex: none; flex: none; margin-right: 0; }
+@media (orientation: portrait) {
+  .sin-grid #ambiente { -webkit-flex-direction: column; flex-direction: column; }
+  .sin-grid #izquierda { -webkit-flex: none; flex: none; width: 100%; margin: 0 0 6vmin; }
+  .sin-grid #derecha { width: 100%; }
+}
 
 /* ── TV con navegador (lifemusic.pages.dev/tv): enlace por codigo o QR ──────
    Diseno 1.3.2 (maqueta aprobada por CG): aurora verde menta, el codigo en
@@ -633,6 +656,24 @@ body.modo-tv #escena.vacia ~ #mandos-tv, body.modo-tv.mandos #mandos-tv, body.mo
 }
 .boton-ico:focus .etiqueta, .boton-ico:hover .etiqueta { opacity: 1; }
 #activar-boton:focus { outline: 0.5vmin solid #34D399; outline-offset: 0.4vmin; }
+
+/* Aviso corto abajo al centro (1.3.3): p. ej., si el navegador no deja pantalla completa. */
+.tv-aviso {
+  position: fixed; left: 50%; bottom: 7vmin; z-index: 50; max-width: 80vw;
+  -webkit-transform: translateX(-50%); transform: translateX(-50%);
+  padding: 1.6vmin 3vmin; border-radius: 10vmin; text-align: center;
+  font-size: 2.2vmin; font-weight: 600; color: #F2F5F3; background: #0F1512; border: 1px solid rgba(255, 255, 255, 0.16);
+  box-shadow: 0 2vmin 5vmin rgba(0, 0, 0, 0.5);
+  opacity: 0; transition: opacity 300ms ease; pointer-events: none;
+}
+.tv-aviso.visible { opacity: 1; }
+/* Diagnostico en pantalla (?diag=1): para fotografiarlo; no sale nada del TV. */
+#tv-diag {
+  position: fixed; top: 3vmin; left: 3vmin; z-index: 60; max-width: 72vw; max-height: 92vh; overflow: hidden;
+  padding: 2vmin 2.4vmin; border-radius: 1.6vmin;
+  font-family: monospace; font-size: 1.8vmin; line-height: 1.45; color: #E6F4EC; white-space: pre-wrap; word-wrap: break-word;
+  background: rgba(0, 0, 0, 0.9); border: 1px solid rgba(52, 211, 153, 0.5);
+}
 
 /* Dialogos del TV (1.3.2) */
 .tv-capa {
