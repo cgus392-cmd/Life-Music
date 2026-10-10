@@ -16,6 +16,12 @@ Son 5, el máximo de la regla de 3 a 5.
 | 4 | Guardar para túneles (precarga) | 26 | [precarga.md](precarga.md) |
 | 5 | Life Line en el carro | 32 (nueva) | [life-line.md](life-line.md) |
 
+**Cambio del 10-10 (tarde):** CG pidió el **ecualizador serio** (idea 20, [ecualizador.md](ecualizador.md)) y está hecho
+(commit `c5a7e25a`). Con él serían 6 funciones. Recomendación para seguir en 5: **la cuenta de YouTube Music (22) pasa
+a la 0.4.0**, porque es la de más riesgo y no se ha empezado. **CG lo confirmó el mismo día.**
+
+**La 0.3.0 queda cerrada en 5:** Life Line, volante, reanudar al encender, ecualizador y guardar para túneles.
+
 **Se pasan a la siguiente versión:** la 24 (descargas automáticas con Wi-Fi) y la 25 (ahorro de datos).
 **Sigue por confirmar:** la 6 (latido).
 
