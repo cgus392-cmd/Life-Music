@@ -175,4 +175,26 @@
     <string name="carro_diagnostico_vacio">Todavía no hay nada anotado</string>
     <string name="carro_bitacora_arranque">Abierta · %1$s · Android %2$s · %3$s · navegador interno %4$s</string>
     <string name="carro_bitacora_tecla">Botón %1$s (%2$d) %3$s</string>
+
+    <!-- Reanudar al encender -->
+    <string name="carro_al_encender">Al encender el carro</string>
+    <string name="carro_al_encender_seguir">Seguir sonando</string>
+    <string name="carro_al_encender_abrir">Solo abrir</string>
+    <string name="carro_al_encender_nada">Nada</string>
+    <string name="carro_al_encender_seguir_texto">La app se abre sola y la canción sigue donde iba, subiendo suave. Si la habías pausado, no suena</string>
+    <string name="carro_al_encender_abrir_texto">La app se abre sola, sin sonar</string>
+    <string name="carro_al_encender_nada_texto">No hace nada al encender</string>
+    <string name="carro_fuente_pantalla">pantalla</string>
+    <string name="carro_bitacora_sonaba">sonaba</string>
+    <string name="carro_bitacora_en_pausa">estaba en pausa</string>
+    <string name="carro_bitacora_arranque_radio">Arranque del radio · al apagar %1$s</string>
+    <string name="carro_bitacora_apagado">Apagado (%1$s) · %2$s</string>
+    <string name="carro_bitacora_encendido">Encendido (%1$s) tras %2$d s</string>
+    <string name="carro_bitacora_reanudado">Reanudado: %1$s</string>
+    <string name="carro_bitacora_no_reanudo">No se reanudó: %1$s</string>
+    <string name="carro_motivo_pausa">estaba en pausa al apagar</string>
+    <string name="carro_motivo_cola_vacia">la cola estaba vacía</string>
+    <string name="carro_motivo_ya_sonaba">ya estaba sonando</string>
+    <string name="carro_motivo_llamada">había una llamada</string>
+    <string name="carro_motivo_otra_musica">había otra música sonando</string>
 </resources>

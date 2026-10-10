@@ -134,6 +134,8 @@ private fun ListaDeAjustes(alProbarBotones: () -> Unit, alAbrirDiagnostico: () -
             HorizontalDivider(color = Color.White.copy(alpha = 0.08f), modifier = Modifier.padding(horizontal = 20.dp))
             FilaCanvas()
             HorizontalDivider(color = Color.White.copy(alpha = 0.08f), modifier = Modifier.padding(horizontal = 20.dp))
+            FilaAlEncender()
+            HorizontalDivider(color = Color.White.copy(alpha = 0.08f), modifier = Modifier.padding(horizontal = 20.dp))
             FilaConBoton(
                 icono = R.drawable.radio,
                 titulo = stringResource(R.string.carro_volante),
@@ -160,6 +162,23 @@ private fun ListaDeAjustes(alProbarBotones: () -> Unit, alAbrirDiagnostico: () -
             Spacer(Modifier.width(12.dp))
             BotonPildora(R.drawable.bug_report, stringResource(R.string.carro_diagnostico), alAbrirDiagnostico)
         }
+    }
+}
+
+/** Que hace la app al encender el carro: seguir sonando (de fabrica), solo abrirse o nada. */
+@Composable
+private fun FilaAlEncender() {
+    val (modo, alCambiar) = rememberEnumPreference(CarroAlEncenderKey, defaultValue = AlEncender.SEGUIR_SONANDO)
+    Column(Modifier.fillMaxWidth().padding(horizontal = 20.dp, vertical = 16.dp)) {
+        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(18.dp)) {
+            Icon(painterResource(R.drawable.play), contentDescription = null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(28.dp))
+            Column(Modifier.weight(1f)) {
+                Text(stringResource(R.string.carro_al_encender), style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.SemiBold)
+                Text(stringResource(modo.detalle), style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            }
+        }
+        Spacer(Modifier.size(12.dp))
+        Pastillas(AlEncender.entries, modo, { stringResource(it.titulo) }, alCambiar)
     }
 }
 
