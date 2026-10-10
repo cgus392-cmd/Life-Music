@@ -27,6 +27,8 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.media3.common.Player
@@ -149,6 +151,8 @@ fun LifeLineVoiceRow(
     canOpenLyrics: Boolean,
     onOpenLyrics: () -> Unit,
     modifier: Modifier = Modifier,
+    tamano: TextUnit = 14.sp,
+    altoMinimo: Dp = 32.dp,
 ) {
     val frases = frasesDe(voz)
     if (frases.isEmpty()) return
@@ -163,6 +167,36 @@ fun LifeLineVoiceRow(
     }
     val frase = stringResource(elegida)
 
+    // Un aviso —se cayo la red, esto no se pudo reproducir— tiene que leerse a
+    // la primera, asi que no respira ni se apaga.
+    FraseLifeLine(
+        frase = frase,
+        esAviso = voz == LifeLineVoz.ERROR || voz == LifeLineVoz.SIN_RED,
+        baseColor = baseColor,
+        canOpenLyrics = canOpenLyrics,
+        onOpenLyrics = onOpenLyrics,
+        modifier = modifier,
+        tamano = tamano,
+        altoMinimo = altoMinimo,
+    )
+}
+
+/**
+ * Como se dice una frase de la app, la pida quien la pida: la voz del telefono
+ * o las voces de carretera del carro. Respira despacio; un aviso va quieto y en
+ * el color de error.
+ */
+@Composable
+internal fun FraseLifeLine(
+    frase: String,
+    esAviso: Boolean,
+    baseColor: Color,
+    canOpenLyrics: Boolean,
+    onOpenLyrics: () -> Unit,
+    modifier: Modifier = Modifier,
+    tamano: TextUnit = 14.sp,
+    altoMinimo: Dp = 32.dp,
+) {
     val respiracion = rememberInfiniteTransition(label = "lifeLineVozRespira")
     val alfa by respiracion.animateFloat(
         initialValue = 0.42f,
@@ -174,16 +208,13 @@ fun LifeLineVoiceRow(
         label = "lifeLineVozAlfa",
     )
 
-    // Un aviso —se cayo la red, esto no se pudo reproducir— tiene que leerse a
-    // la primera, asi que no respira ni se apaga.
-    val esAviso = voz == LifeLineVoz.ERROR || voz == LifeLineVoz.SIN_RED
     val color = if (esAviso) {
         MaterialTheme.colorScheme.error
     } else {
         baseColor.copy(alpha = alfa)
     }
 
-    FilaLifeLine(onClick = onOpenLyrics, modifier = modifier) {
+    FilaLifeLine(onClick = onOpenLyrics, modifier = modifier, altoMinimo = altoMinimo) {
         AnimatedContent(
             targetState = frase,
             transitionSpec = { fadeIn(tween(420)).togetherWith(fadeOut(tween(320))) },
@@ -192,7 +223,7 @@ fun LifeLineVoiceRow(
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Text(
                     text = texto,
-                    fontSize = 14.sp,
+                    fontSize = tamano,
                     fontWeight = FontWeight.Normal,
                     color = color,
                     maxLines = 1,
@@ -209,7 +240,7 @@ fun LifeLineVoiceRow(
                         tint = baseColor.copy(alpha = 0.45f),
                         modifier = Modifier
                             .padding(start = 6.dp)
-                            .size(14.dp),
+                            .size(tamano.value.dp),
                     )
                 }
             }

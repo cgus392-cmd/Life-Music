@@ -140,4 +140,10 @@
     <string name="carro_canvas_siempre_texto">Loads whenever there is internet, after the song. Uses more data</string>
     <string name="carro_canvas_nunca_texto">Just the cover</string>
     <string name="carro_canvas_ligero">Your radio runs Light: automatic mode doesn\'t load it</string>
+
+    <!-- Life Line en el carro -->
+    <string name="carro_ajuste_life_line_texto">One line of the lyrics under the artist. Without lyrics, the app tells you what\'s going on</string>
+    <string name="carro_voz_retomando">Picking up where you left off</string>
+    <string name="carro_voz_guardada">The next one is already saved</string>
+    <string name="carro_voz_de_lo_guardado">No signal: playing what\'s saved</string>
 </resources>
