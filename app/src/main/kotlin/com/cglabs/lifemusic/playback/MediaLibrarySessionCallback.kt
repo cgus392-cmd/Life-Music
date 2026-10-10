@@ -4,9 +4,12 @@ package com.cglabs.lifemusic.playback
 
 import android.content.ContentResolver
 import android.content.Context
+import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
+import android.view.KeyEvent
 import androidx.annotation.DrawableRes
+import androidx.core.content.IntentCompat
 import androidx.core.net.toUri
 import androidx.media3.common.C
 import androidx.media3.common.MediaItem
@@ -69,6 +72,28 @@ constructor(
     var toggleLike: () -> Unit = {}
     var toggleStartRadio: () -> Unit = {}
     var toggleLibrary: () -> Unit = {}
+
+    companion object {
+        /**
+         * Quien quiera enterarse de las teclas de medios que llegan a la sesion
+         * (auriculares, el volante de un carro). Solo escucha: lo que hace la
+         * tecla lo sigue decidiendo Media3. Lo usa el probador de botones del
+         * carro; en el telefono queda en null.
+         */
+        @Volatile
+        var alBotonDeMedios: ((KeyEvent) -> Unit)? = null
+    }
+
+    override fun onMediaButtonEvent(
+        session: MediaSession,
+        controllerInfo: MediaSession.ControllerInfo,
+        intent: Intent,
+    ): Boolean {
+        alBotonDeMedios?.let { aviso ->
+            IntentCompat.getParcelableExtra(intent, Intent.EXTRA_KEY_EVENT, KeyEvent::class.java)?.let(aviso)
+        }
+        return super.onMediaButtonEvent(session, controllerInfo, intent)
+    }
 
     override fun onConnect(
         session: MediaSession,

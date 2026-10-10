@@ -5,6 +5,7 @@ import android.content.Intent
 import android.content.ServiceConnection
 import android.os.Bundle
 import android.os.IBinder
+import android.view.KeyEvent
 import android.view.View
 import android.view.WindowManager
 import androidx.activity.ComponentActivity
@@ -78,6 +79,7 @@ class CarActivity : ComponentActivity() {
         window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
         WindowCompat.setDecorFitsSystemWindows(window, false)
         aplicarIdioma()
+        if (savedInstanceState == null) Bitacora.anotarArranque(this)
         CacheDeCanvas.baseDeDatos = baseDeCaches
         setContent {
             CompositionLocalProvider(
@@ -116,6 +118,28 @@ class CarActivity : ComponentActivity() {
             hide(WindowInsetsCompat.Type.statusBars())
             systemBarsBehavior = WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
         }
+    }
+
+    /**
+     * Los botones del volante que llegan a la ventana (la app al frente). Las
+     * teclas de medios se atienden aqui y no siguen hacia la sesion, para que no
+     * se hagan dos veces. Con el probador abierto se anota todo lo que llegue
+     * (menos Atras) y se deja seguir: asi se ve si tambien llega por la sesion.
+     */
+    override fun dispatchKeyEvent(event: KeyEvent): Boolean {
+        val codigo = event.keyCode
+        val primera = event.action == KeyEvent.ACTION_DOWN && event.repeatCount == 0
+        val probando = TeclasDelVolante.probando
+        val deMedios = TeclasDelVolante.esDeMedios(codigo)
+        if (primera && codigo != KeyEvent.KEYCODE_BACK && (probando || deMedios)) {
+            TeclasDelVolante.recibir(this, codigo, ViaDeTecla.VENTANA)
+        }
+        val player = conexion?.player
+        if (!probando && deMedios && player != null) {
+            if (primera) TeclasDelVolante.actuar(player, codigo)
+            return true
+        }
+        return super.dispatchKeyEvent(event)
     }
 
     override fun onWindowFocusChanged(hasFocus: Boolean) {

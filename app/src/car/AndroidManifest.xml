@@ -24,6 +24,12 @@
             android:name="com.google.android.gms.cast.framework.OPTIONS_PROVIDER_CLASS_NAME"
             tools:node="remove" />
 
+        <!-- Arranque del proceso del carro: escucha el volante aunque la app este detras. -->
+        <provider
+            android:name=".car.InicioDelCarro"
+            android:authorities="${applicationId}.inicio-carro"
+            android:exported="false" />
+
         <!-- Los lanzadores del telefono no existen en el carro. -->
         <activity-alias android:name=".MainActivityAlias" tools:node="remove" />
         <activity-alias android:name=".MainActivityLegacy" tools:node="remove" />

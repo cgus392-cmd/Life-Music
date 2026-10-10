@@ -52,17 +52,46 @@ import com.cglabs.lifemusic.utils.rememberEnumPreference
 import com.cglabs.lifemusic.utils.rememberPreference
 import com.cglabs.lifemusic.utils.titulo
 import kotlinx.coroutines.launch
+import androidx.activity.compose.BackHandler
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
+import java.text.DateFormat
+import java.util.Date
 
 /** Si el fondo ambiente se mueve o se queda quieto. Solo existe en el carro. */
 val CarroFondoEnMovimientoKey = booleanPreferencesKey("carroFondoEnMovimiento")
 
+/** Lo que muestra la pantalla de Ajustes: la lista, el probador de botones o el diagnostico. */
+private enum class VistaDeAjustes { LISTA, PROBADOR, DIAGNOSTICO }
+
 /**
  * Ajustes del carro. Pocos y grandes, cada fila entera es el interruptor: en
  * marcha nadie apunta a un switch de 32 dp. Crecera con las tandas (modo
- * noche, ecualizador).
+ * noche, ecualizador). El probador de botones y el diagnostico se abren en el
+ * mismo sitio (atras vuelve a la lista).
  */
 @Composable
 fun Ajustes(modifier: Modifier = Modifier) {
+    var vista by rememberSaveable { mutableStateOf(VistaDeAjustes.LISTA) }
+    when (vista) {
+        VistaDeAjustes.PROBADOR -> ProbadorDeBotones(alCerrar = { vista = VistaDeAjustes.LISTA }, modifier = modifier)
+        VistaDeAjustes.DIAGNOSTICO -> PantallaDiagnostico(alCerrar = { vista = VistaDeAjustes.LISTA }, modifier = modifier)
+        VistaDeAjustes.LISTA -> ListaDeAjustes(
+            alProbarBotones = { vista = VistaDeAjustes.PROBADOR },
+            alAbrirDiagnostico = { vista = VistaDeAjustes.DIAGNOSTICO },
+            modifier = modifier,
+        )
+    }
+}
+
+@Composable
+private fun ListaDeAjustes(alProbarBotones: () -> Unit, alAbrirDiagnostico: () -> Unit, modifier: Modifier = Modifier) {
     var saludo by rememberPreference(GreetingEnabledKey, defaultValue = true)
     var lifeLine by rememberPreference(LifeLineEnabledKey, defaultValue = true)
     var fondoEnMovimiento by rememberPreference(CarroFondoEnMovimientoKey, defaultValue = true)
@@ -104,6 +133,14 @@ fun Ajustes(modifier: Modifier = Modifier) {
             FilaRendimiento()
             HorizontalDivider(color = Color.White.copy(alpha = 0.08f), modifier = Modifier.padding(horizontal = 20.dp))
             FilaCanvas()
+            HorizontalDivider(color = Color.White.copy(alpha = 0.08f), modifier = Modifier.padding(horizontal = 20.dp))
+            FilaConBoton(
+                icono = R.drawable.radio,
+                titulo = stringResource(R.string.carro_volante),
+                texto = stringResource(R.string.carro_volante_texto),
+                boton = stringResource(R.string.carro_volante_probar),
+                alTocar = alProbarBotones,
+            )
         }
         Spacer(Modifier.size(16.dp))
         Row(
@@ -112,13 +149,76 @@ fun Ajustes(modifier: Modifier = Modifier) {
         ) {
             Icon(painterResource(R.drawable.info), contentDescription = null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(28.dp))
             Spacer(Modifier.width(18.dp))
-            Column {
+            Column(Modifier.weight(1f)) {
                 Text(
                     stringResource(R.string.app_name) + " " + BuildConfig.VERSION_NAME,
                     style = MaterialTheme.typography.titleLarge,
                     fontWeight = FontWeight.Bold,
                 )
                 Text(stringResource(R.string.carro_acerca_texto), style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            }
+            Spacer(Modifier.width(12.dp))
+            BotonPildora(R.drawable.bug_report, stringResource(R.string.carro_diagnostico), alAbrirDiagnostico)
+        }
+    }
+}
+
+/** Una fila con icono, titulo, texto y un boton a la derecha que abre algo. */
+@Composable
+private fun FilaConBoton(icono: Int, titulo: String, texto: String, boton: String, alTocar: () -> Unit) {
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(18.dp),
+        modifier = Modifier
+            .fillMaxWidth()
+            .heightIn(min = 88.dp)
+            .clickable(onClick = alTocar)
+            .padding(horizontal = 20.dp, vertical = 12.dp),
+    ) {
+        Icon(painterResource(icono), contentDescription = null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(28.dp))
+        Column(Modifier.weight(1f)) {
+            Text(titulo, style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.SemiBold)
+            Text(texto, style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        }
+        BotonPildora(R.drawable.play, boton, alTocar)
+    }
+}
+
+/**
+ * El diagnostico: la bitacora del carro, lo nuevo arriba, con fecha y hora.
+ * Es lo que CG le lee a Claude cuando algo del radio no se porta como se espera.
+ */
+@Composable
+private fun PantallaDiagnostico(alCerrar: () -> Unit, modifier: Modifier = Modifier) {
+    BackHandler(onBack = alCerrar)
+    val contexto = LocalContext.current
+    LaunchedEffect(Unit) { Bitacora.cargar(contexto) }
+    val sucesos by Bitacora.sucesos.collectAsState()
+    val formato = remember { DateFormat.getDateTimeInstance(DateFormat.SHORT, DateFormat.MEDIUM) }
+    Column(modifier.fillMaxSize()) {
+        TituloDePantalla(stringResource(R.string.carro_diagnostico)) {
+            Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                BotonPildora(R.drawable.delete, stringResource(R.string.carro_diagnostico_borrar), { Bitacora.borrar(contexto) })
+                BotonPildora(R.drawable.check, stringResource(R.string.carro_probador_listo), alCerrar, lleno = true)
+            }
+        }
+        if (sucesos.isEmpty()) {
+            Text(
+                stringResource(R.string.carro_diagnostico_vacio),
+                style = MaterialTheme.typography.titleLarge,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+            return@Column
+        }
+        LazyColumn(
+            modifier = Modifier.fillMaxSize().cristal(RoundedCornerShape(28.dp)),
+            contentPadding = PaddingValues(vertical = 10.dp),
+        ) {
+            items(sucesos) { s ->
+                Column(Modifier.fillMaxWidth().padding(horizontal = 20.dp, vertical = 8.dp)) {
+                    Text(formato.format(Date(s.cuando)), style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.primary)
+                    Text(s.texto, style = MaterialTheme.typography.bodyLarge)
+                }
             }
         }
     }

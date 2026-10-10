@@ -146,4 +146,34 @@
     <string name="carro_voz_retomando">Picking up where you left off</string>
     <string name="carro_voz_guardada">The next one is already saved</string>
     <string name="carro_voz_de_lo_guardado">No signal: playing what\'s saved</string>
+
+    <!-- Botones del volante y diagnóstico -->
+    <string name="carro_volante">Steering wheel buttons</string>
+    <string name="carro_volante_texto">Next, previous and pause from the wheel and the radio. Test them to see what your radio sends</string>
+    <string name="carro_volante_probar">Test</string>
+    <string name="carro_probador_titulo">Press a steering wheel button</string>
+    <string name="carro_probador_texto">Every button that reaches the app shows up here, and how it got here. If nothing shows up, your radio isn\'t sending it.</string>
+    <string name="carro_probador_esperando">Waiting for a button…</string>
+    <string name="carro_probador_detalle">Code %1$d · %2$s</string>
+    <string name="carro_probador_listo">Done</string>
+    <string name="carro_tecla_via_ventana">through the window</string>
+    <string name="carro_tecla_via_sesion">through the media session</string>
+    <string name="carro_tecla_via_fabricante">through a maker broadcast</string>
+    <string name="carro_tecla_siguiente">Next</string>
+    <string name="carro_tecla_anterior">Previous</string>
+    <string name="carro_tecla_play_pausa">Play/pause</string>
+    <string name="carro_tecla_play">Play</string>
+    <string name="carro_tecla_pausa">Pause</string>
+    <string name="carro_tecla_detener">Stop</string>
+    <string name="carro_tecla_auricular">Headset button</string>
+    <string name="carro_tecla_adelantar">Fast forward</string>
+    <string name="carro_tecla_retroceder">Rewind</string>
+    <string name="carro_tecla_volumen_mas">Volume up</string>
+    <string name="carro_tecla_volumen_menos">Volume down</string>
+    <string name="carro_tecla_silencio">Mute</string>
+    <string name="carro_diagnostico">Diagnostics</string>
+    <string name="carro_diagnostico_borrar">Clear</string>
+    <string name="carro_diagnostico_vacio">Nothing logged yet</string>
+    <string name="carro_bitacora_arranque">Opened · %1$s · Android %2$s · %3$s · built-in browser %4$s</string>
+    <string name="carro_bitacora_tecla">Button %1$s (%2$d) %3$s</string>
 </resources>

@@ -145,4 +145,34 @@
     <string name="carro_voz_retomando">Retomando donde lo dejaste</string>
     <string name="carro_voz_guardada">La siguiente ya va guardada</string>
     <string name="carro_voz_de_lo_guardado">Sin señal: sonando de lo guardado</string>
+
+    <!-- Botones del volante y diagnóstico -->
+    <string name="carro_volante">Botones del volante</string>
+    <string name="carro_volante_texto">Siguiente, anterior y pausa desde el volante y el radio. Pruébalos para ver qué manda tu radio</string>
+    <string name="carro_volante_probar">Probar</string>
+    <string name="carro_probador_titulo">Presiona un botón del volante</string>
+    <string name="carro_probador_texto">Aquí aparece cada botón que llega a la app y por dónde. Si no aparece nada, tu radio no se lo está mandando.</string>
+    <string name="carro_probador_esperando">Esperando un botón…</string>
+    <string name="carro_probador_detalle">Código %1$d · %2$s</string>
+    <string name="carro_probador_listo">Listo</string>
+    <string name="carro_tecla_via_ventana">por la ventana</string>
+    <string name="carro_tecla_via_sesion">por la sesión de medios</string>
+    <string name="carro_tecla_via_fabricante">por aviso del fabricante</string>
+    <string name="carro_tecla_siguiente">Siguiente</string>
+    <string name="carro_tecla_anterior">Anterior</string>
+    <string name="carro_tecla_play_pausa">Play/pausa</string>
+    <string name="carro_tecla_play">Play</string>
+    <string name="carro_tecla_pausa">Pausa</string>
+    <string name="carro_tecla_detener">Detener</string>
+    <string name="carro_tecla_auricular">Botón del auricular</string>
+    <string name="carro_tecla_adelantar">Adelantar</string>
+    <string name="carro_tecla_retroceder">Retroceder</string>
+    <string name="carro_tecla_volumen_mas">Subir volumen</string>
+    <string name="carro_tecla_volumen_menos">Bajar volumen</string>
+    <string name="carro_tecla_silencio">Silencio</string>
+    <string name="carro_diagnostico">Diagnóstico</string>
+    <string name="carro_diagnostico_borrar">Borrar</string>
+    <string name="carro_diagnostico_vacio">Todavía no hay nada anotado</string>
+    <string name="carro_bitacora_arranque">Abierta · %1$s · Android %2$s · %3$s · navegador interno %4$s</string>
+    <string name="carro_bitacora_tecla">Botón %1$s (%2$d) %3$s</string>
 </resources>
