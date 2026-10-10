@@ -17,6 +17,7 @@ class InicioDelCarro : ContentProvider() {
         val app = context?.applicationContext ?: return true
         TeclasDelVolante.escuchar(app)
         Encendido.iniciar(app)
+        SonidoDelCarro.cargarAlArrancar(app)
         return true
     }
 

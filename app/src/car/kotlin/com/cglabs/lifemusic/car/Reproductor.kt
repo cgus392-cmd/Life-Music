@@ -132,6 +132,8 @@ fun SonandoCompleto(conexion: PlayerConnection?, m: MediaMetadata?, alCerrar: ()
                     Text(horaCorta(ahora), style = MaterialTheme.typography.displayMedium, fontWeight = FontWeight.Bold)
                     Text(fechaLarga(ahora), style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
+                BotonCristal(R.drawable.graphic_eq, stringResource(R.string.carro_eq_titulo), LocalAbrirEcualizador.current)
+                Spacer(Modifier.width(12.dp))
                 BotonCristal(
                     R.drawable.lyrics,
                     stringResource(R.string.carro_letra),

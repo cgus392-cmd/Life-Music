@@ -79,6 +79,7 @@ fun PantallaCarro(conexion: PlayerConnection?) {
     val perfil = perfilDe(modoRendimiento, LocalEquipo.current)
     var destino by rememberSaveable { mutableStateOf(Destino.INICIO) }
     var sonandoAbierto by rememberSaveable { mutableStateOf(false) }
+    var ecualizadorAbierto by rememberSaveable { mutableStateOf(false) }
     // Una vez por arranque en frio, como el saludo del telefono (girar o volver de otra app no lo repite).
     var arrancando by rememberSaveable { mutableStateOf(SaludoEntrada.reclamarArranqueEnFrio() && animar) }
     var pestana by rememberSaveable { mutableStateOf(Pestana.ME_GUSTA) }
@@ -101,8 +102,9 @@ fun PantallaCarro(conexion: PlayerConnection?) {
     }
 
     // Atras cierra Sonando; luego las paginas de detalle, una a una; luego vuelve a Inicio; en Inicio, sale.
-    BackHandler(enabled = sonandoAbierto || pila.isNotEmpty() || destino != Destino.INICIO) {
+    BackHandler(enabled = ecualizadorAbierto || sonandoAbierto || pila.isNotEmpty() || destino != Destino.INICIO) {
         when {
+            ecualizadorAbierto -> ecualizadorAbierto = false
             sonandoAbierto -> sonandoAbierto = false
             pila.isNotEmpty() -> pila.removeAt(pila.lastIndex)
             else -> destino = Destino.INICIO
@@ -111,13 +113,17 @@ fun PantallaCarro(conexion: PlayerConnection?) {
 
     LifeMusicTheme(darkTheme = true, themeColor = color) {
         Surface(color = Color.Transparent, contentColor = MaterialTheme.colorScheme.onSurface, modifier = Modifier.fillMaxSize()) {
-            CompositionLocalProvider(LocalNavegador provides navegador, LocalPerfil provides perfil) {
+            CompositionLocalProvider(
+                LocalNavegador provides navegador,
+                LocalPerfil provides perfil,
+                LocalAbrirEcualizador provides { ecualizadorAbierto = true },
+            ) {
                 Box(Modifier.fillMaxSize()) {
                     // En Ligero el fondo se queda quieto: dos capas girando a 20 fps son GPU que el mapa necesita.
                     FondoAmbiente(metadatos?.thumbnailUrl, moverse = fondoEnMovimiento && animar && perfil == Perfil.COMPLETO)
 
                     AnimatedVisibility(
-                        visible = !sonandoAbierto,
+                        visible = !sonandoAbierto && !ecualizadorAbierto,
                         enter = fadeIn(tween(320, delayMillis = 60)) + scaleIn(tween(360), initialScale = 0.96f),
                         exit = fadeOut(tween(200)) + scaleOut(tween(260), targetScale = 0.96f),
                     ) {
@@ -140,11 +146,20 @@ fun PantallaCarro(conexion: PlayerConnection?) {
                     }
 
                     AnimatedVisibility(
-                        visible = sonandoAbierto,
+                        visible = sonandoAbierto && !ecualizadorAbierto,
                         enter = fadeIn(tween(320)) + slideInVertically(tween(420)) { it / 5 },
                         exit = fadeOut(tween(220)) + slideOutVertically(tween(260)) { it / 5 },
                     ) {
                         SonandoCompleto(conexion, metadatos, alCerrar = { sonandoAbierto = false })
+                    }
+
+                    // La mesa de sonido, encima de todo; al cerrarla se vuelve a donde se estaba.
+                    AnimatedVisibility(
+                        visible = ecualizadorAbierto,
+                        enter = fadeIn(tween(300)) + scaleIn(tween(360), initialScale = 1.04f),
+                        exit = fadeOut(tween(200)) + scaleOut(tween(240), targetScale = 1.04f),
+                    ) {
+                        PantallaEcualizador(alCerrar = { ecualizadorAbierto = false })
                     }
 
                     if (arrancando) Arranque(alTerminar = { arrancando = false })

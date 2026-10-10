@@ -197,4 +197,27 @@
     <string name="carro_motivo_ya_sonaba">ya estaba sonando</string>
     <string name="carro_motivo_llamada">había una llamada</string>
     <string name="carro_motivo_otra_musica">había otra música sonando</string>
+
+    <!-- Ecualizador (mesa de sonido) -->
+    <string name="carro_eq_titulo">Ecualizador</string>
+    <string name="carro_eq_ajuste_texto">Graves, agudos, ganancia y 10 bandas, con vúmetro. Subir no le baja el volumen a la música</string>
+    <string name="carro_eq_abrir">Abrir</string>
+    <string name="carro_eq_encendido">Encendido</string>
+    <string name="carro_eq_apagado">Apagado</string>
+    <string name="carro_eq_restablecer">Restablecer</string>
+    <string name="carro_eq_personalizado">Personalizado</string>
+    <string name="carro_eq_graves">Graves</string>
+    <string name="carro_eq_agudos">Agudos</string>
+    <string name="carro_eq_ganancia">Ganancia</string>
+    <string name="carro_eq_salida">Salida</string>
+    <string name="carro_eq_limitador">Limitador</string>
+    <string name="carro_eq_plano">Plano</string>
+    <string name="carro_eq_preset_graves">Graves</string>
+    <string name="carro_eq_urbano">Urbano</string>
+    <string name="carro_eq_tropical">Tropical</string>
+    <string name="carro_eq_rock">Rock</string>
+    <string name="carro_eq_pop">Pop</string>
+    <string name="carro_eq_voces">Voces</string>
+    <string name="carro_eq_noche">Noche</string>
+    <string name="carro_eq_volumen_bajo">Volumen bajo</string>
 </resources>
