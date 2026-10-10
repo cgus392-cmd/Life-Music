@@ -30,6 +30,7 @@ import java.util.Locale
 import com.cglabs.lifemusic.playback.MusicService
 import com.cglabs.lifemusic.playback.MusicService.MusicBinder
 import com.cglabs.lifemusic.playback.PlayerConnection
+import com.cglabs.lifemusic.LocalPlayerConnection
 import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
 
@@ -83,6 +84,8 @@ class CarActivity : ComponentActivity() {
                 LocalDescargas provides descargas,
                 LocalEquipo provides equipo,
                 LocalMonitorDeRed provides monitorDeRed,
+                // La voz de Life Line (codigo del telefono) lee la conexion de aqui.
+                LocalPlayerConnection provides conexion,
             ) { PantallaCarro(conexion) }
         }
         ocultarBarraDeEstado()

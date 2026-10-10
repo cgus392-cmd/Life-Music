@@ -44,6 +44,7 @@ import com.cglabs.lifemusic.constants.AppLanguageKey
 import com.cglabs.lifemusic.constants.AudioQuality
 import com.cglabs.lifemusic.constants.AudioQualityKey
 import com.cglabs.lifemusic.constants.GreetingEnabledKey
+import com.cglabs.lifemusic.constants.LifeLineEnabledKey
 import com.cglabs.lifemusic.constants.SYSTEM_DEFAULT
 import com.cglabs.lifemusic.utils.dataStore
 import com.cglabs.lifemusic.utils.detalle
@@ -63,6 +64,7 @@ val CarroFondoEnMovimientoKey = booleanPreferencesKey("carroFondoEnMovimiento")
 @Composable
 fun Ajustes(modifier: Modifier = Modifier) {
     var saludo by rememberPreference(GreetingEnabledKey, defaultValue = true)
+    var lifeLine by rememberPreference(LifeLineEnabledKey, defaultValue = true)
     var fondoEnMovimiento by rememberPreference(CarroFondoEnMovimientoKey, defaultValue = true)
     val ligero = LocalPerfil.current == Perfil.LIGERO
 
@@ -75,6 +77,14 @@ fun Ajustes(modifier: Modifier = Modifier) {
                 texto = stringResource(R.string.carro_ajuste_saludo_texto),
                 valor = saludo,
                 alCambiar = { saludo = it },
+            )
+            HorizontalDivider(color = Color.White.copy(alpha = 0.08f), modifier = Modifier.padding(horizontal = 20.dp))
+            FilaInterruptor(
+                icono = R.drawable.lyrics,
+                titulo = stringResource(R.string.life_line),
+                texto = stringResource(R.string.carro_ajuste_life_line_texto),
+                valor = lifeLine,
+                alCambiar = { lifeLine = it },
             )
             HorizontalDivider(color = Color.White.copy(alpha = 0.08f), modifier = Modifier.padding(horizontal = 20.dp))
             // En Ligero el fondo va quieto sin importar el interruptor: se dice y se deja apagado.

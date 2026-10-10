@@ -184,7 +184,17 @@ fun SonandoCompleto(conexion: PlayerConnection?, m: MediaMetadata?, alCerrar: ()
                     )
                 }
             }
-            Spacer(Modifier.height(20.dp))
+            // Life Line: la letra viva (o la voz de la app) entre el artista y la barra.
+            LifeLineCarro(
+                conexion = conexion,
+                sonando = sonando,
+                tamano = TamanoLifeLine.SONANDO,
+                alto = TamanoLifeLine.SONANDO_ALTO,
+                separacion = 20.dp,
+                alAbrirLetra = { verLetra = true },
+                oculta = verLetra,
+                modifier = Modifier.padding(vertical = 6.dp),
+            )
             BarraOndulada(conexion, sonando, m, Modifier.fillMaxWidth())
             Spacer(Modifier.height(18.dp))
             Row(verticalAlignment = Alignment.CenterVertically) {

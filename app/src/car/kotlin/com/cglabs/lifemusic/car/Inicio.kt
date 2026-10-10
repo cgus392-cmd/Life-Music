@@ -315,7 +315,15 @@ private fun PanelSonando(conexion: PlayerConnection?, m: MediaMetadata?, alBusca
                 )
             }
         }
-        Spacer(Modifier.height(16.dp))
+        LifeLineCarro(
+            conexion = conexion,
+            sonando = sonando,
+            tamano = TamanoLifeLine.INICIO,
+            alto = TamanoLifeLine.INICIO_ALTO,
+            separacion = 16.dp,
+            alAbrirLetra = alAbrir,
+            modifier = Modifier.padding(vertical = 4.dp),
+        )
         BarraFina(conexion, sonando, m, Modifier.fillMaxWidth().height(4.dp))
         Spacer(Modifier.height(16.dp))
         Controles(conexion, sonando, Modifier.fillMaxWidth(), escala = 0.8f)

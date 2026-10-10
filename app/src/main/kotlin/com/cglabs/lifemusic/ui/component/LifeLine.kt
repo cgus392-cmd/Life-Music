@@ -3,6 +3,7 @@ package com.cglabs.lifemusic.ui.component
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.snap
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -41,6 +42,7 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.material3.Icon
@@ -192,7 +194,12 @@ fun LifeLine(
     showTranslation: Boolean,
     onOpenLyrics: () -> Unit,
     modifier: Modifier = Modifier,
+    tamano: TextUnit = 14.sp,
+    altoMinimo: Dp = 32.dp,
+    suave: Boolean = true,
 ) {
+    // tamano, altoMinimo y suave los usa el carro (letra mas grande para leer de
+    // reojo; sin deslizamientos en los radios flojos). El telefono no los pasa.
     // Sin letra todavia, o cancion sin letra: la fila desaparece entera. Nunca se
     // deja un hueco reservado, para que el reproductor no de un salto al llegar.
     if (entries.isNullOrEmpty()) return
@@ -237,12 +244,16 @@ fun LifeLine(
         cantado
     }
 
-    FilaLifeLine(onClick = onOpenLyrics, modifier = modifier) {
+    FilaLifeLine(onClick = onOpenLyrics, modifier = modifier, altoMinimo = altoMinimo) {
         AnimatedContent(
             targetState = entrada,
             transitionSpec = {
-                (slideInVertically(tween(260)) { it / 3 } + fadeIn(tween(260)))
-                    .togetherWith(slideOutVertically(tween(200)) { -it / 3 } + fadeOut(tween(160)))
+                if (suave) {
+                    (slideInVertically(tween(260)) { it / 3 } + fadeIn(tween(260)))
+                        .togetherWith(slideOutVertically(tween(200)) { -it / 3 } + fadeOut(tween(160)))
+                } else {
+                    fadeIn(tween(200)).togetherWith(fadeOut(tween(160)))
+                }
             },
             label = "lifeLineLinea",
         ) { actual ->
@@ -254,6 +265,7 @@ fun LifeLine(
                 Text(
                     text = "♪",
                     style = MaterialTheme.typography.titleMedium,
+                    fontSize = tamano * 1.15f,
                     color = pendiente,
                 )
             } else {
@@ -264,6 +276,8 @@ fun LifeLine(
                         cantado = cantado,
                         pendiente = pendiente,
                         filo = filo,
+                        tamano = tamano,
+                        suave = suave,
                         modifier = Modifier.weight(1f, fill = false),
                     )
                     Icon(
@@ -272,7 +286,7 @@ fun LifeLine(
                         tint = baseColor.copy(alpha = 0.45f),
                         modifier = Modifier
                             .padding(start = 6.dp)
-                            .size(14.dp),
+                            .size(tamano.value.dp),
                     )
                 }
             }
@@ -311,13 +325,14 @@ fun LifeLine(
 internal fun FilaLifeLine(
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
+    altoMinimo: Dp = 32.dp,
     content: @Composable ColumnScope.() -> Unit,
 ) {
     Column(
         modifier = modifier
             .fillMaxWidth()
             .clickable(onClick = onClick)
-            .defaultMinSize(minHeight = 32.dp),
+            .defaultMinSize(minHeight = altoMinimo),
         verticalArrangement = Arrangement.Center,
         content = content,
     )
@@ -336,6 +351,8 @@ private fun LineaBarrida(
     pendiente: Color,
     filo: Color,
     modifier: Modifier = Modifier,
+    tamano: TextUnit = 14.sp,
+    suave: Boolean = true,
 ) {
     var anchoCaja by remember { mutableStateOf(0) }
     var disposicion by remember(texto) { mutableStateOf<TextLayoutResult?>(null) }
@@ -351,7 +368,7 @@ private fun LineaBarrida(
     }
     val desplazamiento by animateFloatAsState(
         targetValue = destino,
-        animationSpec = tween(durationMillis = 320, easing = LinearEasing),
+        animationSpec = if (suave) tween(durationMillis = 320, easing = LinearEasing) else snap(),
         label = "lifeLineScroll",
     )
 
@@ -388,7 +405,7 @@ private fun LineaBarrida(
             onTextLayout = { disposicion = it },
             style = TextStyle(
                 brush = brocha,
-                fontSize = 14.sp,
+                fontSize = tamano,
                 fontWeight = FontWeight.Medium,
             ),
             // Sin acotar: el texto mide lo que necesita y la caja lo recorta.
