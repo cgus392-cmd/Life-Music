@@ -30,6 +30,17 @@
             android:authorities="${applicationId}.inicio-carro"
             android:exported="false" />
 
+        <!-- Reanudar al encender: el arranque en frio del radio (los que se duermen se vigilan en tiempo de ejecucion). -->
+        <receiver
+            android:name=".car.EncendidoReceiver"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.BOOT_COMPLETED" />
+                <action android:name="android.intent.action.QUICKBOOT_POWERON" />
+                <action android:name="com.htc.intent.action.QUICKBOOT_POWERON" />
+            </intent-filter>
+        </receiver>
+
         <!-- Los lanzadores del telefono no existen en el carro. -->
         <activity-alias android:name=".MainActivityAlias" tools:node="remove" />
         <activity-alias android:name=".MainActivityLegacy" tools:node="remove" />

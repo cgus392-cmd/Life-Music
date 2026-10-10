@@ -16,6 +16,7 @@ class InicioDelCarro : ContentProvider() {
     override fun onCreate(): Boolean {
         val app = context?.applicationContext ?: return true
         TeclasDelVolante.escuchar(app)
+        Encendido.iniciar(app)
         return true
     }
 

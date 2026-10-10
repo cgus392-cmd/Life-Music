@@ -176,4 +176,26 @@
     <string name="carro_diagnostico_vacio">Nothing logged yet</string>
     <string name="carro_bitacora_arranque">Opened · %1$s · Android %2$s · %3$s · built-in browser %4$s</string>
     <string name="carro_bitacora_tecla">Button %1$s (%2$d) %3$s</string>
+
+    <!-- Reanudar al encender -->
+    <string name="carro_al_encender">When the car starts</string>
+    <string name="carro_al_encender_seguir">Keep playing</string>
+    <string name="carro_al_encender_abrir">Just open</string>
+    <string name="carro_al_encender_nada">Nothing</string>
+    <string name="carro_al_encender_seguir_texto">The app opens by itself and the song picks up where it was, fading in. If you had paused it, it stays quiet</string>
+    <string name="carro_al_encender_abrir_texto">The app opens by itself, without playing</string>
+    <string name="carro_al_encender_nada_texto">Does nothing when the car starts</string>
+    <string name="carro_fuente_pantalla">screen</string>
+    <string name="carro_bitacora_sonaba">was playing</string>
+    <string name="carro_bitacora_en_pausa">was paused</string>
+    <string name="carro_bitacora_arranque_radio">Radio booted · when turned off it %1$s</string>
+    <string name="carro_bitacora_apagado">Turned off (%1$s) · %2$s</string>
+    <string name="carro_bitacora_encendido">Turned on (%1$s) after %2$d s</string>
+    <string name="carro_bitacora_reanudado">Resumed: %1$s</string>
+    <string name="carro_bitacora_no_reanudo">Did not resume: %1$s</string>
+    <string name="carro_motivo_pausa">it was paused when turned off</string>
+    <string name="carro_motivo_cola_vacia">the queue was empty</string>
+    <string name="carro_motivo_ya_sonaba">it was already playing</string>
+    <string name="carro_motivo_llamada">there was a call</string>
+    <string name="carro_motivo_otra_musica">other music was playing</string>
 </resources>
