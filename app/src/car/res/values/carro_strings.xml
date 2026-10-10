@@ -198,4 +198,27 @@
     <string name="carro_motivo_ya_sonaba">it was already playing</string>
     <string name="carro_motivo_llamada">there was a call</string>
     <string name="carro_motivo_otra_musica">other music was playing</string>
+
+    <!-- Ecualizador (mesa de sonido) -->
+    <string name="carro_eq_titulo">Equalizer</string>
+    <string name="carro_eq_ajuste_texto">Bass, treble, gain and 10 bands, with a VU meter. Boosting never turns the music down</string>
+    <string name="carro_eq_abrir">Open</string>
+    <string name="carro_eq_encendido">On</string>
+    <string name="carro_eq_apagado">Off</string>
+    <string name="carro_eq_restablecer">Reset</string>
+    <string name="carro_eq_personalizado">Custom</string>
+    <string name="carro_eq_graves">Bass</string>
+    <string name="carro_eq_agudos">Treble</string>
+    <string name="carro_eq_ganancia">Gain</string>
+    <string name="carro_eq_salida">Output</string>
+    <string name="carro_eq_limitador">Limiter</string>
+    <string name="carro_eq_plano">Flat</string>
+    <string name="carro_eq_preset_graves">Bass</string>
+    <string name="carro_eq_urbano">Urban</string>
+    <string name="carro_eq_tropical">Tropical</string>
+    <string name="carro_eq_rock">Rock</string>
+    <string name="carro_eq_pop">Pop</string>
+    <string name="carro_eq_voces">Vocals</string>
+    <string name="carro_eq_noche">Night</string>
+    <string name="carro_eq_volumen_bajo">Low volume</string>
 </resources>

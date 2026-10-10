@@ -137,6 +137,14 @@ private fun ListaDeAjustes(alProbarBotones: () -> Unit, alAbrirDiagnostico: () -
             FilaAlEncender()
             HorizontalDivider(color = Color.White.copy(alpha = 0.08f), modifier = Modifier.padding(horizontal = 20.dp))
             FilaConBoton(
+                icono = R.drawable.equalizer,
+                titulo = stringResource(R.string.carro_eq_titulo),
+                texto = stringResource(R.string.carro_eq_ajuste_texto),
+                boton = stringResource(R.string.carro_eq_abrir),
+                alTocar = LocalAbrirEcualizador.current,
+            )
+            HorizontalDivider(color = Color.White.copy(alpha = 0.08f), modifier = Modifier.padding(horizontal = 20.dp))
+            FilaConBoton(
                 icono = R.drawable.radio,
                 titulo = stringResource(R.string.carro_volante),
                 texto = stringResource(R.string.carro_volante_texto),

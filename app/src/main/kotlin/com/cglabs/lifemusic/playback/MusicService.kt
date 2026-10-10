@@ -1363,6 +1363,10 @@ class MusicService :
         val envolvente = SurroundAudioProcessor()
         envolventeActual.aplicar(envolvente)
 
+        // La mesa de sonido del carro (graves, agudos, 10 bandas y limitador). En el
+        // telefono no existe: devuelve NOT_SET y la cadena la salta.
+        val mesa = com.cglabs.lifemusic.eq.audio.MesaDeSonidoAudioProcessor(habilitado = com.cglabs.lifemusic.BuildConfig.ES_CARRO)
+
         val medidor = LevelMeterAudioProcessor()
         medidor.activo = midiendoNivel
         medidor.alMedir = { n, g -> nivelAudio.value = NivelAudio(n, g) }
@@ -1381,7 +1385,7 @@ class MusicService :
 
         val player = ExoPlayer.Builder(this)
             .setMediaSourceFactory(createMediaSourceFactory())
-            .setRenderersFactory(createRenderersFactory(eqProcessor, silenceProcessor, filtro, vocalProcessor, envolvente, medidor))
+            .setRenderersFactory(createRenderersFactory(eqProcessor, silenceProcessor, filtro, vocalProcessor, envolvente, mesa, medidor))
             .setLoadControl(
                 DefaultLoadControl.Builder()
                     // Tras un corte (rebuffer) se espera a tener 4 s y no 2: con señal
@@ -3546,6 +3550,7 @@ class MusicService :
         filtro: TransitionFilterAudioProcessor,
         vocalProcessor: VocalReducerAudioProcessor,
         envolvente: SurroundAudioProcessor,
+        mesa: com.cglabs.lifemusic.eq.audio.MesaDeSonidoAudioProcessor,
         medidor: LevelMeterAudioProcessor,
     ) =
         object : DefaultRenderersFactory(this) {
@@ -3577,6 +3582,9 @@ class MusicService :
                             // El envolvente va despues del detector de silencio para
                             // que la cola de la sala no le tape un final real.
                             envolvente,
+                            // La mesa del carro va al final: su limitador tiene
+                            // que ser lo ultimo que toca el audio.
+                            mesa,
                             // El ultimo: mide lo que de verdad va a sonar.
                             medidor,
                         ),
