@@ -97,8 +97,8 @@ android {
         create("car") {
             dimension = "variant"
             applicationId = "com.cglabs.lifemusic.car"
-            versionCode = 2
-            versionName = "0.2.0"
+            versionCode = 3
+            versionName = "0.3.0-prueba.1"
             buildConfigField("Boolean", "CAST_AVAILABLE", "false")
             buildConfigField("Boolean", "ES_CARRO", "true")
             // Los modulos con variantes (como :playback) le dan su version foss.
