@@ -16,4 +16,4 @@ routes = [
 [[d1_databases]]
 binding = "DB"
 database_name = "lifemusic-equipo"
-database_id = "pendiente"
+database_id = "3f2ff795-aed7-4863-b2c3-46d25a53d622"
