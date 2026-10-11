@@ -46,3 +46,7 @@ app/keystore/
 *.jks
 !app/persistent-debug.keystore
 keystore.properties
+
+# Workers de Cloudflare: estado local y secretos de desarrollo
+.wrangler/
+.dev.vars

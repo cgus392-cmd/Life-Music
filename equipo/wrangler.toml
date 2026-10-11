@@ -1,0 +1,19 @@
+# Cabina del equipo de Life Music (lifemusic.app/equipo). Ficha: docs/versiones/1.3.3/equipo.md.
+# La API vive en la ruta lifemusic.app/equipo/api/*, el mismo dominio de la pagina.
+# Secretos (nunca en el repositorio):
+#   PIMIENTA  - llave del HMAC de codigos y sesiones (se genera al azar al desplegar)
+#   ARRANQUE  - la clave con la que CG entra la primera vez como dueño (la pone el)
+# Plan gratis de Cloudflare: si se pasa de los limites, falla; nunca cobra.
+name = "lifemusic-equipo"
+main = "src/index.js"
+compatibility_date = "2026-09-01"
+workers_dev = false
+routes = [
+  { pattern = "lifemusic.app/equipo/api/*", zone_name = "lifemusic.app" },
+  { pattern = "www.lifemusic.app/equipo/api/*", zone_name = "lifemusic.app" },
+]
+
+[[d1_databases]]
+binding = "DB"
+database_name = "lifemusic-equipo"
+database_id = "pendiente"

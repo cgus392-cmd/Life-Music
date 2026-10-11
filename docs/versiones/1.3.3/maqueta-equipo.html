@@ -1,0 +1,998 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Cabina Life Music</title>
+<!--
+  MAQUETA v2 de la seccion privada del equipo (ficha docs/versiones/1.3.3/equipo.md).
+  CG rechazo la v1 por generica (10-10). Concepto: la cabina de produccion del sello.
+  El selector de arriba no va en la pagina real. Nombres y datos de ejemplo, inventados.
+-->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..900&family=Instrument+Sans:wght@400..700&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<style>
+  /* Concepto: consola de cabina (grafito, luces piloto, la luz AL AIRE) y, encima,
+     los objetos que la persona tiene en la mano: el pase laminado y el acta en papel. */
+  :root{
+    color-scheme:dark;
+    --consola:#14181B; --consola-2:#1B2024; --consola-3:#242A2F; --linea:rgba(214,228,221,.10); --linea-2:rgba(214,228,221,.18);
+    --texto:#E8EDEA; --texto-2:#A2ACA7; --texto-3:#6C7671;
+    --piloto:#34D399; --piloto-suave:rgba(52,211,153,.14);
+    --aire:#FF5B2E; --aire-suave:rgba(255,91,46,.14);
+    --ambar:#F5B83D; --ambar-suave:rgba(245,184,61,.14);
+    --papel:#F6F7F4; --papel-2:#E9ECE7; --tinta:#17201B; --tinta-2:#56615B; --tinta-azul:#2441B5;
+    --pista-a:#5CC8F0; --pista-b:#F5B83D; --pista-c:#B993F2; --pista-d:#34D399; --pista-e:#F2789B;
+    --display:"Archivo","Arial Narrow",Arial,sans-serif;
+    --cuerpo:"Instrument Sans","Segoe UI",Roboto,sans-serif;
+    --mono:"IBM Plex Mono",ui-monospace,Consolas,monospace;
+  }
+  @media (prefers-color-scheme: light){ :root:not([data-theme="dark"]){
+    color-scheme:light;
+    --consola:#E4E8E6; --consola-2:#F2F4F3; --consola-3:#D8DDDA; --linea:rgba(18,28,23,.11); --linea-2:rgba(18,28,23,.2);
+    --texto:#131915; --texto-2:#4C5651; --texto-3:#7B857F;
+    --piloto:#0E9B6A; --piloto-suave:rgba(14,155,106,.12);
+    --aire:#E2461B; --aire-suave:rgba(226,70,27,.12);
+    --ambar:#B9800D; --ambar-suave:rgba(185,128,13,.13);
+    --papel:#FFFFFF; --papel-2:#EEF1EE;
+    --pista-a:#1E8FBF; --pista-b:#C68A10; --pista-c:#7B4FD0; --pista-d:#0E9B6A; --pista-e:#C9406A;
+  }}
+  :root[data-theme="light"]{
+    color-scheme:light;
+    --consola:#E4E8E6; --consola-2:#F2F4F3; --consola-3:#D8DDDA; --linea:rgba(18,28,23,.11); --linea-2:rgba(18,28,23,.2);
+    --texto:#131915; --texto-2:#4C5651; --texto-3:#7B857F;
+    --piloto:#0E9B6A; --piloto-suave:rgba(14,155,106,.12);
+    --aire:#E2461B; --aire-suave:rgba(226,70,27,.12);
+    --ambar:#B9800D; --ambar-suave:rgba(185,128,13,.13);
+    --papel:#FFFFFF; --papel-2:#EEF1EE;
+    --pista-a:#1E8FBF; --pista-b:#C68A10; --pista-c:#7B4FD0; --pista-d:#0E9B6A; --pista-e:#C9406A;
+  }
+
+  *{box-sizing:border-box}
+  [hidden]{display:none!important}
+  html,body{margin:0}
+  body{background:var(--consola);color:var(--texto);font:400 15px/1.5 var(--cuerpo);
+    /* aluminio cepillado, apenas */
+    background-image:repeating-linear-gradient(90deg,rgba(255,255,255,.014) 0 1px,transparent 1px 3px)}
+  button{font:inherit;color:inherit;cursor:pointer}
+  button:focus-visible,input:focus-visible{outline:2px solid var(--piloto);outline-offset:2px}
+  h1,h2,h3{margin:0;text-wrap:balance}
+  .num{font-variant-numeric:tabular-nums}
+
+  /* ── Selector de la maqueta (no va en la pagina real) ── */
+  .maqueta{position:sticky;top:0;z-index:50;display:flex;flex-wrap:wrap;gap:6px;align-items:center;padding:8px 16px;
+    background:color-mix(in srgb,var(--consola) 92%,transparent);border-bottom:1px dashed var(--ambar);font:500 12.5px/1 var(--cuerpo)}
+  .maqueta b{color:var(--ambar);font-family:var(--mono);font-weight:600;margin-right:4px}
+  .maqueta button{padding:7px 11px;border-radius:4px;border:1px solid var(--linea-2);background:transparent;color:var(--texto-2)}
+  .maqueta button[aria-pressed="true"]{background:var(--ambar);border-color:var(--ambar);color:#1B1405;font-weight:600}
+  .maqueta .tema{margin-left:auto}
+  .maqueta #estreno[aria-pressed="true"]{background:var(--piloto);border-color:var(--piloto);color:#04150E;font-weight:600}
+
+  .vista{display:none}
+  .vista.activa{display:block}
+  .marco{max-width:1320px;margin:0 auto;padding-inline:clamp(16px,3vw,40px);padding-block:28px 64px}
+
+  /* ── Piezas comunes ── */
+  .rotulo{font:700 11px/1 var(--display);font-stretch:112%;letter-spacing:.16em;text-transform:uppercase;color:var(--texto-3)}
+  .led{display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--texto-3);flex:none}
+  .led.verde{background:var(--piloto);box-shadow:0 0 8px var(--piloto)}
+  .led.ambar{background:var(--ambar);box-shadow:0 0 8px var(--ambar)}
+  .led.rojo{background:var(--aire);box-shadow:0 0 8px var(--aire)}
+  .boton{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:11px 18px;border-radius:6px;border:1px solid var(--linea-2);
+    background:var(--consola-3);font:600 14px/1 var(--cuerpo);color:var(--texto);white-space:nowrap;transition:transform .12s, background .2s}
+  .boton:hover{transform:translateY(-1px)}
+  .boton.piloto{background:var(--piloto);border-color:var(--piloto);color:#04150E}
+  .boton.chico{padding:8px 12px;font-size:13px}
+  .boton:disabled{opacity:.38;cursor:not-allowed;transform:none}
+
+  /* La luz AL AIRE */
+  .aire{display:inline-flex;align-items:center;gap:10px;padding:9px 14px;border-radius:5px;border:1px solid var(--linea-2);
+    background:var(--consola-3);color:var(--texto-3);font:800 12px/1 var(--display);font-stretch:118%;letter-spacing:.22em;text-transform:uppercase;white-space:nowrap}
+  .aire.encendida{background:var(--aire);border-color:transparent;color:#FFF6F2;
+    box-shadow:0 0 0 1px rgba(255,91,46,.35),0 0 26px rgba(255,91,46,.5),inset 0 1px 0 rgba(255,255,255,.35);text-shadow:0 0 10px rgba(255,255,255,.55)}
+  .aire.grande{padding:16px 22px;font-size:17px;border-radius:7px}
+
+  /* Barra de arriba */
+  .tope{display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;padding:14px clamp(16px,3vw,40px);
+    border-bottom:1px solid var(--linea);background:var(--consola-2)}
+  .sello{display:flex;align-items:baseline;gap:12px}
+  .sello b{font:900 19px/1 var(--display);font-stretch:125%;letter-spacing:-.01em}
+  .sello span{font:600 11px/1 var(--mono);letter-spacing:.12em;text-transform:uppercase;color:var(--texto-3);padding:4px 6px;border:1px solid var(--linea-2);border-radius:3px}
+  .quien{display:flex;align-items:center;gap:12px}
+  .quien .nombre{text-align:right;line-height:1.25}
+  .quien .nombre b{display:block;font-size:14px}
+  .quien .nombre small{color:var(--texto-3);font-size:12px}
+  .iniciales{width:38px;height:38px;flex:none;border-radius:8px;display:grid;place-items:center;font:800 13px/1 var(--display);font-stretch:110%;color:#06120D;background:var(--pista-d)}
+  .iniciales.ap{background:var(--pista-b)}
+  .iniciales.cg{background:var(--pista-c);color:#120A20}
+
+  /* La hoja de llamado del dia */
+  .llamado{display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:clamp(18px,3vw,44px);padding-bottom:26px;margin-bottom:26px;border-bottom:1px solid var(--linea)}
+  .fecha{display:flex;align-items:flex-end;gap:14px;line-height:.82}
+  .fecha .d{font:900 clamp(56px,7.4vw,104px)/.8 var(--display);font-stretch:125%;letter-spacing:-.04em}
+  .fecha .dm{display:grid;gap:8px;padding-bottom:4px}
+  .fecha .dm span{font:800 clamp(15px,1.6vw,20px)/1 var(--display);font-stretch:118%;letter-spacing:.06em;text-transform:uppercase}
+  .fecha .dm small{font:500 12px/1 var(--mono);color:var(--texto-3);letter-spacing:.06em}
+  .horas{display:flex;flex-wrap:wrap;gap:10px 34px;margin:0}
+  .horas div{display:grid;gap:6px}
+  .horas dt{font:700 11px/1 var(--display);font-stretch:112%;letter-spacing:.16em;text-transform:uppercase;color:var(--texto-3)}
+  .horas dd{margin:0;font:600 19px/1.1 var(--mono);font-variant-numeric:tabular-nums}
+  .horas dd small{font:500 12px var(--cuerpo);color:var(--texto-3);margin-left:6px}
+  .temporada{width:150px;height:4px;border-radius:2px;background:var(--consola-3);overflow:hidden;margin-top:4px}
+  .temporada i{display:block;height:100%;width:3.3%;background:var(--texto)}
+  .franja-fuera{display:flex;align-items:center;gap:12px;margin:-8px 0 24px;padding:12px 16px;border-radius:6px;border:1px solid var(--linea-2);
+    background:var(--consola-2);color:var(--texto-2);font-weight:500}
+  .franja-fuera b{color:var(--texto)}
+
+  /* ═══ 1 · El pase ═══ */
+  .pase-escena{min-height:calc(100vh - 50px);display:grid;grid-template-columns:1.05fr .95fr;align-items:center;gap:clamp(24px,5vw,80px);
+    max-width:1180px;margin:0 auto;padding:40px clamp(16px,4vw,48px)}
+  .pase-texto .rotulo{display:flex;align-items:center;gap:10px;margin-bottom:22px}
+  .pase-texto h1{font:900 clamp(44px,6.4vw,92px)/.9 var(--display);font-stretch:125%;letter-spacing:-.035em;margin-bottom:24px}
+  .pase-texto h1 em{font-style:normal;color:var(--aire)}
+  .pase-texto p{max-width:44ch;color:var(--texto-2);font-size:17px;margin:0 0 30px}
+  .pase-texto ol{margin:0;padding:0;list-style:none;display:grid;gap:12px;max-width:46ch}
+  .pase-texto li{display:grid;grid-template-columns:34px 1fr;gap:12px;align-items:baseline;color:var(--texto-2)}
+  .pase-texto li span{font:600 12px/1 var(--mono);color:var(--texto-3);padding-top:2px}
+  .pase-texto li b{color:var(--texto);font-weight:600}
+
+  .pase-mesa{display:grid;justify-items:center;gap:22px}
+  .pase{position:relative;width:min(360px,100%);aspect-ratio:54/86;border-radius:20px;background:var(--papel);color:var(--tinta);overflow:hidden;
+    transform:rotate(-2.4deg);box-shadow:0 2px 0 rgba(255,255,255,.5) inset,0 40px 70px -20px rgba(0,0,0,.65),0 0 0 1px rgba(0,0,0,.06);
+    display:grid;grid-template-rows:auto auto 1fr auto}
+  .pase::before{content:"";position:absolute;top:16px;left:50%;width:70px;height:11px;margin-left:-35px;border-radius:6px;background:var(--consola);box-shadow:inset 0 2px 3px rgba(0,0,0,.5);z-index:3}
+  .holo{position:absolute;top:0;bottom:0;right:0;width:20px;z-index:2;opacity:.9;
+    background:linear-gradient(115deg,#9EF5D2 0%,#B9A2F5 22%,#FFC9A8 40%,#9ED8F5 58%,#C3F59E 76%,#F5A8D8 100%);background-size:100% 300%;
+    animation:holo 7s linear infinite;mix-blend-mode:multiply}
+  .holo::after{content:"LIFE MUSIC · LIFE MUSIC · LIFE MUSIC · LIFE MUSIC";position:absolute;top:50%;left:50%;transform:translate(-50%,-50%) rotate(90deg);
+    white-space:nowrap;font:800 9px/1 var(--display);font-stretch:125%;letter-spacing:.3em;color:rgba(23,32,27,.35)}
+  @keyframes holo{to{background-position:0 300%}}
+  .pase-cab{padding:46px 40px 0 24px;display:flex;justify-content:space-between;align-items:flex-start}
+  .pase-cab b{font:900 15px/1 var(--display);font-stretch:125%}
+  .pase-cab small{display:block;margin-top:5px;font:600 9.5px/1 var(--mono);letter-spacing:.12em;color:var(--tinta-2)}
+  .pase-cab .n{font:600 11px/1 var(--mono);color:var(--tinta-2)}
+  .aaa{padding:6px 44px 0 20px;font:900 clamp(78px,9vw,104px)/.82 var(--display);font-stretch:122%;letter-spacing:-.06em;color:var(--tinta)}
+  .aaa small{display:block;margin:10px 0 0 4px;font:800 12px/1 var(--display);font-stretch:118%;letter-spacing:.22em;color:var(--aire)}
+  .pase-campos{padding:18px 40px 0 24px;display:grid;gap:14px;align-content:start}
+  .pase-campos label{display:block;font:600 9.5px/1 var(--mono);letter-spacing:.14em;color:var(--tinta-2);margin-bottom:7px}
+  .pase-campos .vacio{font:500 14px/1.2 var(--cuerpo);color:var(--tinta-2);border-bottom:1px dashed rgba(23,32,27,.25);padding-bottom:6px}
+  .pase-campos .vacio.lleno{font-weight:700;color:var(--tinta);border-bottom-style:solid}
+  .casillas span.llena{border-color:var(--tinta)}
+  .casillas{display:flex;align-items:center;gap:4px}
+  .casillas span{width:25px;height:34px;border-radius:4px;display:grid;place-items:center;font:600 17px/1 var(--mono);background:#fff;border:1.5px solid rgba(23,32,27,.28);color:var(--tinta)}
+  .casillas span.fijo{width:auto;border:0;background:none;padding-right:2px}
+  .casillas span.cursor{border-color:var(--tinta);box-shadow:0 0 0 3px rgba(36,65,181,.18)}
+  .casillas span.cursor::after{content:"";width:2px;height:18px;background:var(--tinta-azul);animation:parpadeo 1s steps(1) infinite}
+  .casillas i{width:7px;height:2px;background:var(--tinta-2);margin:0 1px}
+  @keyframes parpadeo{50%{opacity:0}}
+  .pase-pie{display:flex;align-items:flex-end;justify-content:space-between;gap:10px;padding:0 40px 20px 24px}
+  .pase-campos .par{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+  .barras{height:30px;width:112px;flex:none;background:repeating-linear-gradient(90deg,var(--tinta) 0 2px,transparent 2px 4px,var(--tinta) 4px 5px,transparent 5px 8px,var(--tinta) 8px 11px,transparent 11px 12px)}
+  .pase-pie small{font:500 9px/1.3 var(--mono);color:var(--tinta-2);text-align:right}
+  .pase-nota{font-size:13px;color:var(--texto-3);text-align:center;max-width:36ch;margin:0}
+
+  /* ═══ 2 · El acta ═══ */
+  .pasos{display:flex;gap:6px;align-items:center;margin-bottom:26px;flex-wrap:wrap}
+  .pasos span{display:flex;align-items:center;gap:8px;padding:7px 12px;border-radius:4px;border:1px solid var(--linea);font:600 12px/1 var(--cuerpo);color:var(--texto-3)}
+  .pasos span.hecho{color:var(--texto-2)}
+  .pasos span.hecho::before{content:"✓";color:var(--piloto);font-weight:700}
+  .pasos span.ahora{border-color:var(--texto-2);color:var(--texto)}
+  .pasos em{width:18px;height:1px;background:var(--linea-2)}
+  .acta-mesa{display:grid;grid-template-columns:minmax(0,1fr) 300px;gap:clamp(20px,3vw,40px);align-items:start}
+  .acta{background:var(--papel);color:var(--tinta);border-radius:4px;padding:clamp(22px,4vw,56px);box-shadow:0 30px 60px -24px rgba(0,0,0,.55),0 0 0 1px rgba(0,0,0,.05);position:relative}
+  .acta-cab{display:flex;justify-content:space-between;align-items:flex-start;gap:18px;padding-bottom:22px;border-bottom:2px solid var(--tinta)}
+  .acta-cab .rot{font:700 10.5px/1 var(--display);font-stretch:112%;letter-spacing:.18em;text-transform:uppercase;color:var(--tinta-2)}
+  .acta-cab h1{font:900 clamp(26px,3.4vw,40px)/.98 var(--display);font-stretch:118%;letter-spacing:-.025em;margin-top:10px;max-width:16ch}
+  .acta-cab .folio{text-align:right;font:500 12px/1.6 var(--mono);color:var(--tinta-2);white-space:nowrap}
+  .acta-cab .folio b{display:block;font-size:15px;color:var(--tinta)}
+  .terminos{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));border-bottom:1px solid rgba(23,32,27,.16)}
+  .terminos div{padding:16px 14px 16px 0}
+  .terminos div+div{padding-left:14px;border-left:1px solid rgba(23,32,27,.12)}
+  .terminos dt{font:600 9.5px/1 var(--mono);letter-spacing:.12em;text-transform:uppercase;color:var(--tinta-2);margin-bottom:7px}
+  .terminos dd{margin:0;font-weight:600;font-size:14.5px;line-height:1.35}
+  .clausulas{margin:26px 0 0;padding:0;list-style:none;counter-reset:c;display:grid;gap:14px;max-width:72ch}
+  .clausulas li{counter-increment:c;display:grid;grid-template-columns:40px 1fr;font-size:14.5px;line-height:1.55;color:#2A332E}
+  .clausulas li::before{content:counter(c,decimal-leading-zero);font:600 12px/1.9 var(--mono);color:var(--tinta-2)}
+  .clausulas b{color:var(--tinta)}
+  .datos-firma{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:30px}
+  .campo label{display:block;font:600 9.5px/1 var(--mono);letter-spacing:.12em;text-transform:uppercase;color:var(--tinta-2);margin-bottom:8px}
+  .campo input{width:100%;padding:11px 12px;border-radius:4px;border:1.5px solid rgba(23,32,27,.22);background:#fff;font:500 15px var(--cuerpo);color:var(--tinta)}
+  .campo small{display:block;margin-top:6px;font-size:12px;color:var(--tinta-2)}
+  .firmas{display:grid;grid-template-columns:1.4fr 1fr;gap:18px;margin-top:28px}
+  .firma-caja{position:relative}
+  .lienzo{position:relative;height:170px;border-radius:4px;background:#fff;border:1.5px solid rgba(23,32,27,.22);touch-action:none}
+  .lienzo canvas{position:absolute;inset:0;width:100%;height:100%;cursor:crosshair}
+  .lienzo .linea-base{position:absolute;left:22px;right:22px;bottom:38px;border-bottom:1.5px solid rgba(23,32,27,.55);pointer-events:none}
+  .lienzo .x{position:absolute;left:18px;bottom:44px;font:500 22px/1 var(--mono);color:rgba(23,32,27,.55);pointer-events:none}
+  .lienzo .guia{position:absolute;left:0;right:0;top:44%;text-align:center;font:500 13px var(--cuerpo);color:rgba(23,32,27,.32);pointer-events:none}
+  .firma-pie{display:flex;justify-content:space-between;align-items:center;margin-top:8px;font:500 11.5px/1.3 var(--mono);color:var(--tinta-2)}
+  .firma-pie button{border:0;background:none;padding:4px 0;font:600 12px var(--cuerpo);color:var(--tinta-azul);text-decoration:underline;text-underline-offset:3px}
+  .firma-cg{height:170px;border-radius:4px;border:1.5px dashed rgba(23,32,27,.25);display:grid;place-items:center;text-align:center;padding:16px;color:var(--tinta-2);font-size:13px}
+  .firma-cg b{display:block;color:var(--tinta);font-size:14px;margin-bottom:4px}
+  .acepto{display:flex;gap:12px;align-items:flex-start;margin-top:26px;font-size:14.5px;color:#2A332E;cursor:pointer}
+  .acepto input{flex:none;width:20px;height:20px;margin:1px 0 0;accent-color:var(--tinta)}
+  .acta-acciones{display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin-top:22px}
+  .acta-acciones .boton{background:var(--tinta);border-color:var(--tinta);color:#fff;padding:14px 22px}
+  .acta-acciones .boton:disabled{background:#B8C0BB;border-color:#B8C0BB}
+  .acta-acciones small{color:var(--tinta-2);font-size:12.5px}
+  .sello-firmado{position:absolute;right:14px;top:34px;z-index:2;pointer-events:none;transform:rotate(-9deg);padding:12px 18px;border:3px solid var(--tinta-azul);border-radius:6px;color:var(--tinta-azul);
+    font:900 22px/1 var(--display);font-stretch:118%;letter-spacing:.08em;text-align:center;opacity:.85;mix-blend-mode:multiply;background:rgba(255,255,255,.2)}
+  .sello-firmado small{display:block;margin-top:6px;font:600 10px/1.3 var(--mono);letter-spacing:.04em}
+  .huella{margin-top:26px;padding-top:16px;border-top:1px solid rgba(23,32,27,.16);font:500 11.5px/1.6 var(--mono);color:var(--tinta-2);word-break:break-all}
+
+  .lateral{display:grid;gap:16px;position:sticky;top:70px}
+  .ficha-lat{border:1px solid var(--linea);border-radius:6px;padding:18px;background:var(--consola-2)}
+  .ficha-lat h3{font:700 11px/1 var(--display);font-stretch:112%;letter-spacing:.16em;text-transform:uppercase;color:var(--texto-3);margin-bottom:14px}
+  .vigencia .grande{font:900 44px/1 var(--display);font-stretch:125%;letter-spacing:-.03em}
+  .vigencia .grande small{font:600 14px var(--cuerpo);color:var(--texto-3);letter-spacing:0;margin-left:6px}
+  .regla-tiempo{display:flex;justify-content:space-between;margin-top:14px;font:500 12px/1 var(--mono);color:var(--texto-2)}
+  .regla-tiempo+div{height:6px;margin-top:8px;border-radius:3px;background:linear-gradient(90deg,var(--piloto) 0 2%,var(--consola-3) 2%)}
+  .ficha-lat p{margin:0;font-size:13.5px;color:var(--texto-2)}
+  .ficha-lat p+p{margin-top:10px}
+  .ficha-lat code{font:500 12px var(--mono);color:var(--texto)}
+
+  /* ═══ 3 · La cabina (tablero como sesion de grabacion) ═══ */
+  .cabina{display:grid;grid-template-columns:minmax(0,1fr) 340px;gap:clamp(18px,2.4vw,32px);align-items:start}
+  .bloque{border:1px solid var(--linea);border-radius:8px;background:var(--consola-2)}
+  .bloque-cab{display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap;padding:16px 18px;border-bottom:1px solid var(--linea)}
+  .bloque-cab h2{font:800 17px/1 var(--display);font-stretch:118%;letter-spacing:.01em;display:flex;align-items:center;gap:10px}
+  .bloque-cab h2 span{font:500 12px var(--mono);color:var(--texto-3);letter-spacing:0}
+  .medidor{display:flex;align-items:center;gap:10px;font:500 12.5px var(--cuerpo);color:var(--texto-2)}
+  .medidor i{display:flex;gap:3px}
+  .medidor i b{width:14px;height:9px;border-radius:1px;background:var(--consola-3)}
+  .medidor i b.on{background:var(--piloto);box-shadow:0 0 6px rgba(52,211,153,.6)}
+  .medidor i b.on.pico{background:var(--ambar);box-shadow:0 0 6px rgba(245,184,61,.6)}
+
+  .sesion{overflow-x:auto}
+  .sesion-in{min-width:860px;--fases:minmax(0,1fr) minmax(0,1fr) minmax(0,.75fr) minmax(0,1fr) minmax(0,1fr) minmax(0,.75fr)}
+  .regla{display:grid;grid-template-columns:230px var(--fases);border-bottom:1px solid var(--linea);font:700 11px/1.15 var(--display);font-stretch:80%;letter-spacing:.06em;text-transform:uppercase;color:var(--texto-3)}
+  .regla div{padding:10px 10px;border-left:1px solid var(--linea);display:flex;align-items:center;gap:7px;min-width:0}
+  .regla .puerta small{display:block;font:500 9.5px/1.2 var(--mono);letter-spacing:0;text-transform:none;color:var(--texto-3);margin-top:2px}
+  .regla div:first-child{border-left:0;padding-left:18px}
+  .regla .n{font:500 10px var(--mono);color:var(--texto-3);letter-spacing:0}
+  .regla .puerta{color:var(--aire)}
+  .regla .puerta::before{content:"";width:0;height:0;border-left:5px solid transparent;border-right:5px solid transparent;border-top:7px solid var(--aire)}
+  .pista{display:grid;grid-template-columns:230px minmax(0,1fr);border-bottom:1px solid var(--linea);min-height:62px}
+  .pista:last-of-type{border-bottom:0}
+  .pista-cab{display:grid;grid-template-columns:22px 4px 1fr;gap:10px;align-items:center;padding:10px 12px 10px 14px;background:var(--consola-3)}
+  .pista-cab .n{font:600 11px var(--mono);color:var(--texto-3)}
+  .pista-cab .color{width:4px;align-self:stretch;border-radius:2px;background:var(--c)}
+  .pista-cab b{display:block;font-size:13.5px;line-height:1.25;font-weight:600}
+  .pista-cab small{display:flex;gap:8px;margin-top:3px;font:500 11px var(--mono);color:var(--texto-3)}
+  .carril{display:grid;grid-template-columns:var(--fases)}
+  .carril .celda{grid-row:1;border-left:1px solid var(--linea)}
+  .carril .celda.puerta{background:repeating-linear-gradient(135deg,var(--aire-suave) 0 6px,transparent 6px 12px)}
+  .clip{grid-row:1;z-index:1;margin:9px 6px;border-radius:5px;position:relative;overflow:hidden;display:flex;flex-direction:column;justify-content:space-between;
+    background:color-mix(in srgb,var(--c) 20%,var(--consola-2));border:1px solid color-mix(in srgb,var(--c) 55%,transparent);padding:6px 9px;min-height:44px}
+  .clip .titulo-clip{font:600 11.5px/1.2 var(--cuerpo);color:var(--texto);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;position:relative;z-index:1}
+  .clip .onda{display:flex;align-items:center;gap:2px;height:16px;opacity:.75}
+  .clip .onda i{flex:1 1 0;min-width:1px;max-width:3px;border-radius:1px;background:var(--c)}
+  .clip.vivo{box-shadow:0 0 0 1px var(--c),0 0 18px color-mix(in srgb,var(--c) 35%,transparent)}
+  .clip.vivo::after{content:"";position:absolute;right:0;top:0;bottom:0;width:2px;background:var(--texto);box-shadow:0 0 8px var(--texto)}
+  .sesion-pie{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;padding:14px 18px;border-top:1px solid var(--linea);font-size:13px;color:var(--texto-3)}
+
+  .col-der{display:grid;grid-template-columns:minmax(0,1fr);gap:clamp(18px,2.4vw,24px);min-width:0}
+  .bloque{min-width:0}
+  .nota{padding:14px 18px;border-bottom:1px solid var(--linea)}
+  .nota:last-child{border-bottom:0}
+  .nota .meta{display:flex;justify-content:space-between;align-items:center;font:500 11px var(--mono);color:var(--texto-3);margin-bottom:6px}
+  .nota .meta .fija{color:var(--aire);font-weight:600;letter-spacing:.08em}
+  .nota b{display:block;font-size:14px;margin-bottom:2px}
+  .nota p{margin:0;font-size:13.5px;color:var(--texto-2)}
+  .conexiones{list-style:none;margin:0;padding:6px 0}
+  .conexiones li{display:grid;grid-template-columns:18px 1fr auto;gap:12px;align-items:center;padding:10px 18px}
+  .jack{width:16px;height:16px;border-radius:50%;border:2px solid var(--texto-3);position:relative}
+  .jack.on{border-color:var(--piloto)}
+  .jack.on::after{content:"";position:absolute;inset:3px;border-radius:50%;background:var(--piloto);box-shadow:0 0 6px var(--piloto)}
+  .jack.pedido{border-color:var(--ambar);border-style:dashed}
+  .conexiones b{display:block;font-size:14px}
+  .conexiones small{font-size:12px;color:var(--texto-3)}
+  .estado{font:600 11px/1 var(--mono);letter-spacing:.04em;padding:5px 7px;border-radius:3px;white-space:nowrap}
+  .estado.ok{color:var(--piloto);background:var(--piloto-suave)}
+  .estado.esp{color:var(--ambar);background:var(--ambar-suave)}
+  .estado.mal{color:var(--aire);background:var(--aire-suave)}
+  .bloque-pie{display:flex;gap:8px;flex-wrap:wrap;align-items:center;padding:12px 18px 16px;border-top:1px solid var(--linea);font-size:12.5px;color:var(--texto-3)}
+  .mini-pase{display:grid;grid-template-columns:auto 1fr;gap:14px;align-items:center;padding:16px 18px}
+  .mini-pase .iniciales{width:48px;height:48px;font-size:16px}
+  .mini-pase b{display:block;font-size:15px}
+  .mini-pase small{display:block;font-size:12.5px;color:var(--texto-3)}
+  .mini-pase .firmado{grid-column:1/-1;display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:5px;background:var(--consola-3);font-size:13px;color:var(--texto-2)}
+  .mini-pase .firmado svg{width:18px;height:18px;flex:none;fill:none;stroke:var(--piloto);stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round}
+
+  .fuera-del-aire .accion{opacity:.35;pointer-events:none}
+
+  /* ═══ 4 · Operaciones ═══ */
+  .ops{display:grid;grid-template-columns:repeat(12,minmax(0,1fr));gap:clamp(18px,2.4vw,24px)}
+  .ops .s7{grid-column:span 7}.ops .s5{grid-column:span 5}
+  .canales{display:grid;grid-template-columns:repeat(4,minmax(0,1fr))}
+  .canal{padding:18px;border-left:1px solid var(--linea);display:grid;gap:12px;align-content:start}
+  .canal:first-child{border-left:0}
+  .vu{display:flex;flex-direction:column-reverse;gap:3px;height:74px;width:16px}
+  .vu b{flex:1;border-radius:1px;background:var(--consola-3)}
+  .vu b.on{background:var(--piloto)}
+  .vu b.on.alto{background:var(--ambar)}
+  .canal-arriba{display:flex;gap:14px;align-items:flex-end}
+  .canal-arriba .ms{font:600 22px/1 var(--mono);font-variant-numeric:tabular-nums}
+  .canal-arriba .ms small{display:block;font:500 10.5px var(--mono);color:var(--texto-3);margin-top:6px}
+  .canal b.nom{font:800 13px/1.2 var(--display);font-stretch:112%;letter-spacing:.04em;text-transform:uppercase}
+  .canal small.det{display:block;font-size:12px;color:var(--texto-3);margin-top:4px}
+  .bitacora{list-style:none;margin:0;padding:0}
+  .bitacora li{display:grid;grid-template-columns:4px 74px 1fr auto;gap:14px;align-items:center;padding:12px 18px 12px 0;border-bottom:1px solid var(--linea)}
+  .bitacora li:last-child{border-bottom:0}
+  .bitacora .sev{align-self:stretch;border-radius:0 2px 2px 0}
+  .bitacora .tc{font:500 12px var(--mono);color:var(--texto-3);font-variant-numeric:tabular-nums}
+  .bitacora b{display:block;font-size:14px}
+  .bitacora small{font-size:12.5px;color:var(--texto-3)}
+  .contador{display:flex;align-items:center;gap:16px;padding:22px 18px 10px}
+  .digitos{display:flex;gap:4px}
+  .digitos span{width:44px;height:62px;border-radius:5px;display:grid;place-items:center;font:600 40px/1 var(--mono);color:var(--texto);
+    background:linear-gradient(180deg,var(--consola-3) 0 49%,var(--consola) 49% 51%,var(--consola-3) 51%);box-shadow:inset 0 2px 6px rgba(0,0,0,.35)}
+  .contador .de{font:600 15px var(--mono);color:var(--texto-3)}
+  .contador .de b{display:block;font:800 13px var(--display);font-stretch:112%;letter-spacing:.1em;text-transform:uppercase;color:var(--texto-2);margin-bottom:6px}
+  .cinta-prog{margin:8px 18px 18px;height:6px;border-radius:3px;background:var(--consola-3);overflow:hidden}
+  .cinta-prog i{display:block;height:100%;width:5%;background:var(--piloto)}
+  .chequeo{list-style:none;margin:0;padding:6px 0}
+  .chequeo li{display:grid;grid-template-columns:22px 1fr auto;gap:12px;align-items:center;padding:10px 18px}
+  .chequeo .c{width:18px;height:18px;border-radius:3px;border:2px solid var(--linea-2)}
+  .chequeo li.hecho .c{border-color:var(--piloto);background:var(--piloto)}
+  .chequeo li.hecho b{color:var(--texto-3);text-decoration:line-through}
+  .chequeo b{font-size:14px;font-weight:600}
+  .chequeo small{font:500 11.5px var(--mono);color:var(--texto-3)}
+
+  /* ═══ 5 · Produccion (panel de CG) ═══ */
+  .prod{display:grid;grid-template-columns:minmax(0,1fr) 360px;gap:clamp(18px,2.4vw,28px);align-items:start}
+  .tabla-wrap{overflow-x:auto}
+  table{width:100%;border-collapse:collapse;font-size:14px;min-width:680px}
+  th{text-align:left;padding:12px 14px;font:700 10.5px/1 var(--display);font-stretch:112%;letter-spacing:.14em;text-transform:uppercase;color:var(--texto-3);border-bottom:1px solid var(--linea)}
+  td{padding:14px;border-bottom:1px solid var(--linea);vertical-align:middle}
+  tr:last-child td{border-bottom:0}
+  td .persona{display:flex;align-items:center;gap:12px}
+  td .persona small{display:block;color:var(--texto-3);font-size:12px}
+  td .n{font:600 12px var(--mono);color:var(--texto-3)}
+  .contrato{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+  .nuevo-pase{padding:18px;display:grid;gap:14px}
+  .nuevo-pase .campo label{color:var(--texto-3)}
+  .entrada-falsa{padding:11px 12px;border-radius:5px;border:1px solid var(--linea-2);background:var(--consola);font-size:14px}
+  .dias{display:grid;grid-template-columns:repeat(7,1fr);gap:4px}
+  .dias span{padding:8px 0;text-align:center;border-radius:4px;font:700 12px/1 var(--display);font-stretch:112%;background:var(--piloto-suave);color:var(--piloto);border:1px solid color-mix(in srgb,var(--piloto) 40%,transparent)}
+  .dias span.no{background:none;color:var(--texto-3);border-color:var(--linea);text-decoration:line-through}
+  .pase-impreso{display:grid;grid-template-columns:1fr auto;gap:6px 14px;align-items:end;padding:16px;border-radius:12px;background:var(--papel);color:var(--tinta);position:relative;overflow:hidden}
+  .pase-impreso::after{content:"";position:absolute;right:0;top:0;bottom:0;width:12px;background:linear-gradient(180deg,#9EF5D2,#B9A2F5,#FFC9A8,#9ED8F5)}
+  .pase-impreso small{font:600 9.5px/1 var(--mono);letter-spacing:.12em;color:var(--tinta-2);text-transform:uppercase}
+  .pase-impreso .cod{grid-column:1/-1;font:600 26px/1 var(--mono);letter-spacing:.04em}
+  .pase-impreso .vence{grid-column:1/-1;font-size:12px;color:var(--tinta-2)}
+  .enlace-pase{display:grid;gap:10px;padding:16px;border-radius:8px;border:1px solid var(--linea-2);background:var(--consola)}
+  .enlace-pase .url{font:500 13px/1.45 var(--mono);color:var(--texto);word-break:break-all;padding:10px 12px;border-radius:5px;background:var(--consola-3)}
+  .enlace-pase .acciones{display:flex;gap:6px;flex-wrap:wrap}
+  .enlace-pase .rotulo{margin-top:4px}
+  .qr-caja{display:grid;justify-items:center;gap:8px;padding:14px;border-radius:8px;background:#FFFFFF;color:#56615B;text-align:center;font-size:12px}
+  .qr-caja canvas{width:180px;height:180px;image-rendering:pixelated}
+  .mensaje{margin:0;padding:12px 14px;border-left:3px solid var(--piloto);border-radius:0 6px 6px 0;background:var(--consola-3);font-size:13.5px;line-height:1.5;color:var(--texto-2);word-break:break-word}
+  .cuidado{margin:0;font-size:12.5px;color:var(--texto-3)}
+  .boton.peligro{color:var(--aire);border-color:color-mix(in srgb,var(--aire) 45%,transparent);background:transparent}
+  .boton.hecho{background:var(--piloto-suave);border-color:var(--piloto);color:var(--piloto)}
+  .aprobar li{display:grid;grid-template-columns:1fr auto;gap:12px;align-items:center;padding:14px 18px;border-bottom:1px solid var(--linea)}
+  .aprobar li:last-child{border-bottom:0}
+  .aprobar{list-style:none;margin:0;padding:0}
+  .aprobar b{display:block;font-size:14px}
+  .aprobar small{font-size:12.5px;color:var(--texto-3)}
+  .aprobar .acciones{display:flex;gap:6px}
+
+  /* Estreno limpio: sin datos de ejemplo, cada bloque con su estado vacio */
+  .en-blanco{display:none}
+  body.estreno .ejemplo{display:none!important}
+  body.estreno .en-blanco{display:grid}
+  body.estreno .pista{display:none}
+  .en-blanco{justify-items:center;text-align:center;gap:8px;padding:30px 22px;color:var(--texto-3)}
+  .en-blanco .hueco{width:42px;height:42px;border-radius:50%;border:1.5px dashed var(--linea-2);display:grid;place-items:center;font:600 16px/1 var(--mono);color:var(--texto-3)}
+  .en-blanco b{color:var(--texto);font-size:15px;font-weight:600}
+  .en-blanco p{margin:0;max-width:44ch;font-size:13.5px;line-height:1.5}
+  body.estreno .chequeo li.hecho .c{border-color:var(--linea-2);background:none}
+  body.estreno .chequeo li.hecho b{color:inherit;text-decoration:none}
+  body.estreno .medidor i b.on{background:var(--consola-3);box-shadow:none}
+  .vivo-tag{font:600 10px/1 var(--mono);letter-spacing:.1em;color:var(--piloto);display:inline-flex;align-items:center;gap:6px}
+  .vivo-tag::before{content:"";width:6px;height:6px;border-radius:50%;background:var(--piloto);box-shadow:0 0 6px var(--piloto)}
+
+  /* Lo legal */
+  .aviso-legal{font-size:12px;line-height:1.5;color:var(--texto-3);max-width:40ch;text-align:center;margin:0;padding-top:10px;border-top:1px solid var(--linea)}
+  .pie-legal{border-top:1px solid var(--linea);background:var(--consola-2);padding:18px clamp(16px,3vw,40px);display:flex;flex-wrap:wrap;gap:10px 22px;align-items:center;justify-content:space-between;font-size:12.5px;color:var(--texto-3)}
+  .pie-legal nav{display:flex;flex-wrap:wrap;gap:6px 18px}
+  .pie-legal button{border:0;background:none;padding:0;font:inherit;color:var(--texto-2);text-decoration:underline;text-underline-offset:3px}
+  .permisos{display:grid;gap:12px;margin-top:24px}
+  .permisos .acepto{margin-top:0}
+  .permisos a,.permisos button.enlace{color:var(--tinta-azul);font:inherit;border:0;background:none;padding:0;text-decoration:underline;text-underline-offset:3px;cursor:pointer}
+  .firma-pie .alterna{color:var(--tinta-2)}
+  .tus-datos .bloque-pie{border-top:0;padding-top:4px}
+  .tus-datos p{margin:0;padding:14px 18px 6px;font-size:13px;color:var(--texto-2)}
+  .falta{background:var(--ambar-suave);border-bottom:1.5px dashed var(--ambar);padding:0 3px;border-radius:2px;color:var(--tinta)}
+  .politica h2{font:800 17px/1.2 var(--display);font-stretch:110%;margin:30px 0 10px;color:var(--tinta)}
+  .politica p,.politica li{font-size:14.5px;line-height:1.6;color:#2A332E;max-width:72ch}
+  .politica ul{margin:0;padding-left:20px;display:grid;gap:6px}
+  .politica .ley{font:500 11.5px/1.5 var(--mono);color:var(--tinta-2)}
+
+  /* Responsive */
+  @media (max-width: 1100px){
+    .cabina,.prod,.acta-mesa{grid-template-columns:minmax(0,1fr)}
+    .lateral{position:static}
+    .ops .s7,.ops .s5{grid-column:span 12}
+  }
+  @media (max-width: 820px){
+    .pase-escena{grid-template-columns:minmax(0,1fr);min-height:auto}
+    .llamado{grid-template-columns:minmax(0,1fr)}
+    .llamado .aire{justify-self:start}
+    .terminos{grid-template-columns:1fr 1fr}
+    .terminos div:nth-child(3){padding-left:0;border-left:0}
+    .datos-firma,.firmas{grid-template-columns:minmax(0,1fr)}
+    .canales{grid-template-columns:1fr 1fr}
+    .canal:nth-child(3){border-left:0}
+    .canal:nth-child(n+3){border-top:1px solid var(--linea)}
+    .quien .nombre{display:none}
+  }
+  @media (max-width: 480px){
+    .pase{transform:none}
+    .aaa{font-size:84px}
+    .sello-firmado{top:auto;bottom:120px;font-size:20px}
+  }
+  @media (prefers-reduced-motion: reduce){ .holo,.casillas span.cursor::after{animation:none} .boton{transition:none} }
+</style>
+</head>
+<body>
+
+<nav class="maqueta" aria-label="Pantallas de la maqueta">
+  <b>MAQUETA v2</b>
+  <button data-ver="pase" aria-pressed="true">1 · Pase</button>
+  <button data-ver="enlace" aria-pressed="false">1b · Pase por enlace</button>
+  <button data-ver="acta" aria-pressed="false">2 · Acta y firma</button>
+  <button data-ver="cabina" aria-pressed="false">3 · Cabina (al aire)</button>
+  <button data-ver="fuera" aria-pressed="false">4 · Fuera del aire</button>
+  <button data-ver="operaciones" aria-pressed="false">5 · Operaciones</button>
+  <button data-ver="produccion" aria-pressed="false">6 · Producción (CG)</button>
+  <button data-ver="politica" aria-pressed="false">7 · Política y términos</button>
+  <button class="tema" id="estreno" aria-pressed="false">Ver estreno (vacío)</button>
+  <button id="tema" aria-pressed="false">Tema claro</button>
+</nav>
+
+<!-- ═══ 1 · El pase ═══ -->
+<section class="vista activa" id="v-pase">
+  <div class="pase-escena">
+    <div class="pase-texto">
+      <div class="rotulo" id="p-rotulo"><span class="led rojo"></span><span>Acceso restringido · equipo de producción</span></div>
+      <h1 id="p-h1">Muestra tu <em>pase.</em></h1>
+      <p id="p-texto">Esta es la cabina de Life Music: aquí trabaja el equipo que hace la app. Escribe el código que te dio Camilo.</p>
+      <ol>
+        <li><span>01</span><div>El código sirve <b>una sola vez</b> y vence en <b>48 horas</b>.</div></li>
+        <li><span>02</span><div>Después lees el <b>acta de tu cargo</b> y la firmas.</div></li>
+        <li><span>03</span><div>Desde ahí, este aparato queda enlazado. Para otro, pides un código de 5 minutos.</div></li>
+      </ol>
+    </div>
+    <div class="pase-mesa">
+      <div class="pase" role="group" aria-label="Pase de equipo">
+        <div class="holo" aria-hidden="true"></div>
+        <div class="pase-cab"><div><b>LIFE MUSIC</b><small>EQUIPO · TEMPORADA 2026</small></div><span class="n" id="p-n">Nº 0002</span></div>
+        <div class="aaa">AAA<small>ACCESO TOTAL · CABINA</small></div>
+        <div class="pase-campos">
+          <div><label>NOMBRE</label><div class="vacio" id="p-nombre">Aparece al validar el código</div></div>
+          <div class="par"><div><label>CARGO</label><div class="vacio" id="p-cargo">—</div></div><div><label>VENCE</label><div class="vacio" id="p-vence">—</div></div></div>
+          <div><label for="codigo">CÓDIGO DE ENTRADA</label>
+            <div class="casillas" id="codigo"><span class="fijo">LM</span><i></i><span>7</span><span>K</span><span>Q</span><span>2</span><i></i><span>X</span><span class="cursor"></span><span></span><span></span></div>
+          </div>
+        </div>
+        <div class="pase-pie"><div class="barras" aria-hidden="true"></div><small>CG LABS<br>lifemusic.app/equipo</small></div>
+      </div>
+      <button class="boton piloto" id="p-validar" disabled>Validar pase</button>
+      <p class="pase-nota" id="p-nota">¿No tienes código? Pídeselo a Camilo. Nadie del equipo te lo va a pedir por chat.</p>
+      <p class="aviso-legal">Sistema privado de CG LABS. Solo pueden entrar las personas invitadas. Entrar sin autorización es un delito en Colombia (Ley 1273 de 2009, art. 269A).</p>
+    </div>
+  </div>
+</section>
+
+<!-- ═══ 2 · El acta del cargo temporal ═══ -->
+<section class="vista" id="v-acta">
+  <div class="marco">
+    <div class="pasos"><span class="hecho">Pase validado</span><em></em><span class="ahora">Acta del cargo</span><em></em><span>Cabina</span></div>
+    <div class="acta-mesa">
+      <article class="acta" aria-label="Acta de aceptación del cargo temporal">
+        <header class="acta-cab">
+          <div><div class="rot">Life Music · CG LABS</div><h1>Acta de aceptación de cargo temporal</h1></div>
+          <div class="folio">FOLIO<b>LM-EQ-2026-002</b>versión del acta 1</div>
+        </header>
+        <dl class="terminos">
+          <div><dt>Cargo</dt><dd>Supervisor de ejecución / Planificador</dd></div>
+          <div><dt>Vigencia</dt><dd>13 oct → 11 dic 2026<br><span style="font-weight:500;color:var(--tinta-2)">60 días</span></dd></div>
+          <div><dt>Jornada</dt><dd>Lunes a viernes<br>8:00 a. m. a 5:00 p. m.</dd></div>
+          <div><dt>Modalidad</dt><dd>Remota · hora de Colombia</dd></div>
+        </dl>
+        <ol class="clausulas">
+          <li><span><b>Funciones.</b> Planear las ideas y ejecutar las que Camilo apruebe, siguiendo el ciclo de cuatro fases: idea, planteamiento técnico, ejecución y pruebas.</span></li>
+          <li><span><b>Publicación.</b> Nada se publica sin la orden de Camilo: ni la app, ni la web, ni los servidores. El trabajo se entrega en una rama con su PR.</span></li>
+          <li><span><b>Confidencialidad.</b> Lo que se ve en la cabina y en los sistemas es confidencial durante el cargo y después de terminarlo.</span></li>
+          <li><span><b>Datos de usuarios.</b> No se accede ni se copia el prerregistro del concurso ni ningún dato personal de quienes usan la app.</span></li>
+          <li><span><b>Accesos.</b> Cada plataforma con cuenta propia. Las claves nunca van por chat. Al terminar el cargo se retiran todos los accesos.</span></li>
+          <li><span><b>Licencia.</b> Lo que se aporte al código se publica bajo la licencia GPL-3.0 del proyecto, como el resto de Life Music.</span></li>
+          <li><span><b>Fin del cargo.</b> El cargo termina en la fecha de vigencia o antes, si cualquiera de las partes lo pide. Camilo puede cerrar el acceso en cualquier momento.</span></li>
+          <li><span><b>Contrato aparte.</b> Esta acta deja constancia de que aceptas el cargo y sus reglas. No reemplaza el contrato de trabajo o de prestación de servicios, que se firma por separado.</span></li>
+        </ol>
+        <div class="datos-firma">
+          <div class="campo"><label for="nombre">Nombre completo</label><input id="nombre" value="Laura Martínez" placeholder="Como aparece en tu documento" data-estreno-valor=""></div>
+          <div class="campo"><label for="doc">Documento (opcional)</label><input id="doc" value="C.C. 1.020.***.821" placeholder="C.C. o C.E." data-estreno-valor=""><small>Se guarda tapado; solo Camilo lo ve completo.</small></div>
+        </div>
+        <div class="firmas">
+          <div class="firma-caja">
+            <div class="campo"><label>Firma de quien acepta</label></div>
+            <div class="lienzo" id="lienzo"><span class="guia" id="guia">Firma aquí con el dedo o el mouse</span><span class="x">×</span><span class="linea-base"></span><canvas id="firma" aria-label="Espacio para firmar"></canvas><div class="sello-firmado" id="sello" hidden>FIRMADO<small>14 oct 2026 · 10:42 a. m.<br>falta la firma de CG</small></div></div>
+            <div class="firma-pie"><span id="firma-estado">Sin firmar</span><span><button type="button" id="escrita" class="alterna">Firmar escribiendo mi nombre</button> · <button type="button" id="borrar">Borrar y repetir</button></span></div>
+          </div>
+          <div>
+            <div class="campo"><label>Firma de Camilo (producción)</label></div>
+            <div class="firma-cg"><div><b>Pendiente</b>Camilo firma desde su panel cuando tú firmes. Ahí el acta queda completa.</div></div>
+          </div>
+        </div>
+        <div class="permisos">
+          <label class="acepto"><input type="checkbox" id="acepto"><span>Leí el acta completa y acepto el cargo temporal en estas condiciones.</span></label>
+          <label class="acepto"><input type="checkbox" id="autorizo"><span>Autorizo a CG LABS a tratar mis datos personales (nombre, documento, firma y actividad en la cabina) solo para gestionar este cargo, según la <button type="button" class="enlace" data-ir="politica">Política de datos del equipo</button>.</span></label>
+          <label class="acepto"><input type="checkbox" id="mayor"><span>Soy mayor de edad.</span></label>
+        </div>
+        <div class="acta-acciones"><button class="boton" id="firmar" disabled>Firmar y aceptar el cargo</button><small>Firma electrónica · Ley 527 de 1999 y Decreto 2364 de 2012</small></div>
+                <div class="huella" id="huella" hidden>Huella del acta firmada · SHA-256<br>3f9a6c0e1b7d44a2c58e9f17d0b36a5e8c21e4f90a7b3d6c15e28f4a90cb7d21<br>Firmada desde Chrome en Windows · 14 oct 2026, 10:42:07 a. m.</div>
+      </article>
+      <aside class="lateral">
+        <div class="ficha-lat vigencia"><h3>Tu temporada</h3><div class="grande">60<small>días</small></div>
+          <div class="regla-tiempo"><span>13 OCT</span><span>11 DIC</span></div><div></div></div>
+        <div class="ficha-lat"><h3>Cómo queda guardada</h3>
+          <p>El acta y tu firma se guardan juntas con una huella <code>SHA-256</code>. Si alguien cambiara una sola coma del acta, la huella dejaría de coincidir.</p>
+          <p>Te llega una copia en PDF a la cabina cuando Camilo firme.</p></div>
+        <div class="ficha-lat"><h3>Antes de firmar</h3>
+          <p>Si algo del acta no te cuadra, no firmes todavía y habla con Camilo. El código ya está usado, pero este aparato queda esperando.</p></div>
+      </aside>
+    </div>
+  </div>
+</section>
+
+<!-- ═══ 3 y 4 · La cabina del Supervisor / Planificador ═══ -->
+<section class="vista" id="v-cabina">
+  <header class="tope">
+    <div class="sello"><b>LIFE MUSIC</b><span>Cabina</span></div>
+    <div class="quien"><div class="nombre"><b>Laura Martínez</b><small>Supervisor de ejecución / Planificador</small></div><span class="iniciales">LM</span></div>
+  </header>
+  <div class="marco">
+    <div class="llamado">
+      <div class="fecha"><span class="d num">14</span><div class="dm"><span>Miércoles</span><span>Octubre</span><small>2026 · semana 42</small></div></div>
+      <dl class="horas">
+        <div><dt>Llamado</dt><dd>8:00<small>a. m.</small></dd></div>
+        <div><dt>Cierre</dt><dd>5:00<small>p. m.</small></dd></div>
+        <div><dt>Cargo temporal</dt><dd>Día 2<small>de 60</small></dd><div class="temporada"><i></i></div></div>
+      </dl>
+      <div class="aire grande encendida" id="lampara">Al aire</div>
+    </div>
+    <div class="franja-fuera" id="franja-fuera" hidden><span class="led"></span><span><b>Fuera del aire.</b> La cabina queda en solo lectura hasta mañana a las 8:00 a. m. Puedes mirar todo, pero no mover nada.</span></div>
+
+    <div class="cabina">
+      <section class="bloque" aria-label="Sesión de la versión 1.3.3">
+        <div class="bloque-cab">
+          <h2>Sesión 1.3.3 <span data-estreno="· sin pistas">· 6 pistas</span></h2>
+          <div class="medidor"><i aria-hidden="true"><b class="on"></b><b class="on"></b><b class="on"></b><b class="on pico"></b><b></b></i><span data-estreno="0 de 5 funciones para la versión">4 de 5 funciones para la versión</span></div>
+        </div>
+        <div class="sesion"><div class="sesion-in" id="sesion">
+          <div class="regla">
+            <div>Pista</div>
+            <div><span class="n">1</span>Idea</div>
+            <div><span class="n">2</span>Planteamiento</div>
+            <div class="puerta"><span>Luz verde<small>solo CG</small></span></div>
+            <div><span class="n">3</span>Ejecución</div>
+            <div><span class="n">4</span>Pruebas</div>
+            <div class="puerta"><span>Lanzar<small>solo CG</small></span></div>
+          </div>
+        </div></div>
+        <div class="en-blanco"><span class="hueco">01</span><b>La sesión está en silencio</b><p>Todavía no hay ideas para la 1.3.3. La primera que propongas entra como pista 01 y avanza por las fases desde aquí.</p></div>
+        <div class="sesion-pie"><span>Las franjas rojas son las puertas que solo abre Camilo: dar luz verde y lanzar.</span><button class="boton chico accion">+ Proponer una idea</button></div>
+      </section>
+
+      <div class="col-der">
+        <section class="bloque" aria-label="Notas de producción">
+          <div class="bloque-cab"><h2>Notas de producción</h2></div>
+          <div class="nota ejemplo"><div class="meta"><span class="fija">FIJADA</span><span>CG · LUN 09:12</span></div>
+            <b>Esta semana se cierra la 1.3.3</b><p>Primero el modo liviano del TV: el Hisense va a 14 cuadros por segundo. Lo demás puede esperar.</p></div>
+          <div class="nota ejemplo"><div class="meta"><span>Bienvenida</span><span>CG · LUN 08:30</span></div>
+            <b>Ya tienes GitHub</b><p>Cloudflare te llega mañana. Cualquier duda, me escribes.</p></div>
+          <div class="en-blanco"><p>Sin notas de Camilo por ahora. Los avisos que él fije aparecen aquí.</p></div>
+        </section>
+
+        <section class="bloque" aria-label="Tus conexiones">
+          <div class="bloque-cab"><h2>Conexiones</h2><span class="estado ok">SIN CLAVES AQUÍ</span></div>
+          <ul class="conexiones ejemplo">
+            <li><span class="jack on"></span><div><b>GitHub</b><small>Colaboradora · main protegida</small></div><span class="estado ok">CONECTADO</span></li>
+            <li><span class="jack pedido"></span><div><b>Cloudflare</b><small>Miembro de la cuenta</small></div><span class="estado esp">PEDIDO</span></li>
+            <li><span class="jack on"></span><div><b>Bitwarden</b><small>Bóveda «Life Music»</small></div><span class="estado ok">CONECTADO</span></li>
+          </ul>
+          <div class="en-blanco"><p>Todavía no tienes conexiones. Camilo te invita a cada plataforma con tu propia cuenta y aquí ves cuáles tienes.</p></div>
+          <div class="bloque-pie"><button class="boton chico accion"><span data-estreno="Pedir una conexión">Pedir otra conexión</span></button></div>
+        </section>
+
+        <section class="bloque" aria-label="Tu pase">
+          <div class="mini-pase">
+            <span class="iniciales">LM</span><div><b>Pase Nº 0002 · activo</b><small data-estreno="1 aparato enlazado · este">2 aparatos enlazados · este y Life Music en Android</small></div>
+            <div class="firmado"><svg viewBox="0 0 24 24"><path d="M5 12l5 5 9-10"/></svg><span data-estreno="Acta firmada hoy por ti · falta la firma de Camilo">Acta firmada el 13 oct por ti y por Camilo</span></div>
+          </div>
+          <div class="bloque-pie"><button class="boton chico accion">Enlazar otro aparato</button><button class="boton chico">Ver el acta</button></div>
+        </section>
+
+        <section class="bloque tus-datos" aria-label="Tus datos">
+          <div class="bloque-cab"><h2>Tus datos</h2><span class="estado ok">LEY 1581</span></div>
+          <p>Puedes ver todo lo que la cabina guarda de ti, pedir que se corrija o que se borre. Camilo responde en máximo 10 días hábiles.</p>
+          <div class="bloque-pie"><button class="boton chico">Ver y descargar mis datos</button><button class="boton chico">Pedir una corrección</button><button class="boton chico">Pedir que se borren</button></div>
+        </section>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══ 5 · Operaciones ═══ -->
+<section class="vista" id="v-operaciones">
+  <header class="tope">
+    <div class="sello"><b>LIFE MUSIC</b><span>Cabina</span></div>
+    <div class="quien"><div class="nombre"><b>Andrés Peña</b><small>Operaciones</small></div><span class="iniciales ap">AP</span></div>
+  </header>
+  <div class="marco">
+    <div class="llamado">
+      <div class="fecha"><span class="d num">14</span><div class="dm"><span>Miércoles</span><span>Octubre</span><small>2026 · semana 42</small></div></div>
+      <dl class="horas">
+        <div><dt>Llamado</dt><dd>8:00<small>a. m.</small></dd></div>
+        <div><dt>Cierre</dt><dd>5:00<small>p. m.</small></dd></div>
+        <div><dt>Cargo temporal</dt><dd>Día 2<small>de 60</small></dd><div class="temporada"><i></i></div></div>
+      </dl>
+      <div class="aire grande encendida">Al aire</div>
+    </div>
+    <div class="ops">
+      <section class="bloque s7" aria-label="Monitoreo de servicios">
+        <div class="bloque-cab"><h2>Monitoreo</h2><span class="vivo-tag">EN VIVO</span></div>
+        <div class="canales">
+          <div class="canal"><div class="canal-arriba"><div class="vu"><b class="on"></b><b class="on"></b><b class="on"></b><b class="on"></b><b></b><b></b><b></b><b></b></div><div class="ms">84<small>ms</small></div></div><div><b class="nom">Relevo TV</b><small class="det">lifemusic-enlace</small></div></div>
+          <div class="canal"><div class="canal-arriba"><div class="vu"><b class="on"></b><b class="on"></b><b class="on"></b><b class="on"></b><b class="on"></b><b></b><b></b><b></b></div><div class="ms">112<small>ms</small></div></div><div><b class="nom">Comunidad</b><small class="det">prerregistro y calificaciones</small></div></div>
+          <div class="canal"><div class="canal-arriba"><div class="vu"><b class="on"></b><b class="on"></b><b class="on"></b><b></b><b></b><b></b><b></b><b></b></div><div class="ms">61<small>ms</small></div></div><div><b class="nom">Descargas</b><small class="det">APK 1.3.2 en GitHub</small></div></div>
+          <div class="canal"><div class="canal-arriba"><div class="vu"><b class="on"></b><b class="on"></b><b class="on"></b><b class="on"></b><b class="on"></b><b class="on"></b><b class="on alto"></b><b></b></div><div class="ms">203<small>ms</small></div></div><div><b class="nom">Web</b><small class="det">lifemusic.app</small></div></div>
+        </div>
+      </section>
+      <section class="bloque s5" aria-label="Contador del concurso">
+        <div class="bloque-cab"><h2>Concurso · JBL PartyBox 330</h2><span class="vivo-tag">EN VIVO</span></div>
+        <div class="contador"><div class="digitos num"><span>0</span><span>0</span><span>5</span></div><div class="de"><b>Prerregistros</b>meta 100</div></div>
+        <div class="cinta-prog"><i></i></div>
+        <div class="bloque-pie">Aquí solo va el número. Los nombres y correos son privados y solo los ve Camilo.</div>
+      </section>
+      <section class="bloque s7" aria-label="Bitácora de incidencias">
+        <div class="bloque-cab"><h2>Bitácora <span data-estreno="· ninguna abierta">· 3 abiertas</span></h2><button class="boton chico piloto">Nueva incidencia</button></div>
+        <ul class="bitacora ejemplo">
+          <li><span class="sev" style="background:var(--aire)"></span><span class="tc">09 OCT<br>18:20</span><div><b>Hisense: el modo ambiente va a 14 cuadros por segundo</b><small>Informe de Camilo · pasó a ejecución con Laura</small></div><span class="estado mal">ALTA</span></li>
+          <li><span class="sev" style="background:var(--ambar)"></span><span class="tc">09 OCT<br>11:05</span><div><b>Un probador no ve la copa del concurso</b><small>Informe ofuscado · se pidieron más datos</small></div><span class="estado esp">MEDIA</span></li>
+          <li><span class="sev" style="background:var(--texto-3)"></span><span class="tc">08 OCT<br>22:47</span><div><b>Texto cortado en «Acerca de» en pantallas chicas</b><small>Issue de GitHub</small></div><span class="estado" style="color:var(--texto-2);background:var(--consola-3)">BAJA</span></li>
+        </ul>
+        <div class="en-blanco"><span class="hueco">0</span><b>Sin incidencias</b><p>Cuando Camilo o un probador reporte algo, aparece aquí con su hora y su gravedad.</p></div>
+      </section>
+      <section class="bloque s5" aria-label="Revisión de la semana">
+        <div class="bloque-cab"><h2>Revisión de la semana</h2><span class="estado esp" data-estreno="0 DE 4">2 DE 4</span></div>
+        <ul class="chequeo">
+          <li class="hecho"><span class="c"></span><b>Revisar el monitoreo</b><small>LUN</small></li>
+          <li class="hecho"><span class="c"></span><b>Leer las calificaciones nuevas</b><small>MAR</small></li>
+          <li><span class="c"></span><b>Ordenar los informes de los probadores</b><small>MIÉ</small></li>
+          <li><span class="c"></span><b>Responder los issues de GitHub</b><small>VIE</small></li>
+        </ul>
+      </section>
+    </div>
+  </div>
+</section>
+
+<!-- ═══ 6 · Produccion: el panel de CG ═══ -->
+<section class="vista" id="v-produccion">
+  <header class="tope">
+    <div class="sello"><b>LIFE MUSIC</b><span>Producción</span></div>
+    <div class="quien"><span class="estado mal ejemplo">4 CÓDIGOS FALLIDOS HOY</span><div class="nombre"><b>Camilo G.</b><small>Dueño</small></div><span class="iniciales cg">CG</span></div>
+  </header>
+  <div class="marco">
+    <div class="prod">
+      <div class="col-der">
+        <section class="bloque" aria-label="Hoja de llamado del equipo">
+          <div class="bloque-cab"><h2>Hoja de llamado <span data-estreno="· 0 de 2 vacantes">· 2 de 2 vacantes</span></h2></div>
+          <div class="tabla-wrap ejemplo"><table>
+            <thead><tr><th>Nº</th><th>Persona</th><th>Ahora</th><th>Acta</th><th></th></tr></thead>
+            <tbody>
+              <tr><td class="n">0002</td><td><div class="persona"><span class="iniciales">LM</span><div>Laura Martínez<small>Supervisor de ejecución / Planificador · día 2 de 60</small></div></div></td>
+                <td><span class="aire encendida" style="padding:6px 9px;font-size:10px">Al aire</span></td>
+                <td><div class="contrato"><span class="estado esp">FALTA TU FIRMA</span><button class="boton chico piloto">Firmar</button></div></td>
+                <td><button class="boton chico">Cortar acceso</button></td></tr>
+              <tr><td class="n">0003</td><td><div class="persona"><span class="iniciales ap">AP</span><div>Andrés Peña<small>Operaciones · en prueba · día 2 de 30</small></div></div></td>
+                <td><span class="aire encendida" style="padding:6px 9px;font-size:10px">Al aire</span></td>
+                <td><div class="contrato"><span class="estado ok">COMPLETA</span><button class="boton chico">PDF</button></div></td>
+                <td><button class="boton chico">Cortar acceso</button></td></tr>
+            </tbody>
+          </table></div>
+          <div class="en-blanco"><span class="hueco">0</span><b>Nadie en el equipo todavía</b><p>Imprime el primer pase en el panel de la derecha y mándale el enlace a la persona. Cuando lo valide y firme el acta, aparece aquí.</p></div>
+        </section>
+        <section class="bloque" aria-label="Esperan tu luz verde">
+          <div class="bloque-cab"><h2>Esperan tu luz verde <span data-estreno="· 0">· 2</span></h2></div>
+          <ul class="aprobar ejemplo">
+            <li><div><b>Fondo más oscuro con carátulas pálidas</b><small>Laura · planteamiento listo · para la 1.3.3</small></div><div class="acciones"><button class="boton chico">Leer</button><button class="boton chico piloto">Luz verde</button></div></li>
+            <li><div><b>Cloudflare para Laura</b><small>Pedido de conexión · miembro de la cuenta</small></div><div class="acciones"><button class="boton chico piloto">Ya la invité</button></div></li>
+          </ul>
+          <div class="en-blanco"><p>Nada espera tu luz verde.</p></div>
+        </section>
+        <section class="bloque" aria-label="Bitácora de la cabina">
+          <div class="bloque-cab"><h2>Bitácora</h2></div>
+          <ul class="bitacora ejemplo">
+            <li><span class="sev" style="background:var(--pista-d)"></span><span class="tc">HOY<br>10:42:07</span><div><b>Laura firmó el acta LM-EQ-2026-002</b><small>Chrome en Windows · huella 3f9a…7d21</small></div><span></span></li>
+            <li><span class="sev" style="background:var(--pista-b)"></span><span class="tc">HOY<br>09:15:30</span><div><b>Andrés creó la incidencia «Un probador no ve la copa»</b><small>Operaciones</small></div><span></span></li>
+            <li><span class="sev" style="background:var(--aire)"></span><span class="tc">HOY<br>03:02:11</span><div><b>4 códigos equivocados desde una misma conexión</b><small>La conexión quedó bloqueada 15 minutos</small></div><span class="estado mal">ALERTA</span></li>
+          </ul>
+          <div class="en-blanco"><p>La bitácora empieza con el primer pase que imprimas. Cada pase, firma y cambio queda aquí con su hora.</p></div>
+        </section>
+      </div>
+      <section class="bloque" aria-label="Imprimir un pase nuevo">
+        <div class="bloque-cab"><h2>Pase nuevo</h2></div>
+        <div class="nuevo-pase">
+          <div class="campo"><label>Nombre</label><div class="entrada-falsa" data-estreno="Nombre y apellido">Andrés Peña</div></div>
+          <div class="campo"><label>Vacante</label><div class="entrada-falsa" data-estreno="Elige: Operaciones o Supervisor / Planificador">Operaciones</div></div>
+          <div class="campo"><label>Vigencia del cargo</label><div class="entrada-falsa" data-estreno="Desde → hasta">14 oct → 12 nov 2026 · 30 días</div></div>
+          <div class="campo"><label>Días · máximo de lunes a viernes</label><div class="dias"><span>L</span><span>M</span><span>X</span><span>J</span><span>V</span><span class="no">S</span><span class="no">D</span></div></div>
+          <div class="campo"><label>Horario</label><div class="entrada-falsa">8:00 a. m. a 5:00 p. m.</div></div>
+          <button class="boton piloto">Imprimir pase</button>
+          <p class="en-blanco" style="padding:0;justify-items:start;text-align:left">Al imprimir salen el código, el enlace, el QR y el mensaje listo para mandar.</p>
+          <div class="pase-impreso ejemplo"><small>Pase Nº 0003 · un solo uso</small><small>AAA</small><div class="cod">LM-7KQ2-XP9M</div><div class="vence">Vence el viernes 16 de octubre a las 10:40 a. m. (en 47 h 58 min).</div></div>
+          <div class="enlace-pase ejemplo">
+            <div class="rotulo">Enlace para Andrés</div>
+            <div class="url" id="url-pase">https://lifemusic.app/equipo#pase=LM-7KQ2-XP9M</div>
+            <div class="acciones"><button class="boton chico piloto" id="copiar">Copiar enlace</button><button class="boton chico" id="compartir">Compartir…</button><button class="boton chico" id="ver-qr" aria-pressed="false">Mostrar QR</button></div>
+            <div class="qr-caja" id="qr" hidden><canvas id="qr-lienzo" width="232" height="232" aria-label="Código QR del enlace"></canvas><small>Para que lo escanee con su teléfono si está contigo.</small></div>
+            <div class="rotulo">Mensaje listo para mandar</div>
+            <p class="mensaje" id="mensaje">Hola Andrés, este es tu pase para la cabina de Life Music: https://lifemusic.app/equipo#pase=LM-7KQ2-XP9M. Sirve una sola vez y vence el viernes 16 a las 10:40 a. m. Ábrelo cuando vayas a empezar.</p>
+            <p class="cuidado">Mándalo por un chat privado, nunca en un grupo. El enlace sirve una sola vez; si se filtra, anúlalo y sale otro.</p>
+            <div class="acciones"><button class="boton chico" id="copiar-mensaje">Copiar el mensaje</button><button class="boton chico peligro">Anular este pase</button></div>
+          </div>
+        </div>
+      </section>
+    </div>
+  </div>
+</section>
+
+<!-- ═══ 7 · Politica de datos y terminos de la cabina ═══ -->
+<section class="vista" id="v-politica">
+  <div class="marco">
+    <article class="acta politica" aria-label="Política de datos y términos">
+      <header class="acta-cab">
+        <div><div class="rot">Life Music · CG LABS · equipo</div><h1>Política de datos y términos de la cabina</h1></div>
+        <div class="folio">VERSIÓN<b>1</b>vigente desde el <span class="falta">día del estreno</span></div>
+      </header>
+      <p class="ley" style="margin-top:18px">Ley 1581 de 2012 · Decreto 1377 de 2013 (Decreto 1074 de 2015) · Ley 527 de 1999 · Ley 1273 de 2009</p>
+
+      <h2>1. Quién responde por tus datos</h2>
+      <p>CG LABS, a cargo de <span class="falta">nombre completo de Camilo</span>, en <span class="falta">ciudad</span>, Colombia. Para cualquier asunto de datos: <span class="falta">correo de contacto</span>.</p>
+
+      <h2>2. Qué datos se guardan</h2>
+      <ul>
+        <li>Tu nombre y, si lo das, tu documento de identidad.</li>
+        <li>El cargo, la vigencia y el horario de tu pase.</li>
+        <li>El acta firmada: tu firma, la fecha y la hora, y el tipo de aparato desde el que firmaste.</li>
+        <li>Tu actividad en la cabina: qué cambiaste y cuándo.</li>
+        <li>Una huella de tu conexión, solo para bloquear intentos de entrada fallidos. Se borra a las 24 horas.</li>
+      </ul>
+
+      <h2>3. Para qué</h2>
+      <p>Para gestionar tu cargo temporal, darte y quitarte accesos, dejar constancia del acta y mantener segura la cabina. Nunca para publicidad. No se venden ni se comparten con nadie para otros fines.</p>
+
+      <h2>4. Dónde se guardan</h2>
+      <p>En los servicios de Cloudflare (Workers y D1), que actúan como encargado. Sus servidores pueden estar fuera de Colombia; todo viaja cifrado.</p>
+
+      <h2>5. Cuánto tiempo</h2>
+      <p>Mientras dure tu cargo y <span class="falta">un año</span> después. Pasado ese plazo se borran, salvo que una ley obligue a conservarlos.</p>
+
+      <h2>6. Tus derechos</h2>
+      <ul>
+        <li>Conocer, actualizar y corregir tus datos.</li>
+        <li>Pedir prueba de la autorización que diste.</li>
+        <li>Saber para qué se usan.</li>
+        <li>Revocar la autorización o pedir que se borren, cuando no haya un deber legal o contractual de guardarlos.</li>
+        <li>Acceder a ellos gratis.</li>
+        <li>Quejarte ante la Superintendencia de Industria y Comercio (SIC).</li>
+      </ul>
+
+      <h2>7. Cómo pedirlo</h2>
+      <p>Desde «Tus datos» en la cabina o escribiendo a <span class="falta">correo de contacto</span>. Las consultas se responden en máximo 10 días hábiles y los reclamos en máximo 15.</p>
+
+      <h2>8. Cookies</h2>
+      <p>La cabina usa una sola cookie, la de la sesión, que hace falta para entrar. No hay analítica, ni publicidad, ni rastreo. Las fuentes se sirven desde lifemusic.app.</p>
+
+      <h2>9. Términos de uso de la cabina</h2>
+      <ul>
+        <li>La cabina es solo para el trabajo de tu cargo.</li>
+        <li>Tu pase y tu sesión son personales: no se prestan.</li>
+        <li>Lo que ves aquí es confidencial, también después de terminar el cargo.</li>
+        <li>Camilo puede cerrar cualquier acceso en cualquier momento.</li>
+        <li>Entrar sin autorización es un delito (Ley 1273 de 2009, art. 269A).</li>
+        <li>Rige la ley colombiana.</li>
+      </ul>
+    </article>
+  </div>
+</section>
+
+<footer class="pie-legal">
+  <span>Life Music · CG LABS · Sección privada del equipo</span>
+  <nav aria-label="Legal"><button type="button" data-ir="politica">Política de datos</button><button type="button" data-ir="politica">Términos de la cabina</button><span>Solo una cookie, la de la sesión</span><span>Software libre · GPL-3.0</span></nav>
+</footer>
+
+<script src="../../../web/cast/qrcode.js"></script>
+<script>
+  // Pistas de la sesion: [nombre, quien, version, fase hasta donde llega (1-6), color, en curso]
+  var PISTAS = [
+    ["Modo liviano para TV flojos (Hisense)", "LM", "1.3.3", 4, "--pista-e", true, "Ejecución · PR #41"],
+    ["Barra de progreso en Cast", "LM", "1.3.3", 5, "--pista-a", true, "Pruebas en el S25"],
+    ["Puerta «Equipo» en la app", "LM", "1.3.3", 3, "--pista-d", false, "Con luz verde"],
+    ["Fondo más oscuro con carátulas pálidas", "LM", "1.3.3", 2, "--pista-b", true, "Espera luz verde"],
+    ["Letras traducidas en el modo ambiente", "AP", "1.3.4", 1, "--pista-c", false, "Idea"],
+    ["Widget de inicio con la canción", "CG", "—", 1, "--pista-a", false, "Idea"]
+  ];
+  var sesion = document.getElementById("sesion");
+  var semilla = 7;
+  function azar() { semilla = (semilla * 9301 + 49297) % 233280; return semilla / 233280; }
+  PISTAS.forEach(function (p, i) {
+    var fila = document.createElement("div");
+    fila.className = "pista";
+    fila.style.setProperty("--c", "var(" + p[4] + ")");
+    var cab = '<div class="pista-cab"><span class="n">' + String(i + 1).padStart(2, "0") + '</span><span class="color"></span><div><b>' + p[0] +
+      '</b><small><span>' + p[1] + '</span><span>' + p[2] + '</span></small></div></div>';
+    var barras = "";
+    var n = 14 + p[3] * 16;
+    for (var k = 0; k < n; k++) barras += '<i style="height:' + Math.round(20 + azar() * 80) + '%"></i>';
+    var celdas = "";
+    for (var c = 1; c <= 6; c++) celdas += '<span class="celda' + (c === 3 || c === 6 ? " puerta" : "") + '" style="grid-column:' + c + '"></span>';
+    var carril = '<div class="carril">' + celdas +
+      '<div class="clip' + (p[5] ? " vivo" : "") + '" style="grid-column:1 / span ' + p[3] + '"><span class="titulo-clip">' + p[6] + '</span><span class="onda">' + barras + '</span></div></div>';
+    fila.innerHTML = cab + carril;
+    sesion.appendChild(fila);
+  });
+
+  // Firma en el acta (funciona de verdad en la maqueta)
+  var lienzo = document.getElementById("firma"), g = lienzo.getContext("2d"), caminos = [], actual = null, trazos = 0, escrita = "";
+  function pintar() {
+    var d = window.devicePixelRatio || 1;
+    g.setTransform(1, 0, 0, 1, 0, 0); g.clearRect(0, 0, lienzo.width, lienzo.height); g.setTransform(d, 0, 0, d, 0, 0);
+    g.lineCap = "round"; g.lineJoin = "round"; g.lineWidth = 2.4;
+    g.strokeStyle = getComputedStyle(document.documentElement).getPropertyValue("--tinta-azul").trim() || "#2441B5";
+    if (escrita) { g.fillStyle = g.strokeStyle; g.font = "italic 600 38px Georgia, 'Times New Roman', serif"; g.fillText(escrita, 34, lienzo.getBoundingClientRect().height - 46); }
+    caminos.forEach(function (c) { g.beginPath(); g.moveTo(c[0][0], c[0][1]); for (var i = 1; i < c.length; i++) g.lineTo(c[i][0], c[i][1]); g.stroke(); });
+  }
+  // El lienzo cambia de tamano con la ventana; los trazos se guardan como puntos y se repintan.
+  function ajustar() {
+    var r = lienzo.getBoundingClientRect(), d = window.devicePixelRatio || 1;
+    if (!r.width) return;
+    lienzo.width = r.width * d; lienzo.height = r.height * d;
+    pintar();
+  }
+  function punto(e) { var r = lienzo.getBoundingClientRect(); return [e.clientX - r.left, e.clientY - r.top]; }
+  lienzo.addEventListener("pointerdown", function (e) { lienzo.setPointerCapture(e.pointerId); actual = [punto(e)]; caminos.push(actual); });
+  lienzo.addEventListener("pointermove", function (e) { if (!actual) return; actual.push(punto(e)); pintar(); });
+  lienzo.addEventListener("pointerup", function () { if (actual) { actual = null; trazos = caminos.length; listo(); } });
+  document.getElementById("borrar").addEventListener("click", function () { caminos = []; escrita = ""; trazos = 0; pintar(); listo(); });
+  // Para quien no puede dibujar (accesibilidad): la firma es el nombre escrito.
+  document.getElementById("escrita").addEventListener("click", function () {
+    var n = document.getElementById("nombre").value.trim();
+    if (!n) { document.getElementById("nombre").focus(); return; }
+    caminos = []; escrita = n; trazos = 1; pintar(); listo();
+  });
+  var acepto = document.getElementById("acepto"), autorizo = document.getElementById("autorizo"), mayor = document.getElementById("mayor"), firmar = document.getElementById("firmar");
+  [acepto, autorizo, mayor].forEach(function (c) { c.addEventListener("change", listo); });
+  function listo() {
+    document.getElementById("guia").hidden = trazos > 0;
+    document.getElementById("firma-estado").textContent = escrita ? "Firma escrita lista" : trazos > 0 ? "Firma lista · " + trazos + (trazos === 1 ? " trazo" : " trazos") : "Sin firmar";
+    firmar.disabled = !(trazos > 0 && acepto.checked && autorizo.checked && mayor.checked);
+  }
+  firmar.addEventListener("click", function () {
+    document.getElementById("sello").hidden = false;
+    document.getElementById("huella").hidden = false;
+    firmar.disabled = true; firmar.textContent = "Acta firmada";
+  });
+
+  // Enlace del pase (panel de produccion): copiar, compartir y QR.
+  var urlPase = document.getElementById("url-pase").textContent, mensaje = document.getElementById("mensaje").textContent;
+  function copiar(texto, boton, listo) {
+    var antes = boton.textContent;
+    function ok() { boton.textContent = listo; boton.classList.add("hecho"); setTimeout(function () { boton.textContent = antes; boton.classList.remove("hecho"); }, 1800); }
+    function seleccionar() { var r = document.createRange(); r.selectNodeContents(document.getElementById("url-pase")); var sel = getSelection(); sel.removeAllRanges(); sel.addRange(r); }
+    if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(texto).then(ok, seleccionar);
+    else seleccionar();
+  }
+  document.getElementById("copiar").addEventListener("click", function () { copiar(urlPase, this, "Copiado"); });
+  document.getElementById("copiar-mensaje").addEventListener("click", function () { copiar(mensaje, this, "Mensaje copiado"); });
+  document.getElementById("compartir").addEventListener("click", function () {
+    if (navigator.share) navigator.share({ title: "Tu pase para la cabina de Life Music", text: mensaje }).catch(function () {});
+    else copiar(mensaje, this, "Mensaje copiado");
+  });
+  var qrHecho = false;
+  document.getElementById("ver-qr").addEventListener("click", function () {
+    var caja = document.getElementById("qr"), ver = caja.hidden;
+    caja.hidden = !ver;
+    this.textContent = ver ? "Ocultar QR" : "Mostrar QR";
+    this.setAttribute("aria-pressed", ver ? "true" : "false");
+    if (ver && !qrHecho && window.qrcode) {
+      var qr = qrcode(0, "M"); qr.addData(urlPase); qr.make();
+      var c = document.getElementById("qr-lienzo"), g2 = c.getContext("2d"), n = qr.getModuleCount(), m = 2;
+      var celda = Math.floor(c.width / (n + m * 2)), desde = Math.floor((c.width - celda * (n + m * 2)) / 2);
+      g2.fillStyle = "#fff"; g2.fillRect(0, 0, c.width, c.height); g2.fillStyle = "#17201B";
+      for (var y = 0; y < n; y++) for (var x = 0; x < n; x++) if (qr.isDark(y, x)) g2.fillRect(desde + (x + m) * celda, desde + (y + m) * celda, celda, celda);
+      qrHecho = true;
+    }
+  });
+
+  // El pase cuando llega por el enlace: viene a nombre de la persona y con el codigo puesto.
+  var original = {};
+  ["p-h1", "p-texto", "p-nombre", "p-cargo", "p-vence", "p-n", "p-validar", "p-nota", "codigo"].forEach(function (id) { original[id] = document.getElementById(id).innerHTML; });
+  original.rotulo = document.querySelector("#p-rotulo span:last-child").textContent;
+  function paseDesdeEnlace(si) {
+    function poner(id, html) { document.getElementById(id).innerHTML = si ? html : original[id]; }
+    poner("p-h1", "Tu pase está listo, <em>Andrés.</em>");
+    poner("p-texto", "Camilo te mandó este enlace. Revisa que el pase esté a tu nombre y valídalo para seguir.");
+    poner("p-nombre", "Andrés Peña"); poner("p-cargo", "Operaciones"); poner("p-vence", "16 oct · 10:40");
+    poner("p-n", "Nº 0003");
+    poner("codigo", '<span class="fijo">LM</span><i></i><span class="llena">7</span><span class="llena">K</span><span class="llena">Q</span><span class="llena">2</span><i></i><span class="llena">X</span><span class="llena">P</span><span class="llena">9</span><span class="llena">M</span>');
+    poner("p-validar", "Soy Andrés · validar pase");
+    poner("p-nota", "Si no eres Andrés, cierra esta página y avísale a Camilo. El código ya se borró de la barra de direcciones.");
+    ["p-nombre", "p-cargo", "p-vence"].forEach(function (id) { document.getElementById(id).classList.toggle("lleno", si); });
+    document.getElementById("p-validar").disabled = !si;
+    document.querySelector("#p-rotulo span:last-child").textContent = si ? "Pase a tu nombre · llegó por enlace" : original.rotulo;
+  }
+
+  // Estreno: la pagina sale sin datos de ejemplo; cada bloque muestra su estado vacio.
+  var estreno = document.getElementById("estreno");
+  document.querySelectorAll("[data-estreno]").forEach(function (el) { el.dataset.ejemplo = el.textContent; });
+  document.querySelectorAll("[data-estreno-valor]").forEach(function (el) { el.dataset.ejemploValor = el.value; });
+  estreno.addEventListener("click", function () {
+    var si = !document.body.classList.contains("estreno");
+    document.body.classList.toggle("estreno", si);
+    estreno.setAttribute("aria-pressed", si ? "true" : "false");
+    estreno.textContent = si ? "Ver con datos de ejemplo" : "Ver estreno (vacío)";
+    document.querySelectorAll("[data-estreno]").forEach(function (el) { el.textContent = si ? el.dataset.estreno : el.dataset.ejemplo; });
+    document.querySelectorAll("[data-estreno-valor]").forEach(function (el) { el.value = si ? el.dataset.estrenoValor : el.dataset.ejemploValor; });
+  });
+  document.querySelectorAll("[data-ir]").forEach(function (b) { b.addEventListener("click", function () { ver(b.dataset.ir); }); });
+
+  // Selector de pantallas y tema
+  var botones = document.querySelectorAll(".maqueta button[data-ver]");
+  function ver(cual) {
+    var vista = cual === "fuera" ? "cabina" : cual === "enlace" ? "pase" : cual;
+    paseDesdeEnlace(cual === "enlace");
+    document.querySelectorAll(".vista").forEach(function (v) { v.classList.toggle("activa", v.id === "v-" + vista); });
+    botones.forEach(function (b) { b.setAttribute("aria-pressed", b.dataset.ver === cual ? "true" : "false"); });
+    var fuera = cual === "fuera";
+    document.getElementById("v-cabina").classList.toggle("fuera-del-aire", fuera);
+    document.getElementById("franja-fuera").hidden = !fuera;
+    var l = document.getElementById("lampara");
+    l.classList.toggle("encendida", !fuera);
+    l.textContent = fuera ? "Fuera del aire" : "Al aire";
+    if (vista === "acta") setTimeout(ajustar, 0);
+    if (location.hash !== "#" + cual) history.replaceState(null, "", "#" + cual);
+    window.scrollTo(0, 0);
+  }
+  botones.forEach(function (b) { b.addEventListener("click", function () { ver(b.dataset.ver); }); });
+  var tema = document.getElementById("tema");
+  tema.addEventListener("click", function () {
+    var claro = document.documentElement.getAttribute("data-theme") !== "light";
+    document.documentElement.setAttribute("data-theme", claro ? "light" : "dark");
+    tema.textContent = claro ? "Tema oscuro" : "Tema claro";
+    tema.setAttribute("aria-pressed", claro ? "true" : "false");
+    ajustar();
+  });
+  window.addEventListener("resize", ajustar);
+  // #acta-firmada dibuja una firma de ejemplo para ver el estado final; #cabina-claro abre en tema claro.
+  var h = location.hash.slice(1).split("-");
+  if (h.indexOf("claro") > 0) tema.click();
+  if (h.indexOf("vacio") > 0) estreno.click();
+  if (h[0]) ver(h[0]);
+  if (h.indexOf("qr") > 0) document.getElementById("ver-qr").click();
+  if (h.indexOf("firmada") > 0) setTimeout(function () {
+    function curva(p0, p1, p2, p3) { var r = []; for (var t = 0; t <= 1.0001; t += 0.04) { var u = 1 - t;
+      r.push([u*u*u*p0[0] + 3*u*u*t*p1[0] + 3*u*t*t*p2[0] + t*t*t*p3[0], u*u*u*p0[1] + 3*u*u*t*p1[1] + 3*u*t*t*p2[1] + t*t*t*p3[1]]); } return r; }
+    caminos.push([].concat(curva([40,110],[60,40],[90,40],[80,100]), curva([80,100],[75,130],[110,60],[130,80]), curva([130,80],[150,100],[160,60],[185,70]),
+      curva([185,70],[205,78],[190,115],[225,95]), curva([225,95],[260,75],[280,110],[330,82])));
+    caminos.push(curva([70,122],[160,112],[250,118],[345,104]));
+    ajustar(); trazos = caminos.length; acepto.checked = autorizo.checked = mayor.checked = true; listo(); firmar.click();
+  }, 30);
+</script>
+</body>
+</html>
