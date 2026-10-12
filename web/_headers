@@ -23,3 +23,6 @@
   X-Robots-Tag: noindex, nofollow
   Cache-Control: no-store
   Strict-Transport-Security: max-age=31536000
+# Las copias en lifemusic.pages.dev (y sus vistas previas) no se indexan: la principal es lifemusic.app.
+https://:project.pages.dev/*
+  X-Robots-Tag: noindex
