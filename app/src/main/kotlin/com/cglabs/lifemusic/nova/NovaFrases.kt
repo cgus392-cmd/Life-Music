@@ -43,6 +43,29 @@ object NovaFrases {
     }
 
     /**
+     * Sobre el final de la que suena, cuando la siguiente arranca cantando: como
+     * en la radio, no se habla encima del cantante. Con [bloque], la siguiente abre
+     * uno y se anuncia; sin el, es el puente de siempre.
+     */
+    fun sobreElFinal(actual: Pista?, nueva: Pista, bloque: NovaBloque?, dato: String?): String {
+        val termina = actual?.let { "Va terminando ${tituloHablado(it.titulo)}. " }.orEmpty()
+        val sigue = if (bloque != null) {
+            anuncio(bloque, dato, nueva)
+        } else {
+            "Sigue ${tituloHablado(nueva.titulo)}" + artistasHablados(nueva.artistas)?.let { ", de $it" }.orEmpty() + "."
+        }
+        return termina + sigue
+    }
+
+    /** El anuncio corto, cuando la que entra arranca cantando y no hay final libre (hay mezcla). */
+    fun corto(bloque: NovaBloque?, dato: String?, nueva: Pista): String =
+        if (bloque != null) {
+            anuncio(bloque, dato, nueva)
+        } else {
+            tituloHablado(nueva.titulo) + artistasHablados(nueva.artistas)?.let { ", de $it" }.orEmpty() + "."
+        }
+
+    /**
      * La frase partida en trozos que caben en una linea de Life Line: por frases
      * y, si una queda larga, tambien por comas o dos puntos. El subtitulo pasa de
      * un trozo al siguiente al ritmo de la voz.

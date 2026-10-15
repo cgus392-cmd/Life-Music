@@ -48,6 +48,22 @@ object NovaSesion {
         val terminada: Boolean = false,
     )
 
+    /** Gestos sueltos de su mirada, por algo que acaba de pasar de verdad. */
+    enum class Gesto {
+        /** Tocaste una estacion sin canciones: mueve la cabeza a los lados. */
+        NIEGA,
+
+        /** Le diste «me gusta» a lo que suena con ella al aire: sonrie y da un saltito. */
+        ALEGRE,
+    }
+
+    private val _gestos = kotlinx.coroutines.flow.MutableSharedFlow<Gesto>(extraBufferCapacity = 4)
+    val gestos: kotlinx.coroutines.flow.SharedFlow<Gesto> = _gestos
+
+    fun gesto(gesto: Gesto) {
+        _gestos.tryEmit(gesto)
+    }
+
     private val _pensando = MutableStateFlow(false)
 
     /** Prepara la frase (0,3 a 0,6 s): su mirada sube y una chispa orbita. */

@@ -976,6 +976,20 @@ class MusicService :
                 .collect { nova?.region(it) }
         }
         novaScope.launch { currentMediaMetadata.collect { nova?.sonando(it) } }
+        // Si le das «me gusta» a lo que suena con Nova al aire, ella sonrie y da un saltito.
+        novaScope.launch {
+            var antes: Pair<String?, Boolean>? = null
+            currentSong.collect { cancion ->
+                val ahora = cancion?.id to (cancion?.song?.liked == true)
+                val previo = antes
+                antes = ahora
+                if (previo != null && previo.first == ahora.first && !previo.second && ahora.second &&
+                    com.cglabs.lifemusic.nova.NovaSesion.alAire.value
+                ) {
+                    com.cglabs.lifemusic.nova.NovaSesion.gesto(com.cglabs.lifemusic.nova.NovaSesion.Gesto.ALEGRE)
+                }
+            }
+        }
 
         var isFirstQualityEmit = true
         scope.launch {
@@ -1839,6 +1853,31 @@ class MusicService :
                 runCatching { player.volume = volumenObjetivo() }
             }
         }
+
+        override fun restanteMs(): Long? {
+            if (!playerInitialized.value) return null
+            val duracion = player.duration
+            if (duracion == C.TIME_UNSET || duracion <= 0L) return null
+            return duracion - player.currentPosition
+        }
+
+        override fun siguiente(): com.cglabs.lifemusic.models.MediaMetadata? {
+            if (!playerInitialized.value) return null
+            val i = player.nextMediaItemIndex
+            if (i == C.INDEX_UNSET || i >= player.mediaItemCount) return null
+            return player.getMediaItemAt(i).metadata
+        }
+
+        override suspend fun primeraLetraMs(id: String): Long? = withContext(Dispatchers.IO) {
+            val crudo = database.lyrics(id).first()?.lyrics?.trim()
+            if (crudo.isNullOrEmpty() || crudo == com.cglabs.lifemusic.db.entities.LyricsEntity.LYRICS_NOT_FOUND) return@withContext null
+            runCatching { com.cglabs.lifemusic.lyrics.LyricsUtils.parseLyrics(crudo) }.getOrNull()
+                ?.firstOrNull { it.time > 0L && it.text.isNotBlank() }?.time
+        }
+
+        override fun mezclaActiva(): Boolean = crossfadeEnabled
+
+        override fun transmitiendo(): Boolean = castConnectionHandler?.isCasting?.value == true
     }
 
     /** Cuantas veces se cambio la lista del reproductor: para saber que la cancion elegida ya entro. */
@@ -1992,6 +2031,7 @@ class MusicService :
                 com.cglabs.lifemusic.nova.NovaSesion.bloqueElegido(database, bloque)
             }
             if (items.isEmpty()) {
+                com.cglabs.lifemusic.nova.NovaSesion.gesto(com.cglabs.lifemusic.nova.NovaSesion.Gesto.NIEGA)
                 android.widget.Toast.makeText(
                     this@MusicService, R.string.nova_estacion_vacia, android.widget.Toast.LENGTH_SHORT,
                 ).show()

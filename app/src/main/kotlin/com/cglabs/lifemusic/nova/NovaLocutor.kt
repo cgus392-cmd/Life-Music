@@ -51,6 +51,21 @@ class NovaLocutor(
 
         /** Devuelve el volumen normal ya, sin rampa: la red de seguridad. */
         fun devolver()
+
+        /** Cuanto le falta a la que suena, o null si no se sabe. */
+        fun restanteMs(): Long?
+
+        /** La que viene en la cola. */
+        fun siguiente(): MediaMetadata?
+
+        /** Cuando empieza a cantar [id], segun su letra sincronizada guardada; null sin letra. */
+        suspend fun primeraLetraMs(id: String): Long?
+
+        /** Hay transicion suave o Automix: el final de la que suena no queda libre. */
+        fun mezclaActiva(): Boolean
+
+        /** Se esta transmitiendo al TV: la voz sonaria en el telefono, asi que solo subtitulos. */
+        fun transmitiendo(): Boolean
     }
 
     /** Por que habla esta vez. */
@@ -72,6 +87,22 @@ class NovaLocutor(
 
     /** Lo ultimo que dijo, para repetirlo si tocan el subtitulo. */
     private var ultimoTexto: String? = null
+
+    /** Vigila el final de cada cancion, por si la siguiente arranca cantando. */
+    private var vigia: Job? = null
+
+    /** El cambio que ya se reviso (id de la que viene), para no revisarlo dos veces. */
+    private var revisadaPara: String? = null
+
+    /** Lo que ya se dijo sobre el final de la anterior: al entrar esta, no se repite. */
+    private var anunciadaAntes: String? = null
+
+    /** Entradas que arrancan cantando con mezcla activa: se anuncian corto. */
+    private val cortas = mutableSetOf<String>()
+
+    /** Una frase lista para decir sobre el final de la que suena. */
+    private class Salida(val id: String, val texto: String, val archivo: File, val duracionMs: Long)
+    private var salida: Salida? = null
 
     /** Como le dice Nova a la persona (por ahora, el primer nombre de la cuenta). */
     var nombre: String? = null
@@ -96,8 +127,12 @@ class NovaLocutor(
             // La primera cancion que termine despues de prenderla ya trae presentacion.
             cancionesSinHablar = cada - 1
             yaSePresento = false
+            vigilarFinales()
         } else {
             callar()
+            vigia?.cancel()
+            vigia = null
+            salida = null
             voz.apagar()
         }
         android.util.Log.i(ETIQUETA, "activa=$prendida")
@@ -115,6 +150,12 @@ class NovaLocutor(
     /** Termino una cancion sola (o la mezclo el Automix) y empezo la siguiente. */
     fun cambioNatural() {
         if (!activa) return
+        val entra = mezcla.idSonando()
+        if (entra != null && entra == anunciadaAntes) {
+            anunciadaAntes = null
+            cancionesSinHablar = 0
+            return
+        }
         if (NovaSesion.alAire.value) {
             // Al aire habla al empezar cada bloque; si no empieza uno, no dice nada.
             hablar(Motivo.BLOQUE)
@@ -159,7 +200,9 @@ class NovaLocutor(
                 val texto = when (motivo) {
                     Motivo.PUENTE -> {
                         val eleccion = elegirPuente()
-                        if (!yaSePresento) {
+                        if (cortas.remove(idNueva) && yaSePresento) {
+                            NovaFrases.corto(null, null, nueva)
+                        } else if (!yaSePresento) {
                             NovaFrases.presentacion(LocalTime.now().hour, nombre, anterior, nueva, eleccion, nombreDJ)
                         } else {
                             NovaFrases.puente(anterior, nueva, eleccion)
@@ -168,7 +211,8 @@ class NovaLocutor(
                     Motivo.BLOQUE -> {
                         if (!NovaSesion.esInicioDeBloque(idNueva)) return@launch
                         val bloque = NovaSesion.bloqueDe(idNueva) ?: return@launch
-                        val eso = anterior?.let { "Eso fue ${NovaFrases.tituloHablado(it.titulo)}. " }.orEmpty()
+                        // Arranca cantando y hay mezcla: sin «Eso fue», directo al anuncio.
+                        val eso = if (cortas.remove(idNueva)) "" else anterior?.let { "Eso fue ${NovaFrases.tituloHablado(it.titulo)}. " }.orEmpty()
                         eso + NovaFrases.anuncio(bloque, NovaSesion.datoDe(idNueva), nueva)
                     }
                     Motivo.ENCENDER, Motivo.ONDA -> {
@@ -183,7 +227,7 @@ class NovaLocutor(
                     }
                 }
 
-                if (soloSubtitulos) {
+                if (soloSubtitulos || mezcla.transmitiendo()) {
                     ultimoTexto = null
                     mostrarSinVoz(texto, idNueva)
                     return@launch
@@ -193,7 +237,11 @@ class NovaLocutor(
                 // Mientras prepara la frase, piensa: su mirada sube y una chispa orbita.
                 NovaSesion.pensar(true)
                 val lista = try {
-                    voz.sintetizar(texto, archivo)
+                    val hecha = voz.sintetizar(texto, archivo)
+                    // El motor tarda 0,1 a 0,2 s: se piensa al menos medio segundo, para que se vea.
+                    val falta = PENSAR_MINIMO_MS - (SystemClock.elapsedRealtime() - inicio)
+                    if (falta > 0) delay(falta)
+                    hecha
                 } finally {
                     NovaSesion.pensar(false)
                 }
@@ -214,13 +262,97 @@ class NovaLocutor(
     }
 
     /**
+     * No hablar encima del cantante (ficha 4.4). Cerca del final de cada cancion
+     * mira la que viene: si a Nova le toca hablar en ese cambio y la siguiente
+     * arranca cantando (su letra sincronizada empieza antes de [ARRANCA_CANTANDO_MS]),
+     * prepara la frase y la dice sobre los ultimos segundos de la que suena, como
+     * en la radio. Con mezcla activa el final no queda libre: entonces el anuncio
+     * se dice corto sobre la intro.
+     */
+    private fun vigilarFinales() {
+        vigia?.cancel()
+        vigia = scope.launch {
+            while (true) {
+                delay(400)
+                try {
+                    if (!activa || soloSubtitulos || trabajo?.isActive == true) continue
+                    if (!mezcla.sigueSonando() || mezcla.transmitiendo()) continue
+                    val siguiente = mezcla.siguiente() ?: continue
+                    val restante = mezcla.restanteMs() ?: continue
+                    val lista = salida
+                    if (lista != null && lista.id == siguiente.id) {
+                        if (restante <= lista.duracionMs + MARGEN_FINAL_MS) {
+                            salida = null
+                            hablarSobreElFinal(lista)
+                        }
+                        continue
+                    }
+                    if (revisadaPara == siguiente.id || restante !in 6_000L..20_000L) continue
+                    revisadaPara = siguiente.id
+                    prepararSobreElFinal(siguiente)
+                } catch (e: kotlinx.coroutines.CancellationException) {
+                    throw e
+                } catch (e: Exception) {
+                    android.util.Log.w(ETIQUETA, "fallo la vigia", e)
+                }
+            }
+        }
+    }
+
+    private suspend fun prepararSobreElFinal(siguiente: MediaMetadata) {
+        if (!yaSePresento) return // la presentacion va siempre sobre la intro
+        val alAire = NovaSesion.alAire.value
+        val toca = if (alAire) NovaSesion.esInicioDeBloque(siguiente.id) else cancionesSinHablar + 1 >= cada
+        if (!toca) return
+        val primera = mezcla.primeraLetraMs(siguiente.id) ?: return
+        if (primera > ARRANCA_CANTANDO_MS) return // tiene intro: habla sobre ella, como siempre
+        android.util.Log.i(ETIQUETA, "la que viene arranca cantando a los ${primera} ms")
+        if (mezcla.mezclaActiva()) {
+            cortas += siguiente.id
+            return
+        }
+        val nueva = NovaFrases.Pista(siguiente.id, siguiente.title, siguiente.artists.map { it.name })
+        val bloque = if (alAire) NovaSesion.bloqueDe(siguiente.id) else null
+        val texto = NovaFrases.sobreElFinal(actual, nueva, bloque, NovaSesion.datoDe(siguiente.id))
+        val archivo = File(contexto.cacheDir, "nova/final.wav")
+        if (!voz.sintetizar(texto, archivo)) return
+        val onda = withContext(Dispatchers.IO) {
+            runCatching { NovaOnda.envolvente(archivo.readBytes()) }.getOrDefault(FloatArray(0))
+        }
+        val duracion = (onda.size * NovaOnda.TRAMO_MS.toLong()).takeIf { it > 0 } ?: 6_000L
+        salida = Salida(siguiente.id, texto, archivo, duracion)
+        android.util.Log.i(ETIQUETA, "frase lista para el final (${duracion} ms)")
+    }
+
+    private fun hablarSobreElFinal(lista: Salida) {
+        val idActual = mezcla.idSonando() ?: return
+        anunciadaAntes = lista.id
+        ultimoTexto = lista.texto
+        trabajo = scope.launch {
+            try {
+                NovaSesion.pensar(true)
+                delay(PENSAR_MINIMO_MS)
+                NovaSesion.pensar(false)
+                salirAlAire(lista.texto, lista.archivo, idActual, 2_000L)
+            } catch (e: kotlinx.coroutines.CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                android.util.Log.w(ETIQUETA, "fallo al hablar sobre el final", e)
+            } finally {
+                NovaSesion.pensar(false)
+            }
+        }
+    }
+
+    /**
      * Solo subtitulos: la frase sale escrita en Life Line el tiempo que tardaria
      * en decirla, sin voz y sin tocar la musica. Para el bus, el trabajo o
      * cuando alguien duerme.
      */
     private suspend fun mostrarSinVoz(texto: String, idNueva: String) {
         val limite = SystemClock.elapsedRealtime() + ESPERA_SONAR_MS
-        while (!mezcla.sigueSonando() || mezcla.idSonando() != idNueva) {
+        // Al transmitir, el reproductor del telefono puede no figurar como sonando.
+        while (!(mezcla.sigueSonando() || mezcla.transmitiendo()) || mezcla.idSonando() != idNueva) {
             if (SystemClock.elapsedRealtime() > limite) return
             delay(100)
         }
@@ -422,6 +554,15 @@ class NovaLocutor(
 
     companion object {
         private const val ETIQUETA = "LifeMusicNova"
+
+        /** Se piensa al menos esto antes de hablar: la mirada sube y la chispa orbita. */
+        const val PENSAR_MINIMO_MS = 500L
+
+        /** Si la siguiente canta antes de esto, Nova habla sobre el final de la anterior. */
+        const val ARRANCA_CANTANDO_MS = 7_000L
+
+        /** Termina de hablar este rato antes de que acabe la cancion. */
+        const val MARGEN_FINAL_MS = 1_800L
 
         /** Solo subtitulos: cuanto se queda cada palabra en pantalla (lo que tardaria en decirla). */
         const val MS_POR_PALABRA = 380L
