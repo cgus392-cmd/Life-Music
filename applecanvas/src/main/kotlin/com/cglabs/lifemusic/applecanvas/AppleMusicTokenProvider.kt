@@ -21,7 +21,8 @@ internal object AppleMusicTokenProvider {
             try {
                 val htmlResponse = httpClient.get("https://beta.music.apple.com")
                 val htmlBody = htmlResponse.bodyAsText()
-                val indexJsRegex = Regex("""src="(/assets/index-[^"]+\.js)"""")
+                // Apple paso de «index-xxxx.js» a «index~xxxx.js» (visto el 2026-10-15): se aceptan los dos.
+                val indexJsRegex = Regex("""src="(/assets/index[-~][^"]+\.js)"""")
                 val match = indexJsRegex.find(htmlBody) ?: throw Exception("Could not find index.js")
                 val indexJsUri = match.groupValues[1]
 
