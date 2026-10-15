@@ -76,3 +76,17 @@ nada.** Actualizada el 2026-10-15.
 - Proteger `main`.
 - El borrado programado.
 - La política de analítica.
+
+## Voz HD de Nova (15-10, commit b4481ab3)
+
+- **El motor es sherpa-onnx 1.13.8** y está en `app/libs/sherpa-onnx-static-link-onnxruntime-1.13.8.aar`, **fuera de Git**
+  por su peso (38,7 MB). Si falta, la compilación falla. Se baja de
+  `https://github.com/k2-fsa/sherpa-onnx/releases/download/v1.13.8/sherpa-onnx-static-link-onnxruntime-1.13.8.aar`.
+  Su sha256 es `b22c3fc1b6a45666d28892bb2f7694beeb77a8362d7ebd77c1a5431ec9435471`.
+- **Antes de publicar hay que decidir con CG** si el AAR se sube a Git o si el CI (`.github/workflows/android-build.yml`)
+  lo baja solo. Si no, el CI falla.
+- **Las voces** no van en el APK: cada persona baja la suya desde las publicaciones `tts-models` de sherpa-onnx.
+  - Catálogo y licencias: `nova/NovaVocesHD.kt`.
+  - Motor: `nova/NovaVozHD.kt`.
+  - Pantalla: `ui/component/NovaVocesHDSeccion.kt`.
+- **R8** necesita `-keep class com.k2fsa.sherpa.onnx.** { *; }`, que ya está en `app/proguard-rules.pro`.
