@@ -1919,8 +1919,20 @@ class MusicService :
         }
     }
 
+    /**
+     * 2.0 · Nova: canciones que se cortaron por encenderla o cambiar de onda. No
+     * cuentan como salto: la persona no las rechazo, cambio de estacion.
+     */
+    private val sinSenalNova: MutableSet<String> = java.util.concurrent.ConcurrentHashMap.newKeySet()
+
+    /** 2.0 · Tocar el subtitulo de Nova repite lo ultimo que dijo. */
+    fun repetirNova() {
+        nova?.repetir()
+    }
+
     /** 2.0 · Nova al aire desde el Inicio: arma el primer bloque, lo pone y lo anuncia. */
     fun encenderNova() {
+        if (playerInitialized.value) player.currentMediaItem?.mediaId?.let { sinSenalNova += it }
         com.cglabs.lifemusic.nova.NovaSesion.empezar()
         playQueue(com.cglabs.lifemusic.nova.NovaQueue(database))
         nova?.anunciarBloque(alEncender = true)
@@ -1946,6 +1958,7 @@ class MusicService :
             val indice = player.currentMediaItemIndex
             if (indice + 1 < player.mediaItemCount) player.removeMediaItems(indice + 1, player.mediaItemCount)
             player.addMediaItems(items)
+            player.currentMediaItem?.mediaId?.let { sinSenalNova += it }
             player.seekToNextMediaItem()
             nova?.anunciarBloque(alEncender = false)
         }
@@ -3726,7 +3739,7 @@ class MusicService :
         // 2.0 · Nova aprende de lo que saltas: cada cancion que termina de sonar,
         // con cuanto sono. Aunque Nova este apagada (decision de CG), solo en el
         // telefono y respetando «Pausar historial». Ficha: docs/versiones/2.0/nova.md.
-        if (!dataStore.get(PauseListenHistoryKey, false)) {
+        if (!sinSenalNova.remove(mediaItem.mediaId) && !dataStore.get(PauseListenHistoryKey, false)) {
             val duracionMs = (mediaItem.metadata?.duration ?: -1) * 1000L
             val escuchadoMs = playbackStats.totalPlayTimeMs
             com.cglabs.lifemusic.nova.NovaSenales.tipo(escuchadoMs, duracionMs)?.let { tipo ->

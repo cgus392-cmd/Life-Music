@@ -145,6 +145,19 @@ fun LifeLineSection(
     // Antes, sin letra sincronizada, la fila desaparecia y dejaba un hueco mudo.
     // Ahora habla la app: cuenta lo que esta pasando por dentro —un fundido, la
     // red que se fue, la cancion despidiendose— y cuando no pasa nada, acompana.
+    // 2.0 · Nova: mientras habla (y un momento despues, para tocar y repetir), su
+    // subtitulo pisa a la letra: es una interrupcion, como un fundido o la red.
+    val novaHabla by com.cglabs.lifemusic.nova.NovaSesion.hablando.collectAsState()
+    novaHabla?.let { habla ->
+        NovaSubtitulo(
+            habla = habla,
+            baseColor = baseColor,
+            alTocar = { conexion.service.repetirNova() },
+            modifier = modifier,
+        )
+        return
+    }
+
     val voz = recordarVozLifeLine(
         positionMs = positionMs,
         duracionMs = (cancionActual?.duration ?: 0).toLong() * 1000L,

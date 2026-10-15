@@ -6,9 +6,11 @@ import android.media.MediaPlayer
 import android.os.SystemClock
 import com.cglabs.lifemusic.models.MediaMetadata
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import java.io.File
 import java.time.LocalTime
 import kotlin.random.Random
@@ -67,6 +69,9 @@ class NovaLocutor(
     private var cancionesSinHablar = 0
     private var yaSePresento = false
     private var ultimoPuente = -1
+
+    /** Lo ultimo que dijo, para repetirlo si tocan el subtitulo. */
+    private var ultimoTexto: String? = null
 
     /** Como le dice Nova a la persona (por ahora, el primer nombre de la cuenta). */
     var nombre: String? = null
@@ -128,7 +133,6 @@ class NovaLocutor(
     private fun hablar(motivo: Motivo) {
         callar()
         trabajo = scope.launch {
-            var bajo = false
             try {
                 // Al encender o cambiar de onda, la cola nueva puede tardar en cargar
                 // (Algo nuevo va por la red): se espera hasta que suene una de Nova.
@@ -159,7 +163,7 @@ class NovaLocutor(
                         val bloque = NovaSesion.bloqueDe(idNueva) ?: return@launch
                         val cabeza = if (motivo == Motivo.ENCENDER) {
                             val saludo = NovaFrases.saludo(LocalTime.now().hour)
-                            (if (nombre != null) "$saludo, $nombre." else "$saludo.") + " Soy Nova, tu DJ. "
+                            (if (nombre != null) "$saludo, $nombre." else "$saludo.") + " Soy Nova. "
                         } else {
                             "Cambio de onda. "
                         }
@@ -174,34 +178,85 @@ class NovaLocutor(
                     return@launch
                 }
                 android.util.Log.i(ETIQUETA, "frase ($motivo) lista en ${SystemClock.elapsedRealtime() - inicio} ms")
-
-                // Esperar a que la nueva suene de verdad y nada este mezclando.
-                val limite = SystemClock.elapsedRealtime() + ESPERA_SONAR_MS
-                while (!mezcla.puedeHablar()) {
-                    if (mezcla.idSonando() != idNueva || SystemClock.elapsedRealtime() > limite) {
-                        android.util.Log.i(ETIQUETA, "no hablo: la cancion cambio o no arranco")
-                        return@launch
-                    }
-                    delay(100)
-                }
-                if (mezcla.idSonando() != idNueva) return@launch
-
-                bajo = true
-                mezcla.llevarA(NIVEL_MUSICA, BAJAR_MS)
-                yaSePresento = true
-                val hablando = SystemClock.elapsedRealtime()
-                decir(archivo, idNueva)
-                mezcla.llevarA(1f, SUBIR_MS)
-                bajo = false
-                android.util.Log.i(ETIQUETA, "hable ${SystemClock.elapsedRealtime() - hablando} ms")
+                ultimoTexto = texto
+                salirAlAire(texto, archivo, idNueva, ESPERA_SONAR_MS)
             } catch (e: kotlinx.coroutines.CancellationException) {
                 throw e
             } catch (e: Exception) {
                 // Un motor de voz raro nunca puede tumbar la musica: se calla y sigue.
                 android.util.Log.w(ETIQUETA, "fallo al hablar", e)
-            } finally {
-                soltarReproductor()
-                if (bajo) mezcla.devolver()
+            }
+        }
+    }
+
+    /**
+     * Tocar el subtitulo repite lo ultimo que dijo (cambio aprobado por CG). Solo
+     * si no esta hablando ya y la cancion sigue sonando.
+     */
+    fun repetir() {
+        if (!activa || trabajo?.isActive == true) return
+        val texto = ultimoTexto ?: return
+        val archivo = File(contexto.cacheDir, "nova/frase.wav")
+        if (!archivo.exists()) return
+        trabajo = scope.launch {
+            try {
+                val id = mezcla.idSonando() ?: return@launch
+                salirAlAire(texto, archivo, id, 3_000L)
+            } catch (e: kotlinx.coroutines.CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                android.util.Log.w(ETIQUETA, "fallo al repetir", e)
+            }
+        }
+    }
+
+    /**
+     * Lo comun a hablar y repetir: esperar a que se pueda, bajar la musica, decir
+     * la frase con su subtitulo y su onda, y subir. Si algo la interrumpe, el
+     * subtitulo se va y la musica vuelve ya.
+     */
+    private suspend fun salirAlAire(texto: String, archivo: File, idNueva: String, esperaMs: Long) {
+        // Esperar a que la nueva suene de verdad y nada este mezclando.
+        val limite = SystemClock.elapsedRealtime() + esperaMs
+        while (!mezcla.puedeHablar()) {
+            if (mezcla.idSonando() != idNueva || SystemClock.elapsedRealtime() > limite) {
+                android.util.Log.i(ETIQUETA, "no hablo: la cancion cambio o no arranco")
+                return
+            }
+            delay(100)
+        }
+        if (mezcla.idSonando() != idNueva) return
+
+        val onda = withContext(Dispatchers.IO) {
+            runCatching { NovaOnda.envolvente(archivo.readBytes()) }.getOrDefault(FloatArray(0))
+        }
+        var bajo = false
+        var publicada: NovaSesion.Habla? = null
+        var completa = false
+        try {
+            bajo = true
+            mezcla.llevarA(NIVEL_MUSICA, BAJAR_MS)
+            yaSePresento = true
+            val hablando = SystemClock.elapsedRealtime()
+            completa = decir(archivo, idNueva) { duracionMs ->
+                publicada = NovaSesion.Habla(texto, SystemClock.elapsedRealtime(), duracionMs, onda)
+                    .also { NovaSesion.empiezaAHablar(it) }
+            }
+            mezcla.llevarA(1f, SUBIR_MS)
+            bajo = false
+            android.util.Log.i(ETIQUETA, "hable ${SystemClock.elapsedRealtime() - hablando} ms (onda ${onda.size} tramos)")
+        } finally {
+            soltarReproductor()
+            if (bajo) mezcla.devolver()
+            if (completa) {
+                // Entera: el subtitulo se queda un momento, quieto, por si la tocan para repetir.
+                val quieta = NovaSesion.terminoDeHablar()
+                scope.launch {
+                    delay(SUBTITULO_DESPUES_MS)
+                    NovaSesion.callada(soloSi = quieta)
+                }
+            } else {
+                NovaSesion.callada(soloSi = publicada)
             }
         }
     }
@@ -236,8 +291,12 @@ class NovaLocutor(
         return eleccion
     }
 
-    /** Reproduce la frase; vuelve cuando termina o cuando la persona pausa o cambia de cancion. */
-    private suspend fun decir(archivo: File, idNueva: String) {
+    /**
+     * Reproduce la frase y avisa en [alEmpezar] cuanto dura, justo al arrancar.
+     * Devuelve verdadero si la dijo entera; falso si la persona pauso o cambio
+     * de cancion (o el motor se colgo).
+     */
+    private suspend fun decir(archivo: File, idNueva: String, alEmpezar: (Long) -> Unit): Boolean {
         val mp = MediaPlayer()
         reproductor = mp
         var termino = false
@@ -251,14 +310,16 @@ class NovaLocutor(
         mp.setOnCompletionListener { termino = true }
         mp.prepare()
         mp.start()
+        alEmpezar(mp.duration.toLong().coerceAtLeast(1L))
         val limite = SystemClock.elapsedRealtime() + MAXIMO_HABLANDO_MS
         while (!termino && SystemClock.elapsedRealtime() < limite) {
             if (!mezcla.sigueSonando() || mezcla.idSonando() != idNueva) {
                 android.util.Log.i(ETIQUETA, "me callo: pausa o cambio de cancion")
-                return
+                return false
             }
             delay(50)
         }
+        return termino
     }
 
     private fun soltarReproductor() {
@@ -279,6 +340,9 @@ class NovaLocutor(
 
         /** Si la nueva no suena en este tiempo, esa vez no habla. */
         const val ESPERA_SONAR_MS = 10_000L
+
+        /** Cuanto se queda el subtitulo, ya quieto, despues de la frase: el rato para tocarlo y repetir. */
+        const val SUBTITULO_DESPUES_MS = 4_000L
 
         /** Ninguna frase dura mas que esto: si el motor se cuelga, la musica vuelve igual. */
         const val MAXIMO_HABLANDO_MS = 18_000L

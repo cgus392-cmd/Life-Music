@@ -32,19 +32,29 @@ object NovaFrases {
      * artista del que sale lo nuevo. Sin dato, la frase va sin ese pedazo.
      */
     fun anuncio(bloque: NovaBloque, dato: String?, nueva: Pista): String {
-        val tituloNueva = tituloHablado(nueva.titulo)
-        val deNueva = artistasHablados(nueva.artistas)?.let { ", de $it" }.orEmpty()
+        // Corto, como en la radio (pedido de CG el 15-10: los de 10 s eran largos).
+        val cancion = tituloHablado(nueva.titulo) + artistasHablados(nueva.artistas)?.let { ", de $it" }.orEmpty()
         return when (bloque) {
-            NovaBloque.DE_SIEMPRE ->
-                "Esto es lo de siempre: lo que más has escuchado este mes. Empezamos con $tituloNueva$deNueva."
-            NovaBloque.ALGO_NUEVO ->
-                "Ahora, algo nuevo: canciones que todavía no has escuchado" +
-                    (dato?.let { ", parecidas a $it" } ?: "") + ". Arranca $tituloNueva$deNueva."
-            NovaBloque.ESTE_MOMENTO ->
-                "Para este momento: lo que sueles escuchar ${dato ?: "a esta hora"}. Suena $tituloNueva$deNueva."
-            NovaBloque.AL_PASADO ->
-                (dato?.let { "Volvamos a $it." } ?: "Volvamos un poco atrás.") +
-                    " $tituloNueva$deNueva: la escuchabas mucho y hace rato no sonaba."
+            NovaBloque.DE_SIEMPRE -> "Lo de siempre: $cancion."
+            NovaBloque.ALGO_NUEVO -> "Algo nuevo" + dato?.let { ", parecido a $it" }.orEmpty() + ": $cancion."
+            NovaBloque.ESTE_MOMENTO -> "Lo que sueles oír ${dato ?: "a esta hora"}: $cancion."
+            NovaBloque.AL_PASADO -> (dato?.let { "Volvamos a $it" } ?: "Volvamos atrás") + ": $cancion."
+        }
+    }
+
+    /**
+     * La frase partida en trozos que caben en una linea de Life Line: por frases
+     * y, si una queda larga, tambien por comas o dos puntos. El subtitulo pasa de
+     * un trozo al siguiente al ritmo de la voz.
+     */
+    fun trozos(texto: String, maximo: Int = 46): List<String> {
+        val frases = texto.split(Regex("(?<=[.!?])\\s+")).map { it.trim() }.filter { it.isNotEmpty() }
+        return frases.flatMap { frase ->
+            if (frase.length <= maximo) {
+                listOf(frase)
+            } else {
+                frase.split(Regex("(?<=[,:])\\s+")).map { it.trim() }.filter { it.isNotEmpty() }
+            }
         }
     }
 

@@ -35,6 +35,39 @@ object NovaSesion {
     private val _estado = MutableStateFlow<Estado?>(null)
     val estado: StateFlow<Estado?> = _estado.asStateFlow()
 
+    /**
+     * Lo que Nova esta diciendo, para los subtitulos de Life Line: el texto, cuando
+     * empezo (elapsedRealtime), cuanto dura y la onda real de su voz. Al terminar
+     * queda unos segundos [terminada], por si la persona toca para repetirla.
+     */
+    class Habla(
+        val texto: String,
+        val empezoMs: Long,
+        val duracionMs: Long,
+        val onda: FloatArray,
+        val terminada: Boolean = false,
+    )
+
+    private val _hablando = MutableStateFlow<Habla?>(null)
+    val hablando: StateFlow<Habla?> = _hablando.asStateFlow()
+
+    fun empiezaAHablar(habla: Habla) {
+        _hablando.value = habla
+    }
+
+    /** Termino de decirla entera: el subtitulo se queda un momento, ya quieto. */
+    fun terminoDeHablar(): Habla? {
+        val antes = _hablando.value ?: return null
+        val despues = Habla(antes.texto, antes.empezoMs, antes.duracionMs, antes.onda, terminada = true)
+        _hablando.value = despues
+        return despues
+    }
+
+    /** Se callo (o ya paso el momento): el subtitulo se va y Life Line vuelve a la letra. */
+    fun callada(soloSi: Habla? = null) {
+        if (soloSi == null || _hablando.value === soloSi) _hablando.value = null
+    }
+
     private val lugares = ConcurrentHashMap<String, Lugar>()
     private val puestas: MutableSet<String> = ConcurrentHashMap.newKeySet()
     private val turnoMutex = Mutex()
