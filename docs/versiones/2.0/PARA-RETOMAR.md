@@ -61,7 +61,13 @@ nada.** Actualizada el 2026-10-15.
   - **Tanda 1 hecha** (commit 100c579b): la tabla `senal_nova` (base de datos 47) guarda lo que se salta.
   - **Tanda 2 hecha** (commit cead5784): el motor de bloques (`NovaQueue`, `NovaSesion`) y la cápsula de Nova en el
     Inicio (`ui/component/NovaCapsula.kt`).
-  - **Sigue la tanda 3:** los subtítulos de Nova en Life Line (`LifeLineVoz.NOVA`). Después, la tanda 4: el reproductor.
+  - **Tanda 3 hecha** (commit 46803666): los subtítulos en Life Line.
+  - **Tanda 4 hecha** (commit 61f150dc): la estrella y la cabina.
+    - Pedido de CG: nada fijo en el Inicio ni en el reproductor. Ver la sección 10 de la ficha.
+  - **Tanda 5 hecha** (commit del 15-10, 15:24): Personalizar dentro de la cabina (`NovaPersonalizar.kt`).
+  - **Esperando a CG:** que elija el «personaje de luz» de Nova entre las 3 opciones de Diseño (A la mirada, B el neón,
+    C la forma viva). No se programa hasta que elija.
+  - **Después:** la tanda 6, la voz HD (Piper con sherpa-onnx; antes hay que revisar las licencias de cada voz).
 
 **Más adelante:**
 - La casilla «Capa» en la cabina de ideas.
