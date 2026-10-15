@@ -88,7 +88,13 @@ fun NovaPersonalizar(alVolver: () -> Unit) {
         // Su nombre, con la estrella al lado: asi se presenta.
         Spacer(Modifier.height(12.dp))
         Row(verticalAlignment = Alignment.CenterVertically) {
-            NovaEstrella(encendida = alAire, color = colores.c1, luzMinima = 0.35f, modifier = Modifier.size(64.dp))
+            val (estadoNova, energia) = rememberEstadoNova()
+            NovaMirada(
+                estado = if (estadoNova == EstadoNova.APAGADA) EstadoNova.ESCUCHA else estadoNova,
+                energia = energia,
+                colores = colores,
+                modifier = Modifier.size(68.dp),
+            )
             Spacer(Modifier.width(14.dp))
             Column(Modifier.weight(1f)) {
                 Rotulo(stringResource(R.string.nova_su_nombre))

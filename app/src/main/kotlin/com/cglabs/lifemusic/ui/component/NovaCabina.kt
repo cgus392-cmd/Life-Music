@@ -99,18 +99,8 @@ private fun NovaCabina(alCerrar: () -> Unit) {
     val esquema = MaterialTheme.colorScheme
     val hoja = rememberModalBottomSheetState(skipPartiallyExpanded = true)
 
-    // La voz de Nova, de verdad: la estrella crece con ella mientras habla.
-    var ahora by remember { mutableLongStateOf(SystemClock.elapsedRealtime()) }
-    LaunchedEffect(habla) {
-        val h = habla ?: return@LaunchedEffect
-        if (h.terminada) return@LaunchedEffect
-        while (true) {
-            withFrameMillis { }
-            ahora = SystemClock.elapsedRealtime()
-        }
-    }
-    val nivel = habla?.takeIf { !it.terminada }?.let { NovaOnda.nivel(it.onda, ahora - it.empezoMs) } ?: 0f
-    val luz by animateFloatAsState(if (alAire) 1f else 0f, tween(1200), label = "luzCabina")
+    // Nova, el personaje: su estado y la energia real de su voz.
+    val (estadoNova, energia) = rememberEstadoNova()
 
     // Personalizar vive dentro de la misma cabina, como una segunda pagina.
     var personalizando by remember { mutableStateOf(false) }
@@ -152,39 +142,15 @@ private fun NovaCabina(alCerrar: () -> Unit) {
                 maxLines = 1,
             )
 
-            // La estrella dentro de su luz: la Aurora de lo que suena, detras.
-            Box(contentAlignment = Alignment.Center, modifier = Modifier.size(260.dp)) {
-                Canvas(Modifier.matchParentSize()) {
-                    val r = size.minDimension / 2f
-                    val base = 0.08f + 0.26f * luz
-                    listOf(
-                        Triple(colores.c1, Offset(center.x - r * 0.25f, center.y - r * 0.15f), 1.0f),
-                        Triple(colores.c2, Offset(center.x + r * 0.30f, center.y + r * 0.05f), 0.85f),
-                        Triple(colores.c3, Offset(center.x, center.y + r * 0.30f), 0.75f),
-                    ).forEach { (color, centro, peso) ->
-                        drawCircle(
-                            brush = Brush.radialGradient(
-                                0f to color.copy(alpha = base * peso), 1f to Color.Transparent,
-                                center = centro, radius = r * 0.95f,
-                            ),
-                            radius = r * 0.95f,
-                            center = centro,
-                        )
-                    }
-                }
-                NovaEstrella(
-                    encendida = alAire,
-                    color = colores.c1,
-                    luzMinima = 0.2f,
-                    modifier = Modifier
-                        .size(190.dp)
-                        .graphicsLayer {
-                            val escala = 1f + 0.14f * nivel
-                            scaleX = escala
-                            scaleY = escala
-                        },
-                )
-            }
+            // Nova, el personaje de luz (A · La mirada): te mira mientras escuchas.
+            NovaMirada(
+                estado = estadoNova,
+                energia = energia,
+                colores = colores,
+                modifier = Modifier
+                    .padding(vertical = 8.dp)
+                    .size(240.dp),
+            )
 
             // Lo que dice Nova en grande; si calla, en que va; apagada, la invitacion.
             val principal: String

@@ -91,16 +91,11 @@ fun NovaSubtitulo(
     val colores = rememberColoresAurora()
     FilaLifeLine(onClick = alTocar, modifier = modifier, altoMinimo = altoMinimo) {
         Row(verticalAlignment = Alignment.CenterVertically) {
-            NovaEstrella(
-                encendida = !habla.terminada,
-                color = colores.c1,
-                modifier = Modifier
-                    .size(22.dp)
-                    .graphicsLayer {
-                        val escala = 0.86f + 0.34f * nivel
-                        scaleX = escala
-                        scaleY = escala
-                    },
+            NovaMirada(
+                estado = if (habla.terminada) EstadoNova.TERMINO else EstadoNova.HABLA,
+                energia = nivel,
+                colores = colores,
+                modifier = Modifier.size(24.dp),
             )
             Spacer(Modifier.width(4.dp))
             OndaDeNova(habla = habla, transcurridoMs = transcurrido, color = baseColor)

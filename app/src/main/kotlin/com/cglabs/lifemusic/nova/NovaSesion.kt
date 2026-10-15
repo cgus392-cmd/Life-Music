@@ -48,6 +48,15 @@ object NovaSesion {
         val terminada: Boolean = false,
     )
 
+    private val _pensando = MutableStateFlow(false)
+
+    /** Prepara la frase (0,3 a 0,6 s): su mirada sube y una chispa orbita. */
+    val pensando: StateFlow<Boolean> = _pensando.asStateFlow()
+
+    fun pensar(si: Boolean) {
+        _pensando.value = si
+    }
+
     private val _hablando = MutableStateFlow<Habla?>(null)
     val hablando: StateFlow<Habla?> = _hablando.asStateFlow()
 

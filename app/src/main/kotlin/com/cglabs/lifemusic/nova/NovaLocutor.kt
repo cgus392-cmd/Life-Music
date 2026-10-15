@@ -190,7 +190,14 @@ class NovaLocutor(
                 }
                 val archivo = File(contexto.cacheDir, "nova/frase.wav")
                 val inicio = SystemClock.elapsedRealtime()
-                if (!voz.sintetizar(texto, archivo)) {
+                // Mientras prepara la frase, piensa: su mirada sube y una chispa orbita.
+                NovaSesion.pensar(true)
+                val lista = try {
+                    voz.sintetizar(texto, archivo)
+                } finally {
+                    NovaSesion.pensar(false)
+                }
+                if (!lista) {
                     android.util.Log.w(ETIQUETA, "sin voz esta vez (idioma=${voz.idioma})")
                     return@launch
                 }

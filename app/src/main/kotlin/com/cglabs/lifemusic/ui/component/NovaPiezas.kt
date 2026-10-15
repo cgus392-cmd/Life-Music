@@ -67,8 +67,8 @@ import com.cglabs.lifemusic.nova.NovaSesion
 
 /*
  * 2.0 · Las piezas de Nova (maqueta aprobada 2026-10-15-nova-dj, adaptada a
- * Material You). Superficies y botones con los roles del tema; la estrella con
- * el color de lo que suena; la luz AL AIRE siempre naranja, porque es la señal
+ * Material You). Superficies y botones con los roles del tema; Nova es un
+ * personaje de luz (NovaMirada) con el color de lo que suena; la luz AL AIRE siempre naranja, porque es la señal
  * de la cabina. Ficha: docs/versiones/2.0/nova.md (seccion 5).
  *
  * Pedido de CG (15-10): nada fijo en el Inicio ni en el reproductor. Nova se
@@ -124,61 +124,6 @@ fun LuzAlAire(modifier: Modifier = Modifier, encendida: Boolean = true) {
 }
 
 /**
- * La estrella de Nova: un nucleo blanco calido que toma en los bordes el color
- * de lo que suena. Apagada es tenue y quieta; encendida brilla y late despacio.
- * [luzMinima] deja ver la estrella aunque este apagada (el boton de la barra).
- */
-@Composable
-fun NovaEstrella(encendida: Boolean, color: Color, modifier: Modifier = Modifier, luzMinima: Float = 0f) {
-    val animada by animateFloatAsState(if (encendida) 1f else 0f, tween(1200), label = "luz")
-    val luz = maxOf(animada, luzMinima)
-    val latido = rememberInfiniteTransition(label = "latido")
-    val pulso by latido.animateFloat(
-        initialValue = 0.94f, targetValue = 1.06f,
-        animationSpec = infiniteRepeatable(tween(2600, easing = FastOutSlowInEasing), RepeatMode.Reverse),
-        label = "pulso",
-    )
-    val apagada = MaterialTheme.colorScheme.onSurfaceVariant
-    Canvas(modifier) {
-        val r = size.minDimension / 2f
-        val escala = 1f + (pulso - 1f) * animada
-        // El halo: el color de lo que suena.
-        if (luz > 0.01f) {
-            drawCircle(
-                brush = Brush.radialGradient(
-                    0f to color.copy(alpha = 0.55f * luz),
-                    0.45f to color.copy(alpha = 0.18f * luz),
-                    1f to Color.Transparent,
-                    center = center, radius = r * escala,
-                ),
-                radius = r * escala,
-            )
-            // Los destellos en cruz, finos, que la hacen estrella y no bolita.
-            val largo = r * 0.92f * escala
-            val rayo = Brush.radialGradient(
-                0f to Color.White.copy(alpha = 0.55f * luz), 1f to Color.Transparent,
-                center = center, radius = largo,
-            )
-            val grosor = (size.minDimension / 40f).coerceIn(1.dp.toPx(), 3.dp.toPx())
-            drawLine(rayo, Offset(center.x - largo, center.y), Offset(center.x + largo, center.y), strokeWidth = grosor)
-            drawLine(rayo, Offset(center.x, center.y - largo), Offset(center.x, center.y + largo), strokeWidth = grosor)
-        }
-        // El nucleo: blanco calido encendida, gris apagada.
-        val centro = lerp(apagada.copy(alpha = 0.55f), Color(0xFFFFF8EE), luz)
-        val orilla = lerp(apagada.copy(alpha = 0.2f), color, luz)
-        val nucleo = r * 0.40f * escala
-        drawCircle(
-            brush = Brush.radialGradient(
-                0f to centro, 0.5f to lerp(centro, orilla, 0.5f), 1f to orilla.copy(alpha = 0f),
-                center = center, radius = nucleo * 1.6f,
-            ),
-            radius = nucleo * 1.6f,
-        )
-        drawCircle(color = centro, radius = nucleo * 0.42f)
-    }
-}
-
-/**
  * El unico boton de Nova fuera de su cabina: la estrella pequeña, en la barra de
  * arriba y en el reproductor. Al aire brilla y late; tocarla abre la cabina.
  */
@@ -196,11 +141,13 @@ fun NovaBotonEstrella(modifier: Modifier = Modifier, fondo: Color = Color.Transp
             .clickable(role = Role.Button) { NovaSesion.abrirCabina() }
             .semantics { contentDescription = descripcion },
     ) {
-        NovaEstrella(
-            encendida = alAire,
-            color = colores.c1,
-            luzMinima = 0.35f,
-            modifier = Modifier.size(tamano * 0.78f),
+        // La forma pequeña es la misma figura; apagada se ve «escuchando» (maqueta elegida).
+        val (estadoNova, energia) = rememberEstadoNova()
+        NovaMirada(
+            estado = if (estadoNova == EstadoNova.APAGADA) EstadoNova.ESCUCHA else estadoNova,
+            energia = energia,
+            colores = colores,
+            modifier = Modifier.size(tamano * 0.86f),
         )
     }
 }
