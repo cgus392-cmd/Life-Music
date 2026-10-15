@@ -20,6 +20,7 @@ import androidx.sqlite.db.SupportSQLiteDatabase
 import androidx.sqlite.db.SupportSQLiteOpenHelper
 import com.cglabs.lifemusic.db.daos.SpeedDialDao
 import com.cglabs.lifemusic.db.entities.AlbumArtistMap
+import com.cglabs.lifemusic.db.entities.SenalNova
 import com.cglabs.lifemusic.db.entities.AlbumEntity
 import com.cglabs.lifemusic.db.entities.ArtistEntity
 import com.cglabs.lifemusic.db.entities.BeatInfoEntity
@@ -105,14 +106,15 @@ class MusicDatabase(
         PlayCountEntity::class,
         RecognitionHistory::class,
         SpeedDialItem::class,
-        BeatInfoEntity::class
+        BeatInfoEntity::class,
+        SenalNova::class,
     ],
     views = [
         SortedSongArtistMap::class,
         SortedSongAlbumMap::class,
         PlaylistSongMapPreview::class,
     ],
-    version = 46,
+    version = 47,
     exportSchema = true,
     autoMigrations = [
         AutoMigration(from = 2, to = 3),
@@ -148,6 +150,8 @@ class MusicDatabase(
         AutoMigration(from = 35, to = 36),
         AutoMigration(from = 36, to = 37, spec = Migration36To37Spec::class),
         AutoMigration(from = 41, to = 42, spec = Migration41To42::class),
+        // 2.0 · Nova: la tabla senal_nova (solo se agrega, no toca nada mas).
+        AutoMigration(from = 46, to = 47),
     ],
 )
 @TypeConverters(Converters::class)

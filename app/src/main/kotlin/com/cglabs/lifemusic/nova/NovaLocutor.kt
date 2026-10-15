@@ -148,9 +148,11 @@ class NovaLocutor(
                 bajo = true
                 mezcla.llevarA(NIVEL_MUSICA, BAJAR_MS)
                 yaSePresento = true
+                val hablando = SystemClock.elapsedRealtime()
                 decir(archivo, idNueva)
                 mezcla.llevarA(1f, SUBIR_MS)
                 bajo = false
+                android.util.Log.i(ETIQUETA, "hable ${SystemClock.elapsedRealtime() - hablando} ms")
             } catch (e: kotlinx.coroutines.CancellationException) {
                 throw e
             } catch (e: Exception) {

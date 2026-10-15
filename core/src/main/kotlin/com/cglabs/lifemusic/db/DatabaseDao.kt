@@ -25,6 +25,7 @@ import com.cglabs.lifemusic.constants.PlaylistSortType
 import com.cglabs.lifemusic.constants.SongSortType
 import com.cglabs.lifemusic.db.entities.Album
 import com.cglabs.lifemusic.db.entities.AlbumArtistMap
+import com.cglabs.lifemusic.db.entities.SenalNova
 import com.cglabs.lifemusic.db.entities.AlbumEntity
 import com.cglabs.lifemusic.db.entities.AlbumWithSongs
 import com.cglabs.lifemusic.db.entities.Artist
@@ -1346,6 +1347,14 @@ interface DatabaseDao {
 
     @Insert(onConflict = OnConflictStrategy.IGNORE)
     fun insert(event: Event)
+
+    /** 2.0 · Nova: una cancion que termino de sonar, con cuanto sono. */
+    @Insert
+    fun insert(senal: SenalNova)
+
+    /** 2.0 · Nova: «Borrar historial» tambien borra lo que Nova aprendio. */
+    @Query("DELETE FROM senal_nova")
+    fun borrarSenalesNova()
 
     @Insert(onConflict = OnConflictStrategy.IGNORE)
     fun insertInternal(map: RelatedSongMap)

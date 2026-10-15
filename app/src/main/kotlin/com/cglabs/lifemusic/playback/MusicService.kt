@@ -3687,6 +3687,35 @@ class MusicService :
             }
         }
 
+        // 2.0 · Nova aprende de lo que saltas: cada cancion que termina de sonar,
+        // con cuanto sono. Aunque Nova este apagada (decision de CG), solo en el
+        // telefono y respetando «Pausar historial». Ficha: docs/versiones/2.0/nova.md.
+        if (!dataStore.get(PauseListenHistoryKey, false)) {
+            val duracionMs = (mediaItem.metadata?.duration ?: -1) * 1000L
+            val escuchadoMs = playbackStats.totalPlayTimeMs
+            com.cglabs.lifemusic.nova.NovaSenales.tipo(escuchadoMs, duracionMs)?.let { tipo ->
+                database.query {
+                    try {
+                        insert(
+                            com.cglabs.lifemusic.db.entities.SenalNova(
+                                songId = mediaItem.mediaId,
+                                fecha = System.currentTimeMillis(),
+                                tipo = tipo,
+                                escuchadoMs = escuchadoMs,
+                                duracionMs = duracionMs,
+                            ),
+                        )
+                    } catch (_: SQLException) {
+                    }
+                }
+                android.util.Log.i(
+                    "LifeMusicNova",
+                    "senal ${if (tipo == com.cglabs.lifemusic.db.entities.SenalNova.SALTO) "salto" else "escuchada"} " +
+                        "${escuchadoMs / 1000}/${duracionMs / 1000} s",
+                )
+            }
+        }
+
         // Reto de la semana: la cancion acaba de contar (o no, si duro menos de
         // 30 s). Se relee la base en cuanto el evento este escrito y se manda
         // al servidor, con su propio intervalo minimo.

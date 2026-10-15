@@ -91,6 +91,7 @@ highlightKey: String? = null) {
                         showClearListenHistoryDialog = false
                         database.query {
                             clearListenHistory()
+                            borrarSenalesNova()
                         }
                     },
                 ) {
