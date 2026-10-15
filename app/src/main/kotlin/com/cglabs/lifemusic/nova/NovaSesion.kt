@@ -73,10 +73,24 @@ object NovaSesion {
     private val turnoMutex = Mutex()
     @Volatile private var turno = 0
 
-    fun empezar() {
+    private val _cabinaAbierta = MutableStateFlow(false)
+
+    /** La cabina de Nova (su pantalla), abierta desde la estrella de la barra o del reproductor. */
+    val cabinaAbierta: StateFlow<Boolean> = _cabinaAbierta.asStateFlow()
+
+    fun abrirCabina() {
+        _cabinaAbierta.value = true
+    }
+
+    fun cerrarCabina() {
+        _cabinaAbierta.value = false
+    }
+
+    /** Sale al aire. Con [desde], la primera estacion es esa (se eligio en el dial). */
+    fun empezar(desde: NovaBloque? = null) {
         lugares.clear()
         puestas.clear()
-        turno = 0
+        turno = desde?.let { NovaBloque.entries.indexOf(it) } ?: 0
         _estado.value = null
         _alAire.value = true
     }
@@ -97,6 +111,23 @@ object NovaSesion {
     fun esInicioDeBloque(id: String?): Boolean = id != null && lugares[id]?.posicion == 0
     fun bloqueDe(id: String?): NovaBloque? = id?.let { lugares[it]?.bloque }
     fun datoDe(id: String?): String? = id?.let { lugares[it]?.dato }
+
+    /**
+     * Una estacion elegida en el dial, sin saltar a otra si no tiene canciones
+     * (vacio: la cabina avisa). La rotacion sigue despues de ella.
+     */
+    suspend fun bloqueElegido(database: MusicDatabase, bloque: NovaBloque): List<MediaItem> = turnoMutex.withLock {
+        turno = NovaBloque.entries.indexOf(bloque) + 1
+        val (items, dato) = runCatching { NovaArmador.armar(bloque, database, puestas) }
+            .getOrDefault(emptyList<MediaItem>() to null)
+        if (items.size < NovaArmador.MINIMO) return emptyList()
+        items.forEachIndexed { i, item ->
+            lugares[item.mediaId] = Lugar(bloque, i, items.size, dato)
+            puestas += item.mediaId
+        }
+        android.util.Log.i("LifeMusicNova", "estacion elegida $bloque con ${items.size} canciones")
+        return items
+    }
 
     /**
      * El bloque que toca en la rotacion. Si uno no tiene canciones suficientes

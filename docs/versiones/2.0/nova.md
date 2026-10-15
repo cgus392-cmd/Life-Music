@@ -220,3 +220,22 @@ CG aprobó la ficha con «sigue lo que recomendaciones» y «no sigas el v2 de n
 1. ¿Empezamos con la **voz del teléfono** y dejamos la **voz HD** para la tanda 6? (Recomendado.)
 2. ¿Se guardan los **saltos** en el teléfono **desde ya**, aunque Nova esté apagada? (Recomendado: solo local.)
 3. ¿Van los cambios de la sección 6 (Solo subtítulos, voz del teléfono, repetir y «Solo al cambiar de bloque»)?
+
+## 10. Cambios de CG al probar (2026-10-15, tarde)
+
+- **Nada fijo de Nova en el Inicio.** La cápsula de la tanda 2 se quitó porque se veía muy grande.
+- **Un solo botón para invocarla: la estrella pequeña.**
+  - Va en la barra de arriba y en el reproductor principal, al lado de los botones de la derecha.
+  - Al aire, brilla y late.
+- **La cabina de Nova** (`ui/component/NovaCabina.kt`) se despliega desde abajo al tocar la estrella. Es la pantalla 2
+  de la maqueta, adaptada a M3, y trae:
+  - la luz AL AIRE;
+  - la estrella dentro de la luz de la carátula, que crece con su voz real;
+  - lo que Nova dice, en grande;
+  - el dial con las 4 estaciones, donde tocar una la sintoniza;
+  - el botón de encender, que se transforma;
+  - «Cambiar de onda».
+- **El reproductor principal se queda limpio.** De Nova solo lleva la estrella y los subtítulos en Life Line, la fila
+  que ya existía. Salen del plan el dial y el bloque que iban a ir en el reproductor (la antigua tanda 4).
+- **Los anuncios son más cortos** («Lo de siempre: …», «Volvamos a 2024: …»), de unos 4 a 6 s.
+- **La simplicidad es una regla de Nova:** que la persona nunca dude qué tocar.

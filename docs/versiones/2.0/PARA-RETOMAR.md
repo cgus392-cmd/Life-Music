@@ -59,7 +59,9 @@ nada.** Actualizada el 2026-10-15.
     en el cambio natural de canción, con la música al 30 %. El código está en `app/src/main/kotlin/com/cglabs/lifemusic/nova/`
     y los ganchos en `MusicService` (busca «Nova»). **Hecha y probada** (commit 7ef9cb38).
   - **Tanda 1 hecha** (commit 100c579b): la tabla `senal_nova` (base de datos 47) guarda lo que se salta.
-  - **Sigue la tanda 2:** el motor de bloques (`NovaQueue`) y la cápsula de Nova en el Inicio para encenderla.
+  - **Tanda 2 hecha** (commit cead5784): el motor de bloques (`NovaQueue`, `NovaSesion`) y la cápsula de Nova en el
+    Inicio (`ui/component/NovaCapsula.kt`).
+  - **Sigue la tanda 3:** los subtítulos de Nova en Life Line (`LifeLineVoz.NOVA`). Después, la tanda 4: el reproductor.
 
 **Más adelante:**
 - La casilla «Capa» en la cabina de ideas.

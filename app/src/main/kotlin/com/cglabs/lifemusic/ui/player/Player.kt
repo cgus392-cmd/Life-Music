@@ -1683,6 +1683,17 @@ fun BottomSheetPlayer(
 
                 Spacer(modifier = Modifier.width(12.dp))
 
+                // 2.0 · Nova: lo unico suyo en el reproductor, la estrella para invocarla.
+                // El resto vive en su cabina, para que esta pantalla siga limpia.
+                val novaEnReproductor by rememberPreference(com.cglabs.lifemusic.constants.NovaActivaKey, defaultValue = false)
+                if (novaEnReproductor) {
+                    com.cglabs.lifemusic.ui.component.NovaBotonEstrella(
+                        fondo = textButtonColor.copy(alpha = 0.2f),
+                        tamano = if (useNewPlayerDesign) 42.dp else 40.dp,
+                    )
+                    Spacer(modifier = Modifier.width(6.dp))
+                }
+
                 if (useNewPlayerDesign) {
                     val shareShape = RoundedCornerShape(
                         topStart = 50.dp, bottomStart = 50.dp,

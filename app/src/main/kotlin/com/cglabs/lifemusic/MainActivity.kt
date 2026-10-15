@@ -1146,6 +1146,10 @@ class MainActivity : ComponentActivity() {
                                             }
                                         },
                                         actions = {
+                                            // 2.0 · Nova: la estrella pequeña abre su cabina. Solo con Nova
+                                            // prendida en Ajustes; nada mas suyo en la barra.
+                                            val novaEnBarra by rememberPreference(com.cglabs.lifemusic.constants.NovaActivaKey, defaultValue = false)
+                                            if (novaEnBarra) com.cglabs.lifemusic.ui.component.NovaBotonEstrella()
                                           if (!auroraActiva) {
                                                 // 1.3.1: la copa del prerregistro del nuevo concurso, desde
                                                 // que el servidor lo abre. Se refresca cada vez que se ve Inicio.
@@ -1577,6 +1581,9 @@ class MainActivity : ComponentActivity() {
                         state = LocalBottomSheetPageState.current,
                         modifier = Modifier.align(Alignment.BottomCenter)
                     )
+
+                    // 2.0 · La cabina de Nova: se despliega sobre todo al tocar su estrella.
+                    com.cglabs.lifemusic.ui.component.NovaCabinaHost()
 
 
 

@@ -1931,11 +1931,40 @@ class MusicService :
     }
 
     /** 2.0 · Nova al aire desde el Inicio: arma el primer bloque, lo pone y lo anuncia. */
-    fun encenderNova() {
+    fun encenderNova(desde: com.cglabs.lifemusic.nova.NovaBloque? = null) {
         if (playerInitialized.value) player.currentMediaItem?.mediaId?.let { sinSenalNova += it }
-        com.cglabs.lifemusic.nova.NovaSesion.empezar()
+        com.cglabs.lifemusic.nova.NovaSesion.empezar(desde)
         playQueue(com.cglabs.lifemusic.nova.NovaQueue(database))
         nova?.anunciarBloque(alEncender = true)
+    }
+
+    /**
+     * 2.0 · Sintonizar una estacion desde el dial de la cabina. Si Nova estaba
+     * apagada, la enciende ahi; si la estacion no tiene canciones, lo avisa.
+     */
+    fun sintonizar(bloque: com.cglabs.lifemusic.nova.NovaBloque) {
+        if (!com.cglabs.lifemusic.nova.NovaSesion.alAire.value) {
+            encenderNova(desde = bloque)
+            return
+        }
+        scope.launch {
+            val items = withContext(Dispatchers.IO) {
+                com.cglabs.lifemusic.nova.NovaSesion.bloqueElegido(database, bloque)
+            }
+            if (items.isEmpty()) {
+                android.widget.Toast.makeText(
+                    this@MusicService, R.string.nova_estacion_vacia, android.widget.Toast.LENGTH_SHORT,
+                ).show()
+                return@launch
+            }
+            if (!playerInitialized.value) return@launch
+            val indice = player.currentMediaItemIndex
+            if (indice + 1 < player.mediaItemCount) player.removeMediaItems(indice + 1, player.mediaItemCount)
+            player.addMediaItems(items)
+            player.currentMediaItem?.mediaId?.let { sinSenalNova += it }
+            player.seekToNextMediaItem()
+            nova?.anunciarBloque(alEncender = false)
+        }
     }
 
     /** 2.0 · Nova sale del aire; la musica que suena sigue. */
