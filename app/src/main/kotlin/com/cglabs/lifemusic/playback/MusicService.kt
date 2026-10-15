@@ -936,11 +936,44 @@ class MusicService :
                     if (!it) com.cglabs.lifemusic.nova.NovaSesion.apagar()
                 }
         }
+        // Personalizar: como le dice a la persona (o el primer nombre de la cuenta) y su propio nombre.
         novaScope.launch {
             dataStore.data
-                .map { it[com.cglabs.lifemusic.constants.AccountNameKey] }
+                .map {
+                    Triple(
+                        it[com.cglabs.lifemusic.constants.AccountNameKey],
+                        it[com.cglabs.lifemusic.constants.NovaComoTeDiceKey],
+                        it[com.cglabs.lifemusic.constants.NovaNombreKey],
+                    )
+                }
                 .distinctUntilChanged()
-                .collect { nova?.nombre = com.cglabs.lifemusic.nova.NovaFrases.primerNombre(it) }
+                .collect { (cuenta, comoTeDice, nombreDJ) ->
+                    nova?.nombre = comoTeDice?.trim()?.takeIf { it.isNotEmpty() }?.take(24)
+                        ?: com.cglabs.lifemusic.nova.NovaFrases.primerNombre(cuenta)
+                    nova?.nombreDJ = nombreDJ?.trim()?.takeIf { it.isNotEmpty() }?.take(20) ?: "Nova"
+                }
+        }
+        // Cada cuantas canciones habla: tambien el largo de cada bloque.
+        novaScope.launch {
+            dataStore.data
+                .map { (it[com.cglabs.lifemusic.constants.NovaCadaKey] ?: 4).coerceIn(2, 8) }
+                .distinctUntilChanged()
+                .collect {
+                    nova?.cada = it
+                    com.cglabs.lifemusic.nova.NovaArmador.tamano = it
+                }
+        }
+        novaScope.launch {
+            dataStore.data
+                .map { it[com.cglabs.lifemusic.constants.NovaSoloSubtitulosKey] ?: false }
+                .distinctUntilChanged()
+                .collect { nova?.soloSubtitulos = it }
+        }
+        novaScope.launch {
+            dataStore.data
+                .map { it[com.cglabs.lifemusic.constants.NovaRegionKey] ?: "latam" }
+                .distinctUntilChanged()
+                .collect { nova?.region(it) }
         }
         novaScope.launch { currentMediaMetadata.collect { nova?.sonando(it) } }
 
@@ -1924,6 +1957,13 @@ class MusicService :
      * cuentan como salto: la persona no las rechazo, cambio de estacion.
      */
     private val sinSenalNova: MutableSet<String> = java.util.concurrent.ConcurrentHashMap.newKeySet()
+
+    /** 2.0 · Personalizar: una muestra de la voz con el nombre y el acento elegidos. */
+    fun probarVozNova(region: String? = null) {
+        // El acento recien tocado se aplica ya: la preferencia tarda un instante en llegar.
+        region?.let { nova?.region(it) }
+        nova?.probarVoz()
+    }
 
     /** 2.0 · Tocar el subtitulo de Nova repite lo ultimo que dijo. */
     fun repetirNova() {

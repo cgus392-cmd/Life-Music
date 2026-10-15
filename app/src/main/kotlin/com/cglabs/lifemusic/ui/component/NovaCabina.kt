@@ -1,6 +1,7 @@
 package com.cglabs.lifemusic.ui.component
 
 import android.os.SystemClock
+import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.animateFloatAsState
@@ -32,12 +33,14 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableLongStateOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.withFrameMillis
@@ -58,6 +61,8 @@ import androidx.compose.ui.unit.em
 import androidx.compose.ui.unit.sp
 import com.cglabs.lifemusic.LocalPlayerConnection
 import com.cglabs.lifemusic.R
+import com.cglabs.lifemusic.constants.NovaNombreKey
+import com.cglabs.lifemusic.utils.rememberPreference
 import com.cglabs.lifemusic.nova.NovaBloque
 import com.cglabs.lifemusic.nova.NovaOnda
 import com.cglabs.lifemusic.nova.NovaSesion
@@ -107,12 +112,25 @@ private fun NovaCabina(alCerrar: () -> Unit) {
     val nivel = habla?.takeIf { !it.terminada }?.let { NovaOnda.nivel(it.onda, ahora - it.empezoMs) } ?: 0f
     val luz by animateFloatAsState(if (alAire) 1f else 0f, tween(1200), label = "luzCabina")
 
+    // Personalizar vive dentro de la misma cabina, como una segunda pagina.
+    var personalizando by remember { mutableStateOf(false) }
+    val nombrePropio by rememberPreference(NovaNombreKey, defaultValue = "")
+    val nombreDJ = nombrePropio.trim().ifEmpty { "Nova" }
+
     ModalBottomSheet(
         onDismissRequest = alCerrar,
         sheetState = hoja,
         containerColor = esquema.surfaceContainerLowest,
     ) {
-        Column(
+        BackHandler(enabled = personalizando) { personalizando = false }
+        AnimatedContent(
+            targetState = personalizando,
+            transitionSpec = { fadeIn(tween(280)).togetherWith(fadeOut(tween(200))) },
+            label = "novaPagina",
+        ) { enPersonalizar ->
+        if (enPersonalizar) {
+            NovaPersonalizar(alVolver = { personalizando = false })
+        } else Column(
             horizontalAlignment = Alignment.CenterHorizontally,
             modifier = Modifier
                 .fillMaxWidth()
@@ -127,7 +145,7 @@ private fun NovaCabina(alCerrar: () -> Unit) {
                 LocalDateTime.now().format(DateTimeFormatter.ofPattern("EEEE h:mm a", Locale.getDefault()))
             }
             Text(
-                text = stringResource(R.string.nova_cabina_rotulo, cuando).uppercase(Locale.getDefault()),
+                text = stringResource(R.string.nova_cabina_rotulo, nombreDJ, cuando).uppercase(Locale.getDefault()),
                 style = MaterialTheme.typography.labelSmall,
                 letterSpacing = 0.18.em,
                 color = esquema.onSurfaceVariant,
@@ -255,7 +273,17 @@ private fun NovaCabina(alCerrar: () -> Unit) {
                 }
             }
 
-            Spacer(Modifier.height(20.dp))
+            Spacer(Modifier.height(12.dp))
+            TextButton(onClick = { personalizando = true }) {
+                Icon(
+                    painter = painterResource(R.drawable.tune),
+                    contentDescription = null,
+                    modifier = Modifier.size(18.dp),
+                )
+                Spacer(Modifier.width(8.dp))
+                Text(stringResource(R.string.nova_personalizar))
+            }
+            Spacer(Modifier.height(8.dp))
             Text(
                 text = stringResource(R.string.nova_cabina_privacidad),
                 style = MaterialTheme.typography.bodySmall,
@@ -263,6 +291,7 @@ private fun NovaCabina(alCerrar: () -> Unit) {
                 color = esquema.onSurfaceVariant.copy(alpha = 0.8f),
                 modifier = Modifier.fillMaxWidth(),
             )
+        }
         }
     }
 }

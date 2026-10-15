@@ -157,7 +157,8 @@ object NovaSesion {
 
 /** Arma cada bloque desde el historial del telefono (y la radio de YouTube para Algo nuevo). */
 internal object NovaArmador {
-    const val TAMANO = 4
+    /** Canciones por bloque = cada cuantas habla Nova (Personalizar, de 2 a 8). */
+    @Volatile var tamano = 4
     const val MINIMO = 2
     private const val DIA = 86_400_000L
 
@@ -172,12 +173,12 @@ internal object NovaArmador {
         return when (bloque) {
             NovaBloque.DE_SIEMPRE -> {
                 val elegidas = limpiar(db.mostPlayedSongs(ahoraComoLaBase() - 30 * DIA, limit = 40).first())
-                    .take(20).shuffled().take(TAMANO)
+                    .take(20).shuffled().take(tamano)
                 elegidas.map { it.toMediaItem() } to null
             }
 
             NovaBloque.AL_PASADO -> {
-                val elegidas = limpiar(db.forgottenFavorites().first()).take(30).shuffled().take(TAMANO)
+                val elegidas = limpiar(db.forgottenFavorites().first()).take(30).shuffled().take(tamano)
                 // «Volvamos a 2019»: el año en que sono por primera vez la que abre el bloque.
                 // Si es de este año, no se dice año: seria raro «volvamos a 2026».
                 val anio = elegidas.firstOrNull()?.let { db.novaPrimeraVez(it.id) }
@@ -191,7 +192,7 @@ internal object NovaArmador {
                 val finDeSemana = ahora.dayOfWeek == DayOfWeek.SATURDAY || ahora.dayOfWeek == DayOfWeek.SUNDAY
                 val elegidas = limpiar(
                     db.novaParaEsteMomento(ahora.hour, if (finDeSemana) 1 else 0, ahoraComoLaBase() - 90 * DIA, 30),
-                ).shuffled().take(TAMANO)
+                ).shuffled().take(tamano)
                 val dato = (if (finDeSemana) "los fines de semana " else "entre semana ") + NovaFrases.franja(ahora.hour)
                 elegidas.map { it.toMediaItem() } to dato
             }
@@ -211,7 +212,7 @@ internal object NovaArmador {
                     .distinctBy { it.mediaId }
                 // Algo nuevo de verdad: nada que haya sonado alguna vez.
                 val yaSonaron = if (candidatas.isEmpty()) emptySet() else db.novaYaSonaron(candidatas.map { it.mediaId }).toSet()
-                val nuevas = candidatas.filter { it.mediaId !in yaSonaron }.take(TAMANO)
+                val nuevas = candidatas.filter { it.mediaId !in yaSonaron }.take(tamano)
                 nuevas to semilla.artists.firstOrNull()?.name
             }
         }

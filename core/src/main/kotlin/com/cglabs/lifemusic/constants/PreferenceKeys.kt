@@ -1056,6 +1056,21 @@ val AuroraActivaKey = booleanPreferencesKey("auroraActiva")
 /** 2.0 · Nova, el DJ con voz (vista previa). Apagada de fábrica. Ficha: docs/versiones/2.0/nova.md. */
 val NovaActivaKey = booleanPreferencesKey("novaActiva")
 
+/** 2.0 · Nova · Personalizar (tanda 5). Vacio = «Nova». */
+val NovaNombreKey = stringPreferencesKey("novaNombre")
+
+/** Como le dice Nova a la persona. Vacio = el primer nombre de la cuenta. */
+val NovaComoTeDiceKey = stringPreferencesKey("novaComoTeDice")
+
+/** Cada cuantas canciones habla (y cuanto dura cada bloque): de 2 a 8, 4 de fabrica. */
+val NovaCadaKey = intPreferencesKey("novaCada")
+
+/** Nova no habla: lo que diria sale solo escrito en Life Line. */
+val NovaSoloSubtitulosKey = booleanPreferencesKey("novaSoloSubtitulos")
+
+/** La voz del telefono: «latam» (de fabrica) o «espana». */
+val NovaRegionKey = stringPreferencesKey("novaRegion")
+
 /**
  * Instante del ultimo arranque en frio, en milisegundos. Sirve para que el saludo
  * sepa cuanto hace que no abres —una semana sin entrar merece otra frase— sin

@@ -55,15 +55,32 @@ class NovaVoz(context: Context) {
         }
     }
 
+    /** «latam» o «espana», elegido en Personalizar. Cambiarlo con [cambiarRegion]. */
+    private var region = "latam"
+
+    /** Cambia el acento de la voz del telefono, si el motor lo tiene. */
+    fun cambiarRegion(nueva: String) {
+        if (nueva == region) return
+        region = nueva
+        if (tts != null && lista.isCompleted) {
+            elegirIdioma()
+            android.util.Log.i(ETIQUETA, "region=$region idioma=$idioma")
+        }
+    }
+
     /**
-     * Espanol, en este orden: el del telefono si ya esta en espanol (es-CO en el
-     * de CG), y si no, los que traen casi todos los motores.
+     * Espanol, en este orden. Latinoamerica: el del telefono si ya esta en
+     * espanol (es-CO en el de CG) y despues los de America. España: es-ES
+     * primero. Si el motor no tiene el pedido, el siguiente que tenga.
      */
     private fun elegirIdioma(): Boolean {
         val motor = tts ?: return false
         val delTelefono = Locale.getDefault().takeIf { it.language == "es" }
-        val candidatos = listOfNotNull(delTelefono) +
-            listOf("es-US", "es-MX", "es-419", "es-ES", "es").map(Locale::forLanguageTag)
+        val america = listOfNotNull(delTelefono?.takeIf { it.country != "ES" }) +
+            listOf("es-US", "es-MX", "es-419").map(Locale::forLanguageTag)
+        val espana = listOf(Locale.forLanguageTag("es-ES"))
+        val candidatos = (if (region == "espana") espana + america else america + espana) +
+            Locale.forLanguageTag("es")
         for (local in candidatos) {
             val disponible = runCatching { motor.isLanguageAvailable(local) }.getOrDefault(TextToSpeech.LANG_NOT_SUPPORTED)
             if (disponible >= TextToSpeech.LANG_AVAILABLE) {

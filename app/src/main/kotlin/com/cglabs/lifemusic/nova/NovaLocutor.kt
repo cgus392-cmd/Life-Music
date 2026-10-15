@@ -21,7 +21,7 @@ import kotlin.random.Random
  * Dos maneras de hablar:
  * - **Con Nova al aire** (la encendiste desde el Inicio): habla al empezar cada
  *   bloque, que dura 3 o 4 canciones, y al encenderla o cambiar de onda.
- * - **Sin Nova al aire**, pero con el interruptor prendido: cada [CADA] canciones
+ * - **Sin Nova al aire**, pero con el interruptor prendido: cada [cada] canciones
  *   que terminan solas dice el puente (lo que sono y lo que suena).
  *
  * Siempre igual que en la radio: baja en 0,4 s, habla, sube en 0,6 s. Si la
@@ -76,13 +76,25 @@ class NovaLocutor(
     /** Como le dice Nova a la persona (por ahora, el primer nombre de la cuenta). */
     var nombre: String? = null
 
+    /** Como se llama ella (Personalizar). */
+    var nombreDJ: String = "Nova"
+
+    /** Cada cuantas canciones habla sin Nova al aire (al aire, lo marca el largo del bloque). */
+    var cada: Int = 4
+
+    /** Solo subtitulos: no habla ni baja la musica; lo que diria sale escrito en Life Line. */
+    var soloSubtitulos: Boolean = false
+
+    /** El acento de la voz del telefono: «latam» o «espana». */
+    fun region(region: String) = voz.cambiarRegion(region)
+
     fun activar(prendida: Boolean) {
         if (prendida == activa) return
         activa = prendida
         if (prendida) {
             voz.prender()
             // La primera cancion que termine despues de prenderla ya trae presentacion.
-            cancionesSinHablar = CADA - 1
+            cancionesSinHablar = cada - 1
             yaSePresento = false
         } else {
             callar()
@@ -109,7 +121,7 @@ class NovaLocutor(
             return
         }
         cancionesSinHablar++
-        if (cancionesSinHablar < CADA) return
+        if (cancionesSinHablar < cada) return
         cancionesSinHablar = 0
         hablar(Motivo.PUENTE)
     }
@@ -148,7 +160,7 @@ class NovaLocutor(
                     Motivo.PUENTE -> {
                         val eleccion = elegirPuente()
                         if (!yaSePresento) {
-                            NovaFrases.presentacion(LocalTime.now().hour, nombre, anterior, nueva, eleccion)
+                            NovaFrases.presentacion(LocalTime.now().hour, nombre, anterior, nueva, eleccion, nombreDJ)
                         } else {
                             NovaFrases.puente(anterior, nueva, eleccion)
                         }
@@ -163,7 +175,7 @@ class NovaLocutor(
                         val bloque = NovaSesion.bloqueDe(idNueva) ?: return@launch
                         val cabeza = if (motivo == Motivo.ENCENDER) {
                             val saludo = NovaFrases.saludo(LocalTime.now().hour)
-                            (if (nombre != null) "$saludo, $nombre." else "$saludo.") + " Soy Nova. "
+                            (if (nombre != null) "$saludo, $nombre." else "$saludo.") + " Soy $nombreDJ. "
                         } else {
                             "Cambio de onda. "
                         }
@@ -171,6 +183,11 @@ class NovaLocutor(
                     }
                 }
 
+                if (soloSubtitulos) {
+                    ultimoTexto = null
+                    mostrarSinVoz(texto, idNueva)
+                    return@launch
+                }
                 val archivo = File(contexto.cacheDir, "nova/frase.wav")
                 val inicio = SystemClock.elapsedRealtime()
                 if (!voz.sintetizar(texto, archivo)) {
@@ -185,6 +202,75 @@ class NovaLocutor(
             } catch (e: Exception) {
                 // Un motor de voz raro nunca puede tumbar la musica: se calla y sigue.
                 android.util.Log.w(ETIQUETA, "fallo al hablar", e)
+            }
+        }
+    }
+
+    /**
+     * Solo subtitulos: la frase sale escrita en Life Line el tiempo que tardaria
+     * en decirla, sin voz y sin tocar la musica. Para el bus, el trabajo o
+     * cuando alguien duerme.
+     */
+    private suspend fun mostrarSinVoz(texto: String, idNueva: String) {
+        val limite = SystemClock.elapsedRealtime() + ESPERA_SONAR_MS
+        while (!mezcla.sigueSonando() || mezcla.idSonando() != idNueva) {
+            if (SystemClock.elapsedRealtime() > limite) return
+            delay(100)
+        }
+        val palabras = texto.split(' ').count { it.isNotBlank() }
+        val duracion = (palabras * MS_POR_PALABRA).coerceIn(2_500L, 12_000L)
+        val habla = NovaSesion.Habla(texto, SystemClock.elapsedRealtime(), duracion, FloatArray(0))
+        NovaSesion.empiezaAHablar(habla)
+        try {
+            delay(duracion)
+        } finally {
+            NovaSesion.callada(soloSi = habla)
+        }
+        android.util.Log.i(ETIQUETA, "subtitulo sin voz ${duracion} ms")
+    }
+
+    /**
+     * Personalizar: una muestra de como suena con el nombre y el acento elegidos.
+     * Si suena musica, la baja mientras habla; si no, habla sola.
+     */
+    fun probarVoz() {
+        if (!activa) return
+        callar()
+        trabajo = scope.launch {
+            val archivo = File(contexto.cacheDir, "nova/muestra.wav")
+            var bajo = false
+            try {
+                if (!voz.sintetizar("Hola, soy $nombreDJ. Así sueno entre canción y canción.", archivo)) return@launch
+                if (mezcla.sigueSonando()) {
+                    bajo = true
+                    mezcla.llevarA(NIVEL_MUSICA, BAJAR_MS)
+                }
+                val mp = MediaPlayer()
+                reproductor = mp
+                var termino = false
+                mp.setAudioAttributes(
+                    AudioAttributes.Builder()
+                        .setUsage(AudioAttributes.USAGE_MEDIA)
+                        .setContentType(AudioAttributes.CONTENT_TYPE_SPEECH)
+                        .build()
+                )
+                mp.setDataSource(archivo.path)
+                mp.setOnCompletionListener { termino = true }
+                mp.prepare()
+                mp.start()
+                val limite = SystemClock.elapsedRealtime() + MAXIMO_HABLANDO_MS
+                while (!termino && SystemClock.elapsedRealtime() < limite) delay(50)
+                if (bajo) {
+                    mezcla.llevarA(1f, SUBIR_MS)
+                    bajo = false
+                }
+            } catch (e: kotlinx.coroutines.CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                android.util.Log.w(ETIQUETA, "fallo la muestra", e)
+            } finally {
+                soltarReproductor()
+                if (bajo) mezcla.devolver()
             }
         }
     }
@@ -330,8 +416,8 @@ class NovaLocutor(
     companion object {
         private const val ETIQUETA = "LifeMusicNova"
 
-        /** Sin Nova al aire: cada cuantas canciones dice el puente (en la tanda 5 se ajusta de 2 a 8). */
-        const val CADA = 3
+        /** Solo subtitulos: cuanto se queda cada palabra en pantalla (lo que tardaria en decirla). */
+        const val MS_POR_PALABRA = 380L
 
         /** La musica mientras Nova habla: 30 % del volumen de la persona. */
         const val NIVEL_MUSICA = 0.3f

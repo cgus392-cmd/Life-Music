@@ -94,9 +94,9 @@ object NovaFrases {
      * La primera vez que sale al aire: saludo, quien es y el puente. Si no hay
      * nombre, saluda sin nombre; si no habia cancion antes, solo presenta la que suena.
      */
-    fun presentacion(hora: Int, nombre: String?, anterior: Pista?, nueva: Pista, eleccion: Int): String {
+    fun presentacion(hora: Int, nombre: String?, anterior: Pista?, nueva: Pista, eleccion: Int, nombreDJ: String = "Nova"): String {
         val saludo = if (nombre != null) "${saludo(hora)}, $nombre." else "${saludo(hora)}."
-        return "$saludo Soy Nova, tu DJ. ${puente(anterior, nueva, eleccion)}"
+        return "$saludo Soy $nombreDJ, tu DJ. ${puente(anterior, nueva, eleccion)}"
     }
 
     /** El puente entre dos canciones: lo que acaba de sonar y lo que suena ahora. */
