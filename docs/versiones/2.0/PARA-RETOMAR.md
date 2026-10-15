@@ -103,3 +103,17 @@ nada.** Actualizada el 2026-10-15.
 - **La música espera a Nova.** Al encender, cambiar de onda o sintonizar, primero se arma el bloque y se prepara la
   frase (`prepararAnuncio` y `decirAnuncio`), y recién después arranca la música. En los cambios naturales con voz
   lenta, la nueva canción queda retenida en pausa hasta 6 s.
+
+## Pausa del 15-10, 17:40
+
+- **En el S25:** `LifeMusic-2.0-nova-capacidad2.apk` (commit add27e01).
+- **Queda probar con CG:**
+  - Kokoro (Dora y Alex);
+  - el volumen de las voces HD;
+  - Daniela frente a Claude.
+- **Opcional:**
+  - la pantalla «Dale voz a Nova» (maqueta 5);
+  - las cuñas grabadas;
+  - los datos de Wikipedia y MusicBrainz;
+  - las pruebas unitarias.
+- **Antes de publicar:** decidir qué pasa con el AAR de sherpa-onnx (fuera de Git).
