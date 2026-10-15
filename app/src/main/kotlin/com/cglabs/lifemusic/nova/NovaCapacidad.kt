@@ -31,10 +31,14 @@ object NovaCapacidad {
     enum class Veredicto { FLUIDA, CON_ESPERA, NO_APTA }
 
     /** Hasta este tiempo por segundo de voz, habla al instante. */
-    const val FLUIDA_HASTA = 0.45f
+    const val FLUIDA_HASTA = 0.5f
 
-    /** Hasta aqui sirve: Nova prepara la frase antes y la canción espera unos segundos. */
-    const val CON_ESPERA_HASTA = 1.1f
+    /**
+     * Hasta aqui sirve: Nova prepara la frase 20 s antes y la musica la espera.
+     * Antes era 1,1 y bloqueo a Daniela en el S25 (midio 1,27 con la musica sonando):
+     * solo se bloquea lo que de verdad no se puede usar (CG, 15-10).
+     */
+    const val CON_ESPERA_HASTA = 2.0f
 
     data class Telefono(val claseRendimiento: Int, val memoriaGb: Float, val nucleos: Int, val memoriaBaja: Boolean)
 
@@ -106,15 +110,17 @@ object NovaCapacidad {
             ?: return@withContext null
         try {
             motor.generate("Hola.", voz.hablante, 1.0f)
-            val inicio = SystemClock.elapsedRealtime()
-            val audio = motor.generate(
-                "Buenas tardes. Soy Nova, tu DJ. Lo de siempre: Marea alta, de Luz de Neón.",
-                voz.hablante, 1.0f,
-            )
-            val tardo = (SystemClock.elapsedRealtime() - inicio) / 1000f
-            val duro = audio.samples.size.toFloat() / audio.sampleRate.coerceAtLeast(1)
-            if (duro <= 0f) return@withContext null
-            val porSegundo = tardo / duro
+            // Dos medidas y la mejor: un mal momento (la musica sonando, otra app) no castiga a la voz.
+            val porSegundo = (1..2).mapNotNull {
+                val inicio = SystemClock.elapsedRealtime()
+                val audio = motor.generate(
+                    "Buenas tardes. Soy Nova, tu DJ. Lo de siempre: Marea alta, de Luz de Neón.",
+                    voz.hablante, 1.0f,
+                )
+                val tardo = (SystemClock.elapsedRealtime() - inicio) / 1000f
+                val duro = audio.samples.size.toFloat() / audio.sampleRate.coerceAtLeast(1)
+                if (duro > 0f) tardo / duro else null
+            }.minOrNull() ?: return@withContext null
             preferencias(contexto).edit().putFloat(clave, porSegundo).apply()
             android.util.Log.i(
                 "LifeMusicNova",

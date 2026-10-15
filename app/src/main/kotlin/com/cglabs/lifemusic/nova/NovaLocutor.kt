@@ -253,7 +253,7 @@ class NovaLocutor(
         val inicio = SystemClock.elapsedRealtime()
         NovaSesion.pensar(true)
         try {
-            val ok = sintetizarConTope(texto, archivo, ESPERA_MAXIMA_ARRANQUE_MS)
+            val ok = sintetizarConTope(texto, archivo, esperaMaxima())
             val falta = PENSAR_MINIMO_MS - (SystemClock.elapsedRealtime() - inicio)
             if (falta > 0) delay(falta)
             android.util.Log.i(ETIQUETA, "anuncio ${if (ok) "listo" else "no alcanzo"} en ${SystemClock.elapsedRealtime() - inicio} ms; recien ahora arranca la musica")
@@ -302,6 +302,9 @@ class NovaLocutor(
             false
         }
     }
+
+    /** Cuanto espera la musica a Nova: mas con una voz que tarda en este telefono. */
+    private fun esperaMaxima() = if (vozLenta()) ESPERA_MAXIMA_LENTA_MS else ESPERA_MAXIMA_ARRANQUE_MS
 
     /** La voz elegida tarda en este telefono (HD sin veredicto «fluida»). */
     private fun vozLenta(): Boolean {
@@ -391,7 +394,7 @@ class NovaLocutor(
                 NovaSesion.pensar(true)
                 val lista = try {
                     val hecha = preparada != null || if (retenida) {
-                        sintetizarConTope(texto, archivo, ESPERA_MAXIMA_ARRANQUE_MS)
+                        sintetizarConTope(texto, archivo, esperaMaxima())
                     } else {
                         sintetizarCon(texto, archivo)
                     }
@@ -749,6 +752,9 @@ class NovaLocutor(
 
         /** Lo maximo que la musica espera a Nova al encender, cambiar de onda o en un cambio retenido. */
         const val ESPERA_MAXIMA_ARRANQUE_MS = 6_000L
+
+        /** Con una voz que tarda (Daniela en el S25: ~1 s por segundo de voz), la musica espera mas. */
+        const val ESPERA_MAXIMA_LENTA_MS = 10_000L
 
         /** Si la siguiente canta antes de esto, Nova habla sobre el final de la anterior. */
         const val ARRANCA_CANTANDO_MS = 7_000L

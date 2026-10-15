@@ -96,7 +96,7 @@ object NovaVocesHD {
         piper("daniela", "Daniela", R.string.nova_voz_f_argentina, "vits-piper-es_AR-daniela-high", 0,
             listOf(33.4f, 55.8f, 110.2f), "CC BY-SA 4.0", "OpenSLR 61 · larcanio", NovaCapacidad.Exigencia.MEDIA),
         piper("claude", "Claude", R.string.nova_voz_mexico, "vits-piper-es_MX-claude-high", 0,
-            listOf(20.2f, 34.2f, 64.1f), "Apache 2.0", "HirCoir", NovaCapacidad.Exigencia.MEDIA),
+            listOf(20.2f, 34.2f, 64.1f), "Apache 2.0", "HirCoir"), // «high» de nombre, pero rapida: 0,21 en el S25
         piper("ald", "Ald", R.string.nova_voz_m_mexico, "vits-piper-es_MX-ald-medium", 0,
             listOf(20.3f, 34.2f, 64.1f), "Unlicense", "rmcpantoja"),
         piper("sharvard-f", "Sharvard", R.string.nova_voz_f_espana, "vits-piper-es_ES-sharvard-medium", 1,
@@ -286,6 +286,22 @@ object NovaDescargas {
                 } finally {
                     quitar(clave)
                 }
+            }
+        }
+    }
+
+    /** Repite la prueba real de una voz ya bajada (boton «Probar otra vez»). */
+    fun probarOtraVez(contexto: Context, voz: VozHD, calidad: CalidadVoz) {
+        val app = contexto.applicationContext
+        val clave = voz.clave(calidad)
+        if (trabajos[clave]?.isActive == true || !instalada(app, clave)) return
+        trabajos[clave] = alcance.launch {
+            try {
+                poner(clave, Estado.Probando)
+                NovaCapacidad.probar(app, voz, calidad)
+            } finally {
+                quitar(clave)
+                trabajos.remove(clave)
             }
         }
     }

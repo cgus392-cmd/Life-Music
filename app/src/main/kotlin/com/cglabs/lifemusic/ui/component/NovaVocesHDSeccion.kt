@@ -2,6 +2,7 @@ package com.cglabs.lifemusic.ui.component
 
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -172,6 +173,21 @@ internal fun SeccionVocesHD(vozElegida: String, alElegir: (String) -> Unit) {
                             color = esquema.onSurfaceVariant,
                         )
                         Text(aviso, style = MaterialTheme.typography.labelSmall, color = colorAviso)
+                        // Una prueba en mal momento no puede condenar a una voz: se puede repetir.
+                        if (instalada && veredicto != null && veredicto != NovaCapacidad.Veredicto.FLUIDA &&
+                            estado !is NovaDescargas.Estado.Probando
+                        ) {
+                            Text(
+                                stringResource(R.string.nova_probar_otra_vez),
+                                style = MaterialTheme.typography.labelMedium,
+                                color = esquema.primary,
+                                modifier = Modifier
+                                    .padding(top = 2.dp)
+                                    .clip(RoundedCornerShape(6.dp))
+                                    .clickable { NovaDescargas.probarOtraVez(contexto, voz, calidad) }
+                                    .padding(vertical = 4.dp, horizontal = 2.dp),
+                            )
+                        }
                     }
                     when {
                         estado is NovaDescargas.Estado.Bajando -> {
