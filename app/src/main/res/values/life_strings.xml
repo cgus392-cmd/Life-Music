@@ -1098,6 +1098,8 @@
     <!-- Saludo de entrada -->
     <string name="greeting_enabled">Greeting on launch</string>
     <string name="greeting_enabled_desc">A short line from the app before Home, on cold start</string>
+    <string name="aurora_activa">2.0 Aurora bar (preview)</string>
+    <string name="aurora_activa_desc">Gradient and glass on Home. Off: the classic bar</string>
 
     <!-- Ambient mode (CG, 2026-09-18) -->
     <string name="ambient_mode">Ambient mode</string>
@@ -1616,4 +1618,9 @@
     <string name="update_permiso_titulo">One permission to install</string>
     <string name="update_permiso_texto">To install the new version, Android will ask you to let Life Music install apps. It is only used for its own updates. Turn the switch on and come back: the install continues by itself.</string>
     <string name="update_permiso_boton">Give the permission</string>
+    <!-- 2.0 · Aurora: el menu de la foto (barra de arriba) -->
+    <string name="menu_foto_actividad">Your activity</string>
+    <string name="menu_foto_actividad_desc">History and stats</string>
+    <string name="menu_foto_juntos">Listen together</string>
+    <string name="menu_foto_juntos_desc">The same song, at the same time</string>
 </resources>

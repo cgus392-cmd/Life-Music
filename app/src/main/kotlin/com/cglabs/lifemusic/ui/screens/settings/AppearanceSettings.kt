@@ -263,6 +263,8 @@ highlightKey: String? = null) {
         rememberPreference(BrandTitleAlternateKey, defaultValue = true)
     val (greetingEnabled, onGreetingEnabledChange) =
         rememberPreference(GreetingEnabledKey, defaultValue = true)
+    val (auroraActiva, onAuroraActivaChange) =
+        rememberPreference(com.cglabs.lifemusic.constants.AuroraActivaKey, defaultValue = false)
     val (lifeLineEnabled, onLifeLineEnabledChange) =
         rememberPreference(LifeLineEnabledKey, defaultValue = true)
     val (lifeLineHighlight, onLifeLineHighlightChange) =
@@ -1313,6 +1315,32 @@ highlightKey: String? = null) {
                             )
                         },
                         onClick = { onGreetingEnabledChange(!greetingEnabled) }
+                    )
+                )
+                // 2.0 · Barra Aurora en vista previa: se prende para probarla y se apaga
+                // para volver a la barra de siempre.
+                add(
+                    Material3SettingsItem(
+                        isHighlighted = (highlightKey == stringResource(R.string.aurora_activa)),
+                        icon = painterResource(R.drawable.gradient),
+                        title = { Text(stringResource(R.string.aurora_activa)) },
+                        description = { Text(stringResource(R.string.aurora_activa_desc)) },
+                        trailingContent = {
+                            Switch(
+                                checked = auroraActiva,
+                                onCheckedChange = onAuroraActivaChange,
+                                thumbContent = {
+                                    Icon(
+                                        painter = painterResource(
+                                            id = if (auroraActiva) R.drawable.check else R.drawable.close
+                                        ),
+                                        contentDescription = null,
+                                        modifier = Modifier.size(SwitchDefaults.IconSize)
+                                    )
+                                }
+                            )
+                        },
+                        onClick = { onAuroraActivaChange(!auroraActiva) }
                     )
                 )
             }

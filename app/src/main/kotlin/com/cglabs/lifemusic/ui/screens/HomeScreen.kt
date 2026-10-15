@@ -78,6 +78,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.Modifier
@@ -99,6 +100,11 @@ import coil3.compose.AsyncImage
 import coil3.request.CachePolicy
 import coil3.request.crossfade
 import coil3.request.ImageRequest
+import com.cglabs.lifemusic.constants.AuroraActivaKey
+import com.cglabs.lifemusic.constants.PureBlackKey
+import com.cglabs.lifemusic.ui.component.Aurora
+import com.cglabs.lifemusic.ui.component.FondoAurora
+import com.cglabs.lifemusic.ui.component.rememberColoresAurora
 import com.music.innertube.models.AlbumItem
 import com.music.innertube.models.ArtistItem
 import com.music.innertube.models.PlaylistItem
@@ -946,6 +952,33 @@ fun HomeScreen(
                     positionInLayout = { layoutSize, itemSize ->
                         (layoutSize * horizontalLazyGridItemWidthFactor / 2f - itemSize / 2f)
                     }
+                )
+            }
+
+            // 2.0 · Aurora: el degradado detrás del Inicio, con los colores de lo que suena.
+            // Al bajar se apaga y la barra de arriba pasa a vidrio (lee Aurora.fraccion).
+            val auroraActiva by rememberPreference(AuroraActivaKey, defaultValue = false)
+            val coloresAurora = rememberColoresAurora()
+            val oscuroAurora = MaterialTheme.colorScheme.surface.luminance() < 0.5f
+            val negroPuroAurora by rememberPreference(PureBlackKey, defaultValue = false)
+            val umbralAurora = with(LocalDensity.current) { Aurora.UMBRAL.toPx() }
+            val altosDeFila = remember { HashMap<Int, Int>() }
+            LaunchedEffect(lazylistState, umbralAurora) {
+                snapshotFlow {
+                    // Lo bajado = el alto de las filas que ya salieron + lo que va de la primera visible.
+                    lazylistState.layoutInfo.visibleItemsInfo.forEach { altosDeFila[it.index] = it.size }
+                    var bajado = lazylistState.firstVisibleItemScrollOffset.toFloat()
+                    for (i in 0 until lazylistState.firstVisibleItemIndex) {
+                        bajado += altosDeFila[i] ?: umbralAurora.toInt()
+                        if (bajado >= umbralAurora) break
+                    }
+                    (bajado / umbralAurora).coerceIn(0f, 1f)
+                }.collect { Aurora.fraccion = it }
+            }
+            if (auroraActiva) {
+                FondoAurora(
+                    colores = coloresAurora,
+                    opacidad = Aurora.intensidad(oscuroAurora, negroPuroAurora) * (1f - Aurora.fraccion),
                 )
             }
 

@@ -45,6 +45,7 @@ import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
@@ -124,6 +125,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.em
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.input.pointer.pointerInput
@@ -1106,91 +1108,171 @@ class MainActivity : ComponentActivity() {
                                 enter = fadeIn(animationSpec = tween(durationMillis = 300)),
                                 exit = fadeOut(animationSpec = tween(durationMillis = 200))
                             ) {
-                                Row {
+                                // 2.0 · Aurora: en el Inicio la barra no tiene fondo propio. Deja
+                                // ver el degradado y, al bajar, se vuelve vidrio (VidrioDeBarra).
+                                val auroraActiva by rememberPreference(com.cglabs.lifemusic.constants.AuroraActivaKey, defaultValue = false)
+                                val enInicio = auroraActiva && navBackStackEntry?.destination?.route == Screens.Home.route
+                                val recogido = if (enInicio) com.cglabs.lifemusic.ui.component.Aurora.fraccion else 1f
+                                Box {
+                                    if (enInicio) {
+                                        com.cglabs.lifemusic.ui.component.VidrioDeBarra(
+                                            fraccion = recogido,
+                                            oscuro = useDarkTheme,
+                                            negroPuro = pureBlack,
+                                            modifier = Modifier.matchParentSize(),
+                                        )
+                                    }
                                     TopAppBar(
                                         title = {
-                                            // En Inicio se releva con el wordmark
-                                            // de CG LABS; en el resto es texto y
-                                            // ya. Lo decide BrandTitle.
-                                            BrandTitle(
-                                                text = currentTitle,
-                                                style = MaterialTheme.typography.titleLarge.copy(
-                                                    fontWeight = FontWeight.Bold,
-                                                    fontSize = 24.sp
-                                                ),
-                                            )
-                                        },
-                                        actions = {
-                                            // 1.3.1: la copa del prerregistro del nuevo concurso, desde
-                                            // que el servidor lo abre. Se refresca cada vez que se ve Inicio.
-                                            val estadoPrerregistro by com.cglabs.lifemusic.comunidad.Prerregistro.estado.collectAsState()
-                                            LaunchedEffect(Unit) { com.cglabs.lifemusic.comunidad.Prerregistro.actualizar() }
-                                            if (com.cglabs.lifemusic.comunidad.Prerregistro.copaVisible(estadoPrerregistro)) {
-                                                com.cglabs.lifemusic.comunidad.CopaPrerregistro(
-                                                    abierto = estadoPrerregistro?.abierto == true,
-                                                    onClick = { navController.navigate("prerregistro") },
+                                            if (enInicio) {
+                                                // El saludo se encoge en su sitio: 33 sp arriba, 20 sp en la barra.
+                                                Text(
+                                                    text = com.cglabs.lifemusic.ui.component.saludoDelMomento(),
+                                                    style = MaterialTheme.typography.titleLarge.copy(
+                                                        fontWeight = if (recogido < 0.5f) FontWeight.Bold else FontWeight.SemiBold,
+                                                        fontSize = (33f - 13f * recogido).sp,
+                                                        letterSpacing = (-0.025f + 0.015f * recogido).em,
+                                                    ),
+                                                    maxLines = 1,
+                                                )
+                                            } else {
+                                                BrandTitle(
+                                                    text = currentTitle,
+                                                    style = MaterialTheme.typography.titleLarge.copy(
+                                                        fontWeight = FontWeight.Bold,
+                                                        fontSize = 24.sp
+                                                    ),
                                                 )
                                             }
+                                        },
+                                        actions = {
+                                          if (!auroraActiva) {
+                                                // 1.3.1: la copa del prerregistro del nuevo concurso, desde
+                                                // que el servidor lo abre. Se refresca cada vez que se ve Inicio.
+                                                val estadoPrerregistro by com.cglabs.lifemusic.comunidad.Prerregistro.estado.collectAsState()
+                                                LaunchedEffect(Unit) { com.cglabs.lifemusic.comunidad.Prerregistro.actualizar() }
+                                                if (com.cglabs.lifemusic.comunidad.Prerregistro.copaVisible(estadoPrerregistro)) {
+                                                    com.cglabs.lifemusic.comunidad.CopaPrerregistro(
+                                                        abierto = estadoPrerregistro?.abierto == true,
+                                                        onClick = { navController.navigate("prerregistro") },
+                                                    )
+                                                }
+                                                // Transmitir: solo aparece cuando hay un aparato en la red
+                                                // (o ya se transmite). El resto del tiempo, la barra respira.
+                                                com.cglabs.lifemusic.ui.component.CastEnBarra()
+                                                // Historial y Estadisticas en un solo boton con menu: dos
+                                                // iconos por lo mismo («tu actividad») estorbaban.
+                                                var menuActividad by remember { mutableStateOf(false) }
+                                                Box {
+                                                    IconButton(onClick = {
+                                                        if (showHistoryButton) menuActividad = true else navController.navigate("stats")
+                                                    }) {
+                                                        Icon(
+                                                            painter = painterResource(R.drawable.stats),
+                                                            contentDescription = stringResource(R.string.actividad)
+                                                        )
+                                                    }
+                                                    DropdownMenu(expanded = menuActividad, onDismissRequest = { menuActividad = false }) {
+                                                        DropdownMenuItem(
+                                                            text = { Text(stringResource(R.string.history)) },
+                                                            leadingIcon = { Icon(painterResource(R.drawable.music_history), contentDescription = null) },
+                                                            onClick = { menuActividad = false; navController.navigate("history") },
+                                                        )
+                                                        DropdownMenuItem(
+                                                            text = { Text(stringResource(R.string.stats)) },
+                                                            leadingIcon = { Icon(painterResource(R.drawable.stats), contentDescription = null) },
+                                                            onClick = { menuActividad = false; navController.navigate("stats") },
+                                                        )
+                                                    }
+                                                }
+                                                if (listenTogetherInTopBar) {
+                                                    IconButton(onClick = { navController.navigate("listen_together_from_topbar") }) {
+                                                        Icon(
+                                                            painter = painterResource(R.drawable.group_outlined),
+                                                            contentDescription = stringResource(R.string.together)
+                                                        )
+                                                    }
+                                                }
+                                                 IconButton(onClick = { showSettingDialoge = true }) {
+                                                    BadgedBox(badge = {}) {
+                                                        if (accountImageUrl != null) {
+                                                            AsyncImage(
+                                                                model = accountImageUrl,
+                                                                contentDescription = stringResource(R.string.account),
+                                                                modifier = Modifier
+                                                                    .size(24.dp)
+                                                                    .clip(CircleShape)
+                                                            )
+                                                         } else {
+                                                             Icon(
+                                                                 painter = painterResource(R.drawable.settings),
+                                                                 contentDescription = stringResource(R.string.account),
+                                                                 modifier = Modifier.size(24.dp)
+                                                             )
+                                                         }
+                                                    }
+                                                }
+                                          } else {
                                             // Transmitir: solo aparece cuando hay un aparato en la red
                                             // (o ya se transmite). El resto del tiempo, la barra respira.
                                             com.cglabs.lifemusic.ui.component.CastEnBarra()
-                                            // Historial y Estadisticas en un solo boton con menu: dos
-                                            // iconos por lo mismo («tu actividad») estorbaban.
-                                            var menuActividad by remember { mutableStateOf(false) }
+                                            // 2.0: la foto abre el menú con Tu actividad, Escuchar juntos y
+                                            // Ajustes. Buscar queda solo abajo y la copa del concurso salió
+                                            // (el concurso está en pausa).
+                                            var menuFoto by remember { mutableStateOf(false) }
                                             Box {
-                                                IconButton(onClick = {
-                                                    if (showHistoryButton) menuActividad = true else navController.navigate("stats")
-                                                }) {
-                                                    Icon(
-                                                        painter = painterResource(R.drawable.stats),
-                                                        contentDescription = stringResource(R.string.actividad)
-                                                    )
-                                                }
-                                                DropdownMenu(expanded = menuActividad, onDismissRequest = { menuActividad = false }) {
-                                                    DropdownMenuItem(
-                                                        text = { Text(stringResource(R.string.history)) },
-                                                        leadingIcon = { Icon(painterResource(R.drawable.music_history), contentDescription = null) },
-                                                        onClick = { menuActividad = false; navController.navigate("history") },
-                                                    )
-                                                    DropdownMenuItem(
-                                                        text = { Text(stringResource(R.string.stats)) },
-                                                        leadingIcon = { Icon(painterResource(R.drawable.stats), contentDescription = null) },
-                                                        onClick = { menuActividad = false; navController.navigate("stats") },
-                                                    )
-                                                }
-                                            }
-                                            if (listenTogetherInTopBar) {
-                                                IconButton(onClick = { navController.navigate("listen_together_from_topbar") }) {
-                                                    Icon(
-                                                        painter = painterResource(R.drawable.group_outlined),
-                                                        contentDescription = stringResource(R.string.together)
-                                                    )
-                                                }
-                                            }
-                                             IconButton(onClick = { showSettingDialoge = true }) {
-                                                BadgedBox(badge = {}) {
+                                                IconButton(onClick = { menuFoto = true }) {
+                                                    val aro = when {
+                                                        menuFoto -> MaterialTheme.colorScheme.onSurface
+                                                        useDarkTheme -> Color.White.copy(alpha = 0.55f)
+                                                        else -> Color.White.copy(alpha = 0.9f)
+                                                    }
                                                     if (accountImageUrl != null) {
                                                         AsyncImage(
                                                             model = accountImageUrl,
                                                             contentDescription = stringResource(R.string.account),
                                                             modifier = Modifier
-                                                                .size(24.dp)
+                                                                .size(32.dp)
+                                                                .border(2.dp, aro, CircleShape)
+                                                                .padding(2.dp)
                                                                 .clip(CircleShape)
                                                         )
-                                                     } else {
-                                                         Icon(
-                                                             painter = painterResource(R.drawable.settings),
-                                                             contentDescription = stringResource(R.string.account),
-                                                             modifier = Modifier.size(24.dp)
-                                                         )
-                                                     }
+                                                    } else {
+                                                        Box(
+                                                            modifier = Modifier
+                                                                .size(32.dp)
+                                                                .border(2.dp, aro, CircleShape)
+                                                                .padding(2.dp)
+                                                                .clip(CircleShape)
+                                                                .background(MaterialTheme.colorScheme.surfaceVariant),
+                                                            contentAlignment = Alignment.Center,
+                                                        ) {
+                                                            Icon(
+                                                                painter = painterResource(R.drawable.person),
+                                                                contentDescription = stringResource(R.string.account),
+                                                                modifier = Modifier.size(18.dp)
+                                                            )
+                                                        }
+                                                    }
                                                 }
+                                                com.cglabs.lifemusic.ui.component.MenuDeLaFoto(
+                                                    abierto = menuFoto,
+                                                    alCerrar = { menuFoto = false },
+                                                    oscuro = useDarkTheme,
+                                                    mostrarHistorial = showHistoryButton,
+                                                    mostrarJuntos = listenTogetherInTopBar,
+                                                    alHistorial = { navController.navigate("history") },
+                                                    alEstadisticas = { navController.navigate("stats") },
+                                                    alJuntos = { navController.navigate("listen_together_from_topbar") },
+                                                    alAjustes = { showSettingDialoge = true },
+                                                )
                                             }
+                                          }
                                         },
                                         scrollBehavior = topAppBarScrollBehavior,
                                         colors = TopAppBarDefaults.topAppBarColors(
-                                            containerColor = if (pureBlack) Color.Black else MaterialTheme.colorScheme.surfaceContainer,
-                                            scrolledContainerColor = if (pureBlack) Color.Black else MaterialTheme.colorScheme.surfaceContainer,
+                                            containerColor = if (enInicio) Color.Transparent else if (pureBlack) Color.Black else MaterialTheme.colorScheme.surfaceContainer,
+                                            scrolledContainerColor = if (enInicio) Color.Transparent else if (pureBlack) Color.Black else MaterialTheme.colorScheme.surfaceContainer,
                                             titleContentColor = MaterialTheme.colorScheme.onSurface,
                                             actionIconContentColor = MaterialTheme.colorScheme.onSurfaceVariant,
                                             navigationIconContentColor = MaterialTheme.colorScheme.onSurfaceVariant

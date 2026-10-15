@@ -1050,6 +1050,9 @@ val BrandTitleAlternateKey = booleanPreferencesKey("brandTitleAlternate")
  */
 val GreetingEnabledKey = booleanPreferencesKey("greetingEnabled")
 
+/** 2.0 · Barra Aurora: degradado y vidrio en el Inicio. Apagada (por defecto) = la barra de la 1.3.2. */
+val AuroraActivaKey = booleanPreferencesKey("auroraActiva")
+
 /**
  * Instante del ultimo arranque en frio, en milisegundos. Sirve para que el saludo
  * sepa cuanto hace que no abres —una semana sin entrar merece otra frase— sin
