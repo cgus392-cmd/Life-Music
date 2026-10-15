@@ -90,3 +90,16 @@ nada.** Actualizada el 2026-10-15.
   - Motor: `nova/NovaVozHD.kt`.
   - Pantalla: `ui/component/NovaVocesHDSeccion.kt`.
 - **R8** necesita `-keep class com.k2fsa.sherpa.onnx.** { *; }`, que ya está en `app/proguard-rules.pro`.
+
+## Voces para todos los teléfonos (tanda 7, 15-10)
+
+- **`nova/NovaCapacidad.kt`** hace dos pruebas.
+  - **Previsión antes de bajar:** usa `MEDIA_PERFORMANCE_CLASS`, la memoria y los núcleos. Lo que el teléfono no puede
+    mover no se deja bajar.
+  - **Prueba real después de bajar:** mide los segundos que tarda por cada segundo de voz. FLUIDA si es ≤0,45;
+    CON_ESPERA si es ≤1,1; NO_APTA (no se puede elegir) si es más.
+- **Kokoro** (Dora 28 y Alex 29, `lang = "es"` por espeak-ng) está en el catálogo con exigencia ALTA. Liviana pesa
+  126 MB y completa 334 MB; no hay versión «media».
+- **La música espera a Nova.** Al encender, cambiar de onda o sintonizar, primero se arma el bloque y se prepara la
+  frase (`prepararAnuncio` y `decirAnuncio`), y recién después arranca la música. En los cambios naturales con voz
+  lenta, la nueva canción queda retenida en pausa hasta 6 s.

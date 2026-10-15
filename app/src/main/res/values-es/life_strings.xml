@@ -1237,6 +1237,17 @@
     <string name="nova_datos_esperar">Esperar al Wi-Fi</string>
     <string name="nova_voz_rapida">Rápida: habla al instante</string>
     <string name="nova_voz_lenta">Más natural: tarda unos segundos en hablar</string>
+    <string name="nova_voz_f_espanol">femenina · español</string>
+    <string name="nova_voz_m_espanol">masculina · español</string>
+    <string name="nova_voz_premium">Premium: la más natural</string>
+    <string name="nova_recomendada">Recomendada</string>
+    <string name="nova_probando">Probando…</string>
+    <string name="nova_probando_telefono">Probándola en tu teléfono…</string>
+    <string name="nova_veredicto_fluida">Fluida en tu teléfono</string>
+    <string name="nova_veredicto_espera">Tarda unos segundos en tu teléfono: Nova se prepara antes</string>
+    <string name="nova_veredicto_no_apta">Este teléfono no la mueve bien</string>
+    <string name="nova_prevision_no">No disponible en este teléfono</string>
+    <string name="nova_prevision_tarda">Puede tardar en tu teléfono</string>
     <string name="nova_activa_desc">Habla entre canciones con la voz del teléfono. La música baja mientras habla</string>
     <string name="boletin_v1132_intro">La versión que lo reúne todo: temas PRO para el TV, Life Music en cualquier televisor con navegador, un actualizador nuevo, cambios sin cortes, calificación con estrellas y el prerregistro del nuevo concurso. Y el TV con navegador, ahora más seguro.</string>
     <string name="boletin_v1132_seguro_t">TV con navegador, más seguro</string>

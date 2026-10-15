@@ -1885,6 +1885,16 @@ class MusicService :
         override fun mezclaActiva(): Boolean = crossfadeEnabled
 
         override fun transmitiendo(): Boolean = castConnectionHandler?.isCasting?.value == true
+
+        override fun retener(): Boolean {
+            if (!playerInitialized.value || !player.isPlaying || player.currentPosition > 2_000L) return false
+            player.pause()
+            return true
+        }
+
+        override fun soltarRetencion() {
+            if (playerInitialized.value && !player.isPlaying) player.play()
+        }
     }
 
     /** Cuantas veces se cambio la lista del reproductor: para saber que la cancion elegida ya entro. */
@@ -2017,12 +2027,31 @@ class MusicService :
         nova?.repetir()
     }
 
-    /** 2.0 · Nova al aire desde el Inicio: arma el primer bloque, lo pone y lo anuncia. */
+    /** 2.0 · Encender, sintonizar o cambiar de onda: el ultimo toque manda. */
+    private var novaArranque: Job? = null
+
+    /**
+     * 2.0 · Nova al aire desde la cabina. Primero arma el bloque y prepara su
+     * frase (Nova piensa y lo que sonaba sigue sonando); recien con la frase lista
+     * arranca la musica, y Nova habla sobre el primer segundo. Asi no suena tarde
+     * en telefonos lentos (pedido de CG, 15-10). Con tope: si la voz no alcanza,
+     * la musica arranca igual y esa vez Nova no habla.
+     */
     fun encenderNova(desde: com.cglabs.lifemusic.nova.NovaBloque? = null) {
         if (playerInitialized.value) player.currentMediaItem?.mediaId?.let { sinSenalNova += it }
         com.cglabs.lifemusic.nova.NovaSesion.empezar(desde)
-        playQueue(com.cglabs.lifemusic.nova.NovaQueue(database))
-        nova?.anunciarBloque(alEncender = true)
+        novaArranque?.cancel()
+        novaArranque = scope.launch {
+            val items = withContext(Dispatchers.IO) { com.cglabs.lifemusic.nova.NovaSesion.siguienteBloque(database) }
+            if (items.isEmpty()) {
+                com.cglabs.lifemusic.nova.NovaSesion.apagar()
+                avisarEstacionVacia()
+                return@launch
+            }
+            val anuncio = items.first().metadata?.let { nova?.prepararAnuncio(alEncender = true, primera = it) }
+            playQueue(com.cglabs.lifemusic.nova.NovaQueue(database, inicial = items))
+            anuncio?.let { nova?.decirAnuncio(it) }
+        }
     }
 
     /**
@@ -2034,51 +2063,57 @@ class MusicService :
             encenderNova(desde = bloque)
             return
         }
-        scope.launch {
+        novaArranque?.cancel()
+        novaArranque = scope.launch {
             val items = withContext(Dispatchers.IO) {
                 com.cglabs.lifemusic.nova.NovaSesion.bloqueElegido(database, bloque)
             }
             if (items.isEmpty()) {
-                com.cglabs.lifemusic.nova.NovaSesion.gesto(com.cglabs.lifemusic.nova.NovaSesion.Gesto.NIEGA)
-                android.widget.Toast.makeText(
-                    this@MusicService, R.string.nova_estacion_vacia, android.widget.Toast.LENGTH_SHORT,
-                ).show()
+                avisarEstacionVacia()
                 return@launch
             }
-            if (!playerInitialized.value) return@launch
-            val indice = player.currentMediaItemIndex
-            if (indice + 1 < player.mediaItemCount) player.removeMediaItems(indice + 1, player.mediaItemCount)
-            player.addMediaItems(items)
-            player.currentMediaItem?.mediaId?.let { sinSenalNova += it }
-            player.seekToNextMediaItem()
-            nova?.anunciarBloque(alEncender = false)
+            ponerBloqueConAnuncio(items)
         }
     }
 
     /** 2.0 · Nova sale del aire; la musica que suena sigue. */
     fun apagarNova() {
+        novaArranque?.cancel()
         com.cglabs.lifemusic.nova.NovaSesion.apagar()
         nova?.callar()
     }
 
     /**
-     * 2.0 · Cambiar de onda: lo que venia se reemplaza por el bloque siguiente y
-     * se salta a el ya, como mover la aguja del dial. Nova lo anuncia.
+     * 2.0 · Cambiar de onda: el bloque siguiente reemplaza lo que venia. Mientras
+     * Nova prepara su frase, la que suena sigue; con la frase lista, salta y la dice.
      */
     fun cambiarDeOnda() {
         if (!com.cglabs.lifemusic.nova.NovaSesion.alAire.value) return
-        scope.launch {
+        novaArranque?.cancel()
+        novaArranque = scope.launch {
             val items = withContext(Dispatchers.IO) {
                 com.cglabs.lifemusic.nova.NovaSesion.siguienteBloque(database)
             }
-            if (items.isEmpty() || !playerInitialized.value) return@launch
-            val indice = player.currentMediaItemIndex
-            if (indice + 1 < player.mediaItemCount) player.removeMediaItems(indice + 1, player.mediaItemCount)
-            player.addMediaItems(items)
-            player.currentMediaItem?.mediaId?.let { sinSenalNova += it }
-            player.seekToNextMediaItem()
-            nova?.anunciarBloque(alEncender = false)
+            if (items.isEmpty()) return@launch
+            ponerBloqueConAnuncio(items)
         }
+    }
+
+    /** Prepara la frase del bloque y, ya lista, salta a el y la dice. */
+    private suspend fun ponerBloqueConAnuncio(items: List<MediaItem>) {
+        val anuncio = items.first().metadata?.let { nova?.prepararAnuncio(alEncender = false, primera = it) }
+        if (!playerInitialized.value) return
+        val indice = player.currentMediaItemIndex
+        if (indice + 1 < player.mediaItemCount) player.removeMediaItems(indice + 1, player.mediaItemCount)
+        player.addMediaItems(items)
+        player.currentMediaItem?.mediaId?.let { sinSenalNova += it }
+        player.seekToNextMediaItem()
+        anuncio?.let { nova?.decirAnuncio(it) }
+    }
+
+    private fun avisarEstacionVacia() {
+        com.cglabs.lifemusic.nova.NovaSesion.gesto(com.cglabs.lifemusic.nova.NovaSesion.Gesto.NIEGA)
+        android.widget.Toast.makeText(this, R.string.nova_estacion_vacia, android.widget.Toast.LENGTH_SHORT).show()
     }
 
     /** Nova: lleva la musica de su nivel actual a [nivel] en [ms] (coseno al bajar, seno al subir). */

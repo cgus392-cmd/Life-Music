@@ -1617,6 +1617,17 @@
     <string name="nova_datos_esperar">Wait for Wi-Fi</string>
     <string name="nova_voz_rapida">Fast: speaks right away</string>
     <string name="nova_voz_lenta">More natural: takes a few seconds to speak</string>
+    <string name="nova_voz_f_espanol">female · Spanish</string>
+    <string name="nova_voz_m_espanol">male · Spanish</string>
+    <string name="nova_voz_premium">Premium: the most natural</string>
+    <string name="nova_recomendada">Recommended</string>
+    <string name="nova_probando">Testing…</string>
+    <string name="nova_probando_telefono">Testing it on your phone…</string>
+    <string name="nova_veredicto_fluida">Smooth on your phone</string>
+    <string name="nova_veredicto_espera">Takes a few seconds on your phone: Nova gets ready first</string>
+    <string name="nova_veredicto_no_apta">Your phone can\'t run it well</string>
+    <string name="nova_prevision_no">Not available on this phone</string>
+    <string name="nova_prevision_tarda">May be slow on your phone</string>
     <string name="nova_activa_desc">Talks between songs with the phone\'s voice. The music dips while she talks</string>
     <string name="boletin_v1132_intro">The version that brings it all together: PRO TV themes, Life Music on any TV with a browser, a new updater, song changes with no hard cuts, star ratings and the pre-registration for the new contest. And the browser TV, now safer.</string>
     <string name="boletin_v1132_seguro_t">A safer browser TV</string>

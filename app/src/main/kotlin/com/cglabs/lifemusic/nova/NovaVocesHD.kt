@@ -33,51 +33,77 @@ import java.util.concurrent.TimeUnit
  * Todas parten de la voz base «lessac», de uso no comercial: valen para Life
  * Music, que es educativa y sin fines de lucro.
  */
-enum class CalidadVoz(val sufijo: String, val nombre: Int) {
-    LIVIANA("-int8", R.string.nova_calidad_liviana),
-    MEDIA("-fp16", R.string.nova_calidad_media),
-    COMPLETA("", R.string.nova_calidad_completa),
+enum class CalidadVoz(val nombre: Int) {
+    LIVIANA(R.string.nova_calidad_liviana),
+    MEDIA(R.string.nova_calidad_media),
+    COMPLETA(R.string.nova_calidad_completa),
 }
 
+/** Que modelo mueve la voz: Piper (VITS, liviano) o Kokoro (mas natural y mas pesado). */
+enum class MotorVoz { PIPER, KOKORO }
+
 /**
- * Una voz del catalogo. [hablante] elige la voz dentro de un paquete que trae
- * varias (Sharvard: 0 masculina, 1 femenina). [megas] es el peso de la descarga
- * en cada calidad, en el orden de [CalidadVoz].
+ * Una voz del catalogo. [paquetes] dice como se llama el paquete en cada calidad
+ * disponible (Kokoro no tiene «media»); [hablante] elige la voz dentro de un
+ * paquete que trae varias (Sharvard: 0 masculina, 1 femenina; Kokoro: 28 Dora,
+ * 29 Alex). [exigencia] es lo que le pide al telefono (ver NovaCapacidad).
  */
 data class VozHD(
     val id: String,
     val nombre: String,
     val detalle: Int,
-    val paquete: String,
+    val paquetes: Map<CalidadVoz, String>,
+    val megas: Map<CalidadVoz, Float>,
     val hablante: Int,
-    val megas: List<Float>,
     val licencia: String,
     val credito: String,
-    /**
-     * Las «medium» preparan una frase de 5 s en menos de 1 s; las «high» (mas
-     * naturales) tardan casi lo mismo que dura la frase (medido en el S25, 15-10).
-     */
-    val rapida: Boolean = true,
+    val motor: MotorVoz = MotorVoz.PIPER,
+    val exigencia: NovaCapacidad.Exigencia = NovaCapacidad.Exigencia.LIGERA,
 ) {
-    fun clave(calidad: CalidadVoz) = paquete + calidad.sufijo
-    fun megas(calidad: CalidadVoz) = megas[calidad.ordinal]
+    /** La calidad pedida si existe para esta voz; si no, la liviana. */
+    fun calidadReal(calidad: CalidadVoz) = if (calidad in paquetes) calidad else CalidadVoz.LIVIANA
+    fun clave(calidad: CalidadVoz) = paquetes.getValue(calidadReal(calidad))
+    fun megas(calidad: CalidadVoz) = megas.getValue(calidadReal(calidad))
     fun url(calidad: CalidadVoz) =
         "https://github.com/k2-fsa/sherpa-onnx/releases/download/tts-models/${clave(calidad)}.tar.bz2"
 }
 
 object NovaVocesHD {
+    /** Una voz Piper: sus tres calidades se llaman igual con «-int8» o «-fp16» al final. */
+    private fun piper(
+        id: String, nombre: String, detalle: Int, base: String, hablante: Int,
+        megas: List<Float>, licencia: String, credito: String,
+        exigencia: NovaCapacidad.Exigencia = NovaCapacidad.Exigencia.LIGERA,
+    ) = VozHD(
+        id, nombre, detalle,
+        paquetes = mapOf(CalidadVoz.LIVIANA to "$base-int8", CalidadVoz.MEDIA to "$base-fp16", CalidadVoz.COMPLETA to base),
+        megas = mapOf(CalidadVoz.LIVIANA to megas[0], CalidadVoz.MEDIA to megas[1], CalidadVoz.COMPLETA to megas[2]),
+        hablante = hablante, licencia = licencia, credito = credito, exigencia = exigencia,
+    )
+
+    /** Kokoro multilingue v1.0: un solo paquete con todas sus voces; en español, Dora y Alex. */
+    private fun kokoro(id: String, nombre: String, detalle: Int, hablante: Int) = VozHD(
+        id, nombre, detalle,
+        paquetes = mapOf(CalidadVoz.LIVIANA to "kokoro-int8-multi-lang-v1_0", CalidadVoz.COMPLETA to "kokoro-multi-lang-v1_0"),
+        megas = mapOf(CalidadVoz.LIVIANA to 126.2f, CalidadVoz.COMPLETA to 333.7f),
+        hablante = hablante, licencia = "Apache 2.0", credito = "hexgrad (Kokoro)",
+        motor = MotorVoz.KOKORO, exigencia = NovaCapacidad.Exigencia.ALTA,
+    )
+
     val CATALOGO = listOf(
-        VozHD("daniela", "Daniela", R.string.nova_voz_f_argentina, "vits-piper-es_AR-daniela-high", 0,
-            listOf(33.4f, 55.8f, 110.2f), "CC BY-SA 4.0", "OpenSLR 61 · larcanio", rapida = false),
-        VozHD("claude", "Claude", R.string.nova_voz_mexico, "vits-piper-es_MX-claude-high", 0,
-            listOf(20.2f, 34.2f, 64.1f), "Apache 2.0", "HirCoir", rapida = false),
-        VozHD("ald", "Ald", R.string.nova_voz_m_mexico, "vits-piper-es_MX-ald-medium", 0,
+        kokoro("dora", "Dora", R.string.nova_voz_f_espanol, 28),
+        kokoro("alex", "Alex", R.string.nova_voz_m_espanol, 29),
+        piper("daniela", "Daniela", R.string.nova_voz_f_argentina, "vits-piper-es_AR-daniela-high", 0,
+            listOf(33.4f, 55.8f, 110.2f), "CC BY-SA 4.0", "OpenSLR 61 · larcanio", NovaCapacidad.Exigencia.MEDIA),
+        piper("claude", "Claude", R.string.nova_voz_mexico, "vits-piper-es_MX-claude-high", 0,
+            listOf(20.2f, 34.2f, 64.1f), "Apache 2.0", "HirCoir", NovaCapacidad.Exigencia.MEDIA),
+        piper("ald", "Ald", R.string.nova_voz_m_mexico, "vits-piper-es_MX-ald-medium", 0,
             listOf(20.3f, 34.2f, 64.1f), "Unlicense", "rmcpantoja"),
-        VozHD("sharvard-f", "Sharvard", R.string.nova_voz_f_espana, "vits-piper-es_ES-sharvard-medium", 1,
+        piper("sharvard-f", "Sharvard", R.string.nova_voz_f_espana, "vits-piper-es_ES-sharvard-medium", 1,
             listOf(22.4f, 40.0f, 76.6f), "CC BY 3.0", "Universidad de Edimburgo"),
-        VozHD("sharvard-m", "Sharvard", R.string.nova_voz_m_espana, "vits-piper-es_ES-sharvard-medium", 0,
+        piper("sharvard-m", "Sharvard", R.string.nova_voz_m_espana, "vits-piper-es_ES-sharvard-medium", 0,
             listOf(22.4f, 40.0f, 76.6f), "CC BY 3.0", "Universidad de Edimburgo"),
-        VozHD("davefx", "Davefx", R.string.nova_voz_m_espana, "vits-piper-es_ES-davefx-medium", 0,
+        piper("davefx", "Davefx", R.string.nova_voz_m_espana, "vits-piper-es_ES-davefx-medium", 0,
             listOf(20.2f, 34.2f, 64.1f), "CC0", "OHF-Voice"),
     )
 
@@ -89,14 +115,20 @@ object NovaVocesHD {
         if (partes.size != 2) return null
         val voz = voz(partes[0]) ?: return null
         val calidad = CalidadVoz.entries.firstOrNull { it.name.equals(partes[1], ignoreCase = true) } ?: return null
-        return voz to calidad
+        return voz to voz.calidadReal(calidad)
     }
 
-    fun escribir(voz: VozHD, calidad: CalidadVoz) = "${voz.id}:${calidad.name.lowercase()}"
+    fun escribir(voz: VozHD, calidad: CalidadVoz) = "${voz.id}:${voz.calidadReal(calidad).name.lowercase()}"
 }
 
-/** Los archivos de una voz ya abierta en el telefono. */
-data class ArchivosDeVoz(val modelo: String, val tokens: String, val datos: String)
+/** Los archivos de una voz ya abierta en el telefono. [voces] y [diccionario] son de Kokoro. */
+data class ArchivosDeVoz(
+    val modelo: String,
+    val tokens: String,
+    val datos: String,
+    val voces: String? = null,
+    val diccionario: String? = null,
+)
 
 /**
  * Bajar, abrir y borrar voces. Vive mientras vive la app: si la persona cierra la
@@ -107,6 +139,9 @@ object NovaDescargas {
     sealed interface Estado {
         data class Bajando(val progreso: Float, val megas: Float, val total: Float) : Estado
         data object Abriendo : Estado
+
+        /** La prueba real: ¿este telefono mueve bien esta voz? */
+        data object Probando : Estado
         data object Lista : Estado
         data class Fallo(val motivo: String) : Estado
     }
@@ -134,7 +169,9 @@ object NovaDescargas {
         val modelo = todos.firstOrNull { it.isFile && it.name.endsWith(".onnx") } ?: return null
         val tokens = todos.firstOrNull { it.isFile && it.name == "tokens.txt" } ?: return null
         val datos = todos.firstOrNull { it.isDirectory && it.name == "espeak-ng-data" } ?: return null
-        return ArchivosDeVoz(modelo.absolutePath, tokens.absolutePath, datos.absolutePath)
+        val voces = todos.firstOrNull { it.isFile && it.name == "voices.bin" }
+        val diccionario = todos.firstOrNull { it.isDirectory && it.name == "dict" }
+        return ArchivosDeVoz(modelo.absolutePath, tokens.absolutePath, datos.absolutePath, voces?.absolutePath, diccionario?.absolutePath)
     }
 
     fun instalada(contexto: Context, clave: String) = archivos(contexto, clave) != null
@@ -203,6 +240,9 @@ object NovaDescargas {
                 final.deleteRecursively()
                 if (!abriendo.renameTo(final)) error("no se pudo guardar")
                 if (!instalada(app, clave)) error("al paquete le faltan archivos")
+                // La prueba real con la voz: decide si se puede elegir en este telefono.
+                poner(clave, Estado.Probando)
+                NovaCapacidad.probar(app, voz, calidad)
                 poner(clave, Estado.Lista)
                 android.util.Log.i("LifeMusicNova", "voz $clave lista")
             } catch (e: kotlinx.coroutines.CancellationException) {
@@ -219,6 +259,37 @@ object NovaDescargas {
         }
     }
 
+    /**
+     * Las voces que ya estaban bajadas antes de existir la prueba (o cuya prueba se
+     * perdio) se prueban una por una, sin bajar nada.
+     */
+    private var pruebas: Job? = null
+
+    fun probarPendientes(contexto: Context) {
+        if (pruebas?.isActive == true) return
+        val app = contexto.applicationContext
+        val pendientes = NovaVocesHD.CATALOGO.flatMap { voz -> CalidadVoz.entries.map { voz to voz.calidadReal(it) } }
+            .distinctBy { (voz, calidad) -> voz.clave(calidad) }
+            .filter { (voz, calidad) ->
+                val clave = voz.clave(calidad)
+                instalada(app, clave) && NovaCapacidad.medido(app, clave) == null
+            }
+        if (pendientes.isEmpty()) return
+        // Una por una: si se prueban a la vez se reparten el procesador y la medida miente.
+        pruebas = alcance.launch {
+            for ((voz, calidad) in pendientes) {
+                val clave = voz.clave(calidad)
+                if (trabajos[clave]?.isActive == true) continue
+                try {
+                    poner(clave, Estado.Probando)
+                    NovaCapacidad.probar(app, voz, calidad)
+                } finally {
+                    quitar(clave)
+                }
+            }
+        }
+    }
+
     fun cancelar(clave: String) {
         trabajos[clave]?.cancel()
         quitar(clave)
@@ -228,6 +299,7 @@ object NovaDescargas {
     fun borrar(contexto: Context, clave: String) {
         cancelar(clave)
         carpeta(contexto.applicationContext, clave).deleteRecursively()
+        NovaCapacidad.olvidar(contexto, clave)
         quitar(clave)
     }
 

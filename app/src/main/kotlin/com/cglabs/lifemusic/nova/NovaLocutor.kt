@@ -8,9 +8,11 @@ import com.cglabs.lifemusic.models.MediaMetadata
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.async
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import kotlinx.coroutines.withTimeoutOrNull
 import java.io.File
 import java.time.LocalTime
 import kotlin.random.Random
@@ -66,6 +68,12 @@ class NovaLocutor(
 
         /** Se esta transmitiendo al TV: la voz sonaria en el telefono, asi que solo subtitulos. */
         fun transmitiendo(): Boolean
+
+        /** Detiene la que acaba de arrancar (si va en sus primeros segundos) mientras Nova termina su frase. */
+        fun retener(): Boolean
+
+        /** Sigue la que se retuvo. */
+        fun soltarRetencion()
     }
 
     /** Por que habla esta vez. */
@@ -77,8 +85,8 @@ class NovaLocutor(
     /** La voz HD (Piper con sherpa-onnx), si la persona bajo y eligio una. */
     private val vozHD = NovaVozHD(contexto)
 
-    /** La voz HD elegida: su clave (paquete y calidad) y el hablante dentro del paquete. */
-    private var elegidaHD: Pair<String, Int>? = null
+    /** La voz HD elegida y su calidad, o null para la del telefono. */
+    private var elegidaHD: Pair<VozHD, CalidadVoz>? = null
     private var activa = false
     private var trabajo: Job? = null
     private var reproductor: MediaPlayer? = null
@@ -137,13 +145,16 @@ class NovaLocutor(
      * del telefono. Si la HD no esta en el telefono (se borro), vuelve a la del telefono.
      */
     fun elegirVoz(valor: String?) {
-        val elegida = NovaVocesHD.leer(valor)
-        val nueva = elegida?.let { (v, c) -> v.clave(c) to v.hablante }
+        // Una voz que este telefono no mueve bien no se usa nunca: vuelve a la del telefono.
+        val elegida = NovaVocesHD.leer(valor)?.takeIf { (v, c) ->
+            NovaCapacidad.veredictoDe(contexto, v.clave(c)) != NovaCapacidad.Veredicto.NO_APTA
+        }
+        val nueva = elegida
         if (nueva == elegidaHD) return
         elegidaHD = nueva
-        android.util.Log.i(ETIQUETA, "voz elegida: ${nueva?.first ?: "telefono"}")
+        android.util.Log.i(ETIQUETA, "voz elegida: ${nueva?.let { (v, c) -> v.clave(c) } ?: "telefono"}")
         scope.launch {
-            if (nueva != null) runCatching { vozHD.precargar(nueva.first) } else vozHD.soltar()
+            if (nueva != null) runCatching { vozHD.precargar(nueva.first, nueva.second) } else vozHD.soltar()
         }
     }
 
@@ -214,6 +225,88 @@ class NovaLocutor(
         if (cancionesSinHablar < cada) return
         cancionesSinHablar = 0
         hablar(Motivo.PUENTE)
+    }
+
+    /** Una frase lista para salir al aire apenas suene [id] ([archivo] null: solo subtitulos). */
+    class Anuncio(val id: String, val texto: String, val archivo: File?)
+
+    /**
+     * Prepara el anuncio de encender o cambiar de onda ANTES de que arranque la
+     * cancion (pedido de CG, 15-10: en telefonos lentos el anuncio sonaba cuando
+     * la cancion ya iba avanzada). Mientras tanto Nova piensa, y la que sonaba
+     * sigue sonando. Null si no hay voz o tarda mas de [ESPERA_MAXIMA_ARRANQUE_MS]:
+     * entonces la musica arranca igual y esa vez Nova no habla.
+     */
+    suspend fun prepararAnuncio(alEncender: Boolean, primera: MediaMetadata): Anuncio? {
+        if (!activa) return null
+        val bloque = NovaSesion.bloqueDe(primera.id) ?: return null
+        val nueva = NovaFrases.Pista(primera.id, primera.title, primera.artists.map { it.name })
+        val cabeza = if (alEncender) {
+            val saludo = NovaFrases.saludo(LocalTime.now().hour)
+            (if (nombre != null) "$saludo, $nombre." else "$saludo.") + " Soy $nombreDJ. "
+        } else {
+            "Cambio de onda. "
+        }
+        val texto = cabeza + NovaFrases.anuncio(bloque, NovaSesion.datoDe(primera.id), nueva)
+        if (soloSubtitulos || mezcla.transmitiendo()) return Anuncio(primera.id, texto, null)
+        val archivo = File(contexto.cacheDir, "nova/anuncio.wav")
+        val inicio = SystemClock.elapsedRealtime()
+        NovaSesion.pensar(true)
+        try {
+            val ok = sintetizarConTope(texto, archivo, ESPERA_MAXIMA_ARRANQUE_MS)
+            val falta = PENSAR_MINIMO_MS - (SystemClock.elapsedRealtime() - inicio)
+            if (falta > 0) delay(falta)
+            android.util.Log.i(ETIQUETA, "anuncio ${if (ok) "listo" else "no alcanzo"} en ${SystemClock.elapsedRealtime() - inicio} ms; recien ahora arranca la musica")
+            return if (ok) Anuncio(primera.id, texto, archivo) else null
+        } finally {
+            NovaSesion.pensar(false)
+        }
+    }
+
+    /** Dice el anuncio ya preparado apenas suene su cancion: sobre el primer segundo, nunca tarde. */
+    fun decirAnuncio(anuncio: Anuncio) {
+        if (!activa) return
+        callar()
+        trabajo = scope.launch {
+            try {
+                val limite = SystemClock.elapsedRealtime() + 20_000L
+                while (mezcla.idSonando() != anuncio.id) {
+                    if (SystemClock.elapsedRealtime() > limite) return@launch
+                    delay(50)
+                }
+                yaSePresento = true
+                if (anuncio.archivo == null) {
+                    ultimoTexto = null
+                    mostrarSinVoz(anuncio.texto, anuncio.id)
+                    return@launch
+                }
+                ultimoTexto = anuncio.texto
+                salirAlAire(anuncio.texto, anuncio.archivo, anuncio.id, ESPERA_SONAR_MS)
+            } catch (e: kotlinx.coroutines.CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                android.util.Log.w(ETIQUETA, "fallo el anuncio", e)
+            }
+        }
+    }
+
+    /**
+     * Sintetiza con un tope de tiempo de verdad. El motor nativo no se deja
+     * interrumpir, asi que corre aparte y aqui solo se espera hasta el tope: si no
+     * alcanza, la musica sigue y esa frase se descarta cuando termine.
+     */
+    private suspend fun sintetizarConTope(texto: String, archivo: File, topeMs: Long): Boolean {
+        val diferido = scope.async { sintetizarCon(texto, archivo) }
+        return withTimeoutOrNull(topeMs) { diferido.await() } ?: run {
+            android.util.Log.i(ETIQUETA, "la voz no alcanzo en $topeMs ms")
+            false
+        }
+    }
+
+    /** La voz elegida tarda en este telefono (HD sin veredicto «fluida»). */
+    private fun vozLenta(): Boolean {
+        val (voz, calidad) = elegidaHD ?: return false
+        return NovaCapacidad.veredictoDe(contexto, voz.clave(calidad)) != NovaCapacidad.Veredicto.FLUIDA
     }
 
     /** Se encendio Nova desde el Inicio, o se cambio de onda: anuncia el bloque que arranca. */
@@ -290,16 +383,25 @@ class NovaLocutor(
                 }
                 val archivo = preparada?.archivo ?: File(contexto.cacheDir, "nova/frase.wav")
                 val inicio = SystemClock.elapsedRealtime()
+                // Si no estaba lista y la voz tarda en este telefono, la cancion espera a Nova
+                // (pedido de CG, 15-10): mejor una pausa de locutor que un anuncio tarde.
+                val retenida = preparada == null && vozLenta() && mezcla.retener()
+                if (retenida) android.util.Log.i(ETIQUETA, "la cancion espera a que Nova este lista")
                 // Mientras prepara la frase, piensa: su mirada sube y una chispa orbita.
                 NovaSesion.pensar(true)
                 val lista = try {
-                    val hecha = preparada != null || sintetizarCon(texto, archivo)
+                    val hecha = preparada != null || if (retenida) {
+                        sintetizarConTope(texto, archivo, ESPERA_MAXIMA_ARRANQUE_MS)
+                    } else {
+                        sintetizarCon(texto, archivo)
+                    }
                     // El motor tarda 0,1 a 0,2 s: se piensa al menos medio segundo, para que se vea.
                     val falta = PENSAR_MINIMO_MS - (SystemClock.elapsedRealtime() - inicio)
                     if (falta > 0) delay(falta)
                     hecha
                 } finally {
                     NovaSesion.pensar(false)
+                    if (retenida) mezcla.soltarRetencion()
                 }
                 if (!lista) {
                     android.util.Log.w(ETIQUETA, "sin voz esta vez (idioma=${voz.idioma})")
@@ -644,6 +746,9 @@ class NovaLocutor(
 
         /** Se piensa al menos esto antes de hablar: la mirada sube y la chispa orbita. */
         const val PENSAR_MINIMO_MS = 500L
+
+        /** Lo maximo que la musica espera a Nova al encender, cambiar de onda o en un cambio retenido. */
+        const val ESPERA_MAXIMA_ARRANQUE_MS = 6_000L
 
         /** Si la siguiente canta antes de esto, Nova habla sobre el final de la anterior. */
         const val ARRANCA_CANTANDO_MS = 7_000L
