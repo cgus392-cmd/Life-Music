@@ -55,9 +55,11 @@ nada.** Actualizada el 2026-10-15.
 - **Nova (Modo DJ):** el diseño está **aprobado** (`Brand/maquetas/2026-10-15-nova-dj.png` y `.html`).
   - **La ficha técnica es `docs/versiones/2.0/nova.md`. APROBADA el 15-10.** Las decisiones están en su sección 9.
     **Nova no sigue la v2 «Receptor hi-fi»:** usa la maqueta aprobada adaptada a Material You.
-  - **Tanda 0 en curso:** el interruptor «Nova, tu DJ (vista previa)» en Ajustes › Reproductor y la voz del teléfono
+  - **Tanda 0:** el interruptor «Nova, tu DJ (vista previa)» en Ajustes › Reproductor y la voz del teléfono
     en el cambio natural de canción, con la música al 30 %. El código está en `app/src/main/kotlin/com/cglabs/lifemusic/nova/`
-    y los ganchos en `MusicService` (busca «Nova»).
+    y los ganchos en `MusicService` (busca «Nova»). **Hecha y probada** (commit 7ef9cb38).
+  - **Tanda 1 hecha** (commit 100c579b): la tabla `senal_nova` (base de datos 47) guarda lo que se salta.
+  - **Sigue la tanda 2:** el motor de bloques (`NovaQueue`) y la cápsula de Nova en el Inicio para encenderla.
 
 **Más adelante:**
 - La casilla «Capa» en la cabina de ideas.

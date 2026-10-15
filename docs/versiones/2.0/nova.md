@@ -66,8 +66,12 @@ transición. Antes se había anotado esa dependencia, pero no hace falta.
     semana).
 - **Orden:** rota Lo de siempre → Algo nuevo → Para este momento → Volviendo al pasado. Si un bloque no tiene datos
   suficientes, se salta y Nova no lo nombra.
-- **Cambiar de onda:** reemplaza lo que viene en la cola con el bloque siguiente, igual que `startRadioSeamlessly()`:
-  la canción actual sigue sonando.
+- **Cambiar de onda** (ajustado al programar la tanda 2): reemplaza lo que viene en la cola con el bloque siguiente
+  y **salta a él al instante**, como mover la aguja del dial. Nova lo anuncia sobre la intro. (Antes decía que la
+  canción actual seguía; se cambió para que el botón responda al momento.)
+- **Apagar a Nova:** al aire, tocar el botón cambia de onda y **mantenerlo apretado la apaga** (la música sigue).
+  También sale del aire si se elige otra música o se apaga el interruptor.
+- **Con Nova al aire habla al empezar cada bloque** (3 o 4 canciones), no cada N canciones.
 - **Sin historial** (instalación nueva): Nova lo dice con honestidad («Todavía no te conozco, empecemos con algo
   nuevo») y usa Algo nuevo o los ánimos y géneros.
 

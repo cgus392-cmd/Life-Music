@@ -1356,6 +1356,44 @@ interface DatabaseDao {
     @Query("DELETE FROM senal_nova")
     fun borrarSenalesNova()
 
+    /**
+     * 2.0 · Nova, «Para este momento»: lo que mas suena a esta hora (±1 h) en este
+     * tipo de dia (entre semana o fin de semana). La base guarda la hora local
+     * como si fuera UTC, asi que strftime sin 'localtime' da la hora local.
+     */
+    @Transaction
+    @Query(
+        """
+        SELECT song.* FROM song
+        JOIN (SELECT songId, COUNT(*) AS veces FROM event
+              WHERE timestamp > :desde
+                AND ABS(CAST(strftime('%H', timestamp / 1000, 'unixepoch') AS INTEGER) - :hora) <= 1
+                AND (CASE WHEN CAST(strftime('%w', timestamp / 1000, 'unixepoch') AS INTEGER) IN (0, 6)
+                     THEN 1 ELSE 0 END) = :finDeSemana
+              GROUP BY songId HAVING veces >= 2 ORDER BY veces DESC LIMIT :limite) AS m
+            ON song.id = m.songId
+        ORDER BY m.veces DESC
+        """,
+    )
+    fun novaParaEsteMomento(hora: Int, finDeSemana: Int, desde: Long, limite: Int): List<Song>
+
+    /** 2.0 · Nova: las que la persona salta mas de lo que escucha (2 saltos o mas). */
+    @Query(
+        """
+        SELECT songId FROM senal_nova WHERE fecha > :desde GROUP BY songId
+        HAVING SUM(tipo = 0) >= 2 AND SUM(tipo = 0) > SUM(tipo = 1)
+        """,
+    )
+    fun novaMuySaltadas(desde: Long): List<String>
+
+    /** 2.0 · Nova: la primera vez que sono una cancion («Volvamos a 2019»). */
+    @Query("SELECT MIN(timestamp) FROM event WHERE songId = :songId")
+    fun novaPrimeraVez(songId: String): Long?
+
+    /** 2.0 · Nova: de estas, las que ya sonaron alguna vez (Algo nuevo las quita). */
+    @Query("SELECT DISTINCT songId FROM event WHERE songId IN (:ids)")
+    fun novaYaSonaron(ids: List<String>): List<String>
+
     @Insert(onConflict = OnConflictStrategy.IGNORE)
     fun insertInternal(map: RelatedSongMap)
     fun insert(map: RelatedSongMap) { try { insertInternal(map) } catch (e: Exception) { e.printStackTrace() } }

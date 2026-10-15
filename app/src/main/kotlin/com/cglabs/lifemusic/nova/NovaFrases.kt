@@ -19,6 +19,35 @@ object NovaFrases {
         else -> "Buenas noches"
     }
 
+    /** La parte del dia, como se dice: «por la mañana», «por la tarde», «por la noche». */
+    fun franja(hora: Int): String = when (hora) {
+        in 5..11 -> "por la mañana"
+        in 12..18 -> "por la tarde"
+        else -> "por la noche"
+    }
+
+    /**
+     * El anuncio de un bloque. [dato] lo saca NovaSesion de la base y es cierto:
+     * el año en que sonó por primera vez, la franja en que sueles escuchar, o el
+     * artista del que sale lo nuevo. Sin dato, la frase va sin ese pedazo.
+     */
+    fun anuncio(bloque: NovaBloque, dato: String?, nueva: Pista): String {
+        val tituloNueva = tituloHablado(nueva.titulo)
+        val deNueva = artistasHablados(nueva.artistas)?.let { ", de $it" }.orEmpty()
+        return when (bloque) {
+            NovaBloque.DE_SIEMPRE ->
+                "Esto es lo de siempre: lo que más has escuchado este mes. Empezamos con $tituloNueva$deNueva."
+            NovaBloque.ALGO_NUEVO ->
+                "Ahora, algo nuevo: canciones que todavía no has escuchado" +
+                    (dato?.let { ", parecidas a $it" } ?: "") + ". Arranca $tituloNueva$deNueva."
+            NovaBloque.ESTE_MOMENTO ->
+                "Para este momento: lo que sueles escuchar ${dato ?: "a esta hora"}. Suena $tituloNueva$deNueva."
+            NovaBloque.AL_PASADO ->
+                (dato?.let { "Volvamos a $it." } ?: "Volvamos un poco atrás.") +
+                    " $tituloNueva$deNueva: la escuchabas mucho y hace rato no sonaba."
+        }
+    }
+
     /** El primer nombre de la cuenta: Nova saluda como una persona, no como un formulario. */
     fun primerNombre(cuenta: String?): String? =
         cuenta?.trim()?.split(Regex("\\s+"))?.firstOrNull()

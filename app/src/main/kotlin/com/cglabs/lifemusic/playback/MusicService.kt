@@ -931,7 +931,10 @@ class MusicService :
             dataStore.data
                 .map { it[com.cglabs.lifemusic.constants.NovaActivaKey] ?: false }
                 .distinctUntilChanged()
-                .collect { nova?.activar(it) }
+                .collect {
+                    nova?.activar(it)
+                    if (!it) com.cglabs.lifemusic.nova.NovaSesion.apagar()
+                }
         }
         novaScope.launch {
             dataStore.data
@@ -1830,6 +1833,7 @@ class MusicService :
     ) {
         nova?.callar()
         duckNova = 1f
+        if (queue !is com.cglabs.lifemusic.nova.NovaQueue) com.cglabs.lifemusic.nova.NovaSesion.apagar()
         val generacion = ++fundidoGeneracion
         val enCurso = fundidoJob?.isActive == true
         fundidoJob?.cancel()
@@ -1912,6 +1916,38 @@ class MusicService :
                 return
             }
             delay(espera)
+        }
+    }
+
+    /** 2.0 · Nova al aire desde el Inicio: arma el primer bloque, lo pone y lo anuncia. */
+    fun encenderNova() {
+        com.cglabs.lifemusic.nova.NovaSesion.empezar()
+        playQueue(com.cglabs.lifemusic.nova.NovaQueue(database))
+        nova?.anunciarBloque(alEncender = true)
+    }
+
+    /** 2.0 · Nova sale del aire; la musica que suena sigue. */
+    fun apagarNova() {
+        com.cglabs.lifemusic.nova.NovaSesion.apagar()
+        nova?.callar()
+    }
+
+    /**
+     * 2.0 · Cambiar de onda: lo que venia se reemplaza por el bloque siguiente y
+     * se salta a el ya, como mover la aguja del dial. Nova lo anuncia.
+     */
+    fun cambiarDeOnda() {
+        if (!com.cglabs.lifemusic.nova.NovaSesion.alAire.value) return
+        scope.launch {
+            val items = withContext(Dispatchers.IO) {
+                com.cglabs.lifemusic.nova.NovaSesion.siguienteBloque(database)
+            }
+            if (items.isEmpty() || !playerInitialized.value) return@launch
+            val indice = player.currentMediaItemIndex
+            if (indice + 1 < player.mediaItemCount) player.removeMediaItems(indice + 1, player.mediaItemCount)
+            player.addMediaItems(items)
+            player.seekToNextMediaItem()
+            nova?.anunciarBloque(alEncender = false)
         }
     }
 

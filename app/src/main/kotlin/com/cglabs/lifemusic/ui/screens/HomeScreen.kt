@@ -958,6 +958,7 @@ fun HomeScreen(
             // 2.0 · Aurora: el degradado detrás del Inicio, con los colores de lo que suena.
             // Al bajar se apaga y la barra de arriba pasa a vidrio (lee Aurora.fraccion).
             val auroraActiva by rememberPreference(AuroraActivaKey, defaultValue = false)
+            val novaActiva by rememberPreference(com.cglabs.lifemusic.constants.NovaActivaKey, defaultValue = false)
             val coloresAurora = rememberColoresAurora()
             val oscuroAurora = MaterialTheme.colorScheme.surface.luminance() < 0.5f
             val negroPuroAurora by rememberPreference(PureBlackKey, defaultValue = false)
@@ -986,6 +987,14 @@ fun HomeScreen(
                 state = lazylistState,
                 contentPadding = LocalPlayerAwareWindowInsets.current.asPaddingValues()
             ) {
+                // 2.0 · Nova: la capsula para encenderla, arriba de todo (maqueta aprobada).
+                if (novaActiva) {
+                    item(key = "nova_capsula") {
+                        com.cglabs.lifemusic.ui.component.NovaCapsula(
+                            modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
+                        )
+                    }
+                }
                 item {
                     ChipsRow(
                         chips = homePage?.chips?.filter { 
