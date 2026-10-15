@@ -1601,7 +1601,7 @@
     <string name="nova_voz_f_espana">female · Spain</string>
     <string name="nova_voz_m_espana">male · Spain</string>
     <string name="nova_voces_hd">HD voices · downloaded once</string>
-    <string name="nova_voces_hd_ayuda">Neural voices that run on your phone, offline and private. Light weighs less and sounds almost the same.</string>
+    <string name="nova_voces_hd_ayuda">Neural voices that run on your phone, offline and private. Light weighs a third and sounds almost the same; Full is a bit cleaner. None of them makes her speak slower.</string>
     <string name="nova_voz_peso">%1$s MB · %2$s</string>
     <string name="nova_cancelar">Cancel</string>
     <string name="nova_abriendo">Opening…</string>
@@ -1615,6 +1615,8 @@
     <string name="nova_datos_texto">%1$s weighs %2$s MB. Download it anyway, or wait for Wi-Fi?</string>
     <string name="nova_datos_bajar">Download</string>
     <string name="nova_datos_esperar">Wait for Wi-Fi</string>
+    <string name="nova_voz_rapida">Fast: speaks right away</string>
+    <string name="nova_voz_lenta">More natural: takes a few seconds to speak</string>
     <string name="nova_activa_desc">Talks between songs with the phone\'s voice. The music dips while she talks</string>
     <string name="boletin_v1132_intro">The version that brings it all together: PRO TV themes, Life Music on any TV with a browser, a new updater, song changes with no hard cuts, star ratings and the pre-registration for the new contest. And the browser TV, now safer.</string>
     <string name="boletin_v1132_seguro_t">A safer browser TV</string>

@@ -1221,7 +1221,7 @@
     <string name="nova_voz_f_espana">femenina · España</string>
     <string name="nova_voz_m_espana">masculina · España</string>
     <string name="nova_voces_hd">Voces HD · se bajan una vez</string>
-    <string name="nova_voces_hd_ayuda">Voces neuronales que corren en tu teléfono, sin internet y privadas. La liviana pesa menos y suena casi igual.</string>
+    <string name="nova_voces_hd_ayuda">Voces neuronales que corren en tu teléfono, sin internet y privadas. La liviana pesa un tercio y suena casi igual; la completa es un poco más limpia. Ninguna la hace hablar más lento.</string>
     <string name="nova_voz_peso">%1$s MB · %2$s</string>
     <string name="nova_cancelar">Cancelar</string>
     <string name="nova_abriendo">Abriendo…</string>
@@ -1235,6 +1235,8 @@
     <string name="nova_datos_texto">%1$s pesa %2$s MB. ¿La bajo igual o espero al Wi-Fi?</string>
     <string name="nova_datos_bajar">Bajar igual</string>
     <string name="nova_datos_esperar">Esperar al Wi-Fi</string>
+    <string name="nova_voz_rapida">Rápida: habla al instante</string>
+    <string name="nova_voz_lenta">Más natural: tarda unos segundos en hablar</string>
     <string name="nova_activa_desc">Habla entre canciones con la voz del teléfono. La música baja mientras habla</string>
     <string name="boletin_v1132_intro">La versión que lo reúne todo: temas PRO para el TV, Life Music en cualquier televisor con navegador, un actualizador nuevo, cambios sin cortes, calificación con estrellas y el prerregistro del nuevo concurso. Y el TV con navegador, ahora más seguro.</string>
     <string name="boletin_v1132_seguro_t">TV con navegador, más seguro</string>

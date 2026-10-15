@@ -109,6 +109,12 @@ internal fun SeccionVocesHD(vozElegida: String, alElegir: (String) -> Unit) {
                             style = MaterialTheme.typography.bodySmall,
                             color = esquema.onSurfaceVariant,
                         )
+                        // Rapida (medium) o mas natural pero lenta (high): que se elija sabiendo.
+                        Text(
+                            stringResource(if (voz.rapida) R.string.nova_voz_rapida else R.string.nova_voz_lenta),
+                            style = MaterialTheme.typography.labelSmall,
+                            color = if (voz.rapida) esquema.primary else esquema.tertiary,
+                        )
                     }
                     when {
                         estado is NovaDescargas.Estado.Bajando -> {

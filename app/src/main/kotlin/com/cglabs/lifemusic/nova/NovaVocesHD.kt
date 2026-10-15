@@ -53,6 +53,11 @@ data class VozHD(
     val megas: List<Float>,
     val licencia: String,
     val credito: String,
+    /**
+     * Las «medium» preparan una frase de 5 s en menos de 1 s; las «high» (mas
+     * naturales) tardan casi lo mismo que dura la frase (medido en el S25, 15-10).
+     */
+    val rapida: Boolean = true,
 ) {
     fun clave(calidad: CalidadVoz) = paquete + calidad.sufijo
     fun megas(calidad: CalidadVoz) = megas[calidad.ordinal]
@@ -63,9 +68,9 @@ data class VozHD(
 object NovaVocesHD {
     val CATALOGO = listOf(
         VozHD("daniela", "Daniela", R.string.nova_voz_f_argentina, "vits-piper-es_AR-daniela-high", 0,
-            listOf(33.4f, 55.8f, 110.2f), "CC BY-SA 4.0", "OpenSLR 61 · larcanio"),
+            listOf(33.4f, 55.8f, 110.2f), "CC BY-SA 4.0", "OpenSLR 61 · larcanio", rapida = false),
         VozHD("claude", "Claude", R.string.nova_voz_mexico, "vits-piper-es_MX-claude-high", 0,
-            listOf(20.2f, 34.2f, 64.1f), "Apache 2.0", "HirCoir"),
+            listOf(20.2f, 34.2f, 64.1f), "Apache 2.0", "HirCoir", rapida = false),
         VozHD("ald", "Ald", R.string.nova_voz_m_mexico, "vits-piper-es_MX-ald-medium", 0,
             listOf(20.3f, 34.2f, 64.1f), "Unlicense", "rmcpantoja"),
         VozHD("sharvard-f", "Sharvard", R.string.nova_voz_f_espana, "vits-piper-es_ES-sharvard-medium", 1,

@@ -110,6 +110,13 @@ class NovaLocutor(
     private class Salida(val id: String, val texto: String, val archivo: File, val duracionMs: Long)
     private var salida: Salida? = null
 
+    /**
+     * La frase del proximo cambio, ya convertida en voz: se dice sobre la intro de
+     * la siguiente sin esperar al motor. Clave con las voces «high» (Daniela),
+     * que tardan casi un segundo por cada segundo de voz.
+     */
+    private var intro: Salida? = null
+
     /** Como le dice Nova a la persona (por ahora, el primer nombre de la cuenta). */
     var nombre: String? = null
 
@@ -144,7 +151,15 @@ class NovaLocutor(
     private suspend fun sintetizarCon(texto: String, archivo: File): Boolean {
         val hd = elegidaHD
         if (hd != null) {
-            val ok = runCatching { vozHD.sintetizar(texto, archivo, hd.first, hd.second) }.getOrDefault(false)
+            // Si se cancela (la persona cambio de onda otra vez), no es un fallo: se sigue cancelando.
+            val ok = try {
+                vozHD.sintetizar(texto, archivo, hd.first, hd.second)
+            } catch (e: kotlinx.coroutines.CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                android.util.Log.w(ETIQUETA, "la voz HD dio error", e)
+                false
+            }
             if (ok) return true
             android.util.Log.w(ETIQUETA, "la voz HD fallo; esta vez uso la del telefono")
         }
@@ -165,6 +180,7 @@ class NovaLocutor(
             vigia?.cancel()
             vigia = null
             salida = null
+            intro = null
             voz.apagar()
             scope.launch { vozHD.soltar() }
         }
@@ -230,7 +246,14 @@ class NovaLocutor(
                 val nueva = actual ?: return@launch
                 val anterior = previa?.takeIf { it.id != nueva.id }
 
-                val texto = when (motivo) {
+                // ¿Se preparo durante la cancion anterior? Entonces sale sin esperar al motor.
+                val preparada = intro?.takeIf {
+                    (motivo == Motivo.PUENTE || motivo == Motivo.BLOQUE) && it.id == idNueva && it.archivo.exists()
+                }
+                intro = null
+                if (preparada != null) cortas.remove(idNueva)
+
+                val texto = preparada?.texto ?: when (motivo) {
                     Motivo.PUENTE -> {
                         val eleccion = elegirPuente()
                         if (cortas.remove(idNueva) && yaSePresento) {
@@ -265,12 +288,12 @@ class NovaLocutor(
                     mostrarSinVoz(texto, idNueva)
                     return@launch
                 }
-                val archivo = File(contexto.cacheDir, "nova/frase.wav")
+                val archivo = preparada?.archivo ?: File(contexto.cacheDir, "nova/frase.wav")
                 val inicio = SystemClock.elapsedRealtime()
                 // Mientras prepara la frase, piensa: su mirada sube y una chispa orbita.
                 NovaSesion.pensar(true)
                 val lista = try {
-                    val hecha = sintetizarCon(texto, archivo)
+                    val hecha = preparada != null || sintetizarCon(texto, archivo)
                     // El motor tarda 0,1 a 0,2 s: se piensa al menos medio segundo, para que se vea.
                     val falta = PENSAR_MINIMO_MS - (SystemClock.elapsedRealtime() - inicio)
                     if (falta > 0) delay(falta)
@@ -282,7 +305,10 @@ class NovaLocutor(
                     android.util.Log.w(ETIQUETA, "sin voz esta vez (idioma=${voz.idioma})")
                     return@launch
                 }
-                android.util.Log.i(ETIQUETA, "frase ($motivo) lista en ${SystemClock.elapsedRealtime() - inicio} ms")
+                android.util.Log.i(
+                    ETIQUETA,
+                    "frase ($motivo) lista en ${SystemClock.elapsedRealtime() - inicio} ms" + if (preparada != null) " (preparada antes)" else "",
+                )
                 ultimoTexto = texto
                 salirAlAire(texto, archivo, idNueva, ESPERA_SONAR_MS)
             } catch (e: kotlinx.coroutines.CancellationException) {
@@ -332,29 +358,57 @@ class NovaLocutor(
         }
     }
 
+    /**
+     * Prepara la frase del proximo cambio natural, unos segundos antes, para que
+     * al llegar el momento no haya que esperar al motor de voz. Si la siguiente
+     * arranca cantando y el final esta libre, la frase va sobre el final de la que
+     * suena; si no, sobre la intro de la siguiente, como siempre.
+     */
     private suspend fun prepararSobreElFinal(siguiente: MediaMetadata) {
-        if (!yaSePresento) return // la presentacion va siempre sobre la intro
         val alAire = NovaSesion.alAire.value
         val toca = if (alAire) NovaSesion.esInicioDeBloque(siguiente.id) else cancionesSinHablar + 1 >= cada
         if (!toca) return
-        val primera = mezcla.primeraLetraMs(siguiente.id) ?: return
-        if (primera > ARRANCA_CANTANDO_MS) return // tiene intro: habla sobre ella, como siempre
-        android.util.Log.i(ETIQUETA, "la que viene arranca cantando a los ${primera} ms")
-        if (mezcla.mezclaActiva()) {
-            cortas += siguiente.id
+        val nueva = NovaFrases.Pista(siguiente.id, siguiente.title, siguiente.artists.map { it.name })
+        val bloque = if (alAire) NovaSesion.bloqueDe(siguiente.id) ?: return else null
+        val dato = NovaSesion.datoDe(siguiente.id)
+        val primera = mezcla.primeraLetraMs(siguiente.id)
+        val cantaPronto = primera != null && primera <= ARRANCA_CANTANDO_MS
+        if (cantaPronto) android.util.Log.i(ETIQUETA, "la que viene arranca cantando a los ${primera} ms")
+
+        // Arranca cantando y el final esta libre: sobre el final de la que suena.
+        if (cantaPronto && yaSePresento && !mezcla.mezclaActiva()) {
+            val texto = NovaFrases.sobreElFinal(actual, nueva, bloque, dato)
+            val archivo = File(contexto.cacheDir, "nova/final.wav")
+            val duracion = sintetizarYMedir(texto, archivo) ?: return
+            salida = Salida(siguiente.id, texto, archivo, duracion)
+            android.util.Log.i(ETIQUETA, "frase lista para el final (${duracion} ms)")
             return
         }
-        val nueva = NovaFrases.Pista(siguiente.id, siguiente.title, siguiente.artists.map { it.name })
-        val bloque = if (alAire) NovaSesion.bloqueDe(siguiente.id) else null
-        val texto = NovaFrases.sobreElFinal(actual, nueva, bloque, NovaSesion.datoDe(siguiente.id))
-        val archivo = File(contexto.cacheDir, "nova/final.wav")
-        if (!sintetizarCon(texto, archivo)) return
+
+        // Sobre la intro de la siguiente, pero ya lista. Con mezcla y la siguiente
+        // cantando pronto, el anuncio va corto.
+        val corto = cantaPronto && yaSePresento
+        if (corto) cortas += siguiente.id
+        val texto = when {
+            bloque != null -> (if (corto) "" else actual?.let { "Eso fue ${NovaFrases.tituloHablado(it.titulo)}. " }.orEmpty()) +
+                NovaFrases.anuncio(bloque, dato, nueva)
+            corto -> NovaFrases.corto(null, null, nueva)
+            !yaSePresento -> NovaFrases.presentacion(LocalTime.now().hour, nombre, actual, nueva, elegirPuente(), nombreDJ)
+            else -> NovaFrases.puente(actual, nueva, elegirPuente())
+        }
+        val archivo = File(contexto.cacheDir, "nova/intro.wav")
+        val duracion = sintetizarYMedir(texto, archivo) ?: return
+        intro = Salida(siguiente.id, texto, archivo, duracion)
+        android.util.Log.i(ETIQUETA, "frase lista antes del cambio (${duracion} ms)")
+    }
+
+    /** Convierte la frase en voz y devuelve cuanto dura, o null si no se pudo. */
+    private suspend fun sintetizarYMedir(texto: String, archivo: File): Long? {
+        if (!sintetizarCon(texto, archivo)) return null
         val onda = withContext(Dispatchers.IO) {
             runCatching { NovaOnda.envolvente(archivo.readBytes()) }.getOrDefault(FloatArray(0))
         }
-        val duracion = (onda.size * NovaOnda.TRAMO_MS.toLong()).takeIf { it > 0 } ?: 6_000L
-        salida = Salida(siguiente.id, texto, archivo, duracion)
-        android.util.Log.i(ETIQUETA, "frase lista para el final (${duracion} ms)")
+        return (onda.size * NovaOnda.TRAMO_MS.toLong()).takeIf { it > 0 } ?: 6_000L
     }
 
     private fun hablarSobreElFinal(lista: Salida) {

@@ -64,6 +64,45 @@ object NovaOnda {
         return salida
     }
 
+    /** Nivel de la voz nivelada: unos -16 dBFS, el de una voz de radio sobre musica baja. */
+    const val RMS_OBJETIVO = 0.16f
+
+    /** Cuanto puede subir como maximo una frase muy baja (x8, unos +18 dB). */
+    const val GANANCIA_MAXIMA = 8f
+
+    /**
+     * Nivela una frase de la voz HD (pedido de CG, 15-10: «se escucha muy poco»).
+     * Las voces Piper salen bajas: se lleva la energia de la voz (sin contar los
+     * silencios) a [RMS_OBJETIVO] y un limitador suave redondea los picos para que
+     * nunca pasen de ~0,98 ni rompan. Devuelve un arreglo nuevo.
+     */
+    fun nivelar(muestras: FloatArray): FloatArray {
+        if (muestras.isEmpty()) return muestras
+        var suma = 0.0
+        var cuenta = 0
+        for (m in muestras) {
+            if (kotlin.math.abs(m) > 0.01f) {
+                suma += (m * m).toDouble()
+                cuenta++
+            }
+        }
+        if (cuenta == 0) return muestras.copyOf()
+        val rms = sqrt(suma / cuenta).toFloat()
+        val ganancia = (RMS_OBJETIVO / rms).coerceIn(1f, GANANCIA_MAXIMA)
+        val umbral = 0.7f
+        val margen = 0.28f
+        return FloatArray(muestras.size) { i ->
+            val y = muestras[i] * ganancia
+            val a = kotlin.math.abs(y)
+            if (a <= umbral) {
+                y
+            } else {
+                val limitado = umbral + margen * kotlin.math.tanh(((a - umbral) / margen).toDouble()).toFloat()
+                if (y < 0) -limitado else limitado
+            }
+        }
+    }
+
     /** El nivel en un momento de la frase, o 0 fuera de ella. */
     fun nivel(onda: FloatArray, transcurridoMs: Long): Float {
         if (onda.isEmpty() || transcurridoMs < 0) return 0f

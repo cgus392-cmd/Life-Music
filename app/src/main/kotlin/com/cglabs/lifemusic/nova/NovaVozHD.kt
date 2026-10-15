@@ -44,7 +44,9 @@ class NovaVozHD(context: Context) {
                 val audio = m.generate(texto, hablante.coerceIn(0, (m.numSpeakers() - 1).coerceAtLeast(0)), 1.0f)
                 if (audio.samples.isEmpty()) return@withLock false
                 archivo.parentFile?.mkdirs()
-                val ok = audio.save(archivo.absolutePath)
+                // Las voces Piper salen bajas: se nivelan al volumen de una voz de radio.
+                val nivelada = com.k2fsa.sherpa.onnx.GeneratedAudio(NovaOnda.nivelar(audio.samples), audio.sampleRate)
+                val ok = nivelada.save(archivo.absolutePath)
                 android.util.Log.i(
                     "LifeMusicNova",
                     "voz HD: ${audio.samples.size * 1000L / audio.sampleRate} ms de audio en " +
@@ -66,7 +68,8 @@ class NovaVozHD(context: Context) {
                     tokens = archivos.tokens,
                     dataDir = archivos.datos,
                 ),
-                numThreads = 2,
+                // 4 nucleos: el S25 tiene 8, y las voces «high» (Daniela, Claude) lo necesitan.
+                numThreads = 4,
                 debug = false,
                 provider = "cpu",
             ),
