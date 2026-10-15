@@ -127,6 +127,10 @@ highlightKey: String? = null) {
         com.cglabs.lifemusic.constants.FundidoAlElegirKey,
         defaultValue = true
     )
+    val (novaActiva, onNovaActivaChange) = rememberPreference(
+        com.cglabs.lifemusic.constants.NovaActivaKey,
+        defaultValue = false
+    )
     val (crossfadeDuration, onCrossfadeDurationChange) = rememberPreference(
         CrossfadeDurationKey,
         defaultValue = 5f
@@ -588,6 +592,30 @@ highlightKey: String? = null) {
                         )
                     },
                     onClick = { onFundidoAlElegirChange(!fundidoAlElegir) }
+                ))
+
+                // 2.0 · Nova, el DJ con voz, en vista previa (apagada de fabrica).
+                add(Material3SettingsItem(
+                    isHighlighted = (highlightKey == stringResource(R.string.nova_activa)),
+                    icon = painterResource(R.drawable.radio),
+                    title = { Text(stringResource(R.string.nova_activa)) },
+                    description = { Text(stringResource(R.string.nova_activa_desc)) },
+                    trailingContent = {
+                        Switch(
+                            checked = novaActiva,
+                            onCheckedChange = onNovaActivaChange,
+                            thumbContent = {
+                                Icon(
+                                    painter = painterResource(
+                                        id = if (novaActiva) R.drawable.check else R.drawable.close
+                                    ),
+                                    contentDescription = null,
+                                    modifier = Modifier.size(SwitchDefaults.IconSize)
+                                )
+                            }
+                        )
+                    },
+                    onClick = { onNovaActivaChange(!novaActiva) }
                 ))
 
                 add(Material3SettingsItem(

@@ -556,14 +556,14 @@ class MusicService :
         val newMutedState = !isMuted.value
         isMuted.value = newMutedState
         
-        player.volume = if (newMutedState) 0f else playerVolume.value
+        player.volume = if (newMutedState) 0f else playerVolume.value * duckNova
     }
 
     fun setMuted(muted: Boolean) {
         isMuted.value = muted
         
         
-        player.volume = if (muted) 0f else playerVolume.value
+        player.volume = if (muted) 0f else playerVolume.value * duckNova
     }
 
     fun setPreferredAudioDevice(deviceId: Int?) { 
@@ -925,6 +925,22 @@ class MusicService :
                 .collect { listenBrainzToken = it }
         }
 
+        // 2.0 · Nova (vista previa): vive aqui para hablar tambien con la pantalla apagada.
+        nova = com.cglabs.lifemusic.nova.NovaLocutor(this, novaScope, mezclaNova)
+        novaScope.launch {
+            dataStore.data
+                .map { it[com.cglabs.lifemusic.constants.NovaActivaKey] ?: false }
+                .distinctUntilChanged()
+                .collect { nova?.activar(it) }
+        }
+        novaScope.launch {
+            dataStore.data
+                .map { it[com.cglabs.lifemusic.constants.AccountNameKey] }
+                .distinctUntilChanged()
+                .collect { nova?.nombre = com.cglabs.lifemusic.nova.NovaFrases.primerNombre(it) }
+        }
+        novaScope.launch { currentMediaMetadata.collect { nova?.sonando(it) } }
+
         var isFirstQualityEmit = true
         scope.launch {
             dataStore.data
@@ -991,7 +1007,7 @@ class MusicService :
         combine(playerVolume, isMuted) { volume, muted ->
             if (muted) 0f else volume
         }.collectLatest(scope) {
-            player.volume = it
+            player.volume = it * duckNova
         }
 
         // Reto de la semana: contador en vivo. Cada segundo que suena algo se
@@ -1471,7 +1487,7 @@ class MusicService :
                     }
                 }
 
-                player.volume = if (isMuted.value) 0f else playerVolume.value
+                player.volume = if (isMuted.value) 0f else playerVolume.value * duckNova
                 lastAudioFocusState = focusChange
             }
 
@@ -1505,7 +1521,7 @@ class MusicService :
 
             AudioManager.AUDIOFOCUS_GAIN_TRANSIENT_MAY_DUCK -> {
                 hasAudioFocus = true
-                player.volume = if (isMuted.value) 0f else playerVolume.value
+                player.volume = if (isMuted.value) 0f else playerVolume.value * duckNova
                 lastAudioFocusState = focusChange
             }
         }
@@ -1756,6 +1772,39 @@ class MusicService :
     private var fundidoJob: Job? = null
     private var fundidoGeneracion = 0
 
+    // 2.0 · Nova (vista previa): cuanto baja la musica mientras habla (1 = nada).
+    // Se multiplica donde se fija el volumen, asi no pelea con el foco de audio,
+    // el silencio ni el volumen de la persona. Ficha: docs/versiones/2.0/nova.md.
+    private var duckNova = 1f
+    private var nova: com.cglabs.lifemusic.nova.NovaLocutor? = null
+    private val novaJob = kotlinx.coroutines.SupervisorJob()
+    private val novaScope = CoroutineScope(Dispatchers.Main + novaJob)
+
+    /** Cuando la persona salto o adelanto por ultima vez: una mezcla que termina justo despues no es «natural». */
+    private var saltoDeLaPersonaMs = 0L
+
+    private val mezclaNova = object : com.cglabs.lifemusic.nova.NovaLocutor.Mezcla {
+        override fun puedeHablar(): Boolean =
+            playerInitialized.value && player.isPlaying && !isCrossfading.value &&
+                fundidoJob?.isActive != true && !isMuted.value &&
+                castConnectionHandler?.isCasting?.value != true &&
+                lastAudioFocusState != AudioManager.AUDIOFOCUS_LOSS_TRANSIENT_CAN_DUCK
+
+        override fun sigueSonando(): Boolean = playerInitialized.value && player.isPlaying
+
+        override fun idSonando(): String? =
+            if (playerInitialized.value) player.currentMediaItem?.mediaId else null
+
+        override suspend fun llevarA(nivel: Float, ms: Long) = llevarDuckNova(nivel, ms)
+
+        override fun devolver() {
+            duckNova = 1f
+            if (fundidoJob?.isActive != true && !isCrossfading.value) {
+                runCatching { player.volume = volumenObjetivo() }
+            }
+        }
+    }
+
     /** Cuantas veces se cambio la lista del reproductor: para saber que la cancion elegida ya entro. */
     private var cambiosDeLista = 0
 
@@ -1779,6 +1828,8 @@ class MusicService :
         playWhenReady: Boolean = true,
         conFundido: Boolean = true,
     ) {
+        nova?.callar()
+        duckNova = 1f
         val generacion = ++fundidoGeneracion
         val enCurso = fundidoJob?.isActive == true
         fundidoJob?.cancel()
@@ -1862,6 +1913,19 @@ class MusicService :
             }
             delay(espera)
         }
+    }
+
+    /** Nova: lleva la musica de su nivel actual a [nivel] en [ms] (coseno al bajar, seno al subir). */
+    private suspend fun llevarDuckNova(nivel: Float, ms: Long) {
+        val jugador = player
+        val desde = duckNova
+        rampaDeVolumen(jugador, ms) { p ->
+            duckNova = if (nivel < desde) nivel + (desde - nivel) * FundidoAlElegir.bajada(p)
+            else desde + (nivel - desde) * FundidoAlElegir.subida(p)
+            volumenObjetivo() * duckNova
+        }
+        duckNova = nivel
+        if (player === jugador) runCatching { jugador.volume = volumenObjetivo() * nivel }
     }
 
     /** El playQueue de siempre, sin fundido. Devuelve la carga de la cola, si la lanzo. */
@@ -2456,6 +2520,10 @@ class MusicService :
         // Stale plan belongs to the previous track; planner re-arms when the new one is READY.
         if (!isCrossfading.value) automixDebugInfo.value = null
         prepareAutomixForCurrentPair()
+
+        // 2.0 · Nova: lo que suena ahora, y si la anterior termino sola, le toca.
+        nova?.sonando(player.currentMetadata)
+        if (reason == Player.MEDIA_ITEM_TRANSITION_REASON_AUTO && !isCrossfading.value) nova?.cambioNatural()
 
         if (reason == Player.MEDIA_ITEM_TRANSITION_REASON_AUTO) {
             if (cachedRepeatMode == REPEAT_MODE_ONE &&
@@ -3726,6 +3794,8 @@ class MusicService :
 
     override fun onDestroy() {
         isRunning = false
+        nova?.apagar()
+        novaJob.cancel()
         releasePrebuffered()
 
         try {
@@ -3967,6 +4037,8 @@ class MusicService :
         )
         ultimoSaltoMs = android.os.SystemClock.elapsedRealtime()
         if (reason == Player.DISCONTINUITY_REASON_SEEK) {
+            saltoDeLaPersonaMs = ultimoSaltoMs
+            nova?.callar()
             prepareAutomixForCurrentPair()
             scheduleCrossfade()
         }
@@ -4899,6 +4971,9 @@ class MusicService :
         } catch (e: Exception) {
             Timber.tag(TAG).d(e, "Volume safety net skipped")
         }
+        // 2.0 · Nova: la mezcla termino. Si nadie salto en medio, fue un cambio natural.
+        nova?.sonando(player.currentMetadata)
+        if (android.os.SystemClock.elapsedRealtime() - saltoDeLaPersonaMs > 2_000) nova?.cambioNatural()
         sleepTimer.notifySongTransition()
     }
 

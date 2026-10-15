@@ -1172,6 +1172,8 @@
     <string name="boletin_v1131_fundido">Si suena una canción y eliges otra, la que suena baja suave y la nueva entra subiendo, sin el corte en seco. Se apaga en Ajustes → Reproductor.</string>
     <string name="fundido_al_elegir">Fundido al elegir otra canción</string>
     <string name="fundido_al_elegir_desc">La que suena baja suave y la nueva entra subiendo, sin cortes en seco</string>
+    <string name="nova_activa">Nova, tu DJ (vista previa)</string>
+    <string name="nova_activa_desc">Habla entre canciones con la voz del teléfono. La música baja mientras habla</string>
     <string name="boletin_v1132_intro">La versión que lo reúne todo: temas PRO para el TV, Life Music en cualquier televisor con navegador, un actualizador nuevo, cambios sin cortes, calificación con estrellas y el prerregistro del nuevo concurso. Y el TV con navegador, ahora más seguro.</string>
     <string name="boletin_v1132_seguro_t">TV con navegador, más seguro</string>
     <string name="boletin_v1132_seguro">El código del TV vence a los 5 minutos con cuenta regresiva, «Enlazar otro teléfono» pide confirmación y el teléfono y el TV se avisan si se pierde la conexión. La pantalla de enlace es nueva, y el estado del sistema está en lifemusic.app/estado.</string>

@@ -1552,6 +1552,8 @@
     <string name="boletin_v1131_fundido">When a song is playing and you pick another, the current one fades down and the new one fades in, instead of cutting off. Turn it off in Settings → Player.</string>
     <string name="fundido_al_elegir">Fade when picking another song</string>
     <string name="fundido_al_elegir_desc">The current song fades down and the new one fades in, no hard cuts</string>
+    <string name="nova_activa">Nova, your DJ (preview)</string>
+    <string name="nova_activa_desc">Talks between songs with the phone\'s voice. The music dips while she talks</string>
     <string name="boletin_v1132_intro">The version that brings it all together: PRO TV themes, Life Music on any TV with a browser, a new updater, song changes with no hard cuts, star ratings and the pre-registration for the new contest. And the browser TV, now safer.</string>
     <string name="boletin_v1132_seguro_t">A safer browser TV</string>
     <string name="boletin_v1132_seguro">The TV code expires after 5 minutes with a countdown, «Link another phone» asks for confirmation, and the phone and the TV tell each other when the connection is lost. The linking screen is new, and the system status is at lifemusic.app/estado.</string>
