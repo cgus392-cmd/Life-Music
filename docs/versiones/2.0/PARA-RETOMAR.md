@@ -65,8 +65,9 @@ nada.** Actualizada el 2026-10-15.
   - **Tanda 4 hecha** (commit 61f150dc): la estrella y la cabina.
     - Pedido de CG: nada fijo en el Inicio ni en el reproductor. Ver la sección 10 de la ficha.
   - **Tanda 5 hecha** (commit del 15-10, 15:24): Personalizar dentro de la cabina (`NovaPersonalizar.kt`).
-  - **Esperando a CG:** que elija el «personaje de luz» de Nova entre las 3 opciones de Diseño (A la mirada, B el neón,
-    C la forma viva). No se programa hasta que elija.
+  - **Personaje de luz hecho:** CG eligió «A · La mirada» (maqueta en `Brand/maquetas/2026-10-15-nova-personaje-luz`).
+    Está en `ui/component/NovaMirada.kt` (commit 8e97ed00).
+  - **Lo que sigue:** no hablar encima del cantante (letra sincronizada) y subtítulos al transmitir al TV.
   - **Después:** la tanda 6, la voz HD (Piper con sherpa-onnx; antes hay que revisar las licencias de cada voz).
 
 **Más adelante:**
