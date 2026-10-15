@@ -437,4 +437,11 @@ dependencies {
     // en src/debug/kotlin justamente para que esto se pueda hacer.
     debugImplementation(libs.onnxruntime.android)
 
+    // 2.0 · Nova, la voz HD: sherpa-onnx (Apache-2.0) con onnxruntime enlazado adentro,
+    // bajado de github.com/k2-fsa/sherpa-onnx/releases v1.13.8 (sha256 b22c3fc1...5471).
+    // Las voces (Piper) no van en el APK: cada persona baja la que elige.
+    implementation(files("libs/sherpa-onnx-static-link-onnxruntime-1.13.8.aar"))
+    // Para abrir los paquetes de voz (.tar.bz2) en el telefono.
+    implementation("org.apache.commons:commons-compress:1.27.1")
+
 }

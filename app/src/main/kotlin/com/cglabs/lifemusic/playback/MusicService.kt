@@ -975,6 +975,13 @@ class MusicService :
                 .distinctUntilChanged()
                 .collect { nova?.region(it) }
         }
+        // La voz HD elegida (o vacio: la del telefono).
+        novaScope.launch {
+            dataStore.data
+                .map { it[com.cglabs.lifemusic.constants.NovaVozHDKey] ?: "" }
+                .distinctUntilChanged()
+                .collect { nova?.elegirVoz(it) }
+        }
         novaScope.launch { currentMediaMetadata.collect { nova?.sonando(it) } }
         // Si le das «me gusta» a lo que suena con Nova al aire, ella sonrie y da un saltito.
         novaScope.launch {
@@ -1998,9 +2005,10 @@ class MusicService :
     private val sinSenalNova: MutableSet<String> = java.util.concurrent.ConcurrentHashMap.newKeySet()
 
     /** 2.0 · Personalizar: una muestra de la voz con el nombre y el acento elegidos. */
-    fun probarVozNova(region: String? = null) {
-        // El acento recien tocado se aplica ya: la preferencia tarda un instante en llegar.
+    fun probarVozNova(region: String? = null, vozHD: String? = null) {
+        // Lo recien tocado se aplica ya: la preferencia tarda un instante en llegar.
         region?.let { nova?.region(it) }
+        vozHD?.let { nova?.elegirVoz(it) }
         nova?.probarVoz()
     }
 

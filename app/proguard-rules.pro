@@ -184,3 +184,8 @@
 -keepclasseswithmembers class com.cglabs.lifemusic.listentogether.** {
     kotlinx.serialization.KSerializer serializer(...);
 }
+
+# 2.0 · Nova, voz HD: sherpa-onnx llama desde su parte nativa (JNI) a clases y
+# campos por su nombre (OfflineTtsConfig, GeneratedAudio...). Si R8 los renombra o
+# los quita, la app se cierra al hablar. Su AAR trae el proguard.txt vacio.
+-keep class com.k2fsa.sherpa.onnx.** { *; }

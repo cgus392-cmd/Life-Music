@@ -73,6 +73,12 @@ class NovaLocutor(
 
     private val contexto = context.applicationContext
     private val voz = NovaVoz(contexto)
+
+    /** La voz HD (Piper con sherpa-onnx), si la persona bajo y eligio una. */
+    private val vozHD = NovaVozHD(contexto)
+
+    /** La voz HD elegida: su clave (paquete y calidad) y el hablante dentro del paquete. */
+    private var elegidaHD: Pair<String, Int>? = null
     private var activa = false
     private var trabajo: Job? = null
     private var reproductor: MediaPlayer? = null
@@ -119,6 +125,32 @@ class NovaLocutor(
     /** El acento de la voz del telefono: «latam» o «espana». */
     fun region(region: String) = voz.cambiarRegion(region)
 
+    /**
+     * La voz elegida en Personalizar: «id:calidad» de una voz HD, o vacio para la
+     * del telefono. Si la HD no esta en el telefono (se borro), vuelve a la del telefono.
+     */
+    fun elegirVoz(valor: String?) {
+        val elegida = NovaVocesHD.leer(valor)
+        val nueva = elegida?.let { (v, c) -> v.clave(c) to v.hablante }
+        if (nueva == elegidaHD) return
+        elegidaHD = nueva
+        android.util.Log.i(ETIQUETA, "voz elegida: ${nueva?.first ?: "telefono"}")
+        scope.launch {
+            if (nueva != null) runCatching { vozHD.precargar(nueva.first) } else vozHD.soltar()
+        }
+    }
+
+    /** Sintetiza con la voz elegida; si la HD falla, con la del telefono, para no quedarse muda. */
+    private suspend fun sintetizarCon(texto: String, archivo: File): Boolean {
+        val hd = elegidaHD
+        if (hd != null) {
+            val ok = runCatching { vozHD.sintetizar(texto, archivo, hd.first, hd.second) }.getOrDefault(false)
+            if (ok) return true
+            android.util.Log.w(ETIQUETA, "la voz HD fallo; esta vez uso la del telefono")
+        }
+        return voz.sintetizar(texto, archivo)
+    }
+
     fun activar(prendida: Boolean) {
         if (prendida == activa) return
         activa = prendida
@@ -134,6 +166,7 @@ class NovaLocutor(
             vigia = null
             salida = null
             voz.apagar()
+            scope.launch { vozHD.soltar() }
         }
         android.util.Log.i(ETIQUETA, "activa=$prendida")
     }
@@ -237,7 +270,7 @@ class NovaLocutor(
                 // Mientras prepara la frase, piensa: su mirada sube y una chispa orbita.
                 NovaSesion.pensar(true)
                 val lista = try {
-                    val hecha = voz.sintetizar(texto, archivo)
+                    val hecha = sintetizarCon(texto, archivo)
                     // El motor tarda 0,1 a 0,2 s: se piensa al menos medio segundo, para que se vea.
                     val falta = PENSAR_MINIMO_MS - (SystemClock.elapsedRealtime() - inicio)
                     if (falta > 0) delay(falta)
@@ -315,7 +348,7 @@ class NovaLocutor(
         val bloque = if (alAire) NovaSesion.bloqueDe(siguiente.id) else null
         val texto = NovaFrases.sobreElFinal(actual, nueva, bloque, NovaSesion.datoDe(siguiente.id))
         val archivo = File(contexto.cacheDir, "nova/final.wav")
-        if (!voz.sintetizar(texto, archivo)) return
+        if (!sintetizarCon(texto, archivo)) return
         val onda = withContext(Dispatchers.IO) {
             runCatching { NovaOnda.envolvente(archivo.readBytes()) }.getOrDefault(FloatArray(0))
         }
@@ -379,7 +412,7 @@ class NovaLocutor(
             val archivo = File(contexto.cacheDir, "nova/muestra.wav")
             var bajo = false
             try {
-                if (!voz.sintetizar("Hola, soy $nombreDJ. Así sueno entre canción y canción.", archivo)) return@launch
+                if (!sintetizarCon("Hola, soy $nombreDJ. Así sueno entre canción y canción.", archivo)) return@launch
                 if (mezcla.sigueSonando()) {
                     bajo = true
                     mezcla.llevarA(NIVEL_MUSICA, BAJAR_MS)

@@ -69,6 +69,7 @@ fun NovaPersonalizar(alVolver: () -> Unit) {
     val (region, alCambiarRegion) = rememberPreference(NovaRegionKey, defaultValue = "latam")
     val (cada, alCambiarCada) = rememberPreference(NovaCadaKey, defaultValue = 4)
     val (soloSubtitulos, alCambiarSoloSubtitulos) = rememberPreference(NovaSoloSubtitulosKey, defaultValue = false)
+    val (vozHD, alCambiarVozHD) = rememberPreference(com.cglabs.lifemusic.constants.NovaVozHDKey, defaultValue = "")
 
     Column(
         modifier = Modifier
@@ -132,11 +133,13 @@ fun NovaPersonalizar(alVolver: () -> Unit) {
                 "latam" to R.string.nova_voz_latam,
                 "espana" to R.string.nova_voz_espana,
             ).forEach { (clave, rotulo) ->
-                val elegida = region == clave
+                // La voz del telefono esta en uso solo si no hay una voz HD elegida.
+                val elegida = region == clave && vozHD.isEmpty()
                 OutlinedCard(
                     onClick = {
                         alCambiarRegion(clave)
-                        conexion?.service?.probarVozNova(clave)
+                        alCambiarVozHD("")
+                        conexion?.service?.probarVozNova(clave, vozHD = "")
                     },
                     shape = RoundedCornerShape(18.dp),
                     border = BorderStroke(if (elegida) 2.dp else 1.dp, if (elegida) esquema.primary else esquema.outlineVariant),
@@ -169,6 +172,9 @@ fun NovaPersonalizar(alVolver: () -> Unit) {
             color = esquema.onSurfaceVariant,
             modifier = Modifier.padding(top = 6.dp, start = 4.dp),
         )
+
+        // Las voces HD: se bajan una vez y funcionan sin internet.
+        SeccionVocesHD(vozElegida = vozHD, alElegir = alCambiarVozHD)
 
         // Cuanto habla: de 2 a 8 canciones; tambien es el largo de cada bloque.
         Spacer(Modifier.height(18.dp))

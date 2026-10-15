@@ -1071,6 +1071,12 @@ val NovaSoloSubtitulosKey = booleanPreferencesKey("novaSoloSubtitulos")
 /** La voz del telefono: «latam» (de fabrica) o «espana». */
 val NovaRegionKey = stringPreferencesKey("novaRegion")
 
+/** La voz HD elegida, «id:calidad» (por ejemplo «daniela:liviana»). Vacio = la voz del telefono. */
+val NovaVozHDKey = stringPreferencesKey("novaVozHD")
+
+/** La calidad con la que se bajan las voces HD: «liviana» (de fabrica), «media» o «completa». */
+val NovaCalidadKey = stringPreferencesKey("novaCalidad")
+
 /**
  * Instante del ultimo arranque en frio, en milisegundos. Sirve para que el saludo
  * sepa cuanto hace que no abres —una semana sin entrar merece otra frase— sin
