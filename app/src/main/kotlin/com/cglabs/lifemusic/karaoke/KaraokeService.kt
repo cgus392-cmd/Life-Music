@@ -1,5 +1,6 @@
 package com.cglabs.lifemusic.karaoke
 
+import android.app.Notification
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.PendingIntent
@@ -29,6 +30,7 @@ import com.cglabs.lifemusic.di.DownloadCache
 import com.cglabs.lifemusic.lyrics.LyricsUtils
 import com.cglabs.lifemusic.utils.isLocalMediaId
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.asCoroutineDispatcher
@@ -62,7 +64,9 @@ class KaraokeService : Service() {
     private val scope = CoroutineScope(SupervisorJob() + hilo.asCoroutineDispatcher())
     private val fila = ArrayDeque<Pedido>()
     private var trabajando = false
+    private var enCurso: String? = null
     private var avisoMs = 0L
+    private var ultimoAviso: Notification? = null
 
     private data class Pedido(val id: String, val titulo: String)
 
@@ -72,9 +76,11 @@ class KaraokeService : Service() {
         val id = intent?.getStringExtra(EXTRA_ID)
         val titulo = intent?.getStringExtra(EXTRA_TITULO).orEmpty()
         crearCanal()
-        // Hay que entrar en primer plano enseguida, incluso si el pedido viene vacio.
+        // Hay que entrar en primer plano enseguida, incluso si el pedido viene vacio;
+        // si ya hay una en curso, su aviso sigue tal cual.
         ServiceCompat.startForeground(
-            this, AVISO_EN_CURSO, aviso(titulo, getString(R.string.karaoke_etapa_esperando), null),
+            this, AVISO_EN_CURSO,
+            ultimoAviso.takeIf { trabajando } ?: aviso(titulo, getString(R.string.karaoke_etapa_esperando), null),
             ServiceInfo.FOREGROUND_SERVICE_TYPE_DATA_SYNC,
         )
         if (id == null) {
@@ -82,7 +88,8 @@ class KaraokeService : Service() {
             return START_NOT_STICKY
         }
         synchronized(fila) {
-            if (fila.none { it.id == id }) fila.addLast(Pedido(id, titulo))
+            // Un toque repetido no vuelve a hacer el trabajo.
+            if (enCurso != id && fila.none { it.id == id }) fila.addLast(Pedido(id, titulo))
             if (trabajando) return START_NOT_STICKY
             trabajando = true
         }
@@ -91,19 +98,33 @@ class KaraokeService : Service() {
     }
 
     private suspend fun atenderFila() {
-        val energia = getSystemService<PowerManager>()
-            ?.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "LifeMusic:karaoke")
-            ?.apply { acquire(30 * 60 * 1000L) }
         try {
             while (true) {
                 val pedido = synchronized(fila) {
-                    fila.removeFirstOrNull() ?: run { trabajando = false; null }
+                    val siguiente = fila.removeFirstOrNull()
+                    enCurso = siguiente?.id
+                    if (siguiente == null) trabajando = false
+                    siguiente
                 } ?: break
-                preparar(pedido)
+                // Despierto mientras prepara, aunque se apague la pantalla (tope por cancion).
+                val energia = getSystemService<PowerManager>()
+                    ?.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "LifeMusic:karaoke")
+                    ?.apply { acquire(20 * 60 * 1000L) }
+                try {
+                    preparar(pedido)
+                } catch (e: CancellationException) {
+                    throw e
+                } catch (e: Exception) {
+                    Log.e(TAG, "fallo preparando ${pedido.id}", e)
+                    fallo(pedido.titulo, R.string.karaoke_error)
+                } finally {
+                    energia?.takeIf { it.isHeld }?.release()
+                }
             }
         } finally {
-            energia?.takeIf { it.isHeld }?.release()
-            terminar()
+            // Si entro otro pedido justo al cerrar la fila, lo atiende su propia vuelta.
+            val sigue = synchronized(fila) { enCurso = null; trabajando }
+            if (!sigue) terminar()
         }
     }
 
@@ -201,7 +222,9 @@ class KaraokeService : Service() {
         val ahora = SystemClock.elapsedRealtime()
         if (avance != null && ahora - avisoMs < 700) return
         avisoMs = ahora
-        getSystemService<NotificationManager>()?.notify(AVISO_EN_CURSO, aviso(titulo, etapa, avance))
+        val nuevo = aviso(titulo, etapa, avance)
+        ultimoAviso = nuevo
+        getSystemService<NotificationManager>()?.notify(AVISO_EN_CURSO, nuevo)
     }
 
     private fun aviso(titulo: String, etapa: String, avance: Float?) =
