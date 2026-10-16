@@ -19,23 +19,29 @@ import com.k2fsa.sherpa.onnx.OfflineRecognizerConfig
 import java.io.File
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
+import kotlin.math.PI
 import kotlin.math.abs
+import kotlin.math.cos
+import kotlin.math.sin
 
 /**
  * Spike del karaoke propio (ficha docs/versiones/2.0/karaoke.md, aprobada por CG
  * el 15-10): ¿se puede calzar palabra por palabra una letra sincronizada por
- * linea, escuchando la cancion en el telefono? Mide el tiempo y, si hay una
- * referencia palabra por palabra, la precision.
+ * linea, escuchando la cancion en el telefono? Mide el tiempo, la cobertura y,
+ * si hay una referencia palabra por palabra, la precision.
  *
- * No es la funcion. Sin el modelo no hace nada. Todo se empuja a mano por ADB
- * a la version de pruebas (com.cglabs.lifemusic.debug):
+ * No es la funcion. Sin el modelo no hace nada. Todo se empuja a mano por ADB a
+ * la version de pruebas (com.cglabs.lifemusic.debug):
  *
  *   files/spike/karaoke/model.int8.onnx, tokens.txt   (NeMo FastConformer CTC es, CC-BY-4.0)
+ *   files/spike/karaoke/separar.onnx                  (opcional: UVR MDX-Net KARA, separa la voz)
  *   files/spike/karaoke/canciones/<nombre>/audio.*     (mp3, m4a, flac…)
  *   files/spike/karaoke/canciones/<nombre>/letra.lrc   (sincronizada por linea)
  *   files/spike/karaoke/canciones/<nombre>/referencia.lrc  (opcional: palabra por palabra «oficial»)
  *
- * Deja en cada carpeta karaoke.lrc (el resultado) y resultado.txt (los numeros).
+ * Compara variantes del audio: la mezcla tal cual y, con el separador, la voz
+ * separada (y la mezcla menos la salida, por si el modelo da el acompañamiento).
+ * Deja karaoke-<variante>.lrc y resultado-<variante>.txt en cada carpeta.
  */
 object KaraokeSpike {
     private const val TAG = "KaraokeSpike"
@@ -49,6 +55,7 @@ object KaraokeSpike {
     }
 
     private fun correr(base: File) {
+        probarFft()
         val carga = SystemClock.elapsedRealtime()
         val reconocedor = OfflineRecognizer(
             config = OfflineRecognizerConfig(
@@ -63,35 +70,55 @@ object KaraokeSpike {
             ),
         )
         Log.i(TAG, "modelo cargado en ${SystemClock.elapsedRealtime() - carga} ms")
+        val separador = File(base, "separar.onnx").takeIf { it.exists() }
+            ?.let { runCatching { KaraokeSeparador(it) }.onFailure { e -> Log.e(TAG, "no cargo el separador", e) }.getOrNull() }
         try {
             File(base, "canciones").listFiles()?.filter { it.isDirectory }?.sortedBy { it.name }?.forEach { carpeta ->
-                runCatching { procesar(carpeta, reconocedor) }.onFailure { Log.e(TAG, "fallo ${carpeta.name}", it) }
+                runCatching { procesar(carpeta, reconocedor, separador) }.onFailure { Log.e(TAG, "fallo ${carpeta.name}", it) }
             }
         } finally {
+            separador?.close()
             reconocedor.release()
         }
         Log.i(TAG, "fin del spike")
     }
 
-    private fun procesar(carpeta: File, reconocedor: OfflineRecognizer) {
+    private fun procesar(carpeta: File, reconocedor: OfflineRecognizer, separador: KaraokeSeparador?) {
         val audio = carpeta.listFiles()?.firstOrNull { it.name.startsWith("audio.") } ?: return
-        val letra = File(carpeta, "letra.lrc").takeIf { it.exists() } ?: return
-        Log.i(TAG, "== ${carpeta.name}")
+        val letra = File(carpeta, "letra.lrc").takeIf { it.exists() }?.readText() ?: return
+        val referencia = File(carpeta, "referencia.lrc").takeIf { it.exists() }?.readText()
 
-        // 1) Decodificar a 16 kHz mono float con el FFmpeg que ya trae la app.
-        val crudo = File(carpeta, "audio16k.f32")
+        // Variante 1: la mezcla tal cual, a 16 kHz mono.
+        val mezcla = File(carpeta, "mezcla16k.f32")
         val t0 = SystemClock.elapsedRealtime()
-        val sesion = FFmpegKit.execute("-y -i \"${audio.absolutePath}\" -ac 1 -ar $HZ -f f32le \"${crudo.absolutePath}\"")
-        if (!ReturnCode.isSuccess(sesion.returnCode)) {
-            Log.e(TAG, "no se pudo decodificar: ${sesion.failStackTrace ?: sesion.output?.takeLast(300)}")
-            return
-        }
-        val muestras = leerFloats(crudo)
-        val decodificar = SystemClock.elapsedRealtime() - t0
-        val duracion = muestras.size.toDouble() / HZ
+        if (!ffmpeg("-y -i \"${audio.absolutePath}\" -ac 1 -ar $HZ -f f32le \"${mezcla.absolutePath}\"")) return
+        reconocerYAlinear(carpeta, reconocedor, "mezcla", leerFloats(mezcla), letra, referencia, SystemClock.elapsedRealtime() - t0)
+        mezcla.delete()
 
-        // 2) Las lineas del LRC, con su ventana (hasta donde empieza la siguiente).
-        val lineas = LyricsUtils.parseLyrics(letra.readText()).filter { it.text.isNotBlank() && it.time >= 0 }
+        if (separador == null) return
+        // Variantes 2 y 3: separar la voz (estereo a 44,1 kHz) y reconocer sobre ella.
+        val estereo = File(carpeta, "estereo44k.f32")
+        if (!ffmpeg("-y -i \"${audio.absolutePath}\" -ac 2 -ar 44100 -f f32le \"${estereo.absolutePath}\"")) return
+        listOf(false to "voz-separada", true to "mezcla-menos-salida").forEach { (invertir, nombre) ->
+            val voz44 = File(carpeta, "voz44k.f32")
+            val voz16 = File(carpeta, "voz16k.f32")
+            val t1 = SystemClock.elapsedRealtime()
+            val separar = separador.separar(estereo, voz44, invertir)
+            if (!ffmpeg("-y -f f32le -ar 44100 -ac 1 -i \"${voz44.absolutePath}\" -ar $HZ -f f32le \"${voz16.absolutePath}\"")) return
+            Log.i(TAG, "$nombre: separar $separar ms")
+            reconocerYAlinear(carpeta, reconocedor, nombre, leerFloats(voz16), letra, referencia, SystemClock.elapsedRealtime() - t1)
+            voz44.delete()
+            voz16.delete()
+        }
+        estereo.delete()
+    }
+
+    private fun reconocerYAlinear(
+        carpeta: File, reconocedor: OfflineRecognizer, variante: String, muestras: FloatArray,
+        letra: String, referencia: String?, prepararMs: Long,
+    ) {
+        val duracion = muestras.size.toDouble() / HZ
+        val lineas = LyricsUtils.parseLyrics(letra).filter { it.text.isNotBlank() && it.time >= 0 }
         val salida = StringBuilder()
         val todas = mutableListOf<AlineadorDeLetras.Alineada>()
         var reconocer = 0L
@@ -100,8 +127,6 @@ object KaraokeSpike {
             val fin = (lineas.getOrNull(i + 1)?.time?.div(1000.0) ?: (inicio + 6.0)).coerceAtMost(duracion)
             val palabras = AlineadorDeLetras.palabrasDeLaLetra(linea.text)
             if (palabras.isEmpty() || fin <= inicio) return@forEachIndexed
-
-            // 3) Reconocer solo ese tramo (con un margen), y 4) calzar las palabras.
             val desde = (inicio - MARGEN_S).coerceAtLeast(0.0)
             val hasta = (fin + MARGEN_S).coerceAtMost(duracion)
             val tramo = muestras.copyOfRange((desde * HZ).toInt(), (hasta * HZ).toInt().coerceAtMost(muestras.size))
@@ -112,29 +137,22 @@ object KaraokeSpike {
             val resultado = reconocedor.getResult(stream)
             stream.release()
             reconocer += SystemClock.elapsedRealtime() - t1
-
             val oidas = AlineadorDeLetras.palabrasReconocidas(resultado.tokens, resultado.timestamps, desde)
             val alineadas = AlineadorDeLetras.alinear(palabras, oidas, inicio, fin)
             todas += alineadas
             salida.appendLine(AlineadorDeLetras.aLrcMejorado(inicio, alineadas))
-            Log.i(
-                TAG,
-                "[%.1f s] %d%% · oyo «%s»".format(inicio, (AlineadorDeLetras.cobertura(alineadas) * 100).toInt(), resultado.text.take(80)),
-            )
         }
-        File(carpeta, "karaoke.lrc").writeText(salida.toString())
+        File(carpeta, "karaoke-$variante.lrc").writeText(salida.toString())
 
-        // 5) Los numeros: tiempo, cobertura y, si hay referencia, precision.
         val cobertura = if (todas.isEmpty()) 0.0 else todas.count { it.calzada }.toDouble() / todas.size
         val informe = StringBuilder()
-        informe.appendLine("cancion: ${carpeta.name}")
+        informe.appendLine("cancion: ${carpeta.name} · variante: $variante")
         informe.appendLine("duracion: %.1f s · lineas: %d · palabras: %d".format(duracion, lineas.size, todas.size))
-        informe.appendLine("decodificar: $decodificar ms · reconocer: $reconocer ms · %.2f s por minuto de cancion".format(reconocer / 1000.0 / (duracion / 60.0)))
+        informe.appendLine("preparar audio: $prepararMs ms · reconocer: $reconocer ms")
         informe.appendLine("cobertura (palabras calzadas por el audio): %.0f %%".format(cobertura * 100))
-        File(carpeta, "referencia.lrc").takeIf { it.exists() }?.let { informe.append(comparar(todas, it.readText())) }
-        File(carpeta, "resultado.txt").writeText(informe.toString())
+        referencia?.let { informe.append(comparar(todas, it)) }
+        File(carpeta, "resultado-$variante.txt").writeText(informe.toString())
         informe.lines().forEach { if (it.isNotBlank()) Log.i(TAG, it) }
-        crudo.delete()
     }
 
     /**
@@ -152,7 +170,6 @@ object KaraokeSpike {
         var j = 0
         for (p in nuestras) {
             val clave = AlineadorDeLetras.normalizar(p.texto)
-            // La siguiente aparicion de esa palabra en la referencia, cerca del punto actual.
             val k = (j until minOf(ref.size, j + 6)).firstOrNull { ref[it].first == clave } ?: continue
             errores += abs(p.inicio - ref[k].second)
             j = k + 1
@@ -163,6 +180,36 @@ object KaraokeSpike {
         val dentro300 = errores.count { it <= 0.30 } * 100 / errores.size
         return "PRECISION vs referencia: %d palabras · mediana %.0f ms · %d%% a menos de 150 ms · %d%% a menos de 300 ms\n"
             .format(errores.size, errores[errores.size / 2] * 1000, dentro150, dentro300)
+    }
+
+    /** La FFT de 5120 contra la DFT directa en algunas frecuencias: si falla, el separador miente. */
+    private fun probarFft() {
+        val n = 5120
+        val x = FloatArray(n) { (sin(2 * PI * 37 * it / n) + 0.5 * cos(2 * PI * 801 * it / n) + 0.1 * ((it * 7919) % 13 - 6)).toFloat() }
+        val re = x.copyOf()
+        val im = FloatArray(n)
+        Fft5120().transformar(re, im)
+        var error = 0.0
+        for (k in listOf(0, 1, 37, 801, 1024, 2047, 2560, 4319)) {
+            var dr = 0.0
+            var di = 0.0
+            for (t in 0 until n) {
+                val a = -2 * PI * k * t / n
+                dr += x[t] * cos(a)
+                di += x[t] * sin(a)
+            }
+            error = maxOf(error, abs(dr - re[k]), abs(di - im[k]))
+        }
+        Log.i(TAG, "FFT 5120 vs DFT: error maximo %.4f (pico de la senal ~2560)".format(error))
+    }
+
+    private fun ffmpeg(argumentos: String): Boolean {
+        val sesion = FFmpegKit.execute(argumentos)
+        if (!ReturnCode.isSuccess(sesion.returnCode)) {
+            Log.e(TAG, "ffmpeg fallo: ${sesion.failStackTrace ?: sesion.output?.takeLast(300)}")
+            return false
+        }
+        return true
     }
 
     private fun leerFloats(archivo: File): FloatArray {

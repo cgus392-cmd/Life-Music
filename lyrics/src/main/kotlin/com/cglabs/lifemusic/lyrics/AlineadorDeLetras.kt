@@ -26,6 +26,9 @@ object AlineadorDeLetras {
     /** Parecido minimo (0 a 1) para dar por buena una pareja letra/reconocida. */
     const val PARECIDO_MINIMO = 0.5
 
+    /** Lo minimo entre dos palabras estimadas cuando no hay mas espacio (segundos). */
+    const val SEPARACION_MINIMA = 0.12
+
     /** Sin acentos, en minuscula y solo letras y numeros: «¡Corazón!» y «corazon» son la misma. */
     fun normalizar(palabra: String): String =
         Normalizer.normalize(palabra.lowercase(), Normalizer.Form.NFD)
@@ -142,8 +145,11 @@ object AlineadorDeLetras {
             }
             val previa = (k - 1 downTo 0).firstOrNull { anclas[it] != null }
             val siguiente = (k + 1 until n).firstOrNull { anclas[it] != null }
-            val desdeT = previa?.let { anclas[it]!! } ?: inicioLinea
             val hastaT = siguiente?.let { anclas[it]!! } ?: finLinea
+            // Si la primera calzada empieza antes que la linea (el LRC puede ir un pelo
+            // tarde), las sueltas de delante se corren antes que ella: nunca al reves.
+            val desdeT = previa?.let { anclas[it]!! }
+                ?: minOf(inicioLinea, hastaT - SEPARACION_MINIMA * ((siguiente ?: n) - k))
             // El tramo reparte entre la previa (si hay) y las sueltas hasta la siguiente.
             val primero = previa ?: k
             val ultimoSuelto = (siguiente ?: n) - 1

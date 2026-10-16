@@ -72,6 +72,17 @@ class AlineadorDeLetrasTest {
     }
 
     @Test
+    fun la_suelta_del_comienzo_queda_antes_de_la_primera_calzada_aunque_esta_adelante_la_linea() {
+        // Caso real de «Hazme Olvidarla»: «llena» sono 0,3 s antes del tiempo del LRC y «Y» no se oyo.
+        val letra = listOf("Y", "llena", "mis", "sentidos")
+        val oidas = listOf(Reconocida("llena", 18.8), Reconocida("mis", 20.23), Reconocida("sentidos", 20.55))
+        val r = AlineadorDeLetras.alinear(letra, oidas, 19.1, 24.7)
+        assertFalse(r[0].calzada)
+        assertTrue(r.zipWithNext().all { (a, b) -> b.inicio > a.inicio })
+        assertEquals(18.68, r[0].inicio, 1e-6)
+    }
+
+    @Test
     fun escribe_lrc_mejorado() {
         val linea = listOf(AlineadorDeLetras.Alineada("Hola", 61.5, true), AlineadorDeLetras.Alineada("amor", 62.04, true))
         assertEquals("[01:01.50]<01:01.50>Hola <01:02.04>amor", AlineadorDeLetras.aLrcMejorado(61.5, linea))
