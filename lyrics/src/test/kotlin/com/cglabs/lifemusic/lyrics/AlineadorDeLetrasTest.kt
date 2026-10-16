@@ -83,6 +83,39 @@ class AlineadorDeLetrasTest {
     }
 
     @Test
+    fun compara_por_como_suena() {
+        // b/v y la s final que se come el Caribe
+        assertEquals(1.0, AlineadorDeLetras.parecido("vez", "bes"), 1e-9)
+        // h muda y c suave
+        assertEquals(1.0, AlineadorDeLetras.parecido("hacer", "aser"), 1e-9)
+        // yeismo
+        assertEquals(1.0, AlineadorDeLetras.parecido("llorar", "yorar"), 1e-9)
+        // seseo y c dura
+        assertEquals(1.0, AlineadorDeLetras.parecido("corazón", "korason"), 1e-9)
+        assertEquals(1.0, AlineadorDeLetras.parecido("quiero", "kiero"), 1e-9)
+        assertEquals(1.0, AlineadorDeLetras.parecido("gente", "jente"), 1e-9)
+        assertEquals(1.0, AlineadorDeLetras.parecido("ojos", "ojo"), 1e-9)
+        assertEquals(1.0, AlineadorDeLetras.parecido("verdad", "verda"), 1e-9)
+        // la ch no se pierde con la h muda; guerra mantiene la g dura
+        assertEquals("muco", AlineadorDeLetras.sonido("mucho"))
+        assertTrue(AlineadorDeLetras.sonido("mucho") != AlineadorDeLetras.sonido("muco"))
+        assertEquals("gera", AlineadorDeLetras.sonido("guerra"))
+        assertEquals("oi", AlineadorDeLetras.sonido("hoy"))
+        // palabras distintas siguen siendo distintas
+        assertTrue(AlineadorDeLetras.parecido("amor", "dolor") < 1.0)
+        assertTrue(AlineadorDeLetras.parecido("mucho", "musgo") < 1.0)
+    }
+
+    @Test
+    fun calza_lo_que_el_reconocedor_escribio_distinto_pero_suena_igual() {
+        val letra = listOf("Quiero", "llorar", "contigo", "hoy")
+        val oidas = listOf(Reconocida("kiero", 1.0), Reconocida("yorar", 1.5), Reconocida("kontigo", 2.0), Reconocida("oi", 2.6))
+        val r = AlineadorDeLetras.alinear(letra, oidas, 0.9, 4.0)
+        assertTrue(r.all { it.calzada })
+        assertEquals(listOf(1.0, 1.5, 2.0, 2.6), r.map { it.inicio })
+    }
+
+    @Test
     fun escribe_lrc_mejorado() {
         val linea = listOf(AlineadorDeLetras.Alineada("Hola", 61.5, true), AlineadorDeLetras.Alineada("amor", 62.04, true))
         assertEquals("[01:01.50]<01:01.50>Hola <01:02.04>amor", AlineadorDeLetras.aLrcMejorado(61.5, linea))

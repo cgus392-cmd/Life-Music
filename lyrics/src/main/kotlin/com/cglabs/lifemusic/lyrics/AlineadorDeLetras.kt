@@ -66,10 +66,40 @@ object AlineadorDeLetras {
         return salida.filter { normalizar(it.texto).isNotEmpty() }
     }
 
-    /** 1 = iguales, 0 = nada que ver (distancia de edicion sobre la forma normalizada). */
-    fun parecido(a: String, b: String): Double {
-        val x = normalizar(a)
-        val y = normalizar(b)
+    /**
+     * Como suena en español, para perdonar los errores tipicos del reconocedor con
+     * musica encima: b/v, s/z/c (seseo), ll/y (yeismo), la h muda, qu/k, g/j ante
+     * e/i, letras dobles y la s o d final que se comen en el Caribe («verda», «lo ojo»).
+     * «vez» y «bes», «hacer» y «aser», «llorar» y «yorar» suenan igual.
+     */
+    fun sonido(palabra: String): String =
+        normalizar(palabra)
+            .replace("ch", "C") // la ch se guarda aparte para que no la borre la h muda
+            .replace(Regex("qu(?=[ei])"), "k")
+            .replace(Regex("gu(?=[ei])"), "G") // guerra: g dura
+            .replace(Regex("g(?=[ei])"), "j")
+            .replace(Regex("c(?=[ei])"), "s")
+            .replace('c', 'k')
+            .replace('q', 'k')
+            .replace('z', 's')
+            .replace("x", "ks")
+            .replace('v', 'b')
+            .replace('w', 'u')
+            .replace("ll", "y")
+            .replace("h", "")
+            .replace(Regex("y(?![aeiou])"), "i")
+            .replace(Regex("(.)\\1+"), "$1")
+            .replace(Regex("(?<=.)[sd]$"), "")
+            .lowercase()
+
+    /**
+     * 1 = iguales, 0 = nada que ver: distancia de edicion sobre como se escribe y
+     * sobre como suena; vale la mejor de las dos.
+     */
+    fun parecido(a: String, b: String): Double =
+        max(semejanza(normalizar(a), normalizar(b)), semejanza(sonido(a), sonido(b)))
+
+    private fun semejanza(x: String, y: String): Double {
         if (x.isEmpty() || y.isEmpty()) return 0.0
         if (x == y) return 1.0
         val d = Array(x.length + 1) { IntArray(y.length + 1) }
@@ -94,6 +124,8 @@ object AlineadorDeLetras {
         val anclas = arrayOfNulls<Double>(n)
 
         if (m > 0) {
+            // El parecido de cada pareja se calcula una vez (lo usan la tabla y el regreso).
+            val parecidos = Array(n) { i -> DoubleArray(m) { j -> parecido(letra[i], oidas[j].texto) } }
             // Needleman-Wunsch: emparejar suma segun el parecido; saltarse una palabra resta poco.
             val hueco = -0.4
             val puntaje = Array(n + 1) { DoubleArray(m + 1) }
@@ -101,7 +133,7 @@ object AlineadorDeLetras {
             for (i in 1..n) { puntaje[i][0] = i * hueco; desde[i][0] = 1 }
             for (j in 1..m) { puntaje[0][j] = j * hueco; desde[0][j] = 2 }
             for (i in 1..n) for (j in 1..m) {
-                val p = parecido(letra[i - 1], oidas[j - 1].texto)
+                val p = parecidos[i - 1][j - 1]
                 val diagonal = puntaje[i - 1][j - 1] + if (p >= PARECIDO_MINIMO) 2.0 * p else -1.0
                 val arriba = puntaje[i - 1][j] + hueco
                 val izquierda = puntaje[i][j - 1] + hueco
@@ -116,7 +148,7 @@ object AlineadorDeLetras {
             while (i > 0 && j > 0) {
                 when (desde[i][j]) {
                     0 -> {
-                        if (parecido(letra[i - 1], oidas[j - 1].texto) >= PARECIDO_MINIMO) {
+                        if (parecidos[i - 1][j - 1] >= PARECIDO_MINIMO) {
                             anclas[i - 1] = oidas[j - 1].inicio.coerceIn(inicioLinea - 0.5, finLinea)
                         }
                         i--; j--

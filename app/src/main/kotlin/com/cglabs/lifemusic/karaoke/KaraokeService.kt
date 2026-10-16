@@ -111,7 +111,9 @@ class KaraokeService : Service() {
         val titulo = pedido.titulo.ifBlank { getString(R.string.karaoke_esta_cancion) }
         Log.i(TAG, "preparando ${pedido.id} «$titulo»")
         val guardada = database.lyrics(pedido.id).first()
-        val texto = guardada?.lyrics?.takeIf { it.isNotBlank() && it != LyricsEntity.LYRICS_NOT_FOUND }
+        // Si ya se preparo antes, se rehace desde la letra original que se guardo.
+        val respaldo = leerOriginal(this, pedido.id)
+        val texto = respaldo?.second ?: guardada?.lyrics?.takeIf { it.isNotBlank() && it != LyricsEntity.LYRICS_NOT_FOUND }
         if (guardada == null || texto == null) return fallo(titulo, R.string.karaoke_falta_letra)
         val lineas = LyricsUtils.parseLyrics(texto)
         if (lineas.any { !it.words.isNullOrEmpty() }) return fallo(titulo, R.string.karaoke_ya_tiene)
@@ -143,7 +145,7 @@ class KaraokeService : Service() {
             }
             guardarOriginal(pedido.id, guardada)
             database.query {
-                upsert(guardada.copy(lyrics = resultado.lrc, provider = marcaProveedor(guardada.provider)))
+                upsert(guardada.copy(lyrics = resultado.lrc, provider = marcaProveedor(respaldo?.first ?: guardada.provider)))
             }
             val porciento = (resultado.cobertura * 100).toInt()
             Log.i(TAG, "listo «$titulo»: $porciento % por ${resultado.camino}, ${resultado.milisegundos / 1000} s")
@@ -271,12 +273,16 @@ class KaraokeService : Service() {
 
         fun tieneOriginal(context: Context, id: String) = original(context, id).isFile
 
+        /** El proveedor y la letra por linea que habia antes del karaoke, si se guardaron. */
+        private fun leerOriginal(context: Context, id: String): Pair<String, String>? {
+            val guardado = original(context, id).takeIf { it.isFile }?.readText() ?: return null
+            return guardado.substringBefore('\n') to guardado.substringAfter('\n')
+        }
+
         /** Devuelve la letra por linea que habia antes del karaoke (fuera del hilo principal). */
         suspend fun volverAlOriginal(context: Context, database: MusicDatabase, id: String): Boolean {
             val archivo = original(context, id).takeIf { it.isFile } ?: return false
-            val guardado = archivo.readText()
-            val proveedor = guardado.substringBefore('\n')
-            val letra = guardado.substringAfter('\n')
+            val (proveedor, letra) = leerOriginal(context, id) ?: return false
             val actual = database.lyrics(id).first()
             database.query {
                 upsert(actual?.copy(lyrics = letra, provider = proveedor) ?: LyricsEntity(id = id, lyrics = letra, provider = proveedor))
