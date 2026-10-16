@@ -118,6 +118,8 @@ fun SongMenu(
     val song = songState.value ?: originalSong
     val download by LocalDownloadUtil.current.getDownload(originalSong.id)
         .collectAsState(initial = null)
+    // 2.x · Karaoke propio (beta): solo para canciones que ya estan en el telefono.
+    val karaoke = opcionesKaraoke(originalSong.id, originalSong.song.title, download?.state == Download.STATE_COMPLETED, onDismiss)
     val coroutineScope = rememberCoroutineScope()
     val syncUtils = LocalSyncUtils.current
     val listenTogetherManager = LocalListenTogetherManager.current
@@ -774,6 +776,11 @@ fun SongMenu(
                     )
                 )
             }
+        }
+
+        if (karaoke.isNotEmpty()) {
+            item { Spacer(modifier = Modifier.height(12.dp)) }
+            item { Material3MenuGroup(items = karaoke) }
         }
 
         item { Spacer(modifier = Modifier.height(12.dp)) }

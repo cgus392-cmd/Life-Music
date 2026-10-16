@@ -95,7 +95,6 @@ import com.cglabs.lifemusic.ui.component.NewAction
 import com.cglabs.lifemusic.ui.component.NewActionGrid
 import com.cglabs.lifemusic.ui.component.VolumeSlider
 import com.cglabs.lifemusic.utils.rememberPreference
-import com.cglabs.lifemusic.utils.isLocalMediaId
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlin.math.log2
@@ -178,11 +177,7 @@ fun PlayerMenu(
     val isExported = remember(exportedSongIds, mediaMetadata.id) { exportedSongIds.split(",").contains(mediaMetadata.id) }
 
     // 2.x · Karaoke propio (beta): solo para canciones que ya estan en el telefono.
-    val (karaokePropio) = rememberPreference(key = com.cglabs.lifemusic.constants.KaraokePropioKey, defaultValue = false)
-    val enElTelefono = download?.state == Download.STATE_COMPLETED || mediaMetadata.id.isLocalMediaId()
-    val karaokeHecho = remember(mediaMetadata.id) {
-        com.cglabs.lifemusic.karaoke.KaraokeService.tieneOriginal(context, mediaMetadata.id)
-    }
+    val karaoke = opcionesKaraoke(mediaMetadata.id, mediaMetadata.title, download?.state == Download.STATE_COMPLETED, onDismiss)
 
     var showListenTogetherDialog by rememberSaveable {
         mutableStateOf(false)
@@ -645,51 +640,9 @@ fun PlayerMenu(
             }
         }
 
-        if (karaokePropio && enElTelefono) {
+        if (karaoke.isNotEmpty()) {
             item { Spacer(modifier = Modifier.height(12.dp)) }
-            item {
-                Material3MenuGroup(
-                    items = buildList {
-                        add(
-                            Material3MenuItemData(
-                                title = { Text(text = stringResource(R.string.karaoke_preparar)) },
-                                description = { Text(text = stringResource(R.string.karaoke_preparar_desc)) },
-                                icon = {
-                                    Icon(
-                                        painter = painterResource(R.drawable.mic),
-                                        contentDescription = null,
-                                    )
-                                },
-                                onClick = {
-                                    onDismiss()
-                                    com.cglabs.lifemusic.karaoke.KaraokeService.preparar(context, mediaMetadata.id, mediaMetadata.title)
-                                    android.widget.Toast.makeText(context, context.getString(R.string.karaoke_en_cola), android.widget.Toast.LENGTH_LONG).show()
-                                }
-                            )
-                        )
-                        if (karaokeHecho) {
-                            add(
-                                Material3MenuItemData(
-                                    title = { Text(text = stringResource(R.string.karaoke_volver)) },
-                                    description = { Text(text = stringResource(R.string.karaoke_volver_desc)) },
-                                    icon = {
-                                        Icon(
-                                            painter = painterResource(R.drawable.lyrics),
-                                            contentDescription = null,
-                                        )
-                                    },
-                                    onClick = {
-                                        onDismiss()
-                                        coroutineScope.launch(Dispatchers.IO) {
-                                            com.cglabs.lifemusic.karaoke.KaraokeService.volverAlOriginal(context, database, mediaMetadata.id)
-                                        }
-                                    }
-                                )
-                            )
-                        }
-                    }
-                )
-            }
+            item { Material3MenuGroup(items = karaoke) }
         }
 
         item { Spacer(modifier = Modifier.height(12.dp)) }

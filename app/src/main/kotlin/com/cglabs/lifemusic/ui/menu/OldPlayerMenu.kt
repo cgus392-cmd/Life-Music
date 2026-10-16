@@ -110,6 +110,9 @@ fun OldPlayerMenu(
 
     val download by LocalDownloadUtil.current.getDownload(mediaMetadata.id).collectAsState(initial = null)
 
+    // 2.x · Karaoke propio (beta): solo para canciones que ya estan en el telefono.
+    val karaoke = opcionesKaraoke(mediaMetadata.id, mediaMetadata.title, download?.state == Download.STATE_COMPLETED, onDismiss)
+
     val listenTogetherManager = LocalListenTogetherManager.current
     val isListenTogetherGuest by listenTogetherManager?.guestPlaybackRestricted?.collectAsState(initial = false) ?: remember { mutableStateOf(false) }
 
@@ -575,9 +578,14 @@ fun OldPlayerMenu(
             )
         }
 
+        if (karaoke.isNotEmpty()) {
+            item { Spacer(modifier = Modifier.height(12.dp)) }
+            item { Material3MenuGroup(items = karaoke) }
+        }
+
         item { Spacer(modifier = Modifier.height(12.dp)) }
 
-        
+
         item {
             Material3MenuGroup(
                 items = buildList {
