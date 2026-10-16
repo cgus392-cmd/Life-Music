@@ -189,3 +189,6 @@
 # campos por su nombre (OfflineTtsConfig, GeneratedAudio...). Si R8 los renombra o
 # los quita, la app se cierra al hablar. Su AAR trae el proguard.txt vacio.
 -keep class com.k2fsa.sherpa.onnx.** { *; }
+
+# 2.x · Karaoke propio: ONNX Runtime (separacion de voz) llama por JNI a sus clases Java.
+-keep class ai.onnxruntime.** { *; }

@@ -1056,6 +1056,9 @@ val AuroraActivaKey = booleanPreferencesKey("auroraActiva")
 /** 2.0 · Nova, el DJ con voz (vista previa). Apagada de fábrica. Ficha: docs/versiones/2.0/nova.md. */
 val NovaActivaKey = booleanPreferencesKey("novaActiva")
 
+/** 2.x · Karaoke propio: palabra por palabra para letras por línea (beta). Apagado de fábrica. Ficha: docs/versiones/2.0/karaoke.md. */
+val KaraokePropioKey = booleanPreferencesKey("karaokePropio")
+
 /** 2.0 · Nova · Personalizar (tanda 5). Vacio = «Nova». */
 val NovaNombreKey = stringPreferencesKey("novaNombre")
 

@@ -321,6 +321,12 @@
             android:exported="false"
             android:foregroundServiceType="dataSync" />
 
+        <!-- 2.x · Karaoke propio: prepara la letra palabra por palabra en segundo plano -->
+        <service
+            android:name=".karaoke.KaraokeService"
+            android:exported="false"
+            android:foregroundServiceType="dataSync" />
+
         <service
             android:name="androidx.work.impl.foreground.SystemForegroundService"
             android:foregroundServiceType="dataSync"

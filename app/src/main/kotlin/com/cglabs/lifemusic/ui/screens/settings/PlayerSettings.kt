@@ -131,6 +131,10 @@ highlightKey: String? = null) {
         com.cglabs.lifemusic.constants.NovaActivaKey,
         defaultValue = false
     )
+    val (karaokePropio, onKaraokePropioChange) = rememberPreference(
+        com.cglabs.lifemusic.constants.KaraokePropioKey,
+        defaultValue = false
+    )
     val (crossfadeDuration, onCrossfadeDurationChange) = rememberPreference(
         CrossfadeDurationKey,
         defaultValue = 5f
@@ -616,6 +620,30 @@ highlightKey: String? = null) {
                         )
                     },
                     onClick = { onNovaActivaChange(!novaActiva) }
+                ))
+
+                // 2.x · Karaoke propio (beta): palabra por palabra en letras por linea.
+                add(Material3SettingsItem(
+                    isHighlighted = (highlightKey == stringResource(R.string.karaoke_propio)),
+                    icon = painterResource(R.drawable.mic),
+                    title = { Text(stringResource(R.string.karaoke_propio)) },
+                    description = { Text(stringResource(R.string.karaoke_propio_desc)) },
+                    trailingContent = {
+                        Switch(
+                            checked = karaokePropio,
+                            onCheckedChange = onKaraokePropioChange,
+                            thumbContent = {
+                                Icon(
+                                    painter = painterResource(
+                                        id = if (karaokePropio) R.drawable.check else R.drawable.close
+                                    ),
+                                    contentDescription = null,
+                                    modifier = Modifier.size(SwitchDefaults.IconSize)
+                                )
+                            }
+                        )
+                    },
+                    onClick = { onKaraokePropioChange(!karaokePropio) }
                 ))
 
                 add(Material3SettingsItem(

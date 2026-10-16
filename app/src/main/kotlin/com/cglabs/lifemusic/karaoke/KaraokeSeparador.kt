@@ -23,13 +23,18 @@ import kotlin.math.sin
  * por bloques de ~5,9 s leyendo y escribiendo a disco, para no cargar la cancion
  * entera en memoria. Deja la voz en mono a 44,1 kHz (float little-endian).
  *
- * Solo depuracion: usa el onnxruntime-android del spike de MDX-Net.
+ * Memoria: sin arena ni patrones de ONNX Runtime. En el spike, con ellos, la app
+ * llego a 1,7 GB y Android la cerro; aqui cada bloque suelta lo suyo.
  */
 class KaraokeSeparador(modelo: File) : AutoCloseable {
     private val env = OrtEnvironment.getEnvironment()
     private val sesion = env.createSession(
         modelo.absolutePath,
-        OrtSession.SessionOptions().apply { setIntraOpNumThreads(4) },
+        OrtSession.SessionOptions().apply {
+            setIntraOpNumThreads(4)
+            setCPUArenaAllocator(false)
+            setMemoryPatternOptimization(false)
+        },
     )
     private val entrada = sesion.inputNames.first()
 
@@ -48,7 +53,7 @@ class KaraokeSeparador(modelo: File) : AutoCloseable {
      * [voz] la voz principal en mono. [invertir]: si el modelo da el acompañamiento,
      * la voz es la mezcla menos su salida.
      */
-    fun separar(estereo: File, voz: File, invertir: Boolean = false): Long {
+    fun separar(estereo: File, voz: File, invertir: Boolean = false, avance: (Float) -> Unit = {}): Long {
         val inicio = System.currentTimeMillis()
         RandomAccessFile(estereo, "r").use { lector ->
             val total = (lector.length() / 8).toInt() // muestras por canal
@@ -70,8 +75,9 @@ class KaraokeSeparador(modelo: File) : AutoCloseable {
                     salida.write(buf.array())
                     i += util
                     bloques++
+                    avance((i.toFloat() / total).coerceAtMost(1f))
                 }
-                Log.i("KaraokeSpike", "separacion: $bloques bloques en ${System.currentTimeMillis() - inicio} ms")
+                Log.i("LifeMusicKaraoke", "separacion: $bloques bloques en ${System.currentTimeMillis() - inicio} ms")
             }
         }
         return System.currentTimeMillis() - inicio

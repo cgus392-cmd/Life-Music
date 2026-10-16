@@ -1332,4 +1332,29 @@
     <string name="menu_foto_actividad_desc">Historial y estadísticas</string>
     <string name="menu_foto_juntos">Escuchar juntos</string>
     <string name="menu_foto_juntos_desc">La misma canción, al mismo tiempo</string>
+    <!-- 2.x · Karaoke propio (beta) -->
+    <string name="karaoke_propio">Karaoke Life Music (beta)</string>
+    <string name="karaoke_propio_desc">Palabra por palabra para las letras que solo van por línea. Canciones descargadas o locales, se preparan una vez en segundo plano</string>
+    <string name="karaoke_preparar">Preparar karaoke (beta)</string>
+    <string name="karaoke_preparar_desc">Palabra por palabra para esta letra, en segundo plano</string>
+    <string name="karaoke_en_cola">Preparando el karaoke. Puedes salir de la app: la notificación te avisa cuando esté listo</string>
+    <string name="karaoke_volver">Volver a la letra original</string>
+    <string name="karaoke_volver_desc">Quita la sincronía palabra por palabra que hizo la app</string>
+    <string name="karaoke_canal">Karaoke</string>
+    <string name="karaoke_preparando">Preparando karaoke…</string>
+    <string name="karaoke_esta_cancion">Esta canción</string>
+    <string name="karaoke_etapa_esperando">Esperando su turno</string>
+    <string name="karaoke_etapa_leyendo">Leyendo la canción</string>
+    <string name="karaoke_etapa_modelo">Alistando el modelo (solo la primera vez)</string>
+    <string name="karaoke_etapa_escuchando">Escuchando la voz</string>
+    <string name="karaoke_etapa_separando">Separando la voz de la música</string>
+    <string name="karaoke_listo">Karaoke listo · %1$s</string>
+    <string name="karaoke_listo_desc">La letra ya se ilumina palabra por palabra. Se oyó el %1$d %% de las palabras en la canción; las demás se reparten por sílabas.</string>
+    <string name="karaoke_no_se_pudo">Sin karaoke para %1$s</string>
+    <string name="karaoke_falta_letra">Todavía no hay letra guardada. Ponla una vez con la letra abierta y vuelve a intentar.</string>
+    <string name="karaoke_ya_tiene">Esta letra ya viene palabra por palabra.</string>
+    <string name="karaoke_sin_sincronia">Esta letra no está sincronizada por línea.</string>
+    <string name="karaoke_sin_audio">La canción no está completa en el teléfono. Descárgala y vuelve a intentar.</string>
+    <string name="karaoke_necesita_wifi">La primera vez necesita Wi‑Fi para bajar el modelo (103 MB).</string>
+    <string name="karaoke_error">Algo falló al prepararla. La letra queda como estaba.</string>
 </resources>

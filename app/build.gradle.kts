@@ -439,7 +439,8 @@ dependencies {
     // debugImplementation y no implementation: son ~18 MB en el APK universal, y
     // mientras la funcion este en pausa nada de produccion los usa. El spike vive
     // en src/debug/kotlin justamente para que esto se pueda hacer.
-    debugImplementation(libs.onnxruntime.android)
+    // Ahora tambien en release: el karaoke propio separa la voz con UVR MDX-Net (2.x, beta).
+    implementation(libs.onnxruntime.android)
 
     // 2.0 · Nova, la voz HD: sherpa-onnx (Apache-2.0) con onnxruntime enlazado adentro,
     // bajado de github.com/k2-fsa/sherpa-onnx/releases v1.13.8 (sha256 b22c3fc1...5471).

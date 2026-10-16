@@ -1712,4 +1712,29 @@
     <string name="menu_foto_actividad_desc">History and stats</string>
     <string name="menu_foto_juntos">Listen together</string>
     <string name="menu_foto_juntos_desc">The same song, at the same time</string>
+    <!-- 2.x · Karaoke propio (beta) -->
+    <string name="karaoke_propio">Life Music karaoke (beta)</string>
+    <string name="karaoke_propio_desc">Word by word for lyrics that only sync by line. Downloaded or local songs, prepared once in the background</string>
+    <string name="karaoke_preparar">Prepare karaoke (beta)</string>
+    <string name="karaoke_preparar_desc">Word by word for these lyrics, in the background</string>
+    <string name="karaoke_en_cola">Preparing the karaoke. You can leave the app: the notification tells you when it is ready</string>
+    <string name="karaoke_volver">Back to the original lyrics</string>
+    <string name="karaoke_volver_desc">Removes the word-by-word sync made by the app</string>
+    <string name="karaoke_canal">Karaoke</string>
+    <string name="karaoke_preparando">Preparing karaoke…</string>
+    <string name="karaoke_esta_cancion">This song</string>
+    <string name="karaoke_etapa_esperando">Waiting its turn</string>
+    <string name="karaoke_etapa_leyendo">Reading the song</string>
+    <string name="karaoke_etapa_modelo">Getting the model ready (once only)</string>
+    <string name="karaoke_etapa_escuchando">Listening to the voice</string>
+    <string name="karaoke_etapa_separando">Separating the voice from the music</string>
+    <string name="karaoke_listo">Karaoke ready · %1$s</string>
+    <string name="karaoke_listo_desc">The lyrics now light up word by word. %1$d %% of the words were heard in the song; the rest are spread by syllables.</string>
+    <string name="karaoke_no_se_pudo">No karaoke for %1$s</string>
+    <string name="karaoke_falta_letra">There are no saved lyrics yet. Play it once with the lyrics open and try again.</string>
+    <string name="karaoke_ya_tiene">These lyrics already come word by word.</string>
+    <string name="karaoke_sin_sincronia">These lyrics are not synced by line.</string>
+    <string name="karaoke_sin_audio">The song is not fully on the phone. Download it and try again.</string>
+    <string name="karaoke_necesita_wifi">The first time it needs Wi-Fi to get the model (103 MB).</string>
+    <string name="karaoke_error">Something went wrong while preparing it. The lyrics stay as they were.</string>
 </resources>
