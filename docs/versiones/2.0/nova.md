@@ -1,6 +1,6 @@
 # Ficha técnica · Modo DJ «Nova»
 
-**Versión:** 2.0 · **Capa:** 1 (funciones nuevas) · **Fase:** 3 (ejecución) · **Estado:** APROBADA por CG el 2026-10-15
+**Versión:** 2.0 · **Capa:** 1 (funciones nuevas) · **Fase:** 4 (pruebas) · **Estado:** BETA cerrada por CG el 2026-10-15 («todo va bien»)
 **Idea de:** CG, 2026-10-15 · **Diseño aprobado:** `Brand/maquetas/2026-10-15-nova-dj.png` y `.html` (medidas en el CSS)
 
 ## 1. Qué es
@@ -239,3 +239,30 @@ CG aprobó la ficha con «sigue lo que recomendaciones» y «no sigas el v2 de n
   que ya existía. Salen del plan el dial y el bloque que iban a ir en el reproductor (la antigua tanda 4).
 - **Los anuncios son más cortos** («Lo de siempre: …», «Volvamos a 2024: …»), de unos 4 a 6 s.
 - **La simplicidad es una regla de Nova:** que la persona nunca dude qué tocar.
+
+## 11. Cierre de la beta (2026-10-15, noche)
+
+CG la probó en su S25 y la cerró como **beta** («todo va bien»). Quedó así:
+
+- **Lo que hace:**
+  - interruptor «Nova, tu DJ (beta)»;
+  - la estrella para invocarla;
+  - la cabina con el personaje «A · La mirada» y sus gestos;
+  - la radio por bloques;
+  - habla en cada canción, de fábrica;
+  - 4 estilos con datos reales;
+  - Personalizar.
+- **Las voces:**
+  - la voz del teléfono;
+  - 8 voces HD (Piper y Kokoro) en 3 calidades;
+  - prueba de capacidad por teléfono;
+  - frase preparada 20 s antes;
+  - la música espera a Nova y baja al instante al tocar («Sintonizando…»).
+- **Ideas para después:**
+  - la pantalla «Dale voz a Nova» (maqueta 5);
+  - las cuñas grabadas;
+  - los datos de Wikipedia y MusicBrainz;
+  - la IA propia;
+  - la voz exclusiva (2.1);
+  - hablar mientras se genera la frase (streaming de sherpa) para las voces lentas.
+- **Antes de publicar:** decidir qué pasa con el AAR de sherpa-onnx, que está fuera de Git.
