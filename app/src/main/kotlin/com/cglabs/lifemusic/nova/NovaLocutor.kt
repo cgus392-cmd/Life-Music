@@ -262,7 +262,14 @@ class NovaLocutor(
         } else {
             "Cambio de onda. "
         }
-        val texto = cabeza + NovaFrases.anuncio(bloque, NovaSesion.datoDe(primera.id), nueva)
+        val anuncio = NovaFrases.anuncio(bloque, NovaSesion.datoDe(primera.id), nueva)
+        // Con una voz lenta, la frase larga podria pasarse del tope y la musica arrancaria sin
+        // Nova (paso con Daniela: 8,6 s de voz en 12 s). Se elige la mas larga que alcanza.
+        val texto = listOf(
+            cabeza + anuncio,
+            (if (alEncender) "Soy $nombreDJ. " else "") + anuncio,
+            anuncio,
+        ).firstOrNull { alcanza(it) } ?: anuncio
         if (soloSubtitulos || mezcla.transmitiendo()) return Anuncio(primera.id, texto, null)
         val archivo = File(contexto.cacheDir, "nova/anuncio.wav")
         val inicio = SystemClock.elapsedRealtime()
@@ -316,6 +323,18 @@ class NovaLocutor(
             android.util.Log.i(ETIQUETA, "la voz no alcanzo en $topeMs ms")
             false
         }
+    }
+
+    /**
+     * Si la frase alcanza a estar lista dentro del tope, segun lo que midio la prueba
+     * de esta voz en este telefono (unos 14 caracteres por segundo de voz, con margen).
+     */
+    private fun alcanza(texto: String): Boolean {
+        val (voz, calidad) = elegidaHD ?: return true
+        val porSegundo = NovaCapacidad.medido(contexto, voz.clave(calidad)) ?: return true
+        val segundosDeVoz = texto.length / 14f
+        val estimadoMs = segundosDeVoz * porSegundo * 1000f * 1.35f
+        return estimadoMs <= esperaMaxima() * 0.85f
     }
 
     /** Cuanto espera la musica a Nova: mas con una voz que tarda en este telefono. */

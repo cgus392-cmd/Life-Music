@@ -1837,6 +1837,9 @@ class MusicService :
     // Se multiplica donde se fija el volumen, asi no pelea con el foco de audio,
     // el silencio ni el volumen de la persona. Ficha: docs/versiones/2.0/nova.md.
     private var duckNova = 1f
+
+    /** Lo que baja la musica mientras Nova sintoniza (encender, estacion, cambiar de onda). */
+    private val NIVEL_SINTONIZANDO = 0.35f
     private var nova: com.cglabs.lifemusic.nova.NovaLocutor? = null
     private val novaJob = kotlinx.coroutines.SupervisorJob()
     private val novaScope = CoroutineScope(Dispatchers.Main + novaJob)
@@ -2071,13 +2074,19 @@ class MusicService :
         com.cglabs.lifemusic.nova.NovaSesion.empezar(desde)
         novaArranque?.cancel()
         novaArranque = scope.launch {
-            val items = withContext(Dispatchers.IO) { com.cglabs.lifemusic.nova.NovaSesion.siguienteBloque(database) }
+            val items = sintonizando {
+                withContext(Dispatchers.IO) { com.cglabs.lifemusic.nova.NovaSesion.siguienteBloque(database) }
+            }
             if (items.isEmpty()) {
                 com.cglabs.lifemusic.nova.NovaSesion.apagar()
+                volverDeSintonizar()
                 avisarEstacionVacia()
                 return@launch
             }
-            val anuncio = items.first().metadata?.let { nova?.prepararAnuncio(alEncender = true, primera = it) }
+            val anuncio = sintonizando {
+                items.first().metadata?.let { nova?.prepararAnuncio(alEncender = true, primera = it) }
+            }
+            // playQueue devuelve el volumen con su propio fundido.
             playQueue(com.cglabs.lifemusic.nova.NovaQueue(database, inicial = items))
             anuncio?.let { nova?.decirAnuncio(it) }
         }
@@ -2094,10 +2103,11 @@ class MusicService :
         }
         novaArranque?.cancel()
         novaArranque = scope.launch {
-            val items = withContext(Dispatchers.IO) {
-                com.cglabs.lifemusic.nova.NovaSesion.bloqueElegido(database, bloque)
+            val items = sintonizando {
+                withContext(Dispatchers.IO) { com.cglabs.lifemusic.nova.NovaSesion.bloqueElegido(database, bloque) }
             }
             if (items.isEmpty()) {
+                volverDeSintonizar()
                 avisarEstacionVacia()
                 return@launch
             }
@@ -2109,7 +2119,9 @@ class MusicService :
     fun apagarNova() {
         novaArranque?.cancel()
         com.cglabs.lifemusic.nova.NovaSesion.apagar()
+        com.cglabs.lifemusic.nova.NovaSesion.sintonizar(false)
         nova?.callar()
+        mezclaNova.devolver()
     }
 
     /**
@@ -2120,24 +2132,55 @@ class MusicService :
         if (!com.cglabs.lifemusic.nova.NovaSesion.alAire.value) return
         novaArranque?.cancel()
         novaArranque = scope.launch {
-            val items = withContext(Dispatchers.IO) {
-                com.cglabs.lifemusic.nova.NovaSesion.siguienteBloque(database)
+            val items = sintonizando {
+                withContext(Dispatchers.IO) { com.cglabs.lifemusic.nova.NovaSesion.siguienteBloque(database) }
             }
-            if (items.isEmpty()) return@launch
+            if (items.isEmpty()) {
+                volverDeSintonizar()
+                return@launch
+            }
             ponerBloqueConAnuncio(items)
         }
     }
 
-    /** Prepara la frase del bloque y, ya lista, salta a el y la dice. */
+    /**
+     * Prepara la frase del bloque (la musica ya bajo, «Sintonizando…») y, ya lista,
+     * salta a el y la dice. Si la voz no alcanzo, salta igual y la musica vuelve a
+     * su volumen: el cambio sigue siendo la respuesta a tu toque.
+     */
     private suspend fun ponerBloqueConAnuncio(items: List<MediaItem>) {
-        val anuncio = items.first().metadata?.let { nova?.prepararAnuncio(alEncender = false, primera = it) }
+        val anuncio = sintonizando {
+            items.first().metadata?.let { nova?.prepararAnuncio(alEncender = false, primera = it) }
+        }
         if (!playerInitialized.value) return
         val indice = player.currentMediaItemIndex
         if (indice + 1 < player.mediaItemCount) player.removeMediaItems(indice + 1, player.mediaItemCount)
         player.addMediaItems(items)
         player.currentMediaItem?.mediaId?.let { sinSenalNova += it }
         player.seekToNextMediaItem()
-        anuncio?.let { nova?.decirAnuncio(it) }
+        if (anuncio != null) nova?.decirAnuncio(anuncio) else volverDeSintonizar()
+    }
+
+    /**
+     * 2.0 · Al tocar encender, una estacion o «Cambiar de onda», lo que suena baja
+     * enseguida y la cabina dice «Sintonizando…»: se nota que Nova te escucho, y el
+     * cambio llega como respuesta al toque (CG, 15-10: «se adelanto sola»).
+     */
+    private suspend fun <T> sintonizando(paso: suspend () -> T): T {
+        com.cglabs.lifemusic.nova.NovaSesion.sintonizar(true)
+        if (playerInitialized.value && player.isPlaying && duckNova > NIVEL_SINTONIZANDO) {
+            llevarDuckNova(NIVEL_SINTONIZANDO, 350)
+        }
+        try {
+            return paso()
+        } finally {
+            com.cglabs.lifemusic.nova.NovaSesion.sintonizar(false)
+        }
+    }
+
+    /** La musica vuelve suave a su volumen cuando Nova no llega a hablar. */
+    private suspend fun volverDeSintonizar() {
+        if (duckNova < 1f) llevarDuckNova(1f, 600)
     }
 
     private fun avisarEstacionVacia() {

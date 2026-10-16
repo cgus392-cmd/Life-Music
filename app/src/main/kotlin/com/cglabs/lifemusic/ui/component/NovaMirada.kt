@@ -59,6 +59,7 @@ fun rememberEstadoNova(): Pair<EstadoNova, Float> {
     val alAire by NovaSesion.alAire.collectAsState()
     val habla by NovaSesion.hablando.collectAsState()
     val pensando by NovaSesion.pensando.collectAsState()
+    val sintonizando by NovaSesion.sintonizando.collectAsState()
     val conexion = LocalPlayerConnection.current
     val sonando by (conexion?.isPlaying ?: remember { MutableStateFlow(false) }).collectAsState()
 
@@ -74,7 +75,7 @@ fun rememberEstadoNova(): Pair<EstadoNova, Float> {
     val estado = when {
         hablando != null -> EstadoNova.HABLA
         habla?.terminada == true -> EstadoNova.TERMINO
-        pensando -> EstadoNova.PIENSA
+        pensando || sintonizando -> EstadoNova.PIENSA
         alAire && !sonando -> EstadoNova.ESPERA
         alAire -> EstadoNova.ESCUCHA
         else -> EstadoNova.APAGADA

@@ -64,6 +64,19 @@ object NovaSesion {
         _gestos.tryEmit(gesto)
     }
 
+    private val _sintonizando = MutableStateFlow(false)
+
+    /**
+     * Se toco encender, una estacion o «Cambiar de onda» y Nova esta armando el bloque
+     * y su frase: la musica ya bajo y la cabina dice «Sintonizando…». Asi el cambio
+     * llega como respuesta al toque, no como un salto de la nada (CG, 15-10).
+     */
+    val sintonizando: StateFlow<Boolean> = _sintonizando.asStateFlow()
+
+    fun sintonizar(si: Boolean) {
+        _sintonizando.value = si
+    }
+
     private val _pensando = MutableStateFlow(false)
 
     /** Prepara la frase (0,3 a 0,6 s): su mirada sube y una chispa orbita. */

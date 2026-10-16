@@ -94,6 +94,7 @@ private fun NovaCabina(alCerrar: () -> Unit) {
     val alAire by NovaSesion.alAire.collectAsState()
     val estado by NovaSesion.estado.collectAsState()
     val habla by NovaSesion.hablando.collectAsState()
+    val sintonizando by NovaSesion.sintonizando.collectAsState()
     val cancion by conexion.mediaMetadata.collectAsState()
     val colores = rememberColoresAurora()
     val esquema = MaterialTheme.colorScheme
@@ -164,6 +165,10 @@ private fun NovaCabina(alCerrar: () -> Unit) {
             when {
                 h != null -> {
                     principal = h.texto
+                    secundario = null
+                }
+                sintonizando -> {
+                    principal = stringResource(R.string.nova_sintonizando)
                     secundario = null
                 }
                 alAire && e != null -> {
