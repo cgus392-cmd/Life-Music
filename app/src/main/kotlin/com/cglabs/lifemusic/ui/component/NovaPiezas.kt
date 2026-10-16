@@ -12,6 +12,7 @@ import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -88,6 +89,26 @@ internal val LetraNova = FontFamily(
 
 /** La luz de la cabina de CG LABS: naranja fijo, no cambia con el tema. */
 private val NARANJA_AL_AIRE = Color(0xFFFF5B2E)
+
+/**
+ * La etiqueta BETA: Nova es una vista previa (pedido de CG, 15-10), igual que la
+ * barra Aurora. Discreta, con el color terciario del tema.
+ */
+@Composable
+fun EtiquetaBeta(modifier: Modifier = Modifier) {
+    val esquema = MaterialTheme.colorScheme
+    Text(
+        text = stringResource(R.string.nova_beta),
+        color = esquema.tertiary,
+        fontSize = 10.sp,
+        fontWeight = FontWeight.SemiBold,
+        letterSpacing = 0.16.em,
+        maxLines = 1,
+        modifier = modifier
+            .border(1.dp, esquema.tertiary.copy(alpha = 0.6f), RoundedCornerShape(5.dp))
+            .padding(horizontal = 7.dp, vertical = 3.dp),
+    )
+}
 
 /** La luz AL AIRE. Apagada queda como un contorno tenue: la luz esta, pero no se prende. */
 @Composable

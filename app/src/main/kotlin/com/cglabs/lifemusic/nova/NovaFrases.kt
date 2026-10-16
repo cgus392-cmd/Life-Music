@@ -42,6 +42,78 @@ object NovaFrases {
         }
     }
 
+    /** Lo que se sabe DE VERDAD de la que viene: de aqui sale el alma de la frase sin inventar nada. */
+    data class Hechos(val meGusta: Boolean, val veces: Int, val diasDesdeLaUltima: Long?)
+
+    /**
+     * La personalidad de Nova (pedido de CG, 15-10: «que el DJ se apropie de la
+     * musica»). El estilo cambia como lo dice; los datos siempre son ciertos.
+     */
+    enum class Estilo { CALIDA, ENERGICA, BREVE, CURIOSA }
+
+    /** Para leer el estilo guardado en ajustes. */
+    fun estilo(valor: String?) = Estilo.entries.firstOrNull { it.name.equals(valor, ignoreCase = true) } ?: Estilo.CALIDA
+
+    /** Cuantas plantillas sueltas tiene cada estilo: quien llama elige una sin repetir. */
+    const val VARIANTES = 4
+
+    /**
+     * Lo que dice Nova cuando termina una cancion y empieza otra, con su estilo.
+     * Reglas de verdad: «te gusta» solo con «me gusta» o 8 escuchas o mas; «hace
+     * rato no sonaba» solo si fue hace un mes o mas; «primera vez» solo si nunca
+     * sono; «la has escuchado N veces» con el numero real. Lo demas («de esas que
+     * pegan con el alma», «sube el volumen») es estilo, no un dato.
+     */
+    fun entreCanciones(estilo: Estilo, anterior: Pista?, nueva: Pista, hechos: Hechos?, eleccion: Int): String {
+        val titulo = tituloHablado(nueva.titulo)
+        val artista = artistasHablados(nueva.artistas)
+        val cancion = titulo + artista?.let { ", de $it" }.orEmpty()
+        val mismoArtista = artista != null && artista == anterior?.let { artistasHablados(it.artistas) }
+        val nunca = hechos != null && hechos.veces == 0
+        val favorita = hechos != null && (hechos.meGusta || hechos.veces >= 8)
+        val dias = hechos?.diasDesdeLaUltima?.takeIf { it >= 30 }
+        val i = Math.floorMod(eleccion, VARIANTES)
+        fun una(vararg opciones: String) = opciones[Math.floorMod(eleccion, opciones.size)]
+
+        return when (estilo) {
+            Estilo.CALIDA -> when {
+                mismoArtista -> "Seguimos con $artista, que no se va: $titulo."
+                nunca -> una("Algo nuevo para ti, escúchala con calma: $cancion.", "Te traigo una que todavía no conoces: $cancion.")
+                favorita -> una("Esta te gusta, lo sé: $cancion.", "Una de las tuyas: $cancion.")
+                dias != null -> "Hace rato no sonaba, y hoy vuelve: $cancion."
+                else -> when (i) {
+                    0 -> "Ahora vamos con una de esas que pegan con el alma: $cancion."
+                    1 -> "Ahora viene $cancion."
+                    2 -> "Ahora toca esta: $cancion."
+                    else -> "Mira lo que sigue: $cancion."
+                }
+            }
+            Estilo.ENERGICA -> when {
+                mismoArtista -> "¡Más de $artista! $titulo."
+                nunca -> "¡Estreno en tu radio! $cancion."
+                favorita -> "¡De tus favoritas! $cancion."
+                dias != null -> "¡Volvió! $cancion."
+                else -> una("¡Sube el volumen! $cancion.", "¡Seguimos arriba! $cancion.", "¡Esta pega duro! $cancion.")
+            }
+            Estilo.BREVE -> if (mismoArtista) "Más de $artista: $titulo." else "Ahora: $cancion."
+            Estilo.CURIOSA -> when {
+                nunca -> "Primera vez que suena en tu teléfono: $cancion."
+                hechos != null && hechos.veces >= 2 -> "La has escuchado ${hechos.veces} veces: $cancion."
+                dias != null -> "La última vez que sonó fue hace $dias días: $cancion."
+                mismoArtista -> "Seguimos con $artista: $titulo."
+                else -> "Ahora suena $cancion."
+            }
+        }
+    }
+
+    /** La muestra de cada estilo, para oirla en Personalizar. */
+    fun muestra(estilo: Estilo, nombreDJ: String): String = when (estilo) {
+        Estilo.CALIDA -> "Hola, soy $nombreDJ. Ahora vamos con una de esas que pegan con el alma."
+        Estilo.ENERGICA -> "¡Hola, soy $nombreDJ! ¡Sube el volumen, que esto se pone bueno!"
+        Estilo.BREVE -> "Soy $nombreDJ. Ahora: tu música."
+        Estilo.CURIOSA -> "Soy $nombreDJ. Te voy contando cuántas veces escuchaste cada canción."
+    }
+
     /**
      * Sobre el final de la que suena, cuando la siguiente arranca cantando: como
      * en la radio, no se habla encima del cantante. Con [bloque], la siguiente abre

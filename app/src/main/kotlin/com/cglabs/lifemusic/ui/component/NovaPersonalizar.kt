@@ -11,10 +11,12 @@ import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -67,7 +69,9 @@ fun NovaPersonalizar(alVolver: () -> Unit) {
     val (comoTeDice, alCambiarComoTeDice) = rememberPreference(NovaComoTeDiceKey, defaultValue = "")
     val cuenta by rememberPreference(AccountNameKey, defaultValue = "")
     val (region, alCambiarRegion) = rememberPreference(NovaRegionKey, defaultValue = "latam")
-    val (cada, alCambiarCada) = rememberPreference(NovaCadaKey, defaultValue = 4)
+    val (cada, alCambiarCada) = rememberPreference(NovaCadaKey, defaultValue = 1)
+    val (estiloGuardado, alCambiarEstilo) = rememberPreference(com.cglabs.lifemusic.constants.NovaEstiloKey, defaultValue = "calida")
+    val estilo = NovaFrases.estilo(estiloGuardado)
     val (soloSubtitulos, alCambiarSoloSubtitulos) = rememberPreference(NovaSoloSubtitulosKey, defaultValue = false)
     val (vozHD, alCambiarVozHD) = rememberPreference(com.cglabs.lifemusic.constants.NovaVozHDKey, defaultValue = "")
 
@@ -84,6 +88,8 @@ fun NovaPersonalizar(alVolver: () -> Unit) {
                 Icon(painterResource(R.drawable.arrow_back), contentDescription = stringResource(R.string.nova_volver))
             }
             Text(stringResource(R.string.nova_tu_dj), style = MaterialTheme.typography.titleLarge)
+            Spacer(Modifier.width(10.dp))
+            EtiquetaBeta()
         }
 
         // Su nombre, con la estrella al lado: asi se presenta.
@@ -176,21 +182,61 @@ fun NovaPersonalizar(alVolver: () -> Unit) {
         // Las voces HD: se bajan una vez y funcionan sin internet.
         SeccionVocesHD(vozElegida = vozHD, alElegir = alCambiarVozHD)
 
-        // Cuanto habla: de 2 a 8 canciones; tambien es el largo de cada bloque.
+        // Su estilo: como lo dice (CG: «que el DJ se apropie de la musica»). Tocar uno lo deja
+        // elegido y Nova lo dice en ese estilo.
+        Spacer(Modifier.height(18.dp))
+        Rotulo(stringResource(R.string.nova_su_estilo))
+        Row(
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            modifier = Modifier
+                .fillMaxWidth()
+                .horizontalScroll(rememberScrollState()),
+        ) {
+            listOf(
+                NovaFrases.Estilo.CALIDA to R.string.nova_estilo_calida,
+                NovaFrases.Estilo.ENERGICA to R.string.nova_estilo_energica,
+                NovaFrases.Estilo.BREVE to R.string.nova_estilo_breve,
+                NovaFrases.Estilo.CURIOSA to R.string.nova_estilo_curiosa,
+            ).forEach { (e, rotulo) ->
+                FilterChip(
+                    selected = e == estilo,
+                    onClick = {
+                        alCambiarEstilo(e.name.lowercase())
+                        conexion?.service?.probarVozNova(estilo = e.name.lowercase())
+                    },
+                    label = { Text(stringResource(rotulo)) },
+                )
+            }
+        }
+        Text(
+            stringResource(
+                when (estilo) {
+                    NovaFrases.Estilo.CALIDA -> R.string.nova_estilo_calida_desc
+                    NovaFrases.Estilo.ENERGICA -> R.string.nova_estilo_energica_desc
+                    NovaFrases.Estilo.BREVE -> R.string.nova_estilo_breve_desc
+                    NovaFrases.Estilo.CURIOSA -> R.string.nova_estilo_curiosa_desc
+                },
+            ),
+            style = MaterialTheme.typography.bodySmall,
+            color = esquema.onSurfaceVariant,
+            modifier = Modifier.padding(top = 4.dp, start = 4.dp),
+        )
+
+        // Cuanto habla: de 1 (cada cancion, de fabrica) a 8.
         Spacer(Modifier.height(18.dp))
         Row(verticalAlignment = Alignment.CenterVertically) {
             Rotulo(stringResource(R.string.nova_cuanto_habla), Modifier.weight(1f))
             Text(
-                stringResource(R.string.nova_cada_n, cada.coerceIn(2, 8)),
+                if (cada <= 1) stringResource(R.string.nova_cada_una) else stringResource(R.string.nova_cada_n, cada.coerceIn(1, 8)),
                 style = MaterialTheme.typography.labelLarge,
                 color = esquema.primary,
             )
         }
         Slider(
-            value = cada.coerceIn(2, 8).toFloat(),
-            onValueChange = { alCambiarCada(it.roundToInt().coerceIn(2, 8)) },
-            valueRange = 2f..8f,
-            steps = 5,
+            value = cada.coerceIn(1, 8).toFloat(),
+            onValueChange = { alCambiarCada(it.roundToInt().coerceIn(1, 8)) },
+            valueRange = 1f..8f,
+            steps = 6,
         )
         Row {
             Text(stringResource(R.string.nova_mucho), style = MaterialTheme.typography.labelSmall, color = esquema.onSurfaceVariant, modifier = Modifier.weight(1f))

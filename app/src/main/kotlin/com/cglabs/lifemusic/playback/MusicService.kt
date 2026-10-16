@@ -956,12 +956,16 @@ class MusicService :
         // Cada cuantas canciones habla: tambien el largo de cada bloque.
         novaScope.launch {
             dataStore.data
-                .map { (it[com.cglabs.lifemusic.constants.NovaCadaKey] ?: 4).coerceIn(2, 8) }
+                .map { (it[com.cglabs.lifemusic.constants.NovaCadaKey] ?: 1).coerceIn(1, 8) }
                 .distinctUntilChanged()
-                .collect {
-                    nova?.cada = it
-                    com.cglabs.lifemusic.nova.NovaArmador.tamano = it
-                }
+                .collect { nova?.cada = it }
+        }
+        // El estilo de Nova: como lo dice.
+        novaScope.launch {
+            dataStore.data
+                .map { com.cglabs.lifemusic.nova.NovaFrases.estilo(it[com.cglabs.lifemusic.constants.NovaEstiloKey]) }
+                .distinctUntilChanged()
+                .collect { nova?.estilo = it }
         }
         novaScope.launch {
             dataStore.data
@@ -1895,6 +1899,30 @@ class MusicService :
         override fun soltarRetencion() {
             if (playerInitialized.value && !player.isPlaying) player.play()
         }
+
+        override suspend fun hechos(id: String): com.cglabs.lifemusic.nova.NovaFrases.Hechos? =
+            withContext(Dispatchers.IO) {
+                runCatching {
+                    val ultima = database.novaUltimaVez(id)
+                    // La base guarda la hora local como si fuera UTC (Converters): se compara igual.
+                    val ahora = java.time.LocalDateTime.now().toInstant(java.time.ZoneOffset.UTC).toEpochMilli()
+                    com.cglabs.lifemusic.nova.NovaFrases.Hechos(
+                        meGusta = database.novaMeGusta(id) == true,
+                        veces = database.novaVeces(id),
+                        diasDesdeLaUltima = ultima?.let { (ahora - it) / 86_400_000L },
+                    )
+                }.getOrNull()
+            }
+
+        override fun porQueNoHabla(): String = buildList {
+            if (!playerInitialized.value) add("reproductor sin iniciar")
+            else if (!player.isPlaying) add("no suena (estado=${player.playbackState}, playWhenReady=${player.playWhenReady})")
+            if (isCrossfading.value) add("mezclando")
+            if (fundidoJob?.isActive == true) add("fundido en curso")
+            if (isMuted.value) add("silencio")
+            if (castConnectionHandler?.isCasting?.value == true) add("transmitiendo")
+            if (lastAudioFocusState == AudioManager.AUDIOFOCUS_LOSS_TRANSIENT_CAN_DUCK) add("otra app pidio bajar")
+        }.ifEmpty { listOf("se acabo la espera") }.joinToString(", ")
     }
 
     /** Cuantas veces se cambio la lista del reproductor: para saber que la cancion elegida ya entro. */
@@ -2015,10 +2043,11 @@ class MusicService :
     private val sinSenalNova: MutableSet<String> = java.util.concurrent.ConcurrentHashMap.newKeySet()
 
     /** 2.0 · Personalizar: una muestra de la voz con el nombre y el acento elegidos. */
-    fun probarVozNova(region: String? = null, vozHD: String? = null) {
+    fun probarVozNova(region: String? = null, vozHD: String? = null, estilo: String? = null) {
         // Lo recien tocado se aplica ya: la preferencia tarda un instante en llegar.
         region?.let { nova?.region(it) }
         vozHD?.let { nova?.elegirVoz(it) }
+        estilo?.let { nova?.estilo = com.cglabs.lifemusic.nova.NovaFrases.estilo(it) }
         nova?.probarVoz()
     }
 

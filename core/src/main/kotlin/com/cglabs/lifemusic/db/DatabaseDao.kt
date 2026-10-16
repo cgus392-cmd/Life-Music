@@ -1390,6 +1390,18 @@ interface DatabaseDao {
     @Query("SELECT MIN(timestamp) FROM event WHERE songId = :songId")
     fun novaPrimeraVez(songId: String): Long?
 
+    /** 2.0 · Nova, estilos: cuantas veces sono una cancion (30 s o mas). */
+    @Query("SELECT COUNT(*) FROM event WHERE songId = :songId")
+    fun novaVeces(songId: String): Int
+
+    /** 2.0 · Nova, estilos: la ultima vez que sono (hora local guardada como UTC, ver Converters). */
+    @Query("SELECT MAX(timestamp) FROM event WHERE songId = :songId")
+    fun novaUltimaVez(songId: String): Long?
+
+    /** 2.0 · Nova, estilos: si tiene «me gusta». */
+    @Query("SELECT liked FROM song WHERE id = :songId")
+    fun novaMeGusta(songId: String): Boolean?
+
     /** 2.0 · Nova: de estas, las que ya sonaron alguna vez (Algo nuevo las quita). */
     @Query("SELECT DISTINCT songId FROM event WHERE songId IN (:ids)")
     fun novaYaSonaron(ids: List<String>): List<String>

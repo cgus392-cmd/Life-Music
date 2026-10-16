@@ -713,7 +713,7 @@
     <!-- Saludo de entrada -->
     <string name="greeting_enabled">Saludo de entrada</string>
     <string name="greeting_enabled_desc">Una frase de la app antes de Inicio, al arrancar en frío</string>
-    <string name="aurora_activa">Barra Aurora 2.0 (vista previa)</string>
+    <string name="aurora_activa">Barra Aurora 2.0 (beta)</string>
     <string name="aurora_activa_desc">Degradado y vidrio en el Inicio. Apagada: la barra de siempre</string>
 
     <!-- Modo ambiente (CG, 2026-09-18) -->
@@ -1172,7 +1172,7 @@
     <string name="boletin_v1131_fundido">Si suena una canción y eliges otra, la que suena baja suave y la nueva entra subiendo, sin el corte en seco. Se apaga en Ajustes → Reproductor.</string>
     <string name="fundido_al_elegir">Fundido al elegir otra canción</string>
     <string name="fundido_al_elegir_desc">La que suena baja suave y la nueva entra subiendo, sin cortes en seco</string>
-    <string name="nova_activa">Nova, tu DJ (vista previa)</string>
+    <string name="nova_activa">Nova, tu DJ (beta)</string>
     <string name="nova_al_aire">AL AIRE</string>
     <string name="nova_encender">Encender a Nova</string>
     <string name="nova_sintonizando">Sintonizando…</string>
@@ -1249,6 +1249,17 @@
     <string name="nova_prevision_no">No disponible en este teléfono</string>
     <string name="nova_prevision_tarda">Puede tardar en tu teléfono</string>
     <string name="nova_probar_otra_vez">Probar otra vez</string>
+    <string name="nova_beta">BETA</string>
+    <string name="nova_su_estilo">Su estilo</string>
+    <string name="nova_estilo_calida">Cálida</string>
+    <string name="nova_estilo_energica">Enérgica</string>
+    <string name="nova_estilo_breve">Breve</string>
+    <string name="nova_estilo_curiosa">Curiosa</string>
+    <string name="nova_estilo_calida_desc">Cercana y con alma: «una de esas que pegan con el alma», «esta te gusta, lo sé».</string>
+    <string name="nova_estilo_energica_desc">Con energía de radio: «¡sube el volumen!», «¡de tus favoritas!».</string>
+    <string name="nova_estilo_breve_desc">Lo justo: «Ahora: canción, de artista».</string>
+    <string name="nova_estilo_curiosa_desc">Con datos reales: «la has escuchado 12 veces», «primera vez que suena en tu teléfono».</string>
+    <string name="nova_cada_una">Cada canción</string>
     <string name="nova_activa_desc">Habla entre canciones con la voz del teléfono. La música baja mientras habla</string>
     <string name="boletin_v1132_intro">La versión que lo reúne todo: temas PRO para el TV, Life Music en cualquier televisor con navegador, un actualizador nuevo, cambios sin cortes, calificación con estrellas y el prerregistro del nuevo concurso. Y el TV con navegador, ahora más seguro.</string>
     <string name="boletin_v1132_seguro_t">TV con navegador, más seguro</string>

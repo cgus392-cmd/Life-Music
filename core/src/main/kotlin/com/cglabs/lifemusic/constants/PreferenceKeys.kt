@@ -1062,7 +1062,7 @@ val NovaNombreKey = stringPreferencesKey("novaNombre")
 /** Como le dice Nova a la persona. Vacio = el primer nombre de la cuenta. */
 val NovaComoTeDiceKey = stringPreferencesKey("novaComoTeDice")
 
-/** Cada cuantas canciones habla (y cuanto dura cada bloque): de 2 a 8, 4 de fabrica. */
+/** Cada cuantas canciones habla: de 1 (cada cancion, de fabrica: «que se sienta viva») a 8. */
 val NovaCadaKey = intPreferencesKey("novaCada")
 
 /** Nova no habla: lo que diria sale solo escrito en Life Line. */
@@ -1122,3 +1122,6 @@ enum class LifeLineHighlight {
  * donde esta lo nuevo, y se da por vista al terminarla o saltarla.
  */
 val GuiasVistasKey = stringSetPreferencesKey("guiasVistas")
+
+/** El estilo de Nova: «calida» (de fabrica), «energica», «breve» o «curiosa». */
+val NovaEstiloKey = stringPreferencesKey("novaEstilo")

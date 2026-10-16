@@ -74,6 +74,12 @@ class NovaLocutor(
 
         /** Sigue la que se retuvo. */
         fun soltarRetencion()
+
+        /** Lo que se sabe de verdad de una cancion (me gusta, cuantas veces, cuando). */
+        suspend fun hechos(id: String): NovaFrases.Hechos?
+
+        /** Para el registro: que condicion impide hablar ahora. */
+        fun porQueNoHabla(): String
     }
 
     /** Por que habla esta vez. */
@@ -125,6 +131,9 @@ class NovaLocutor(
      */
     private var intro: Salida? = null
 
+    /** La frase del proximo cambio que se esta preparando ahora (id de la cancion y su tarea). */
+    private var preparando: Pair<String, Job>? = null
+
     /** Como le dice Nova a la persona (por ahora, el primer nombre de la cuenta). */
     var nombre: String? = null
 
@@ -132,7 +141,10 @@ class NovaLocutor(
     var nombreDJ: String = "Nova"
 
     /** Cada cuantas canciones habla sin Nova al aire (al aire, lo marca el largo del bloque). */
-    var cada: Int = 4
+    var cada: Int = 1
+
+    /** El estilo de Nova (Personalizar): como lo dice; los datos son siempre ciertos. */
+    var estilo: NovaFrases.Estilo = NovaFrases.Estilo.CALIDA
 
     /** Solo subtitulos: no habla ni baja la musica; lo que diria sale escrito en Life Line. */
     var soloSubtitulos: Boolean = false
@@ -190,6 +202,8 @@ class NovaLocutor(
             callar()
             vigia?.cancel()
             vigia = null
+            preparando?.second?.cancel()
+            preparando = null
             salida = null
             intro = null
             voz.apagar()
@@ -216,8 +230,9 @@ class NovaLocutor(
             cancionesSinHablar = 0
             return
         }
-        if (NovaSesion.alAire.value) {
-            // Al aire habla al empezar cada bloque; si no empieza uno, no dice nada.
+        // Al aire, la que abre un bloque se anuncia como estacion; las demas, con su estilo.
+        if (NovaSesion.alAire.value && NovaSesion.esInicioDeBloque(entra)) {
+            cancionesSinHablar = 0
             hablar(Motivo.BLOQUE)
             return
         }
@@ -342,6 +357,26 @@ class NovaLocutor(
                 val nueva = actual ?: return@launch
                 val anterior = previa?.takeIf { it.id != nueva.id }
 
+                // ¿Se esta preparando justo ahora (voz lenta)? Se espera esa misma, con la
+                // cancion retenida, en vez de empezar otra y quedar en fila detras del motor.
+                val natural = motivo == Motivo.PUENTE || motivo == Motivo.BLOQUE
+                val enCurso = preparando?.takeIf { it.first == idNueva && it.second.isActive }
+                if (natural && enCurso != null) {
+                    val retenida = mezcla.retener()
+                    android.util.Log.i(ETIQUETA, "espero la frase que se estaba preparando" + if (retenida) " (cancion retenida)" else "")
+                    NovaSesion.pensar(true)
+                    try {
+                        withTimeoutOrNull(RETENCION_MAXIMA_MS) { enCurso.second.join() }
+                    } finally {
+                        NovaSesion.pensar(false)
+                        if (retenida) mezcla.soltarRetencion()
+                    }
+                    if (intro?.id != idNueva) {
+                        android.util.Log.i(ETIQUETA, "no hablo: la frase no alcanzo a estar lista (mejor callar que hablar tarde)")
+                        return@launch
+                    }
+                }
+
                 // ¿Se preparo durante la cancion anterior? Entonces sale sin esperar al motor.
                 val preparada = intro?.takeIf {
                     (motivo == Motivo.PUENTE || motivo == Motivo.BLOQUE) && it.id == idNueva && it.archivo.exists()
@@ -357,7 +392,7 @@ class NovaLocutor(
                         } else if (!yaSePresento) {
                             NovaFrases.presentacion(LocalTime.now().hour, nombre, anterior, nueva, eleccion, nombreDJ)
                         } else {
-                            NovaFrases.puente(anterior, nueva, eleccion)
+                            NovaFrases.entreCanciones(estilo, anterior, nueva, mezcla.hechos(idNueva), eleccion)
                         }
                     }
                     Motivo.BLOQUE -> {
@@ -394,7 +429,7 @@ class NovaLocutor(
                 NovaSesion.pensar(true)
                 val lista = try {
                     val hecha = preparada != null || if (retenida) {
-                        sintetizarConTope(texto, archivo, esperaMaxima())
+                        sintetizarConTope(texto, archivo, RETENCION_MAXIMA_MS)
                     } else {
                         sintetizarCon(texto, archivo)
                     }
@@ -453,7 +488,17 @@ class NovaLocutor(
                     }
                     if (revisadaPara == siguiente.id || restante !in 6_000L..20_000L) continue
                     revisadaPara = siguiente.id
-                    prepararSobreElFinal(siguiente)
+                    val tarea = scope.launch {
+                        try {
+                            prepararSobreElFinal(siguiente)
+                        } catch (e: kotlinx.coroutines.CancellationException) {
+                            throw e
+                        } catch (e: Exception) {
+                            android.util.Log.w(ETIQUETA, "fallo preparando la frase", e)
+                        }
+                    }
+                    preparando = siguiente.id to tarea
+                    tarea.join()
                 } catch (e: kotlinx.coroutines.CancellationException) {
                     throw e
                 } catch (e: Exception) {
@@ -470,11 +515,11 @@ class NovaLocutor(
      * suena; si no, sobre la intro de la siguiente, como siempre.
      */
     private suspend fun prepararSobreElFinal(siguiente: MediaMetadata) {
-        val alAire = NovaSesion.alAire.value
-        val toca = if (alAire) NovaSesion.esInicioDeBloque(siguiente.id) else cancionesSinHablar + 1 >= cada
+        val abreBloque = NovaSesion.alAire.value && NovaSesion.esInicioDeBloque(siguiente.id)
+        val toca = abreBloque || cancionesSinHablar + 1 >= cada
         if (!toca) return
         val nueva = NovaFrases.Pista(siguiente.id, siguiente.title, siguiente.artists.map { it.name })
-        val bloque = if (alAire) NovaSesion.bloqueDe(siguiente.id) ?: return else null
+        val bloque = if (abreBloque) NovaSesion.bloqueDe(siguiente.id) else null
         val dato = NovaSesion.datoDe(siguiente.id)
         val primera = mezcla.primeraLetraMs(siguiente.id)
         val cantaPronto = primera != null && primera <= ARRANCA_CANTANDO_MS
@@ -499,7 +544,7 @@ class NovaLocutor(
                 NovaFrases.anuncio(bloque, dato, nueva)
             corto -> NovaFrases.corto(null, null, nueva)
             !yaSePresento -> NovaFrases.presentacion(LocalTime.now().hour, nombre, actual, nueva, elegirPuente(), nombreDJ)
-            else -> NovaFrases.puente(actual, nueva, elegirPuente())
+            else -> NovaFrases.entreCanciones(estilo, actual, nueva, mezcla.hechos(siguiente.id), elegirPuente())
         }
         val archivo = File(contexto.cacheDir, "nova/intro.wav")
         val duracion = sintetizarYMedir(texto, archivo) ?: return
@@ -571,7 +616,7 @@ class NovaLocutor(
             val archivo = File(contexto.cacheDir, "nova/muestra.wav")
             var bajo = false
             try {
-                if (!sintetizarCon("Hola, soy $nombreDJ. Así sueno entre canción y canción.", archivo)) return@launch
+                if (!sintetizarCon(NovaFrases.muestra(estilo, nombreDJ), archivo)) return@launch
                 if (mezcla.sigueSonando()) {
                     bajo = true
                     mezcla.llevarA(NIVEL_MUSICA, BAJAR_MS)
@@ -637,7 +682,10 @@ class NovaLocutor(
         val limite = SystemClock.elapsedRealtime() + esperaMs
         while (!mezcla.puedeHablar()) {
             if (mezcla.idSonando() != idNueva || SystemClock.elapsedRealtime() > limite) {
-                android.util.Log.i(ETIQUETA, "no hablo: la cancion cambio o no arranco")
+                android.util.Log.i(
+                    ETIQUETA,
+                    "no hablo: " + if (mezcla.idSonando() != idNueva) "cambio la cancion" else mezcla.porQueNoHabla(),
+                )
                 return
             }
             delay(100)
@@ -755,6 +803,9 @@ class NovaLocutor(
 
         /** Con una voz que tarda (Daniela en el S25: ~1 s por segundo de voz), la musica espera mas. */
         const val ESPERA_MAXIMA_LENTA_MS = 10_000L
+
+        /** En un cambio natural la cancion espera a Nova como mucho esto: un hueco mas largo se nota. */
+        const val RETENCION_MAXIMA_MS = 4_000L
 
         /** Si la siguiente canta antes de esto, Nova habla sobre el final de la anterior. */
         const val ARRANCA_CANTANDO_MS = 7_000L

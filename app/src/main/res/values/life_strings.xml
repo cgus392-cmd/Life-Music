@@ -1098,7 +1098,7 @@
     <!-- Saludo de entrada -->
     <string name="greeting_enabled">Greeting on launch</string>
     <string name="greeting_enabled_desc">A short line from the app before Home, on cold start</string>
-    <string name="aurora_activa">2.0 Aurora bar (preview)</string>
+    <string name="aurora_activa">2.0 Aurora bar (beta)</string>
     <string name="aurora_activa_desc">Gradient and glass on Home. Off: the classic bar</string>
 
     <!-- Ambient mode (CG, 2026-09-18) -->
@@ -1552,7 +1552,7 @@
     <string name="boletin_v1131_fundido">When a song is playing and you pick another, the current one fades down and the new one fades in, instead of cutting off. Turn it off in Settings → Player.</string>
     <string name="fundido_al_elegir">Fade when picking another song</string>
     <string name="fundido_al_elegir_desc">The current song fades down and the new one fades in, no hard cuts</string>
-    <string name="nova_activa">Nova, your DJ (preview)</string>
+    <string name="nova_activa">Nova, your DJ (beta)</string>
     <string name="nova_al_aire">ON AIR</string>
     <string name="nova_encender">Turn on Nova</string>
     <string name="nova_sintonizando">Tuning in…</string>
@@ -1629,6 +1629,17 @@
     <string name="nova_prevision_no">Not available on this phone</string>
     <string name="nova_prevision_tarda">May be slow on your phone</string>
     <string name="nova_probar_otra_vez">Test again</string>
+    <string name="nova_beta">BETA</string>
+    <string name="nova_su_estilo">Her style</string>
+    <string name="nova_estilo_calida">Warm</string>
+    <string name="nova_estilo_energica">Energetic</string>
+    <string name="nova_estilo_breve">Brief</string>
+    <string name="nova_estilo_curiosa">Curious</string>
+    <string name="nova_estilo_calida_desc">Close and with soul: «one of those that hit the soul», «I know you like this one».</string>
+    <string name="nova_estilo_energica_desc">Radio energy: «turn it up!», «one of your favorites!».</string>
+    <string name="nova_estilo_breve_desc">Just the essentials: «Now: song, by artist».</string>
+    <string name="nova_estilo_curiosa_desc">Real numbers: «you\'ve heard it 12 times», «first time on your phone».</string>
+    <string name="nova_cada_una">Every song</string>
     <string name="nova_activa_desc">Talks between songs with the phone\'s voice. The music dips while she talks</string>
     <string name="boletin_v1132_intro">The version that brings it all together: PRO TV themes, Life Music on any TV with a browser, a new updater, song changes with no hard cuts, star ratings and the pre-registration for the new contest. And the browser TV, now safer.</string>
     <string name="boletin_v1132_seguro_t">A safer browser TV</string>

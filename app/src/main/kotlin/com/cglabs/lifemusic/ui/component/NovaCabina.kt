@@ -129,7 +129,11 @@ private fun NovaCabina(alCerrar: () -> Unit) {
                 .navigationBarsPadding()
                 .padding(bottom = 20.dp),
         ) {
-            LuzAlAire(encendida = alAire)
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                LuzAlAire(encendida = alAire)
+                Spacer(Modifier.width(8.dp))
+                EtiquetaBeta()
+            }
             Spacer(Modifier.height(10.dp))
             val cuando = remember {
                 LocalDateTime.now().format(DateTimeFormatter.ofPattern("EEEE h:mm a", Locale.getDefault()))
