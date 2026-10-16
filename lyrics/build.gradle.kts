@@ -30,6 +30,9 @@ dependencies {
     implementation("androidx.core:core-ktx:1.13.1")
     implementation(libs.hilt)
     ksp(libs.hilt.compiler)
+
+    // Pruebas del alineador del karaoke (codigo puro, sin Android).
+    testImplementation(libs.junit)
 }
 dependencies {
     implementation(libs.ktor.client.core)

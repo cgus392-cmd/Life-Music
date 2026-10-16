@@ -254,6 +254,10 @@ android {
     packaging {
         jniLibs {
             useLegacyPackaging = true
+            // sherpa-onnx (voz HD de Nova) trae su propio libonnxruntime.so para x86, y en
+            // depuracion tambien llega el de onnxruntime-android (spike de MDX-Net). Mismo
+            // archivo, misma funcion: basta uno. En arm64 (el S25) no hay choque.
+            pickFirsts += "lib/x86/libonnxruntime.so"
             keepDebugSymbols += listOf(
                 "**/libandroidx.graphics.path.so",
                 "**/libdatastore_shared_counter.so"

@@ -11,6 +11,12 @@
             android:name="com.cglabs.lifemusic.separation.StemSpikeInitializer"
             android:authorities="${applicationId}.stemspike"
             android:exported="false" />
+
+        <!-- Spike del karaoke propio: no hace nada sin files/spike/karaoke/model.int8.onnx. -->
+        <provider
+            android:name="com.cglabs.lifemusic.karaoke.KaraokeSpikeInitializer"
+            android:authorities="${applicationId}.karaokespike"
+            android:exported="false" />
     </application>
 
 </manifest>
