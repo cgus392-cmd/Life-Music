@@ -102,3 +102,18 @@ Dura **1 o 2 días** y se hace primero en el PC, donde es más rápido probar:
    voz clara.
 3. **Camino completo** (solo teléfonos que pasan la prueba de capacidad, en segundo plano y cargando): separar la
    voz y reconocer. Se usa si el camino rápido quedó por debajo del 60 % de cobertura.
+
+## 9. Ya en la app (beta), 2026-10-16
+
+- **Cómo se usa:** el interruptor está en Ajustes › Reproductor › «Karaoke Life Music (beta)». Luego, en el ⋮ de una
+  canción **descargada o local**, sale «Preparar karaoke (beta)».
+- **Cómo corre:** `KaraokeService` trabaja en primer plano con su notificación. `KaraokeMotor` hace el camino rápido
+  y, si hace falta, separa la voz con KARA. Antes de cambiar nada, guarda la letra original.
+- **Primera prueba de CG en el S25:**
+  - «Una Cañita Al Aire»: la descartó bien, porque ya venía palabra por palabra.
+  - «Pensando En Ti»: oyó el 27 % en la mezcla y el 36 % con la voz separada, que tardó 110 s. En total fueron 193 s,
+    contando la primera descarga del modelo.
+  - **CG: «salen bien por ahora».**
+- **Mejora del mismo día:** ahora compara también por cómo suena cada palabra (`AlineadorDeLetras.sonido`: b/v,
+  seseo, yeísmo, h muda, qu/k, g/j, letras dobles y la s o la d del final). Si se vuelve a preparar una canción, se
+  rehace desde su letra original.
