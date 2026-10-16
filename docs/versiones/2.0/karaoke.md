@@ -75,3 +75,30 @@ Dura **1 o 2 días** y se hace primero en el PC, donde es más rápido probar:
    - el paquete de Python `sherpa-onnx`.
 3. **Dos o tres canciones de prueba**, descargadas o locales, que tengan letra **por línea** y no palabra por palabra.
    Idealmente de estilos distintos: una balada, un reggaetón o un rap, y una salsa.
+
+## 8. Resultados del spike (2026-10-15, noche, en el S25)
+
+**Canción:** «Hazme Olvidarla», de Willie González (salsa, 5:37), con la letra por línea de LRCLIB.
+
+| Camino | Cobertura (palabras calzadas por el audio) | Tiempo |
+|---|---|---|
+| Mezcla tal cual | 30 % | unos 10 s (1,5 s para decodificar y de 4,5 a 8 s para reconocer) |
+| Mezcla con filtro de voz (banda y nivelador de FFmpeg) | 31 % | parecido: no sirve |
+| **Voz separada con UVR MDX-Net KARA** (28 MB) | **56 %** | **3 min 45 s** para separar (0,67× tiempo real) y 8 s para reconocer |
+
+- **El modelo de español carga en 1,4 s.** La FFT propia de 5120 puntos coincide con la DFT (error 0,0001).
+- **Las estrofas claras quedan muy bien** y siguen el canto: por ejemplo, 2 s entre «pequeña» y «dentro», donde el
+  cantante estira la vocal. Los coros, los soneos y las partes con orquesta fuerte siguen bajos.
+- **Memoria:** separando, la app llegó a **1,7 GB** y Android la cerró en segundo plano. La versión real necesita:
+  - un servicio en primer plano («Preparando karaoke…»), mejor con el teléfono cargando;
+  - liberar memoria entre bloques y ajustar la arena de ONNX Runtime;
+  - tal vez un modelo de separación más liviano.
+- **Falta medir la precisión en milisegundos** contra una referencia palabra por palabra oficial: hace falta una
+  canción famosa que ya la tenga.
+
+**Diseño que sale de los números (propuesta):**
+1. **Para todos, al instante:** el reparto por sílabas de las líneas.
+2. **Camino rápido** (unos 10 s por canción): reconocer sobre la mezcla. Sirve sobre todo para pop y baladas con la
+   voz clara.
+3. **Camino completo** (solo teléfonos que pasan la prueba de capacidad, en segundo plano y cargando): separar la
+   voz y reconocer. Se usa si el camino rápido quedó por debajo del 60 % de cobertura.
