@@ -543,6 +543,9 @@ class CastConnectionHandler(
                 // morir (la app se cerro sin despedirse) corta el primer socket a los
                 // dos segundos y acepta el siguiente.
                 var lanzado = false
+                // Contesto a un LAUNCH sin abrir nada (las ScreenSharePro de las salas): se
+                // recuerda aunque el socket cambie, para no reintentar y avisar claro.
+                var mudo = false
                 for (intento in 1..2) {
                     try {
                         c.conectar(aparato.host, aparato.puerto)
@@ -552,21 +555,24 @@ class CastConnectionHandler(
                         // no volver a esperar con ese aparato.
                         val probarPropia = APP_LIFE_MUSIC != null && !sinAppPropiaReciente(aparato.id)
                         lanzado = probarPropia && c.lanzarReproductor(APP_LIFE_MUSIC!!)
+                        if (c.contestaSinAbrir) mudo = true
                         if (!lanzado) {
                             if (probarPropia) { sinAppPropia[aparato.id] = android.os.SystemClock.elapsedRealtime(); com.cglabs.lifemusic.cast.DiagnosticoCast.log("${aparato.nombre} no lanza la app propia; reproductor por defecto") }
                             if (!c.conectado.value) { runCatching { c.cerrar(pararApp = false) }; c = CastCliente(scope); c.conectar(aparato.host, aparato.puerto) }
                             lanzado = c.lanzarReproductor()
+                            if (c.contestaSinAbrir) mudo = true
                         }
                         if (lanzado) break
-                        // Contesta y no abre nada: reintentar solo alarga la pantalla gris.
-                        if (c.contestaSinAbrir) break
                     } catch (e: Exception) {
                         com.cglabs.lifemusic.cast.DiagnosticoCast.log("intento $intento fallo: ${e.javaClass.simpleName}")
                     }
+                    // Contesta y no abre nada: reintentar solo alarga la pantalla gris
+                    // (Sala-info1 ademas corta el socket a los ~27 s del LAUNCH).
+                    if (mudo) break
                     runCatching { c.cerrar(pararApp = false) }
                     if (intento == 1) { delay(2_000); c = CastCliente(scope) }
                 }
-                if (!lanzado && c.contestaSinAbrir) throw SoloDuplicaPantalla()
+                if (!lanzado && mudo) throw SoloDuplicaPantalla()
                 if (!lanzado) throw IllegalStateException("el receptor no lanzo el reproductor")
                 // Si se transmitia por DLNA, se suelta: el Chromecast toma el relevo.
                 soltarDlna()
