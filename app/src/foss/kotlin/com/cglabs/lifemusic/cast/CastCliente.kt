@@ -115,25 +115,52 @@ class CastCliente(private val scope: CoroutineScope) {
         val id = peticion.getAndIncrement()
         val espera = CompletableDeferred<JSONObject>()
         pendientes[id] = espera
-        enviar(NS_RECEPTOR, RECEPTOR, JSONObject().put("type", "LAUNCH").put("appId", appId).put("requestId", id))
+        // Con el idioma y los tipos de app, como el SDK oficial: hay receptores que lo miran.
+        enviar(
+            NS_RECEPTOR, RECEPTOR,
+            JSONObject().put("type", "LAUNCH").put("appId", appId).put("requestId", id)
+                .put("language", java.util.Locale.getDefault().toLanguageTag())
+                .put("supportedAppTypes", org.json.JSONArray().put("WEB")),
+        )
         // Vale la respuesta numerada o cualquier estado que ya traiga la app corriendo
         // (AirScreen carga la pagina y no siempre contesta con el requestId). Hasta
-        // 20 s: un receptor que es un telefono tarda en cargar la pagina.
-        val limite = android.os.SystemClock.elapsedRealtime() + 30_000
+        // 30 s: un receptor que es un telefono tarda en cargar la pagina.
+        var limite = android.os.SystemClock.elapsedRealtime() + 30_000
+        var contesto = false
         while (android.os.SystemClock.elapsedRealtime() < limite) {
             if (transporte != null) { pendientes.remove(id); com.cglabs.lifemusic.cast.DiagnosticoCast.log("LAUNCH $appId: app corriendo (transporte $transporte)"); return true }
-            val respuesta = withTimeoutOrNull(250) { espera.await() }
-            if (respuesta != null) {
-                com.cglabs.lifemusic.cast.DiagnosticoCast.log("LAUNCH $appId → ${respuesta.optString("type")} ${respuesta.toString().take(300)}")
-                if (respuesta.optString("type") == "LAUNCH_ERROR") return false
-                if (engancharApp(respuesta)) return true
+            if (!contesto) {
+                val respuesta = withTimeoutOrNull(250) { espera.await() }
+                if (respuesta != null) {
+                    // Una vez contestado, el Deferred queda resuelto: no se vuelve a esperar en
+                    // el (devolvia lo mismo al instante y el bucle giraba sin pausa).
+                    contesto = true
+                    com.cglabs.lifemusic.cast.DiagnosticoCast.log("LAUNCH $appId → ${respuesta.optString("type")} ${respuesta.toString().take(300)}")
+                    if (respuesta.optString("type") == "LAUNCH_ERROR") return false
+                    if (engancharApp(respuesta)) return true
+                    // Contesto sin la app. Si la abre despues, otro estado la engancha (procesar);
+                    // si no, no tiene sentido esperar los 30 s enteros.
+                    limite = minOf(limite, android.os.SystemClock.elapsedRealtime() + ESPERA_TRAS_ESTADO_SIN_APP_MS)
+                }
+            } else {
+                delay(250)
             }
             if (cerrado) return false
         }
         pendientes.remove(id)
-        com.cglabs.lifemusic.cast.DiagnosticoCast.log("LAUNCH $appId sin respuesta en 30 s")
+        if (contesto) contestaSinAbrir = true
+        com.cglabs.lifemusic.cast.DiagnosticoCast.log(
+            if (contesto) "LAUNCH $appId: el receptor contesto pero no abrio la app" else "LAUNCH $appId sin respuesta en 30 s",
+        )
         return transporte != null
     }
+
+    /**
+     * El receptor contesto a LAUNCH pero nunca abrio la app: hay pantallas (las
+     * ScreenSharePro de las salas, por ejemplo) que solo duplican pantalla.
+     */
+    @Volatile var contestaSinAbrir = false
+        private set
 
     /**
      * Se une a [appId] si ya corre en el receptor, sin relanzarla: es el
@@ -409,6 +436,9 @@ class CastCliente(private val scope: CoroutineScope) {
         private const val RECEPTOR = "receiver-0"
         /** El reproductor multimedia por defecto de Google, presente en todo receptor. */
         private const val APP_REPRODUCTOR = "CC1AD845"
+
+        /** Tras un estado sin la app, lo que se espera a que la abra (AirScreen tarda unos segundos). */
+        private const val ESPERA_TRAS_ESTADO_SIN_APP_MS = 12_000L
         private const val NS_CONEXION = "urn:x-cast:com.google.cast.tp.connection"
         private const val NS_LATIDO = "urn:x-cast:com.google.cast.tp.heartbeat"
         private const val NS_RECEPTOR = "urn:x-cast:com.google.cast.receiver"

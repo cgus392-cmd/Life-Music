@@ -817,6 +817,7 @@
     <string name="cast_tema_atardecer_nota">Cambia con la hora: amanecer en la mañana, atardecer en la tarde y luna de noche.</string>
     <string name="cast_tema_cristal_nota">Usa tu cristal de la app: el tinte, la lente y la vibrancia de Apariencia → Liquid Glass.</string>
     <string name="cast_error_conectar">No se pudo conectar con %1$s</string>
+    <string name="cast_error_solo_duplica">%1$s contestó, pero no abre apps: solo duplica la pantalla. Con esa pantalla usa la duplicación de pantalla del teléfono.</string>
     <string name="cast_error_cancion">El aparato no pudo reproducir esta canción</string>
     <string name="cast_conexion_perdida">Se perdió la conexión con el aparato; la música vuelve al teléfono</string>
     <string name="cast_diagnostico">Copiar diagnóstico</string>

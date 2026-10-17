@@ -1202,6 +1202,7 @@
     <string name="cast_tema_atardecer_nota">Changes with the time of day: sunrise in the morning, sunset in the afternoon, moon at night.</string>
     <string name="cast_tema_cristal_nota">Uses your app glass: the tint, lens and vibrancy from Appearance → Liquid Glass.</string>
     <string name="cast_error_conectar">Couldn’t connect to %1$s</string>
+    <string name="cast_error_solo_duplica">%1$s answered but doesn’t open apps: it only mirrors the screen. Use your phone’s screen mirroring with it.</string>
     <string name="cast_error_cancion">The device couldn’t play this song</string>
     <string name="cast_conexion_perdida">Connection with the device lost; playing on the phone again</string>
     <string name="cast_diagnostico">Copy diagnostics</string>

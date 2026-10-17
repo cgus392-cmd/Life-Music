@@ -558,12 +558,15 @@ class CastConnectionHandler(
                             lanzado = c.lanzarReproductor()
                         }
                         if (lanzado) break
+                        // Contesta y no abre nada: reintentar solo alarga la pantalla gris.
+                        if (c.contestaSinAbrir) break
                     } catch (e: Exception) {
                         com.cglabs.lifemusic.cast.DiagnosticoCast.log("intento $intento fallo: ${e.javaClass.simpleName}")
                     }
                     runCatching { c.cerrar(pararApp = false) }
                     if (intento == 1) { delay(2_000); c = CastCliente(scope) }
                 }
+                if (!lanzado && c.contestaSinAbrir) throw SoloDuplicaPantalla()
                 if (!lanzado) throw IllegalStateException("el receptor no lanzo el reproductor")
                 // Si se transmitia por DLNA, se suelta: el Chromecast toma el relevo.
                 soltarDlna()
@@ -606,7 +609,10 @@ class CastConnectionHandler(
                 com.cglabs.lifemusic.cast.DiagnosticoCast.log("conectar fallo", e)
                 runCatching { c.cerrar(pararApp = false) }
                 if (cliente === c) cliente = null
-                aviso(context.getString(R.string.cast_error_conectar, aparato.nombre))
+                aviso(
+                    if (e is SoloDuplicaPantalla) context.getString(R.string.cast_error_solo_duplica, aparato.nombre)
+                    else context.getString(R.string.cast_error_conectar, aparato.nombre),
+                )
             } finally {
                 _isConnecting.value = false
             }
@@ -1043,3 +1049,6 @@ class CastConnectionHandler(
         const val TEMA_TOCADISCOS = "tocadiscos"
     }
 }
+
+/** El receptor contesta a LAUNCH pero no abre ninguna app: solo duplica pantalla. */
+private class SoloDuplicaPantalla : IllegalStateException("el receptor contesta pero no abre apps (solo duplica pantalla)")
