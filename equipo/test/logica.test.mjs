@@ -5,6 +5,7 @@ import {
   ALFABETO, codigoAlAzar, normalizarCodigo, formatoPase, estadoJornada, msDeColombia, enColombia,
   diaDelCargo, puedeMoverIdea, puede, actaDe, firmaDibujadaSvg, firmaEscritaSvg, taparDocumento,
   semanaIso, fechaValida, hora12, textoDias, aparatoDe, texto,
+  resumenHoja, estadoToma, textoTelefono, androidValido, pruebaHoja, MARCAS, FASES,
 } from "../src/logica.js";
 
 const persona = (extra = {}) => ({
@@ -118,4 +119,41 @@ test("utilidades", () => {
   assert.equal(texto("a\nb", 10), null);
   assert.equal(texto("a\nb", 10, { multilinea: true }), "a\nb");
   assert.equal(texto("x".repeat(11), 10), null);
+});
+
+// ── Sala de control (2.0): la hoja de pruebas del supervisor ─────────────────
+
+const hoja = [{ id: "a" }, { id: "b" }, { id: "c" }];
+
+test("la hoja cuenta lo marcado y lo que falta", () => {
+  const marcas = new Map([["a", "funciona"], ["b", "falla"]]);
+  assert.deepEqual(resumenHoja(hoja, marcas), { total: 3, funciona: 1, falla: 1, noPude: 0, faltan: 1 });
+  assert.deepEqual(resumenHoja([], new Map()), { total: 0, funciona: 0, falla: 0, noPude: 0, faltan: 0 });
+});
+
+test("la toma queda lista solo si cada punto lo vio funcionar alguien y nadie dejo una falla", () => {
+  const r = (prueba_id, persona_id, estado) => ({ prueba_id, persona_id, estado });
+  // Entre dos supervisores cubren todo: lista.
+  assert.equal(estadoToma(hoja, [r("a", "s1", "funciona"), r("b", "s1", "funciona"), r("c", "s2", "funciona")]).lista, true);
+  // Una falla de cualquiera la frena.
+  const conFalla = estadoToma(hoja, [r("a", "s1", "funciona"), r("b", "s1", "funciona"), r("c", "s1", "funciona"), r("c", "s2", "falla")]);
+  assert.equal(conFalla.lista, false);
+  assert.equal(conFalla.conFalla, 1);
+  // «No pude» no cuenta como probado: ese punto queda pendiente.
+  const sinTv = estadoToma(hoja, [r("a", "s1", "funciona"), r("b", "s1", "funciona"), r("c", "s1", "no-pude")]);
+  assert.deepEqual(sinTv, { total: 3, conFalla: 0, sinProbar: 1, lista: false });
+  // Una toma sin puntos nunca esta lista.
+  assert.equal(estadoToma([], []).lista, false);
+});
+
+test("telefono del supervisor y quien trabaja con la hoja", () => {
+  assert.equal(textoTelefono({ marca: "Samsung", modelo: "Galaxy A15", android: "14" }), "Samsung Galaxy A15 · Android 14");
+  assert.equal(textoTelefono(null), null);
+  assert.ok(androidValido("14") && androidValido("8.1") && androidValido(" 13 "));
+  assert.ok(!androidValido("cuatro") && !androidValido("3") && !androidValido("99") && !androidValido(14));
+  assert.ok(pruebaHoja("supervisor") && pruebaHoja("operaciones") && !pruebaHoja("duenio"));
+  assert.ok(puede("supervisor", "hoja") && puede("operaciones", "hoja") && !puede("duenio", "hoja"));
+  assert.ok(puede("duenio", "sala") && !puede("supervisor", "sala"));
+  assert.deepEqual(MARCAS, ["funciona", "falla", "no-pude"]);
+  assert.equal(FASES[5], "Hecha · falta probar");
 });

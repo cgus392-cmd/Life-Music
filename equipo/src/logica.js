@@ -9,10 +9,56 @@ export const DIA_MS = 86400000;
 export const ROLES = {
   duenio: "Dueño",
   operaciones: "Operaciones",
-  supervisor: "Supervisor de ejecución / Planificador",
+  supervisor: "Supervisor de ejecución",
 };
-export const FASES = ["", "Idea", "Planteamiento", "Luz verde", "Ejecución", "Pruebas", "Lanzada"];
+// 2.0 (18-10): la fase 5 es «hecha, falta que el supervisor la pruebe»; la 6, publicada.
+export const FASES = ["", "Idea", "Planteamiento", "Luz verde", "Ejecución", "Hecha · falta probar", "Lanzada"];
 export const ESTADOS = ["invitada", "prueba", "activa", "pausa", "terminada"];
+
+// ── Sala de control (2.0): capas y hoja de pruebas ───────────────────────────
+// Ficha: docs/versiones/2.0/cabina-sala-de-control.md.
+
+/** Las cuatro capas de la 2.0 (pedido de CG del 15-10). */
+export const CAPAS = ["", "Funciones", "Desarrollo", "Optimización", "Mantenimiento"];
+export const MARCAS = ["funciona", "falla", "no-pude"];
+export const GRUPOS = ["nuevo", "volver", "siempre"];
+
+/** Quien trabaja con la hoja de pruebas: el supervisor de ejecución (y Operaciones, que pasa a serlo). */
+export const pruebaHoja = (rol) => rol === "supervisor" || rol === "operaciones";
+
+/** Lo que lleva marcado una persona en una hoja. [marcas]: Map de prueba → funciona | falla | no-pude. */
+export function resumenHoja(pruebas, marcas) {
+  const r = { total: pruebas.length, funciona: 0, falla: 0, noPude: 0, faltan: 0 };
+  for (const p of pruebas) {
+    const e = marcas.get(p.id);
+    if (e === "funciona") r.funciona++;
+    else if (e === "falla") r.falla++;
+    else if (e === "no-pude") r.noPude++;
+    else r.faltan++;
+  }
+  return r;
+}
+
+/**
+ * Cómo va la toma entre todos los supervisores. Está **lista para publicar** cuando
+ * cada punto lo vio funcionar al menos una persona y nadie dejó una falla. Un «no pude»
+ * no cuenta como probado: ese punto queda pendiente (publicar igual es decisión de CG).
+ */
+export function estadoToma(pruebas, resultados) {
+  const funciona = new Set(), falla = new Set();
+  for (const r of resultados) {
+    if (r.estado === "funciona") funciona.add(r.prueba_id);
+    if (r.estado === "falla") falla.add(r.prueba_id);
+  }
+  const ids = pruebas.map((p) => p.id);
+  const conFalla = ids.filter((id) => falla.has(id)).length;
+  const sinProbar = ids.filter((id) => !funciona.has(id) && !falla.has(id)).length;
+  return { total: ids.length, conFalla, sinProbar, lista: ids.length > 0 && conFalla === 0 && sinProbar === 0 };
+}
+
+/** «Samsung Galaxy A15 · Android 14». */
+export const textoTelefono = (t) => (t ? `${t.marca} ${t.modelo} · Android ${t.android}` : null);
+export const androidValido = (v) => typeof v === "string" && /^\d{1,2}(\.\d{1,2})?$/.test(v.trim()) && +v >= 5 && +v <= 30;
 
 // ── Codigos ──────────────────────────────────────────────────────────────────
 
@@ -151,9 +197,9 @@ export function puedeMoverIdea(rol, de, a) {
 }
 
 const PERMISOS = {
-  duenio: ["idea", "incidencia", "cerrar-incidencia", "revision", "nota", "conceder", "invitar", "contrafirmar", "monitoreo", "concurso"],
-  supervisor: ["idea", "incidencia", "monitoreo"],
-  operaciones: ["idea", "incidencia", "cerrar-incidencia", "revision", "monitoreo", "concurso"],
+  duenio: ["idea", "incidencia", "cerrar-incidencia", "revision", "nota", "conceder", "invitar", "contrafirmar", "monitoreo", "concurso", "sala"],
+  supervisor: ["idea", "incidencia", "monitoreo", "hoja"],
+  operaciones: ["idea", "incidencia", "cerrar-incidencia", "revision", "monitoreo", "concurso", "hoja"],
 };
 export const puede = (rol, accion) => (PERMISOS[rol] || []).includes(accion);
 

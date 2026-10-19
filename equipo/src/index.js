@@ -18,6 +18,7 @@ import {
   DIA_MS, ROLES, FASES, codigoAlAzar, normalizarCodigo, formatoPase, formatoAparato, enColombia,
   estadoJornada, diaDelCargo, puedeMoverIdea, puede, actaDe, firmaDibujadaSvg, firmaEscritaSvg,
   taparDocumento, aparatoDe, texto, fechaValida, aMinutos, semanaIso, msDeColombia,
+  CAPAS, MARCAS, GRUPOS, resumenHoja, estadoToma, textoTelefono, androidValido,
 } from "./logica.js";
 
 const PRODUCCION = /^https:\/\/(www\.)?lifemusic\.app$/;
@@ -196,6 +197,55 @@ async function medir([id, nombre, detalle, url, metodo]) {
   }
 }
 
+// ── Sala de control (2.0) ────────────────────────────────────────────────────
+
+const RELEASES = "https://api.github.com/repos/cgus392-cmd/Life-Music/releases?per_page=40";
+const VIDA_MEDIDORES = 600; // 10 minutos: unas 6 consultas por hora a GitHub (sin clave el limite es 60)
+
+/** Descargas por version (GitHub), calificaciones y prerregistros. Guardado 10 minutos. */
+async function medidores(ctx) {
+  const llaveCache = new Request("https://lifemusic.app/equipo/api/_cache/medidores");
+  const cache = typeof caches !== "undefined" ? caches.default : null;
+  const guardado = cache && (await cache.match(llaveCache));
+  if (guardado) return guardado.json();
+  const leer = async (url, extra = {}) => {
+    try {
+      const r = await fetch(url, { signal: AbortSignal.timeout(6000), ...extra });
+      return r.ok ? await r.json() : null;
+    } catch {
+      return null;
+    }
+  };
+  const [releases, calif, pre] = await Promise.all([
+    leer(RELEASES, { headers: { "user-agent": "lifemusic-equipo", accept: "application/vnd.github+json" } }),
+    leer("https://lifemusic-comunidad.cho--usic.workers.dev/calificaciones/resumen"),
+    leer("https://lifemusic-comunidad.cho--usic.workers.dev/prerregistro/estado"),
+  ]);
+  const versiones = Array.isArray(releases)
+    ? releases.map((r) => ({
+        tag: r.tag_name, fecha: r.published_at, prueba: !!r.prerelease,
+        descargas: (r.assets || []).reduce((s, a) => s + (a.download_count || 0), 0),
+      }))
+    : null;
+  const datos = {
+    descargas: versiones && { total: versiones.reduce((s, v) => s + v.descargas, 0), versiones },
+    calificaciones: calif && { total: calif.total || 0, promedio: calif.visible ? calif.promedio : null },
+    prerregistro: pre && { contador: pre.contador, meta: pre.meta, abierto: pre.abierto },
+    hora: ctx.ahora,
+  };
+  if (cache && versiones) {
+    await cache.put(llaveCache, new Response(JSON.stringify(datos), { headers: { "cache-control": `max-age=${VIDA_MEDIDORES}` } }));
+  }
+  return datos;
+}
+
+/** La toma al aire: la ultima sin cerrar. */
+const tomaActual = (db) => db.prepare("select * from tomas where cerrada_en is null order by numero desc limit 1").first();
+const vistaToma = (t) => t && ({
+  id: t.id, numero: t.numero, version: t.version, apk: t.apk, trae: t.trae, enlace: t.enlace,
+  creadaEn: t.creada_en, cerradaEn: t.cerrada_en, publicadaEn: t.publicada_en,
+});
+
 // ── Rutas ────────────────────────────────────────────────────────────────────
 
 async function enrutar(ctx) {
@@ -302,7 +352,13 @@ async function enrutar(ctx) {
   const duenio = yo.rol === "duenio";
   const jornada = estadoJornada(yo, festivos, ctx.ahora);
   const miActa = duenio ? null : await actaDePersona(env, yo.id);
-  const actaLista = duenio || !!miActa;
+  // 2.0: sin contratacion, para entrar basta aceptar la politica de datos (Ley 1581);
+  // con contratacion encendida, el acta firmada, como antes. Lo ya firmado sigue valiendo.
+  const contratacion = cfg.equipo_contratacion === "1";
+  const miAceptacion = duenio || miActa ? null
+    : await db.prepare("select politica_version, aceptada_en from aceptaciones where persona_id = ?").bind(yo.id).first();
+  const actaLista = duenio || !!miActa || (!contratacion && !!miAceptacion);
+  const requisito = actaLista ? null : contratacion ? "acta" : "politica";
   const escribir = () => (duenio || jornada.abierta ? null : error(ctx, "fuera-de-jornada", 403, { jornada }));
   const conActa = () => (actaLista ? null : error(ctx, "acta-pendiente", 403));
 
@@ -312,6 +368,7 @@ async function enrutar(ctx) {
     return respuesta(ctx, {
       ok: true, yo: vistaPersona(yo, ctx, festivos), sesionId: s.sid,
       acta: miActa ? { firmada: true, contrafirmada: !!miActa.contrafirmada_en, folio: miActa.folio } : { firmada: duenio },
+      requisito, contratacion, hoja: puede(yo.rol, "hoja"),
       aparatos: aparatos.map((a) => ({ ...a, esta: a.id === s.sid })),
       hoy: enColombia(ctx.ahora).fecha, semana: semanaIso(enColombia(ctx.ahora).fecha),
     });
@@ -385,6 +442,10 @@ async function enrutar(ctx) {
       incidencias: await q("select titulo, detalle, gravedad, creada_en from incidencias where autor_id = ?"),
       bitacora: await q("select accion, detalle, aparato, creada_en from bitacora where persona_id = ? order by creada_en"),
       solicitudes: await q("select tipo, detalle, creada_en, respondida_en from solicitudes where persona_id = ?"),
+      aceptacion: miAceptacion,
+      telefono: await db.prepare("select marca, modelo, android, actualizado_en from telefonos where persona_id = ?").bind(yo.id).first(),
+      pruebas: await q(`select t.numero as toma, p.titulo, r.estado, r.nota, r.telefono, r.marcado_en from resultados r
+                        join pruebas p on p.id = r.prueba_id join tomas t on t.id = p.toma_id where r.persona_id = ? order by r.marcado_en`),
     };
     await anotar(ctx, yo.id, "datos-descargados", `${yo.nombre} descargó sus datos.`);
     return respuesta(ctx, datos, 200, { "content-disposition": `attachment; filename="mis-datos-lifemusic-equipo.json"` });
@@ -399,8 +460,103 @@ async function enrutar(ctx) {
     return respuesta(ctx, { ok: true });
   }
 
+  // Sin contratacion, la entrada es aceptar la politica de datos con una casilla.
+  if (m === "POST" && r0 === "politica" && r1 === "aceptar") {
+    if (actaLista) return error(ctx, "ya-firmada", 409);
+    if (contratacion) return error(ctx, "acta-pendiente", 403);
+    const c = await leerCuerpo(ctx);
+    if (!c || c.autorizo !== true || c.mayor !== true) return error(ctx, "casillas");
+    await db.batch([
+      db.prepare("insert into aceptaciones (persona_id, politica_version, mayor_edad, aparato, aceptada_en) values (?, ?, 1, ?, ?)")
+        .bind(yo.id, +cfg.politica_version || 1, ctx.aparato, ctx.ahora),
+      db.prepare("update personas set estado = 'activa' where id = ? and estado = 'invitada'").bind(yo.id),
+    ]);
+    await anotar(ctx, yo.id, "politica-aceptada", `${yo.nombre} aceptó la política de datos.`);
+    return respuesta(ctx, { ok: true });
+  }
+
   const sinActa = conActa();
   if (sinActa) return sinActa;
+
+  // ── La hoja de pruebas (2.0). Se marca a cualquier hora: sin jornada (decision de CG, 18-10) ──
+  if ((r0 === "hoja" || r0 === "telefono" || r0 === "pruebas") && !puede(yo.rol, "hoja")) return error(ctx, "permiso", 403);
+  if (m === "POST" && (r0 === "telefono" || r0 === "pruebas") && yo.estado === "pausa") return error(ctx, "en-pausa", 403);
+  if (m === "GET" && r0 === "hoja") {
+    const all = (sql, ...b) => db.prepare(sql).bind(...b).all().then((r) => r.results);
+    const t = await tomaActual(db);
+    const telefono = await db.prepare("select marca, modelo, android from telefonos where persona_id = ?").bind(yo.id).first();
+    let pruebas = [], resumen = null;
+    if (t) {
+      pruebas = await all(`select p.id, p.orden, p.grupo, p.titulo, p.pasos, p.espera, p.requiere, i.titulo as idea,
+                                  r.estado, r.nota, r.marcado_en
+                             from pruebas p left join ideas i on i.id = p.idea_id
+                             left join resultados r on r.prueba_id = p.id and r.persona_id = ?
+                            where p.toma_id = ? order by p.orden`, yo.id, t.id);
+      resumen = resumenHoja(pruebas, new Map(pruebas.filter((p) => p.estado).map((p) => [p.id, p.estado])));
+    }
+    const cuenta = (estado) => `(select count(*) from resultados r join pruebas p on p.id = r.prueba_id
+                                  where p.toma_id = t.id and r.persona_id = ?1 and r.estado = '${estado}')`;
+    const historial = await all(`select t.numero, t.version, t.apk, t.creada_en, t.cerrada_en, t.publicada_en,
+                                        (select count(*) from pruebas p where p.toma_id = t.id) as total,
+                                        ${cuenta("funciona")} as funciona, ${cuenta("falla")} as falla, ${cuenta("no-pude")} as no_pude
+                                   from tomas t where t.cerrada_en is not null order by t.numero desc limit 12`, yo.id);
+    return respuesta(ctx, {
+      ok: true, toma: vistaToma(t), resumen, telefono, historial, grupos: GRUPOS,
+      pruebas: pruebas.map((p) => ({
+        id: p.id, orden: p.orden, grupo: p.grupo, titulo: p.titulo, pasos: p.pasos, espera: p.espera, requiere: p.requiere, idea: p.idea,
+        mio: p.estado ? { estado: p.estado, nota: p.nota, marcadoEn: p.marcado_en } : null,
+      })),
+    });
+  }
+  if (m === "POST" && r0 === "telefono" && !r1) {
+    const c = await leerCuerpo(ctx);
+    const marca = texto(c && c.marca, 40), modelo = texto(c && c.modelo, 60);
+    if (!marca || !modelo || !androidValido(c.android)) return error(ctx, "campos");
+    const android = c.android.trim();
+    await db.prepare(`insert into telefonos (persona_id, marca, modelo, android, actualizado_en) values (?, ?, ?, ?, ?)
+                      on conflict (persona_id) do update set marca = excluded.marca, modelo = excluded.modelo,
+                      android = excluded.android, actualizado_en = excluded.actualizado_en`)
+      .bind(yo.id, marca, modelo, android, ctx.ahora).run();
+    await anotar(ctx, yo.id, "telefono", `${yo.nombre} prueba en ${marca} ${modelo} · Android ${android}.`);
+    return respuesta(ctx, { ok: true });
+  }
+  if (m === "POST" && r0 === "pruebas" && ID.test(r1 || "") && r2 === "marcar") {
+    const c = await leerCuerpo(ctx);
+    const estado = c && c.estado;
+    if (!MARCAS.includes(estado)) return error(ctx, "estado");
+    const nota = texto(c.nota, 500, { multilinea: true, vacio: true });
+    // Una falla sin nota no sirve para arreglarla.
+    if (nota === null || (estado === "falla" && nota.length < 3)) return error(ctx, "nota");
+    const p = await db.prepare("select p.id, p.titulo, t.numero, t.cerrada_en from pruebas p join tomas t on t.id = p.toma_id where p.id = ?").bind(r1).first();
+    if (!p) return error(ctx, "no-existe", 404);
+    if (p.cerrada_en) return error(ctx, "toma-cerrada", 409);
+    const tel = await db.prepare("select marca, modelo, android from telefonos where persona_id = ?").bind(yo.id).first();
+    if (!tel) return error(ctx, "sin-telefono", 409);
+    const telefono = textoTelefono(tel);
+    const antes = await db.prepare("select estado, incidencia_id from resultados where prueba_id = ? and persona_id = ?").bind(p.id, yo.id).first();
+    let incidencia = (antes && antes.incidencia_id) || null;
+    // Una falla abre sola su incidencia en la bitacora de la sala (o pone al dia la que sigue abierta).
+    if (estado === "falla") {
+      const detalle = `${nota} — ${yo.nombre}, en ${telefono}.`.slice(0, 1000);
+      const sigue = incidencia && (await db.prepare("select 1 from incidencias where id = ? and abierta = 1").bind(incidencia).first());
+      if (sigue) {
+        await db.prepare("update incidencias set detalle = ? where id = ?").bind(detalle, incidencia).run();
+      } else {
+        incidencia = nuevoId();
+        await db.prepare("insert into incidencias (id, titulo, detalle, gravedad, autor_id, creada_en) values (?, ?, ?, 'media', ?, ?)")
+          .bind(incidencia, `Toma ${p.numero} · ${p.titulo}`.slice(0, 140), detalle, yo.id, ctx.ahora).run();
+      }
+    }
+    await db.prepare(`insert into resultados (prueba_id, persona_id, estado, nota, telefono, incidencia_id, marcado_en) values (?, ?, ?, ?, ?, ?, ?)
+                      on conflict (prueba_id, persona_id) do update set estado = excluded.estado, nota = excluded.nota,
+                      telefono = excluded.telefono, incidencia_id = excluded.incidencia_id, marcado_en = excluded.marcado_en`)
+      .bind(p.id, yo.id, estado, nota || null, telefono, incidencia, ctx.ahora).run();
+    if (!antes || antes.estado !== estado) {
+      const verbo = estado === "funciona" ? "vio funcionar" : estado === "falla" ? "encontró una falla en" : "no pudo probar";
+      await anotar(ctx, yo.id, "prueba", `${yo.nombre} ${verbo} «${p.titulo}» (toma ${p.numero}).`);
+    }
+    return respuesta(ctx, { ok: true, incidencia: estado === "falla" ? incidencia : null });
+  }
 
   // La cabina
   if (m === "GET" && r0 === "cabina") {
@@ -411,7 +567,7 @@ async function enrutar(ctx) {
       versionObjetivo: objetivo,
       fases: FASES,
       notas: await all("select n.id, n.titulo, n.texto, n.fijada, n.creada_en, p.nombre as autor from notas n left join personas p on p.id = n.autor_id order by n.fijada desc, n.creada_en desc limit 30"),
-      ideas: await all(`select i.id, i.numero, i.titulo, i.para_que, i.version, i.fase, i.enlace, i.creada_en, i.actualizada_en,
+      ideas: await all(`select i.id, i.numero, i.titulo, i.para_que, i.version, i.fase, i.capa, i.enlace, i.creada_en, i.actualizada_en,
                         a.nombre as autor, r.nombre as responsable from ideas i left join personas a on a.id = i.autor_id left join personas r on r.id = i.responsable_id
                         where i.descartada = 0 order by i.numero`),
       equipo: await all("select nombre, rol, numero from personas where estado in ('prueba', 'activa', 'pausa') order by numero"),
@@ -540,6 +696,56 @@ async function enrutar(ctx) {
 
   // ── Solo el dueño ──
   if (!duenio) return error(ctx, "no-existe", 404);
+
+  // ── La Sala de control (2.0): lo primero que ve el dueño ──
+  if (m === "GET" && r0 === "sala") {
+    const all = (sql, ...b) => db.prepare(sql).bind(...b).all().then((r) => r.results);
+    const t = await tomaActual(db);
+    let toma = null;
+    if (t) {
+      const pruebas = await all("select id, orden, grupo, titulo, requiere from pruebas where toma_id = ? order by orden", t.id);
+      const resultados = await all("select r.prueba_id, r.persona_id, r.estado from resultados r join pruebas p on p.id = r.prueba_id where p.toma_id = ?", t.id);
+      const gente = await all(`select p.id, p.nombre, p.rol, p.estado, tl.marca, tl.modelo, tl.android from personas p
+                                 left join telefonos tl on tl.persona_id = p.id
+                                where p.rol != 'duenio' and p.estado in ('prueba', 'activa', 'pausa') order by p.numero`);
+      const supervisores = gente.map((g) => ({
+        nombre: g.nombre, estado: g.estado, telefono: textoTelefono(g.marca ? g : null),
+        ...resumenHoja(pruebas, new Map(resultados.filter((r) => r.persona_id === g.id).map((r) => [r.prueba_id, r.estado]))),
+      }));
+      toma = { ...vistaToma(t), ...estadoToma(pruebas, resultados), supervisores };
+    }
+    return respuesta(ctx, {
+      ok: true,
+      alAire: cfg.al_aire_texto ? { texto: cfg.al_aire_texto, sesion: cfg.al_aire_sesion || null, en: +cfg.al_aire_en || null } : null,
+      toma,
+      frentes: await all("select id, nombre, orden, version, estado, avance, espera, sesion, actualizado_en from frentes order by orden"),
+      cinta: await all("select id, numero, titulo, para_que, version, capa, fase, descartada, actualizada_en from ideas order by numero"),
+      capas: CAPAS, fases: FASES, versionObjetivo: cfg.version_objetivo || "2.0",
+      avances: await all("select id, frente, titulo, detalle, hecho_en from avances order by hecho_en desc limit 20"),
+      incidencias: await all(`select i.id, i.titulo, i.detalle, i.gravedad, i.creada_en, p.nombre as autor from incidencias i
+                                left join personas p on p.id = i.autor_id where i.abierta = 1 order by i.creada_en desc`),
+      contratacion,
+    });
+  }
+  if (m === "GET" && r0 === "medidores") {
+    return respuesta(ctx, { ok: true, ...(await medidores(ctx)) });
+  }
+  // El interruptor «Equipo y contratacion»: vuelve a mostrar pases, acta y jornada.
+  if (m === "POST" && r0 === "contratacion") {
+    const c = await leerCuerpo(ctx);
+    if (!c || typeof c.activa !== "boolean") return error(ctx, "cuerpo");
+    await db.prepare("insert or replace into config (clave, valor) values ('equipo_contratacion', ?)").bind(c.activa ? "1" : "0").run();
+    await anotar(ctx, yo.id, "contratacion", `Camilo ${c.activa ? "encendió" : "apagó"} «Equipo y contratación».`);
+    return respuesta(ctx, { ok: true });
+  }
+  if (m === "POST" && r0 === "ideas" && ID.test(r1 || "") && r2 === "capa") {
+    const c = await leerCuerpo(ctx);
+    const capa = c && c.capa;
+    if (!(capa === null || (Number.isInteger(capa) && capa >= 1 && capa < CAPAS.length))) return error(ctx, "capa");
+    const r = await db.prepare("update ideas set capa = ?, actualizada_en = ? where id = ?").bind(capa, ctx.ahora, r1).run();
+    if (!r.meta.changes) return error(ctx, "no-existe", 404);
+    return respuesta(ctx, { ok: true });
+  }
 
   if (m === "GET" && r0 === "produccion") {
     const all = (sql, ...b) => db.prepare(sql).bind(...b).all().then((r) => r.results);
