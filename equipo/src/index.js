@@ -483,6 +483,39 @@ async function enrutar(ctx) {
   const sinActa = conActa();
   if (sinActa) return sinActa;
 
+  // El APK de una toma: solo con sesion de la sala (CG, 18-10: «prueba solo para los de la pagina»).
+  // No va a GitHub porque alli el canal beta de la app se lo ofreceria a cualquiera. Vive en KV,
+  // partido en pedazos de menos de 25 MB (el tope de un valor), y se entrega unido.
+  if (m === "GET" && r0 === "tomas" && ID.test(r1 || "") && r2 === "apk") {
+    if (!env.APKS) return error(ctx, "sin-configurar", 503);
+    const toma = await db.prepare("select numero from tomas where id = ?").bind(r1).first();
+    const meta = toma && (await env.APKS.get(`apk:${r1}:meta`, "json"));
+    if (!meta) return error(ctx, "no-existe", 404);
+    const { readable, writable } = typeof FixedLengthStream === "function" ? new FixedLengthStream(meta.tamano) : new TransformStream();
+    const copiar = (async () => {
+      try {
+        for (let i = 0; i < meta.partes; i++) {
+          const parte = await env.APKS.get(`apk:${r1}:${i}`, "stream");
+          if (!parte) throw new Error(`falta la parte ${i}`);
+          await parte.pipeTo(writable, { preventClose: true });
+        }
+        await writable.close();
+      } catch (e) {
+        console.error("equipo: apk", e);
+        await writable.abort(e).catch(() => {});
+      }
+    })();
+    if (ctx.ec) ctx.ec.waitUntil(copiar);
+    await anotar(ctx, yo.id, "toma-bajada", `${yo.nombre} bajó el APK de la toma ${toma.numero}.`);
+    return new Response(readable, {
+      headers: {
+        "content-type": "application/vnd.android.package-archive",
+        "content-disposition": `attachment; filename="${String(meta.nombre).replace(/[^\w.-]/g, "_")}"`,
+        "cache-control": "private, no-store", "x-content-type-options": "nosniff", "x-robots-tag": "noindex, nofollow",
+      },
+    });
+  }
+
   // ── La hoja de pruebas (2.0). Se marca a cualquier hora: sin jornada (decision de CG, 18-10) ──
   if ((r0 === "hoja" || r0 === "telefono" || r0 === "pruebas") && !puede(yo.rol, "hoja")) return error(ctx, "permiso", 403);
   if (m === "POST" && (r0 === "telefono" || r0 === "pruebas") && yo.estado === "pausa") return error(ctx, "en-pausa", 403);
@@ -911,9 +944,9 @@ async function imprimirPase(ctx, p) {
 }
 
 export default {
-  async fetch(req, env) {
+  async fetch(req, env, ec) {
     const url = new URL(req.url);
-    const ctx = { req, env, url, origen: req.headers.get("origin"), cookies: [], ahora: Date.now(), aparato: aparatoDe(req.headers.get("user-agent")) };
+    const ctx = { req, env, ec, url, origen: req.headers.get("origin"), cookies: [], ahora: Date.now(), aparato: aparatoDe(req.headers.get("user-agent")) };
     // Solo en desarrollo (DESARROLLO=1 en .dev.vars, nunca en produccion): fijar la hora para probar la jornada.
     if (env.DESARROLLO === "1" && /^\d{13}$/.test(req.headers.get("x-prueba-ahora") || "")) ctx.ahora = +req.headers.get("x-prueba-ahora");
     if (!url.pathname.startsWith("/equipo/api/")) return error(ctx, "no-existe", 404);

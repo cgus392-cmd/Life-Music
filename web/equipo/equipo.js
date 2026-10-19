@@ -833,13 +833,17 @@
     const chips = trae && trae.length
       ? h`<div class="trae">${trae.map((i) => h`<span class="${CAPA_COLOR[i.capa || 0]}"><i>●</i>${i.titulo}</span>`)}</div>`
       : h`<div class="pz-val chico">${toma.trae || "—"}</div>`;
+    // La toma privada se baja de la API de la sala (con la sesion); en local, del puerto de prueba.
+    const privada = !!toma.enlace && toma.enlace.startsWith("/equipo/api/");
+    const descarga = privada ? API + toma.enlace.slice("/equipo/api".length) : toma.enlace;
     let abajo;
     if (modo === "sup") {
       const r = mio || { total: toma.total || 0, funciona: 0, falla: 0, noPude: 0, faltan: 0 };
       const detalle = [`${r.funciona + r.falla + r.noPude} DE ${r.total}`, r.falla && plural(r.falla, "FALLA", "FALLAS"), r.noPude && `${r.noPude} NO PUDE`, "SE GUARDA SOLO"].filter(Boolean).join(" · ");
       abajo = h`<div class="bajar"><div><div class="pz-eti">Tu avance</div>${segs(r.total, r.funciona, r.falla, r.noPude)}<small>${detalle}</small></div>
-        ${toma.enlace ? h`<a class="boton piloto" href="${toma.enlace}" target="_blank" rel="noopener noreferrer">↓ Bajar el APK de prueba</a>`
-          : h`<span class="boton" aria-disabled="true">El APK de prueba aún no está en GitHub</span>`}</div>`;
+        ${toma.enlace ? (privada ? h`<a class="boton piloto" href="${descarga}" download>↓ Bajar el APK de prueba</a>`
+            : h`<a class="boton piloto" href="${descarga}" target="_blank" rel="noopener noreferrer">↓ Bajar el APK de prueba</a>`)
+          : h`<span class="boton" aria-disabled="true">El APK de prueba todavía no está listo</span>`}</div>`;
     } else {
       const gente = toma.supervisores || [];
       const filas = gente.length ? gente.map((s, k) => {
@@ -859,7 +863,9 @@
         <div class="solo-ancho"><div class="pz-eti">Fecha</div><div class="pz-val">${fechaClaqueta(toma.creadaEn)}</div></div>
         <div class="solo-ancho"><div class="pz-eti">Salió</div><div class="pz-val">${horaCorta(toma.creadaEn)}</div></div></div>
       <div class="pz-fila"><div><div class="pz-eti">Qué trae</div>${chips}</div></div>
-      <div class="pz-fila f2"><div><div class="pz-eti">APK</div><div class="pz-val chico"><b>${toma.apk}</b> · ${toma.enlace ? (modo === "sup" ? "versión de prueba en GitHub" : h`<a href="${toma.enlace}" target="_blank" rel="noopener noreferrer">versión de prueba en GitHub</a>`) : "todavía sin subir a GitHub"}</div></div>
+      <div class="pz-fila f2"><div><div class="pz-eti">APK</div><div class="pz-val chico"><b>${toma.apk}</b> · ${!toma.enlace ? "todavía sin subir"
+          : privada ? (modo === "sup" ? "solo para el equipo: no lo compartas" : h`<a href="${descarga}" download>versión de prueba privada · solo la sala</a>`)
+          : modo === "sup" ? "versión de prueba en GitHub" : h`<a href="${descarga}" target="_blank" rel="noopener noreferrer">versión de prueba en GitHub</a>`}</div></div>
         <div class="solo-ancho"><div class="pz-eti">Qué probar</div><div class="pz-val chico"><b>${plural(toma.total || 0, "punto", "puntos")}${queProbar ? ":" : ""}</b> ${queProbar}</div></div></div>
       ${abajo}
     </div></div>`;
