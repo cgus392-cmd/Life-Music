@@ -139,7 +139,19 @@ marca», según la regla del 14-10.
 1. **Base y servidor, en local:** las tablas nuevas, `/sala` y `/medidores`, con pruebas.
 2. **Página «Sala», en local**, con capturas para CG. Se hace cuando CG apruebe la maqueta.
 3. **Datos reales:** los cinco frentes, la toma de hoy, las capas de las 19 ideas y las 4 nuevas.
-4. **Publicar en `lifemusic.app/equipo`**, solo con el «publica» de CG.
+4. **Publicar en `lifemusic.app/equipo`**, solo con el «publica» de CG. **El orden importa**, porque el servidor nuevo
+   consulta tablas que la base de hoy no tiene:
+   1. `wrangler d1 execute lifemusic-equipo --remote --file migraciones/2026-10-18-sala-de-control.sql`;
+   2. `… --file datos/2026-10-18-sala.sql`;
+   3. `wrangler deploy` (el Worker);
+   4. la página.
+
+**Avance (18-10):** la tanda 1 está **HECHA** (commit 68c0eb2f, sin publicar). Pasaron 16 pruebas de lógica y 36 de
+punta a punta contra `wrangler dev`, con el guion `scratchpad/prueba-sala.mjs`. Los datos reales están en
+`equipo/datos/2026-10-18-sala.sql`: 5 frentes, la toma 1 con 16 puntos, las capas, «al aire» y 8 avances.
+
+Ese mismo día ya se pasaron a la base real las ideas hechas: Nova (19) quedó en fase 5, y se agregaron de la 20 a la
+25. La tanda 2 (la página) espera la maqueta de Diseño y marca.
 
 ## 9. Lo que necesito de CG
 
