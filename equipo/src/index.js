@@ -241,6 +241,11 @@ async function medidores(ctx) {
 
 /** La toma al aire: la ultima sin cerrar. */
 const tomaActual = (db) => db.prepare("select * from tomas where cerrada_en is null order by numero desc limit 1").first();
+/** Sin toma al aire, la claqueta muestra la ultima publicada (decision de CG, 18-10). */
+const ultimaPublicada = (db) => db.prepare("select * from tomas where publicada_en is not null order by publicada_en desc limit 1").first();
+/** Lo que trae una toma: las ideas de sus puntos, con su capa para el color. */
+const ideasDeToma = (db, tomaId) => db.prepare(`select distinct i.id, i.titulo, i.capa from pruebas p join ideas i on i.id = p.idea_id
+                                                  where p.toma_id = ? order by i.numero`).bind(tomaId).all().then((r) => r.results);
 const vistaToma = (t) => t && ({
   id: t.id, numero: t.numero, version: t.version, apk: t.apk, trae: t.trae, enlace: t.enlace,
   creadaEn: t.creada_en, cerradaEn: t.cerrada_en, publicadaEn: t.publicada_en,
@@ -487,7 +492,7 @@ async function enrutar(ctx) {
     const telefono = await db.prepare("select marca, modelo, android from telefonos where persona_id = ?").bind(yo.id).first();
     let pruebas = [], resumen = null;
     if (t) {
-      pruebas = await all(`select p.id, p.orden, p.grupo, p.titulo, p.pasos, p.espera, p.requiere, i.titulo as idea,
+      pruebas = await all(`select p.id, p.orden, p.grupo, p.titulo, p.pasos, p.espera, p.requiere, i.titulo as idea, i.capa as idea_capa,
                                   r.estado, r.nota, r.marcado_en
                              from pruebas p left join ideas i on i.id = p.idea_id
                              left join resultados r on r.prueba_id = p.id and r.persona_id = ?
@@ -500,10 +505,17 @@ async function enrutar(ctx) {
                                         (select count(*) from pruebas p where p.toma_id = t.id) as total,
                                         ${cuenta("funciona")} as funciona, ${cuenta("falla")} as falla, ${cuenta("no-pude")} as no_pude
                                    from tomas t where t.cerrada_en is not null order by t.numero desc limit 12`, yo.id);
+    // «Mis incidencias», solo para leer: las que abrio esta persona y si ya se arreglaron.
+    const incidencias = await all(`select i.titulo, i.abierta, i.creada_en, i.cerrada_en, p.orden as punto, t.numero as toma
+                                     from incidencias i left join resultados r on r.incidencia_id = i.id and r.persona_id = i.autor_id
+                                     left join pruebas p on p.id = r.prueba_id left join tomas t on t.id = p.toma_id
+                                    where i.autor_id = ? order by i.abierta desc, i.creada_en desc limit 20`, yo.id);
     return respuesta(ctx, {
-      ok: true, toma: vistaToma(t), resumen, telefono, historial, grupos: GRUPOS,
+      ok: true, toma: vistaToma(t), resumen, telefono, historial, grupos: GRUPOS, incidencias,
+      trae: t ? await ideasDeToma(db, t.id) : [],
+      ultimaPublicada: t ? null : vistaToma(await ultimaPublicada(db)),
       pruebas: pruebas.map((p) => ({
-        id: p.id, orden: p.orden, grupo: p.grupo, titulo: p.titulo, pasos: p.pasos, espera: p.espera, requiere: p.requiere, idea: p.idea,
+        id: p.id, orden: p.orden, grupo: p.grupo, titulo: p.titulo, pasos: p.pasos, espera: p.espera, requiere: p.requiere, idea: p.idea, capa: p.idea_capa,
         mio: p.estado ? { estado: p.estado, nota: p.nota, marcadoEn: p.marcado_en } : null,
       })),
     });
@@ -712,18 +724,25 @@ async function enrutar(ctx) {
         nombre: g.nombre, estado: g.estado, telefono: textoTelefono(g.marca ? g : null),
         ...resumenHoja(pruebas, new Map(resultados.filter((r) => r.persona_id === g.id).map((r) => [r.prueba_id, r.estado]))),
       }));
-      toma = { ...vistaToma(t), ...estadoToma(pruebas, resultados), supervisores };
+      const grupos = Object.fromEntries(GRUPOS.map((g) => [g, pruebas.filter((p) => p.grupo === g).length]));
+      toma = { ...vistaToma(t), ...estadoToma(pruebas, resultados), supervisores, grupos, trae: await ideasDeToma(db, t.id) };
     }
     return respuesta(ctx, {
       ok: true,
       alAire: cfg.al_aire_texto ? { texto: cfg.al_aire_texto, sesion: cfg.al_aire_sesion || null, en: +cfg.al_aire_en || null } : null,
       toma,
-      frentes: await all("select id, nombre, orden, version, estado, avance, espera, sesion, actualizado_en from frentes order by orden"),
+      ultimaPublicada: t ? null : vistaToma(await ultimaPublicada(db)),
+      frentes: await all("select id, nombre, orden, version, estado, avance, espera, sesion, progreso, actualizado_en from frentes order by orden"),
       cinta: await all("select id, numero, titulo, para_que, version, capa, fase, descartada, actualizada_en from ideas order by numero"),
       capas: CAPAS, fases: FASES, versionObjetivo: cfg.version_objetivo || "2.0",
       avances: await all("select id, frente, titulo, detalle, hecho_en from avances order by hecho_en desc limit 20"),
-      incidencias: await all(`select i.id, i.titulo, i.detalle, i.gravedad, i.creada_en, p.nombre as autor from incidencias i
-                                left join personas p on p.id = i.autor_id where i.abierta = 1 order by i.creada_en desc`),
+      // Las que abre un supervisor desde su hoja dicen quien, en que telefono y en que punto.
+      incidencias: await all(`select i.id, i.titulo, i.detalle, i.gravedad, i.creada_en, p.nombre as autor,
+                                     r.telefono, pr.orden as punto, t.numero as toma
+                                from incidencias i left join personas p on p.id = i.autor_id
+                                left join resultados r on r.incidencia_id = i.id and r.persona_id = i.autor_id
+                                left join pruebas pr on pr.id = r.prueba_id left join tomas t on t.id = pr.toma_id
+                               where i.abierta = 1 order by i.creada_en desc`),
       contratacion,
     });
   }

@@ -15,6 +15,7 @@ create table if not exists frentes (
   estado text not null default 'en-marcha' check (estado in ('en-marcha', 'espera-cg', 'en-pausa', 'lista')),
   avance text,                             -- lo ultimo que se hizo
   espera text,                             -- que espera a quien
+  progreso integer not null default 0,     -- el fader de la consola: cuanto lleva, 0 a 100 (decision de CG, 18-10)
   sesion text,                             -- la sesion que lo trabaja
   actualizado_en integer not null
 );

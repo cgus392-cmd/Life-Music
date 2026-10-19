@@ -1,0 +1,346 @@
+/* Sala de control de Life Music (2.0). Maqueta aprobada por CG el 18-10:
+   Brand/maquetas/2026-10-18-sala-de-control.html. Ficha: docs/versiones/2.0/cabina-sala-de-control.md.
+   Todo va dentro de .sala para no pisar las vistas de contratacion (pase, acta, produccion),
+   que siguen en equipo.css. Mismos tokens de color y letra: tema claro u oscuro automatico.
+   En claro se mantienen negras la claqueta, las pantallas LCD y los LED; la cinta de enmascarar, crema. */
+
+.sala .marco{padding-top:28px}
+.sala .estado.gris{color:var(--texto-3);background:var(--consola-3)}
+.sala .bloque-cab h2 .pz{font:600 10.5px/1 var(--mono);color:#06120D;background:var(--texto-2);padding:4px 6px;border-radius:3px;letter-spacing:.04em}
+.sala .bloque-cab h2 small{font:500 12px var(--mono);color:var(--texto-3);letter-spacing:0;font-weight:500}
+.sala .iniciales.c-a{background:var(--pista-a)}.sala .iniciales.c-b{background:var(--pista-b)}
+.sala .iniciales.c-e{background:var(--pista-e)}.sala .iniciales.c-d{background:var(--pista-d)}
+.sala .aire.lista{background:var(--consola-3);color:var(--texto-3);border-color:var(--linea-2)}
+.sala .aire.lista.encendida{background:var(--piloto);color:#04150E;border-color:transparent;box-shadow:0 0 26px rgba(52,211,153,.5)}
+.sala .led{background:var(--consola-3);box-shadow:inset 0 1px 1px rgba(0,0,0,.5)}
+.sala .led.verde{background:var(--piloto);box-shadow:0 0 8px var(--piloto)}
+.sala .led.ambar{background:var(--ambar);box-shadow:0 0 8px var(--ambar)}
+.sala .led.rojo{background:var(--aire);box-shadow:0 0 8px var(--aire)}
+.sala .led.hueco{background:transparent;box-shadow:inset 0 0 0 1px var(--texto-3)}
+
+/* La fila de arriba: la fecha y las lecturas */
+.sala .lecturas{display:flex;gap:10px 40px;flex-wrap:wrap;margin:0}
+.sala .lecturas div{display:grid;gap:7px}
+.sala .lecturas dt{font:700 11px/1 var(--display);font-stretch:112%;letter-spacing:.16em;text-transform:uppercase;color:var(--texto-3)}
+.sala .lecturas dd{margin:0;font:600 19px/1.1 var(--mono);font-variant-numeric:tabular-nums}
+.sala .lecturas dd small{font:500 12px var(--cuerpo);color:var(--texto-3);margin-left:6px}
+.sala .lamparas{display:grid;gap:10px;justify-items:end}
+.sala .fila-2{display:grid;grid-template-columns:minmax(0,1fr) 400px;gap:24px;align-items:start}
+.sala .fila-2.ancha{grid-template-columns:minmax(0,1fr) 440px;margin-top:24px}
+.sala .fila-2 + .fila-2,.sala .fila-2 + .bloque,.sala .bloque + .fila-2{margin-top:24px}
+.sala .sin-marco{background:transparent;border:0}
+.sala .sin-marco > .bloque-cab{padding:0 0 14px;border:0}
+
+/* ═══ 1 · La claqueta de la toma ═══ */
+.sala .claqueta{border-radius:10px;overflow:hidden;box-shadow:0 18px 40px rgba(0,0,0,.4),0 0 0 1px rgba(255,255,255,.06)}
+.sala .palos{position:relative;height:30px;background:repeating-linear-gradient(-55deg,#F2F3EF 0 20px,#121517 20px 40px);transform-origin:0 100%}
+.sala .palos.arriba{transform:rotate(-2.2deg);margin-bottom:4px;border-radius:6px 6px 0 0}
+.sala .palos::after{content:"";position:absolute;left:10px;top:9px;width:12px;height:12px;border-radius:50%;background:#9AA3A0;box-shadow:inset 0 0 0 3px #5E6764}
+.sala .pizarra{background:#0C0F11;color:#F2F3EF;background-image:radial-gradient(120% 80% at 30% 0%,rgba(255,255,255,.035),transparent 60%)}
+.sala .pz-fila{display:grid;grid-template-columns:1fr;border-bottom:1px solid rgba(242,243,239,.22)}
+.sala .pz-fila.f4{grid-template-columns:1.3fr 1fr .8fr .8fr}
+.sala .pz-fila.f2{grid-template-columns:1.3fr 1fr}
+.sala .pz-fila > div{padding:10px 14px;border-left:1px solid rgba(242,243,239,.22);min-width:0}
+.sala .pz-fila > div:first-child{border-left:0}
+.sala .pz-eti{font:700 10px/1 var(--display);font-stretch:118%;letter-spacing:.18em;text-transform:uppercase;color:rgba(242,243,239,.55)}
+.sala .pz-val{margin-top:7px;font:600 21px/1.1 var(--mono);letter-spacing:.02em}
+.sala .pz-val.chico{font:500 13.5px/1.35 var(--cuerpo);letter-spacing:0;color:#DDE1DE}
+.sala .pz-val b{color:#fff}
+.sala .pz-val a{color:#9FF0CF;text-underline-offset:3px}
+.sala .trae{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+.sala .trae span{font:600 12px/1 var(--cuerpo);padding:6px 8px;border-radius:4px;background:rgba(242,243,239,.08);box-shadow:inset 0 0 0 1px rgba(242,243,239,.2)}
+.sala .trae span i{font-style:normal;color:var(--c,var(--pista-e));margin-right:5px}
+.sala .sups{padding:6px 14px 10px}
+.sala .sup{display:grid;grid-template-columns:30px 150px 1fr 150px;gap:12px;align-items:center;padding:8px 0;border-bottom:1px dashed rgba(242,243,239,.14)}
+.sala .sup:last-child{border-bottom:0}
+.sala .sup .iniciales{width:28px;height:28px;font-size:11px;border-radius:6px}
+.sala .sup b{display:block;font-size:13.5px}
+.sala .sup small{display:block;font:500 10.5px/1.3 var(--mono);color:rgba(242,243,239,.5);text-transform:uppercase}
+.sala .segs{display:flex;gap:3px}
+.sala .segs i{flex:1;height:12px;border-radius:2px;background:rgba(242,243,239,.1)}
+.sala .segs i.f{background:var(--piloto);box-shadow:0 0 6px rgba(52,211,153,.55)}
+.sala .segs i.x{background:var(--aire);box-shadow:0 0 6px rgba(255,91,46,.6)}
+.sala .segs i.n{background:#7D8783}
+.sala .sup .cuenta{height:auto;border-radius:0;background:none;overflow:visible;font:600 12.5px/1.3 var(--mono);text-align:right}
+.sala .sup.pausa{opacity:.42}
+.sala .pz-pie{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 14px;border-top:1px solid rgba(242,243,239,.22);font-size:12.5px;color:rgba(242,243,239,.6)}
+.sala .pz-vacio{padding:18px 14px;font-size:14px;color:#DDE1DE}
+.sala .pz-vacio b{display:block;font:600 21px/1.1 var(--mono);color:#fff;margin-bottom:6px}
+
+/* Hoy en la sala: las cabinas de grabacion */
+.sala .cabinas{list-style:none;margin:0;padding:0}
+.sala .cabinas li{display:grid;grid-template-columns:12px 1fr auto;gap:12px;align-items:start;padding:13px 18px;border-bottom:1px solid var(--linea)}
+.sala .cabinas li:last-child{border-bottom:0}
+.sala .cabinas .led{margin-top:6px}
+.sala .cabinas b{display:block;font:800 12.5px/1.2 var(--display);font-stretch:112%;letter-spacing:.06em;text-transform:uppercase}
+.sala .cabinas p{margin:4px 0 0;font-size:13.5px;color:var(--texto-2);line-height:1.4}
+.sala .cabinas time{font:500 11px/1 var(--mono);color:var(--texto-3);padding-top:4px;white-space:nowrap}
+
+/* ═══ 2 · La consola de mezcla ═══ */
+.sala .consola{display:grid;grid-template-columns:repeat(5,minmax(0,1fr))}
+.sala .canal{display:grid;grid-template-rows:auto auto auto 1fr auto;gap:12px;align-content:stretch;padding:16px 14px 14px;border-left:1px solid var(--linea);background:linear-gradient(180deg,rgba(255,255,255,.02),transparent 30%)}
+.sala .canal:first-child{border-left:0}
+.sala .canal .ch{display:flex;justify-content:space-between;align-items:center;font:600 10.5px/1 var(--mono);color:var(--texto-3)}
+.sala .lcd{padding:8px 9px;border-radius:4px;background:#0A0D0E;box-shadow:inset 0 1px 3px rgba(0,0,0,.6);font:600 13px/1.2 var(--mono);color:#9FF0CF;text-shadow:0 0 6px rgba(52,211,153,.45);overflow-wrap:anywhere}
+.sala .lcd small{display:block;font:500 10px/1.3 var(--mono);color:rgba(159,240,207,.6);text-shadow:none;margin-top:2px}
+.sala .canal.pausa .lcd{color:#5D6662;text-shadow:none}
+.sala .canal.pausa .lcd small{color:#4A524F}
+.sala .teclas-c{display:grid;grid-template-columns:repeat(3,1fr);gap:5px}
+.sala .teclas-c span{height:26px;border-radius:4px;display:grid;place-items:center;overflow:hidden;font:700 8.5px/1 var(--display);font-stretch:100%;letter-spacing:.05em;color:var(--texto-3);background:var(--consola-3);box-shadow:inset 0 1px 0 rgba(255,255,255,.06),0 1px 0 rgba(0,0,0,.5)}
+.sala .teclas-c span.marcha.on{background:var(--piloto);color:#04150E;box-shadow:0 0 12px rgba(52,211,153,.5)}
+.sala .teclas-c span.cue.on{background:var(--ambar);color:#1E1503;box-shadow:0 0 12px rgba(245,184,61,.5)}
+.sala .teclas-c span.mute.on{background:var(--aire);color:#fff;box-shadow:0 0 12px rgba(255,91,46,.5)}
+.sala .tira{display:grid;grid-template-columns:16px 1fr;gap:14px;min-height:170px}
+.sala .vu{display:flex;flex-direction:column-reverse;gap:3px;height:100%;width:16px}
+.sala .vu b{flex:1;border-radius:1px;background:var(--consola-3)}
+.sala .vu b.on{background:var(--piloto)}
+.sala .vu b.on.alto{background:var(--ambar)}
+.sala .fader{position:relative;isolation:isolate;justify-self:center;width:6px;height:100%;border-radius:3px;background:#0A0D0E;box-shadow:inset 0 1px 2px rgba(0,0,0,.7)}
+.sala .fader::before{content:"";position:absolute;left:-14px;right:-14px;top:0;bottom:0;background:repeating-linear-gradient(180deg,var(--linea-2) 0 1px,transparent 1px 17px);z-index:-1}
+.sala .fader .cap{position:absolute;left:-17px;width:40px;height:22px;margin-top:-11px;border-radius:4px;background:linear-gradient(180deg,#D9DEDB,#9BA3A0 48%,#C9CFCC 52%,#8C9491);box-shadow:0 4px 8px rgba(0,0,0,.5)}
+.sala .fader .cap::after{content:"";position:absolute;left:4px;right:4px;top:50%;height:2px;margin-top:-1px;background:#1B2024}
+.sala .fader .pct{position:absolute;left:30px;font:500 10px/1 var(--mono);color:var(--texto-3);margin-top:-5px;white-space:nowrap}
+/* La cinta de enmascarar, escrita a mano en cada canal */
+.sala .masking{position:relative;padding:9px 10px 10px;background:#ECE4CF;color:#1E2320;transform:rotate(-.6deg);box-shadow:0 2px 6px rgba(0,0,0,.35);
+  clip-path:polygon(0 3%,4% 0,9% 4%,15% 1%,22% 3%,30% 0,38% 3%,46% 1%,55% 4%,63% 1%,71% 3%,79% 0,87% 3%,94% 1%,100% 3%,100% 97%,95% 100%,88% 96%,80% 99%,72% 97%,64% 100%,56% 96%,48% 99%,40% 97%,32% 100%,24% 96%,16% 99%,8% 97%,0 100%)}
+.sala .masking b{display:block;font:800 15px/1 var(--display);font-stretch:112%;letter-spacing:.02em;text-transform:uppercase;color:#141917}
+.sala .masking .ult{display:block;margin-top:6px;font:500 11.5px/1.3 var(--cuerpo);color:#3D4440}
+.sala .masking .esp{display:block;margin-top:5px;font:600 11.5px/1.3 var(--cuerpo);color:var(--tinta-azul)}
+/* Escrito a mano en un pedazo de cinta: no cabe un parrafo. Lo completo esta en «Hoy en la sala». */
+.sala .masking .ult,.sala .masking .esp{display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:3;overflow:hidden}
+.sala .consola-pie{display:flex;flex-wrap:wrap;gap:8px 18px;padding:12px 18px;border-top:1px solid var(--linea);font:500 11.5px/1 var(--mono);color:var(--texto-3)}
+.sala .consola-pie span{display:flex;align-items:center;gap:7px}
+.sala .consola-pie i{width:16px;height:10px;border-radius:2px;display:inline-block}
+.sala .consola-pie i.v{background:var(--piloto)}.sala .consola-pie i.a{background:var(--ambar)}.sala .consola-pie i.r{background:var(--aire)}
+.sala .consola-m{display:none}
+
+/* ═══ 4 · El puente de medidores ═══ */
+.sala .puente{display:grid;grid-template-columns:1fr 1fr}
+.sala .med{padding:16px 18px;border-top:1px solid var(--linea);min-width:0}
+.sala .med:first-child{border-top:0}
+.sala .med.ancho{grid-column:1 / -1}
+.sala .med.der{border-left:1px solid var(--linea)}
+.sala .med .rotulo{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:14px}
+.sala .ver{display:grid;grid-template-columns:44px 1fr 38px;gap:10px;align-items:center;margin-bottom:9px}
+.sala .ver span{font:600 12px/1 var(--mono);color:var(--texto-2)}
+.sala .ver .esc{display:flex;gap:2px}
+.sala .ver .esc b{flex:1;height:9px;border-radius:1px;background:var(--consola-3)}
+.sala .ver .esc b.on{background:var(--piloto);box-shadow:0 0 5px rgba(52,211,153,.5)}
+.sala .ver .esc b.on.pico{background:var(--ambar)}
+.sala .ver strong{font:600 15px/1 var(--mono);text-align:right}
+.sala .med-pie{margin-top:10px;font-size:12.5px;color:var(--texto-3)}
+.sala .grande-n{font:600 44px/1 var(--mono);letter-spacing:-.02em}
+.sala .grande-n small{font:500 13px var(--mono);color:var(--texto-3);margin-left:6px;letter-spacing:0}
+.sala .estrellas{display:flex;gap:3px;margin-top:10px;color:var(--ambar);font-size:15px}
+.sala .digitos{display:flex;gap:6px}
+.sala .digitos span{width:40px;height:52px;border-radius:5px;display:grid;place-items:center;font:600 32px/1 var(--mono);color:#E8EDEA;background:#0A0D0E;box-shadow:inset 0 1px 3px rgba(0,0,0,.6),inset 0 -25px 0 rgba(255,255,255,.02)}
+.sala .serv{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}
+.sala .serv div{display:grid;gap:6px;justify-items:start}
+.sala .serv .vu{height:52px;width:12px}
+.sala .serv b{font:600 14px/1 var(--mono)}
+.sala .serv b span{font-size:10px;color:var(--texto-3)}
+.sala .serv small{font:700 9.5px/1.2 var(--display);font-stretch:112%;letter-spacing:.1em;text-transform:uppercase;color:var(--texto-3)}
+
+/* ═══ 3 · La cinta multipista de la 2.0 ═══ */
+.sala .transporte{display:flex;align-items:center;gap:16px;flex-wrap:wrap}
+.sala .carrete{width:30px;height:30px;border-radius:50%;flex:none;background:radial-gradient(circle,#0A0D0E 0 18%,#5E6764 19% 24%,#0A0D0E 25% 60%,#3A4246 61% 100%);position:relative}
+.sala .carrete::after{content:"";position:absolute;inset:6px;border-radius:50%;background:conic-gradient(from 0deg,#8A938F 0 8deg,transparent 8deg 120deg,#8A938F 120deg 128deg,transparent 128deg 240deg,#8A938F 240deg 248deg,transparent 248deg)}
+.sala .botones-t{display:flex;gap:4px}
+.sala .botones-t span{width:30px;height:24px;border-radius:4px;display:grid;place-items:center;background:var(--consola-3);font-size:11px;color:var(--texto-2);box-shadow:inset 0 1px 0 rgba(255,255,255,.06)}
+.sala .botones-t span.rec{color:var(--aire)}
+.sala .contador{display:inline-block;gap:0;padding:6px 9px;border-radius:4px;background:#0A0D0E;font:600 13px/1 var(--mono);color:#9FF0CF;text-shadow:0 0 6px rgba(52,211,153,.45)}
+.sala .cinta-scroll{overflow-x:auto}
+.sala .cinta{--fases:minmax(0,1fr) minmax(0,1.15fr) minmax(0,.8fr) minmax(0,1.15fr) minmax(0,1.15fr) minmax(0,.8fr);min-width:900px}
+.sala .regla-c{display:grid;grid-template-columns:200px var(--fases);border-bottom:1px solid var(--linea);font:700 11px/1.15 var(--display);font-stretch:80%;letter-spacing:.06em;text-transform:uppercase;color:var(--texto-3)}
+.sala .regla-c div{padding:10px;border-left:1px solid var(--linea);display:flex;align-items:center;gap:7px;min-width:0}
+.sala .regla-c div:first-child{border-left:0;padding-left:18px}
+.sala .regla-c .n{font:500 10px var(--mono);letter-spacing:0}
+.sala .regla-c .puerta{color:var(--aire)}
+.sala .regla-c .puerta::before{content:"";flex:none;border-left:5px solid transparent;border-right:5px solid transparent;border-top:7px solid var(--aire)}
+.sala .regla-c .puerta small{display:block;font:500 9.5px/1.2 var(--mono);letter-spacing:0;text-transform:none;margin-top:2px}
+.sala .pista{display:grid;grid-template-columns:200px var(--fases);min-height:0;border-bottom:1px solid var(--linea)}
+.sala .pista-cab{display:grid;grid-template-columns:22px 4px 1fr;gap:10px;align-items:center;padding:12px 12px 12px 14px;background:var(--consola-3)}
+.sala .pista-cab .n{font:600 11px var(--mono);color:var(--texto-3)}
+.sala .pista-cab .color{width:4px;align-self:stretch;border-radius:2px;background:var(--c)}
+.sala .pista-cab b{display:block;font-size:14px;font-weight:600}
+.sala .pista-cab small{display:block;margin-top:3px;font:500 11px var(--mono);color:var(--texto-3)}
+.sala .celda{border-left:1px solid var(--linea);padding:7px 6px;display:grid;gap:6px;align-content:start;min-width:0}
+.sala .celda.puerta{background:repeating-linear-gradient(135deg,var(--aire-suave) 0 6px,transparent 6px 12px)}
+.sala .clip{grid-row:auto;z-index:auto;margin:0;min-height:0;display:block;position:relative;overflow:hidden;border-radius:5px;padding:6px 9px 5px;text-align:left;width:100%;cursor:pointer;
+  background:color-mix(in srgb,var(--c) 18%,var(--consola-2));border:1px solid color-mix(in srgb,var(--c) 55%,transparent);color:var(--texto)}
+.sala .clip:hover{border-color:var(--c)}
+.sala .clip b{display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;padding-right:30px;font:600 11.5px/1.25 var(--cuerpo);overflow:hidden}
+.sala .clip .onda{display:flex;align-items:center;gap:2px;height:12px;margin-top:3px;opacity:.7}
+.sala .clip .onda i{flex:1 1 0;min-width:1px;max-width:3px;border-radius:1px;background:var(--c)}
+.sala .clip.vivo{box-shadow:0 0 0 1px var(--c),0 0 16px color-mix(in srgb,var(--c) 35%,transparent)}
+.sala .clip.vivo::after{content:"";position:absolute;right:0;top:0;bottom:0;width:2px;background:var(--texto);box-shadow:0 0 8px var(--texto)}
+.sala .clip .marca-ok{position:absolute;right:6px;top:6px;font:600 9px/1 var(--mono);color:var(--c)}
+.sala .bandeja{display:flex;align-items:center;gap:8px 12px;flex-wrap:wrap;padding:12px 18px;font-size:12.5px;color:var(--texto-3)}
+.sala .bandeja .clip{display:inline-block;width:auto;padding:5px 9px;opacity:.55}
+.sala .bandeja .clip b{display:inline;padding-right:0;white-space:nowrap;text-decoration:line-through}
+.sala .bandeja .clip.pausa b{text-decoration:none}
+.sala .bandeja .der{margin-left:auto;display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+
+/* ═══ 5 · Bitacora ═══ */
+.sala .bit{display:grid;grid-template-columns:1fr 1fr}
+.sala .bit > div{min-width:0}
+.sala .bit > div + div{border-left:1px solid var(--linea)}
+.sala .bit h4{display:flex;align-items:center;gap:8px;margin:0;padding:12px 18px;border-bottom:1px solid var(--linea)}
+.sala .bit h4 .rotulo{color:var(--texto-2)}
+.sala .bit ul{list-style:none;margin:0;padding:0}
+.sala .bit li{display:grid;grid-template-columns:4px 64px 1fr auto;gap:14px;align-items:center;padding:11px 18px 11px 0;border-bottom:1px solid var(--linea)}
+.sala .bit li:last-child{border-bottom:0}
+.sala .bit li.toca{cursor:pointer}
+.sala .bit li.toca:hover b{text-decoration:underline;text-underline-offset:3px}
+.sala .bit .sev{align-self:stretch;border-radius:0 2px 2px 0;background:var(--c)}
+.sala .bit time{font:500 11px/1.3 var(--mono);color:var(--texto-3);text-transform:uppercase}
+.sala .bit li b{display:block;font-size:13.5px;line-height:1.3}
+.sala .bit li small{display:block;margin-top:3px;font-size:12px;color:var(--texto-3)}
+.sala .bit .vacio{padding:18px;font-size:13px;color:var(--texto-3)}
+.sala .interruptor{display:grid;grid-template-columns:auto 1fr auto;gap:16px;align-items:center;padding:16px 18px}
+.sala .switch{width:46px;height:26px;border-radius:13px;border:0;padding:0;background:var(--consola-3);box-shadow:inset 0 0 0 1px var(--linea-2);position:relative;cursor:pointer}
+.sala .switch::after{content:"";position:absolute;left:3px;top:3px;width:20px;height:20px;border-radius:50%;background:#7D8783;transition:transform .15s}
+.sala .switch[aria-checked="true"]{background:var(--piloto)}
+.sala .switch[aria-checked="true"]::after{transform:translateX(20px);background:#fff}
+.sala .interruptor b{display:block;font-size:14px}
+.sala .interruptor small{display:block;font-size:12.5px;color:var(--texto-3);margin-top:2px}
+.sala .interruptor-pie{padding:0 18px 16px}
+.sala .pie-sala{margin-top:26px;padding-top:16px;border-top:1px solid var(--linea);display:flex;justify-content:space-between;align-items:center;gap:10px 18px;flex-wrap:wrap;font-size:12px;color:var(--texto-3)}
+.sala .pie-sala nav{display:flex;gap:6px 18px;flex-wrap:wrap}
+.sala .pie-sala button{border:0;background:none;padding:0;font:inherit;color:var(--texto-2);text-decoration:underline;text-underline-offset:3px}
+
+/* Colores de las pistas (capas) y de los frentes */
+.sala .c-a{--c:var(--pista-a)}.sala .c-b{--c:var(--pista-b)}.sala .c-c{--c:var(--pista-c)}.sala .c-d{--c:var(--pista-d)}.sala .c-e{--c:var(--pista-e)}
+.sala .c-alta{--c:var(--aire)}.sala .c-media{--c:var(--ambar)}.sala .c-baja{--c:var(--texto-3)}
+
+/* ═══ Vista del supervisor: Mi hoja de pruebas ═══ */
+.sala .hoja-cab{display:grid;grid-template-columns:1fr auto;gap:30px;align-items:end;padding-bottom:24px;margin-bottom:24px;border-bottom:1px solid var(--linea)}
+.sala .hoja-cab h1{margin-top:12px;font:900 clamp(38px,5vw,64px)/.9 var(--display);font-stretch:125%;letter-spacing:-.035em}
+.sala .hoja-cab p{margin:12px 0 0;color:var(--texto-2);max-width:60ch}
+.sala .mi-tel{display:flex;align-items:center;gap:12px;padding:12px 14px;border-radius:8px;border:1px solid var(--linea-2);background:var(--consola-2);text-align:left}
+.sala .mi-tel svg{width:22px;height:22px;fill:var(--texto-2);flex:none}
+.sala .mi-tel b{display:block;font-size:14px}
+.sala .mi-tel small{display:block;font:500 11px var(--mono);color:var(--texto-3)}
+.sala .mi-tel small u{text-underline-offset:2px}
+.sala .bajar{display:grid;grid-template-columns:1fr auto;gap:16px;align-items:center;padding:14px;border-top:1px solid rgba(242,243,239,.22)}
+.sala .bajar .boton.piloto{padding:14px 20px;font-size:15px;text-decoration:none}
+.sala .bajar small{display:block;margin-top:8px;font:500 11px/1.4 var(--mono);color:rgba(242,243,239,.55)}
+.sala .bajar .segs{margin-top:9px}
+.sala .hoja{display:grid;grid-template-columns:minmax(0,1fr) 320px;gap:26px;align-items:start;margin-top:26px}
+.sala .grupo{margin-bottom:22px}
+.sala .grupo-cab{display:flex;align-items:center;gap:12px;margin-bottom:10px}
+.sala .grupo-cab .rotulo{color:var(--texto-2)}
+.sala .grupo-cab .cuenta{height:auto;border-radius:0;background:none;overflow:visible;font:500 11px var(--mono);color:var(--texto-3)}
+.sala .grupo-cab::after{content:"";flex:1;height:1px;background:var(--linea)}
+.sala .punto{display:grid;grid-template-columns:38px 1fr 300px;gap:16px;align-items:start;padding:14px 16px;border:1px solid var(--linea);border-radius:8px;background:var(--consola-2);margin-bottom:8px}
+.sala .punto .n{font:600 13px/1 var(--mono);color:var(--texto-3);padding-top:3px}
+.sala .punto h5{margin:0;font-size:15px;font-weight:600;line-height:1.3}
+.sala .punto h5 .idea{margin-left:8px;font:500 10.5px/1 var(--mono);color:var(--c,var(--pista-e));vertical-align:2px;text-transform:uppercase}
+.sala .punto ol{margin:8px 0 0 18px;padding:0;font-size:13.5px;color:var(--texto-2);line-height:1.5}
+.sala .punto .debe{margin-top:8px;font-size:13px;color:var(--texto-2)}
+.sala .punto .debe b{font:700 10px/1 var(--display);font-stretch:112%;letter-spacing:.14em;text-transform:uppercase;color:var(--piloto);margin-right:8px}
+.sala .punto .requiere{display:block;margin-top:6px;font:500 11px var(--mono);color:var(--texto-3)}
+.sala .tri{display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px}
+.sala .tri button{height:40px;border-radius:6px;border:0;display:flex;align-items:center;justify-content:center;gap:6px;font:600 13px/1 var(--cuerpo);color:var(--texto-2);background:var(--consola-3);box-shadow:inset 0 0 0 1px var(--linea-2)}
+.sala .tri button:disabled{opacity:.45;cursor:not-allowed}
+.sala .tri button.f.on{background:var(--piloto);color:#04150E;box-shadow:0 0 14px rgba(52,211,153,.35)}
+.sala .tri button.x.on{background:var(--aire);color:#fff;box-shadow:0 0 14px rgba(255,91,46,.4)}
+.sala .tri button.n.on{background:#5E6764;color:#fff}
+.sala .punto.hecho{opacity:.62}
+.sala .punto.hecho:hover,.sala .punto.hecho:focus-within{opacity:1}
+.sala .punto.falla{border-color:rgba(255,91,46,.5);background:color-mix(in srgb,var(--aire) 6%,var(--consola-2))}
+.sala .punto.actual{border-color:var(--linea-2);box-shadow:0 0 0 1px var(--linea-2),0 12px 30px rgba(0,0,0,.25)}
+.sala .punto.corto{padding:10px 16px}
+.sala .punto.corto h5{font-size:14px}
+.sala .notita{grid-column:2 / -1;margin-top:2px;padding:10px 12px;border-radius:6px;background:var(--consola);box-shadow:inset 0 0 0 1px rgba(255,91,46,.45);font-size:13px;color:var(--texto)}
+.sala .notita small{display:block;margin-top:6px;font:500 11px var(--mono);color:var(--aire)}
+.sala .nota-falla{grid-column:2 / -1;display:grid;gap:8px}
+.sala .nota-falla .acciones{display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap}
+.sala .avance{padding:18px}
+.sala .avance .grande-n{margin-top:12px;font-size:52px}
+.sala .avance .segs{margin:14px 0 10px}
+.sala .avance .segs i{height:16px;background:var(--consola-3)}
+.sala .avance .segs i.f{background:var(--piloto)}.sala .avance .segs i.x{background:var(--aire)}.sala .avance .segs i.n{background:#7D8783}
+.sala .avance ul{list-style:none;display:grid;gap:8px;margin:10px 0 0;padding:0;font-size:13.5px;color:var(--texto-2)}
+.sala .avance li{display:flex;align-items:center;gap:10px}
+.sala .historial{list-style:none;margin:0;padding:0}
+.sala .historial li{display:grid;grid-template-columns:1fr auto;gap:10px;align-items:center;padding:11px 18px;border-bottom:1px solid var(--linea);font-size:13.5px}
+.sala .historial li:last-child{border-bottom:0}
+.sala .historial b{display:block;font:600 13px var(--mono)}
+.sala .historial b.texto{font:600 13.5px/1.3 var(--cuerpo)}
+.sala .historial small{display:block;color:var(--texto-3);font-size:12px}
+.sala .historial .vacio{display:block;padding:14px 18px;color:var(--texto-3);font-size:13px}
+.sala .tus-datos-sala{font-size:12.5px;color:var(--texto-3);padding:0 4px}
+.sala .tus-datos-sala nav{display:flex;flex-wrap:wrap;gap:6px 14px;margin-top:8px}
+.sala .tus-datos-sala button{border:0;background:none;padding:0;font:inherit;color:var(--texto-2);text-decoration:underline;text-underline-offset:3px}
+.sala .franja-fuera{margin:0 0 20px}
+
+/* La primera vez: con que telefono pruebas */
+.sala .primera{max-width:560px;margin:0 auto;padding:12px 0 24px}
+.sala .primera h1{margin-top:10px;font:900 clamp(30px,5vw,46px)/.95 var(--display);font-stretch:125%;letter-spacing:-.03em}
+.sala .primera > p{margin:12px 0 0;color:var(--texto-2);font-size:14.5px}
+.sala .primera form{display:grid;gap:16px;margin-top:22px}
+.sala .chips{display:flex;flex-wrap:wrap;gap:6px}
+.sala .chips label{position:relative}
+.sala .chips input{position:absolute;inset:0;opacity:0;cursor:pointer}
+.sala .chips span{display:block;padding:9px 12px;border-radius:6px;border:1px solid var(--linea-2);background:var(--consola-2);font:600 13px/1 var(--mono)}
+.sala .chips input:checked + span{background:var(--piloto);border-color:var(--piloto);color:#04150E}
+.sala .chips input:focus-visible + span{outline:2px solid var(--piloto);outline-offset:2px}
+.sala .primera .boton.piloto{width:100%;padding:15px;margin-top:6px}
+.sala .primera .acepto{margin-top:0;color:var(--texto-2);font-size:13.5px}
+.sala .primera .acepto input{accent-color:var(--piloto)}
+.sala .primera .acepto button{border:0;background:none;padding:0;font:inherit;color:var(--texto);text-decoration:underline;text-underline-offset:3px}
+
+/* ═══ Teléfono (maqueta, pantallas A-H) ═══ */
+@media (max-width: 1100px){
+  .sala .fila-2,.sala .fila-2.ancha{grid-template-columns:minmax(0,1fr)}
+  .sala .hoja{grid-template-columns:minmax(0,1fr)}
+}
+@media (max-width: 760px){
+  .sala .marco{padding-top:14px}
+  .sala .llamado{grid-template-columns:auto auto;justify-content:space-between;gap:12px;padding-bottom:14px;margin-bottom:14px}
+  .sala .llamado .fecha .d{font-size:54px}
+  .sala .llamado .fecha .dm span:nth-child(2){display:none}
+  .sala .lecturas{display:none}
+  .sala .lamparas{justify-items:end}
+  .sala .aire.grande{padding:9px 14px;font-size:12px;border-radius:5px}
+  .sala .pz-val{font-size:16px}
+  .sala .pz-fila.f4,.sala .pz-fila.f2{grid-template-columns:1.2fr 1fr}
+  .sala .pz-fila .solo-ancho{display:none}
+  .sala .sup{grid-template-columns:26px 1fr 92px;gap:6px 10px}
+  .sala .sup .segs{grid-column:2 / -1;grid-row:2}
+  .sala .pz-pie{flex-direction:column;align-items:flex-start}
+  .sala .bajar{grid-template-columns:1fr}
+  .sala .bajar .boton{width:100%}
+  .sala .consola{display:none}
+  .sala .consola-m{display:block}
+  .sala .canal-m{display:grid;grid-template-columns:96px 1fr;gap:12px;padding:12px 14px;border-bottom:1px solid var(--linea)}
+  .sala .canal-m:last-child{border-bottom:0}
+  .sala .canal-m .masking{transform:rotate(-1deg);padding:8px 8px 9px;align-self:start}
+  .sala .canal-m .masking b{font-size:12.5px}
+  .sala .canal-m .der-m{display:grid;gap:7px;align-content:start;min-width:0}
+  .sala .canal-m .lcd-led{display:grid;grid-template-columns:1fr auto;gap:8px;align-items:center}
+  .sala .canal-m .lcd{padding:6px 8px;font-size:12px}
+  .sala .canal-m p{margin:0;font-size:12.5px;color:var(--texto-2);line-height:1.35}
+  .sala .canal-m p.esp{color:#A9B7FF}
+  .sala .canal-m .teclas-c span{height:22px;font-size:8.5px}
+  .sala .consola-pie{display:none}
+  .sala .cinta{min-width:0;width:1018px}
+  .sala .cinta .pista,.sala .cinta .regla-c{grid-template-columns:118px repeat(6,150px)}
+  .sala .cinta .pista-cab b{font-size:12.5px}
+  .sala .puente{grid-template-columns:1fr}
+  .sala .med.der{border-left:0}
+  .sala .bit{grid-template-columns:1fr}
+  .sala .bit > div + div{border-left:0;border-top:1px solid var(--linea)}
+  .sala .interruptor{grid-template-columns:auto 1fr}
+  .sala .interruptor > .estado{display:none}
+  .sala .hoja-cab{grid-template-columns:1fr;gap:16px}
+  .sala .punto,.sala .punto.corto{grid-template-columns:28px 1fr;padding:12px}
+  .sala .punto .tri{grid-column:1 / -1}
+  .sala .punto ol{font-size:13px}
+  .sala .notita,.sala .nota-falla{grid-column:1 / -1}
+  .sala .serv{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+@media (prefers-color-scheme: light){ :root:not([data-theme="dark"]) .sala .canal-m p.esp{color:var(--tinta-azul)} }
+:root[data-theme="light"] .sala .canal-m p.esp{color:var(--tinta-azul)}
+@media (prefers-reduced-motion: reduce){ .sala .switch::after{transition:none} }

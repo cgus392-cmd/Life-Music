@@ -6,10 +6,12 @@
   "use strict";
 
   const LOCAL = ["localhost", "127.0.0.1"].includes(location.hostname);
-  const API = LOCAL ? `http://${location.hostname}:8787/equipo/api` : "/equipo/api";
+  // En local, ?api=8788 apunta a otro puerto del servidor de prueba (wrangler dev).
+  const PUERTO_LOCAL = /^\d{4,5}$/.test(new URLSearchParams(location.search).get("api") || "") ? new URLSearchParams(location.search).get("api") : "8787";
+  const API = LOCAL ? `http://${location.hostname}:${PUERTO_LOCAL}/equipo/api` : "/equipo/api";
   const ZONA = "America/Bogota";
   const app = document.getElementById("app");
-  const FASES = ["", "Idea", "Planteamiento", "Luz verde", "Ejecución", "Pruebas", "Lanzada"];
+  const FASES = ["", "Idea", "Planteamiento", "Luz verde", "Ejecución", "Hecha · falta probar", "Lanzada"];
   const COLORES = ["c-a", "c-b", "c-c", "c-d", "c-e"];
   const REVISION = [["Revisar el monitoreo", "LUN"], ["Leer las calificaciones nuevas", "MAR"], ["Ordenar los informes de los probadores", "MIÉ"], ["Responder los issues de GitHub", "VIE"]];
   const ALFABETO = "23456789ABCDEFGHJKMNPQRSTUVWXYZ";
@@ -45,6 +47,12 @@
     correo: "Revisa el correo.",
     ciudad: "Escribe la ciudad.",
     red: "No hay conexión con la cabina. Revisa tu internet.",
+    nota: "Cuenta qué pasó: en qué paso y qué viste (mínimo 3 letras).",
+    "sin-telefono": "Primero dinos con qué teléfono pruebas.",
+    "toma-cerrada": "Esa toma ya se cerró. Ya está cargada la nueva.",
+    "en-pausa": "Tu cargo está en pausa: puedes mirar tu hoja, pero no marcar.",
+    estado: "Ese estado no existe.",
+    capa: "Elige una de las cuatro capas.",
   };
   async function api(metodo, ruta, cuerpo) {
     let r;
@@ -96,7 +104,8 @@
   const sumarDias = (f, n) => { const [a, m, d] = f.split("-").map(Number); return new Date(Date.UTC(a, m - 1, d) + n * 86400000).toISOString().slice(0, 10); };
 
   // ── Estado ─────────────────────────────────────────────────────────────────
-  const S = { publico: null, yo: null, acta: null, cabina: null, prod: null, mon: null, concurso: null, vista: "cargando", antes: null, pestana: "produccion", pase: null, ultimoPase: null };
+  const S = { publico: null, yo: null, acta: null, cabina: null, prod: null, mon: null, concurso: null, vista: "cargando", antes: null, pestana: "sala", pase: null, ultimoPase: null,
+    sala: null, med: undefined, hoja: null, fallaAbierta: null, cambiarTelefono: false };
   const yo = () => S.yo && S.yo.yo;
   const esDuenio = () => !!yo() && yo().rol === "duenio";
   const abierta = () => !!yo() && (esDuenio() || yo().jornada.abierta);
@@ -148,15 +157,25 @@
     if (S.vista === "politica") { pintar(); return; }
     if (!S.yo) S.vista = location.hash === "#arranque" ? "arranque" : "pase";
     else if (esDuenio()) S.vista = "duenio";
-    else if (!S.yo.acta.firmada) S.vista = "acta";
-    else S.vista = "cabina";
+    // 2.0: el supervisor trabaja con su hoja de pruebas. El acta solo se pide con «Equipo y contratación» encendido.
+    else if (S.yo.requisito === "acta") S.vista = "acta";
+    else S.vista = "hoja";
+    if (esDuenio() && !S.yo.contratacion) S.pestana = "sala";
     await cargarDatos();
     pintar();
   }
   async function cargarDatos() {
     const tareas = [];
     if (S.vista === "acta") tareas.push(api("GET", "/acta").then((d) => (S.acta = d)));
-    if (S.vista === "cabina" || S.vista === "duenio") {
+    if (S.vista === "hoja" && !S.yo.requisito) tareas.push(api("GET", "/hoja").then((d) => (S.hoja = d)));
+    if (S.vista === "duenio" && S.pestana === "sala") {
+      tareas.push(api("GET", "/sala").then((d) => (S.sala = d)));
+      // Los medidores consultan servicios de afuera (hasta 6 s): la sala no los espera, se pintan al llegar.
+      const repintar = () => { if (S.vista === "duenio" && S.pestana === "sala" && S.sala) pintar(); };
+      api("GET", "/medidores").then((d) => (S.med = d)).catch(() => (S.med = null)).then(repintar);
+      api("GET", "/monitoreo").then((d) => (S.mon = d)).catch(() => (S.mon = null)).then(repintar);
+    }
+    if (S.vista === "cabina" || (S.vista === "duenio" && S.pestana !== "sala")) {
       tareas.push(api("GET", "/cabina").then((d) => (S.cabina = d)));
       tareas.push(api("GET", "/monitoreo").then((d) => (S.mon = d)).catch(() => (S.mon = null)));
       if (puede("concurso")) tareas.push(api("GET", "/concurso").then((d) => (S.concurso = d)).catch(() => (S.concurso = null)));
@@ -173,7 +192,8 @@
   function pintar() {
     const v = S.vista;
     const html = v === "pase" ? vistaPase() : v === "arranque" ? vistaArranque() : v === "acta" ? vistaActa()
-      : v === "politica" ? vistaPolitica() : v === "duenio" ? (S.pestana === "produccion" ? vistaProduccion() : vistaCabina()) : v === "cabina" ? vistaCabina() : h`<p class="cargando">CABINA · CARGANDO…</p>`;
+      : v === "politica" ? vistaPolitica() : v === "hoja" ? vistaHoja()
+      : v === "duenio" ? (S.pestana === "sala" ? vistaSala() : S.pestana === "produccion" ? vistaProduccion() : vistaCabina()) : v === "cabina" ? vistaCabina() : h`<p class="cargando">SALA · CARGANDO…</p>`;
     app.innerHTML = esc(html);
     despuesDePintar();
   }
@@ -193,6 +213,9 @@
       }
     });
     app.querySelectorAll("[data-ancho]").forEach((el) => { el.style.width = el.dataset.ancho; });
+    // La CSP no deja estilos en linea: la posicion de cada fader se pone desde aqui.
+    app.querySelectorAll("[data-top]").forEach((el) => { el.style.top = el.dataset.top; });
+    if (S.fallaAbierta) { const n = document.getElementById(`nota-${S.fallaAbierta}`); if (n) n.focus(); }
     if (S.vista === "pase") prepararPase();
     if (S.vista === "acta") prepararActa();
     if (S.vista === "duenio" && S.pestana === "produccion" && S.ultimoPase) pintarQr();
@@ -460,6 +483,7 @@
     return h`<header class="tope">
       <div class="sello"><b>LIFE MUSIC</b><span>${subtitulo}</span></div>
       ${esDuenio() ? h`<nav class="pestanas" aria-label="Secciones">
+        <button data-accion="pestana" data-a="sala">Sala de control</button>
         <button data-accion="pestana" data-a="produccion" ${S.pestana === "produccion" ? crudo('aria-current="page"') : ""}>Producción</button>
         <button data-accion="pestana" data-a="cabina" ${S.pestana === "cabina" ? crudo('aria-current="page"') : ""}>Sesión y operación</button></nav>` : ""}
       <div class="tope-der">
@@ -758,6 +782,385 @@
     for (let y = 0; y < n; y++) for (let x = 0; x < n; x++) if (qr.isDark(y, x)) g.fillRect(desde + (x + m) * celda, desde + (y + m) * celda, celda, celda);
   }
 
+  // ── Sala de control (2.0) ──────────────────────────────────────────────────
+  // Maqueta aprobada por CG el 18-10: Brand/maquetas/2026-10-18-sala-de-control.html.
+  // Ficha: docs/versiones/2.0/cabina-sala-de-control.md. Estilos en sala.css (todo bajo .sala).
+  const CAPA_COLOR = ["c-d", "c-e", "c-a", "c-c", "c-b"]; // sin capa, funciones, desarrollo, optimizacion, mantenimiento
+  const CAPAS = ["Sin capa", "Funciones", "Desarrollo", "Optimización", "Mantenimiento"];
+  const FRENTE_COLOR = { app: "c-e", tv: "c-a", carro: "c-b", web: "c-c", diseno: "c-d" };
+  const COLOR_GENTE = ["c-a", "c-b", "c-e", "c-d"];
+  const ESTADO_FRENTE = { "en-marcha": "en marcha", "espera-cg": "espera a CG", "en-pausa": "en pausa", lista: "lista" };
+  const REQUIERE = { tv: "Necesitas un TV con Chromecast o una pantalla para transmitir.", descargada: "Necesitas una canción descargada con letra por línea.", carro: "Necesitas el radio del carro." };
+  const nombreToma = (t) => `prueba.${t.numero}`;
+  const horaCorta = (ms) => fmt({ hour: "2-digit", minute: "2-digit", hourCycle: "h23" }).format(ms);
+  const diaMes = (ms) => fmt({ day: "2-digit", month: "short" }).format(ms).replace(".", "").toUpperCase();
+  const fechaClaqueta = (ms) => { const [d, m, a] = diaClave(ms).split("/"); return `${d}·${m}·${a.slice(2)}`; };
+  const hoyOdia = (ms) => (diaClave(ms) === diaClave(Date.now()) ? horaCorta(ms) : fmt({ day: "numeric", month: "short" }).format(ms).replace(".", ""));
+  const nombrePropio = (n) => (n || "").split(/\s+/)[0].replace(/^./, (c) => c.toUpperCase());
+  const plural = (n, uno, varios) => `${n} ${n === 1 ? uno : varios}`;
+  const segs = (total, f, x, n) => h`<span class="segs" aria-hidden="true">${Array.from({ length: total }, (_, i) => h`<i class="${i < f ? "f" : i < f + x ? "x" : i < f + x + n ? "n" : ""}"></i>`)}</span>`;
+  const barrasVu = (n, on, alto = 99) => h`<span class="vu" aria-hidden="true">${Array.from({ length: n }, (_, i) => h`<b class="${i < on ? (i >= alto ? "on alto" : "on") : ""}"></b>`)}</span>`;
+  const escalaLed = (n, on, pico = 99) => h`<span class="esc" aria-hidden="true">${Array.from({ length: n }, (_, i) => h`<b class="${i < on ? (i >= pico ? "on pico" : "on") : ""}"></b>`)}</span>`;
+  const telefonoCorto = (t) => (t || "").split(" · ")[0];
+
+  function fechaGrande() {
+    const ahora = Date.now();
+    const semana = S.yo.semana ? S.yo.semana.split("-W")[1] : "";
+    return h`<div class="fecha"><span class="d num">${fmt({ day: "numeric" }).format(ahora)}</span><div class="dm"><span>${fmt({ weekday: "long" }).format(ahora)}</span><span>${fmt({ month: "long" }).format(ahora)}</span><small>${fmt({ year: "numeric" }).format(ahora)} · semana ${semana}</small></div></div>`;
+  }
+  function topeSala() {
+    const p = yo();
+    const nav = esDuenio() && S.yo.contratacion
+      ? h`<nav class="pestanas" aria-label="Secciones">${[["sala", "Sala de control"], ["produccion", "Equipo y contratación"], ["cabina", "Sesión y operación"]]
+          .map(([k, t]) => h`<button data-accion="pestana" data-a="${k}" ${S.pestana === k ? crudo('aria-current="page"') : ""}>${t}</button>`)}</nav>` : "";
+    return h`<header class="tope"><div class="sello"><b>LIFE MUSIC</b><span>Sala de control</span></div>${nav}
+      <div class="tope-der"><div class="quien"><div class="nombre"><b>${esDuenio() ? "CG" : nombrePropio(p.nombre)}</b><small>${p.cargo}</small></div>
+        <span class="iniciales ${claseRol(p.rol)}">${esDuenio() ? "CG" : iniciales(p.nombre)}</span></div></div></header>`;
+  }
+
+  /** La claqueta de la toma: siempre arriba, aunque no haya toma (decision de CG). */
+  function claqueta({ toma, trae, ultima, version, modo, mio }) {
+    const palos = h`<div class="palos arriba"></div><div class="palos"></div>`;
+    if (!toma) {
+      return h`<div class="claqueta">${palos}<div class="pizarra">
+        <div class="pz-fila f2"><div><div class="pz-eti">Producción</div><div class="pz-val">Life Music ${version}</div></div><div><div class="pz-eti">Toma</div><div class="pz-val"><b>—</b></div></div></div>
+        <div class="pz-vacio"><b>Sin toma al aire</b>${ultima ? `La última publicada fue ${nombreToma(ultima)}, el ${fmt({ day: "numeric", month: "long" }).format(ultima.publicadaEn)}. ` : "Todavía no se ha publicado ninguna toma. "}${modo === "sup" ? "Cuando Camilo suba la próxima, aquí aparece tu hoja de pruebas." : "Cuando haya un APK para probar, sale aquí con su hoja."}</div>
+      </div></div>`;
+    }
+    const g = toma.grupos || {};
+    const partes = [g.nuevo && plural(g.nuevo, "nuevo", "nuevos"), g.siempre && `${g.siempre} de la ronda de siempre`, g.volver && `${g.volver} para volver a probar`].filter(Boolean);
+    const queProbar = partes.length > 1 ? `${partes.slice(0, -1).join(", ")} y ${partes[partes.length - 1]}` : partes.join("");
+    const chips = trae && trae.length
+      ? h`<div class="trae">${trae.map((i) => h`<span class="${CAPA_COLOR[i.capa || 0]}"><i>●</i>${i.titulo}</span>`)}</div>`
+      : h`<div class="pz-val chico">${toma.trae || "—"}</div>`;
+    let abajo;
+    if (modo === "sup") {
+      const r = mio || { total: toma.total || 0, funciona: 0, falla: 0, noPude: 0, faltan: 0 };
+      const detalle = [`${r.funciona + r.falla + r.noPude} DE ${r.total}`, r.falla && plural(r.falla, "FALLA", "FALLAS"), r.noPude && `${r.noPude} NO PUDE`, "SE GUARDA SOLO"].filter(Boolean).join(" · ");
+      abajo = h`<div class="bajar"><div><div class="pz-eti">Tu avance</div>${segs(r.total, r.funciona, r.falla, r.noPude)}<small>${detalle}</small></div>
+        ${toma.enlace ? h`<a class="boton piloto" href="${toma.enlace}" target="_blank" rel="noopener noreferrer">↓ Bajar el APK de prueba</a>`
+          : h`<span class="boton" aria-disabled="true">El APK de prueba aún no está en GitHub</span>`}</div>`;
+    } else {
+      const gente = toma.supervisores || [];
+      const filas = gente.length ? gente.map((s, k) => {
+        const hechos = s.funciona + s.falla + s.noPude;
+        const nota = s.falla ? plural(s.falla, "FALLA", "FALLAS") : s.noPude ? `${s.noPude} NO PUDE` : s.faltan === 0 && s.total ? "COMPLETA" : "";
+        return h`<div class="sup ${s.estado === "pausa" ? "pausa" : ""}"><span class="iniciales ${COLOR_GENTE[k % COLOR_GENTE.length]}">${iniciales(s.nombre)}</span>
+          <div><b>${nombrePropio(s.nombre)}</b><small>${s.estado === "pausa" ? "En pausa" : s.telefono ? s.telefono.replace(/^\S+\s/, "") : "Sin teléfono todavía"}</small></div>
+          ${segs(s.total, s.estado === "pausa" ? 0 : s.funciona, s.estado === "pausa" ? 0 : s.falla, s.estado === "pausa" ? 0 : s.noPude)}
+          <div class="cuenta">${s.estado === "pausa" ? "—" : `${hechos} de ${s.total}`}<small>${nota || crudo("&nbsp;")}</small></div></div>`;
+      }) : h`<div class="pz-vacio">Nadie está probando todavía. Cuando un supervisor marque su primer punto, su avance sale aquí.</div>`;
+      abajo = h`<div class="sups">${filas}</div>
+        <div class="pz-pie"><span>Cuando todo quede en verde, la toma pasa a «Lista para publicar». Publicar sigue siendo solo tuyo.</span><span class="aire lista ${toma.lista ? "encendida" : ""}">Lista para publicar</span></div>`;
+    }
+    return h`<div class="claqueta">${palos}<div class="pizarra">
+      <div class="pz-fila f4"><div><div class="pz-eti">Producción</div><div class="pz-val">Life Music ${toma.version}</div></div>
+        <div><div class="pz-eti">Toma</div><div class="pz-val"><b>${nombreToma(toma)}</b></div></div>
+        <div class="solo-ancho"><div class="pz-eti">Fecha</div><div class="pz-val">${fechaClaqueta(toma.creadaEn)}</div></div>
+        <div class="solo-ancho"><div class="pz-eti">Salió</div><div class="pz-val">${horaCorta(toma.creadaEn)}</div></div></div>
+      <div class="pz-fila"><div><div class="pz-eti">Qué trae</div>${chips}</div></div>
+      <div class="pz-fila f2"><div><div class="pz-eti">APK</div><div class="pz-val chico"><b>${toma.apk}</b> · ${toma.enlace ? (modo === "sup" ? "versión de prueba en GitHub" : h`<a href="${toma.enlace}" target="_blank" rel="noopener noreferrer">versión de prueba en GitHub</a>`) : "todavía sin subir a GitHub"}</div></div>
+        <div class="solo-ancho"><div class="pz-eti">Qué probar</div><div class="pz-val chico"><b>${plural(toma.total || 0, "punto", "puntos")}${queProbar ? ":" : ""}</b> ${queProbar}</div></div></div>
+      ${abajo}
+    </div></div>`;
+  }
+
+  // La sala del dueño: cinco piezas del mismo objeto.
+  function vistaSala() {
+    const d = S.sala;
+    if (!d) return h`<div class="sala">${topeSala()}<p class="cargando">SALA · CARGANDO…</p></div>`;
+    const t = d.toma;
+    const activos = t ? t.supervisores.filter((s) => s.estado !== "pausa") : [];
+    const probados = activos.reduce((a, s) => a + s.funciona + s.falla + s.noPude, 0);
+    const llamadoSala = h`<div class="llamado">${fechaGrande()}
+      <dl class="lecturas">
+        <div><dt>Toma al aire</dt><dd>${t ? nombreToma(t) : "—"}<small>${t ? hora(t.creadaEn) : "sin toma"}</small></dd></div>
+        <div><dt>Versión</dt><dd>${d.versionObjetivo}<small>${t ? "en pruebas" : "en desarrollo"}</small></dd></div>
+        <div><dt>Puntos probados</dt><dd>${t ? `${probados} / ${t.total * activos.length}` : "—"}<small>${plural(activos.length, "supervisor", "supervisores")}</small></dd></div>
+        <div><dt>Incidencias</dt><dd>${d.incidencias.length}<small>${d.incidencias.length === 1 ? "abierta" : "abiertas"}</small></dd></div></dl>
+      <div class="lamparas"><span class="aire grande ${t ? "encendida" : ""}">${t ? "Al aire" : "Fuera del aire"}</span></div></div>`;
+    const estadoToma = t ? (t.lista ? h`<span class="estado ok">LISTA PARA PUBLICAR</span>`
+      : h`<span class="estado esp">FALTA PROBAR${t.conFalla ? ` · ${plural(t.conFalla, "FALLA ABIERTA", "FALLAS ABIERTAS")}` : ""}</span>`) : h`<span class="estado gris">SIN TOMA</span>`;
+    return h`<div class="sala">${topeSala()}<div class="marco">${llamadoSala}
+      <div class="fila-2">
+        <section class="bloque sin-marco" aria-label="Al aire: la toma para probar"><div class="bloque-cab"><h2><span class="pz">1</span>Al aire <small>· la toma para probar</small></h2>${estadoToma}</div>
+          ${claqueta({ toma: t, trae: t && t.trae, ultima: d.ultimaPublicada, version: d.versionObjetivo, modo: "duenio" })}</section>
+        ${bloqueHoy()}
+      </div>
+      <div class="fila-2 ancha">${bloqueConsola()}${bloqueMedidores()}</div>
+      ${bloqueCinta()}
+      <div class="fila-2">${bloqueBitacoraSala()}${bloqueContratacion()}</div>
+      <div class="pie-sala"><span>Sin analítica · una sola cookie de sesión · política de datos (Ley 1581)</span>
+        <nav><button data-ir="politica">Política de datos</button><button data-accion="codigo-aparato">Enlazar otro aparato</button><button data-accion="salir">Salir</button></nav></div>
+    </div></div>`;
+  }
+
+  function bloqueHoy() {
+    const d = S.sala;
+    const frentes = [...d.frentes].sort((a, b) => b.actualizado_en - a.actualizado_en);
+    const hoy = (f) => diaClave(f.actualizado_en) === diaClave(Date.now());
+    const grabando = frentes.filter(hoy).length;
+    const filas = [];
+    if (d.alAire) filas.push(h`<li><span class="led rojo"></span><div><b>Al aire · ${(d.alAire.sesion || "").replace(/^Life Music · /, "")}</b><p>${d.alAire.texto}</p></div><time>${d.alAire.en ? hoyOdia(d.alAire.en) : ""}</time></li>`);
+    for (const f of frentes) {
+      const led = hoy(f) ? "verde" : f.estado === "en-pausa" ? "" : f.estado === "espera-cg" ? "ambar" : "verde";
+      filas.push(h`<li><span class="led ${led}"></span><div><b>${f.nombre}</b><p>${f.avance || ESTADO_FRENTE[f.estado]}</p></div><time>${hoyOdia(f.actualizado_en)}</time></li>`);
+    }
+    return h`<section class="bloque" aria-label="Hoy en la sala"><div class="bloque-cab"><h2>Hoy en la sala</h2>
+      ${grabando ? h`<span class="estado ok">${grabando === 1 ? "1 CABINA GRABANDO" : `${grabando} CABINAS GRABANDO`}</span>` : h`<span class="estado gris">NADIE GRABA HOY</span>`}</div>
+      ${filas.length ? h`<ul class="cabinas">${filas}</ul>` : h`<div class="en-blanco"><p>Cuando una sesión cierre su primera tanda, sale aquí.</p></div>`}</section>`;
+  }
+
+  function bloqueConsola() {
+    const fs = S.sala.frentes;
+    const cuenta = (e) => fs.filter((f) => f.estado === e).length;
+    const nivelVu = (f) => {
+      if (f.estado === "en-pausa") return 0;
+      const dias = Math.floor((Date.now() - f.actualizado_en) / 86400000);
+      return dias <= 0 ? 9 : dias === 1 ? 7 : dias <= 3 ? 5 : dias <= 7 ? 3 : 1;
+    };
+    const teclas = (f) => h`<div class="teclas-c" aria-label="Estado: ${ESTADO_FRENTE[f.estado]}"><span class="marcha ${f.estado === "en-marcha" || f.estado === "lista" ? "on" : ""}">MARCHA</span><span class="cue ${f.estado === "espera-cg" ? "on" : ""}">CUE</span><span class="mute ${f.estado === "en-pausa" ? "on" : ""}">MUTE</span></div>`;
+    const led = (f) => (f.estado === "en-marcha" || f.estado === "lista" ? "verde" : f.estado === "espera-cg" ? "ambar" : "");
+    const canales = fs.map((f, k) => h`<div class="canal ${f.estado === "en-pausa" ? "pausa" : ""}">
+      <div class="ch"><span>CH ${k + 1}</span><span class="led ${led(f)}"></span></div>
+      <div class="lcd">${f.version || "—"}<small>${ESTADO_FRENTE[f.estado]}</small></div>${teclas(f)}
+      <div class="tira">${barrasVu(12, nivelVu(f), 9)}<div class="fader" role="img" aria-label="Avance ${f.progreso || 0} %"><span class="cap" data-top="${100 - (f.progreso || 0)}%"></span><span class="pct" data-top="${100 - (f.progreso || 0)}%">${f.progreso || 0}%</span></div></div>
+      <div class="masking"><b>${f.nombre}</b><span class="ult">${f.avance || ""}${f.avance ? " · " : ""}${hoyOdia(f.actualizado_en)}</span>${f.espera ? h`<span class="esp">Espera: ${f.espera}</span>` : ""}</div></div>`);
+    const filasM = fs.map((f) => h`<div class="canal-m"><div class="masking"><b>${f.nombre}</b></div><div class="der-m">
+      <div class="lcd-led"><div class="lcd">${f.version || "—"}</div><span class="led ${led(f)}"></span></div>${teclas(f)}
+      <p>${f.avance || ""}${f.avance ? " · " : ""}${hoyOdia(f.actualizado_en)} · ${f.progreso || 0}%</p>${f.espera ? h`<p class="esp">Espera: ${f.espera}</p>` : ""}</div></div>`);
+    return h`<section class="bloque" aria-label="La consola: un canal por frente"><div class="bloque-cab"><h2><span class="pz">2</span>La consola <small>· un canal por frente</small></h2>
+        <div class="medidor">${cuenta("en-marcha") + cuenta("lista")} en marcha · ${cuenta("espera-cg")} ${cuenta("espera-cg") === 1 ? "espera" : "esperan"} a CG · ${cuenta("en-pausa")} en pausa</div></div>
+      ${fs.length ? h`<div class="consola">${canales}</div><div class="consola-m">${filasM}</div>
+        <div class="consola-pie"><span><i class="v"></i>MARCHA · en marcha</span><span><i class="a"></i>CUE · espera a CG</span><span><i class="r"></i>MUTE · en pausa</span><span>Fader · cuánto lleva</span></div>`
+        : h`<div class="en-blanco"><p>Los frentes aparecen cuando cada sesión cierra su primera tanda.</p></div>`}</section>`;
+  }
+
+  function bloqueMedidores() {
+    const m = S.med, mon = S.mon;
+    // undefined: todavia midiendo; null: no respondio.
+    const sinDato = (que) => h`<p class="med-pie">${m === undefined ? "Midiendo…" : `No se pudo leer ${que} ahora.`}</p>`;
+    let descargas = sinDato("GitHub");
+    if (m && m.descargas) {
+      // Las tres versiones publicadas mas recientes (sin las pruebas ni el carro).
+      const estables = m.descargas.versiones.filter((v) => !v.prueba && /^v\d/.test(v.tag)).sort((a, b) => Date.parse(b.fecha) - Date.parse(a.fecha)).slice(0, 3);
+      const max = Math.max(1, ...estables.map((v) => v.descargas));
+      descargas = h`${estables.map((v) => h`<div class="ver"><span>${v.tag.replace(/^v/, "")}</span>${escalaLed(24, Math.max(1, Math.round((v.descargas / max) * 22)), 20)}<strong>${v.descargas}</strong></div>`)}
+        <p class="med-pie">${m.descargas.total} en total, contando las pruebas del carro.</p>`;
+    }
+    const c = m && m.calificaciones;
+    const calif = c ? (c.promedio != null
+      ? h`<div class="grande-n">${String(c.promedio).replace(".", ",")}<small>de 5 · ${plural(c.total, "voto", "votos")}</small></div><div class="estrellas" aria-hidden="true">${"★".repeat(Math.round(c.promedio))}${"☆".repeat(5 - Math.round(c.promedio))}</div>`
+      : h`<div class="grande-n">—<small>${plural(c.total, "voto", "votos")}</small></div><p class="med-pie">El promedio se muestra cuando haya más votos.</p>`)
+      : sinDato("las calificaciones");
+    const pre = m && m.prerregistro;
+    const prer = pre ? h`<div class="digitos num">${[...String(Math.min(999, pre.contador || 0)).padStart(3, "0")].map((x) => h`<span>${x}</span>`)}</div>
+      <p class="med-pie">${pre.abierto ? `Meta: ${pre.meta}` : "Concurso en pausa"}</p>` : sinDato("el contador");
+    let serv = h`<p class="med-pie">${mon === undefined ? "Midiendo…" : "No se pudo medir ahora."}</p>`, servOk = true;
+    if (mon) {
+      servOk = mon.servicios.every((s) => s.ok);
+      serv = h`<div class="serv">${mon.servicios.map((s) => {
+        const nivel = s.ok && s.ms != null ? Math.min(9, Math.max(2, 9 - Math.floor(s.ms / 220))) : 0;
+        return h`<div>${barrasVu(9, nivel, s.ms > 1000 ? 0 : 7)}<b>${s.ok ? s.ms : "—"}<span> ${s.ok ? "ms" : ""}</span></b><small>${s.nombre}</small></div>`;
+      })}</div>`;
+    }
+    return h`<section class="bloque" aria-label="Medidores"><div class="bloque-cab"><h2><span class="pz">4</span>Medidores</h2><span class="estado gris">CADA 10 MIN</span></div>
+      <div class="puente">
+        <div class="med ancho"><div class="rotulo"><span>Descargas</span><span class="estado ok">GITHUB · REAL</span></div>${descargas}</div>
+        <div class="med"><div class="rotulo"><span>Calificaciones</span></div>${calif}</div>
+        <div class="med der"><div class="rotulo"><span>Prerregistros</span></div>${prer}</div>
+        <div class="med ancho"><div class="rotulo"><span>Servicios</span>${mon ? (servOk ? h`<span class="estado ok">TODO EN ORDEN</span>` : h`<span class="estado mal">HAY UNO CAÍDO</span>`) : ""}</div>${serv}</div>
+      </div></section>`;
+  }
+
+  function bloqueCinta() {
+    const d = S.sala;
+    const ideas = d.cinta;
+    const enCinta = ideas.filter((i) => !i.descartada && i.capa);
+    const descartadas = ideas.filter((i) => i.descartada);
+    const pausadas = ideas.filter((i) => !i.descartada && !i.capa);
+    const hechas = enCinta.filter((i) => i.fase >= 5).length, enEjec = enCinta.filter((i) => i.fase === 4).length;
+    const dos = (n) => String(n).padStart(2, "0");
+    const clip = (i) => h`<button class="clip ${i.fase === 4 ? "vivo" : ""}" data-accion="ver-clip" data-id="${i.id}" title="${i.titulo}"><b>${i.titulo}</b>
+      ${i.fase === 5 ? h`<span class="marca-ok">BETA</span>` : i.fase === 6 ? h`<span class="marca-ok">✓</span>` : ""}<span class="onda" data-onda="${i.numero}" data-largo="0.6"></span></button>`;
+    const regla = h`<div class="regla-c"><div>Pista</div><div><span class="n">1</span>Idea</div><div><span class="n">2</span>Planteamiento</div>
+      <div class="puerta"><span>Luz verde<small>solo CG</small></span></div><div><span class="n">3</span>Ejecución</div><div><span class="n">4</span>Hecha · falta probar</div>
+      <div class="puerta"><span>Lanzada<small>solo CG publica</small></span></div></div>`;
+    const pistas = [1, 2, 3, 4].map((capa) => {
+      const suyas = enCinta.filter((i) => i.capa === capa);
+      return h`<div class="pista ${CAPA_COLOR[capa]}"><div class="pista-cab"><span class="n">${dos(capa)}</span><span class="color"></span>
+          <div><b>${CAPAS[capa]}</b><small>capa ${capa} · ${plural(suyas.length, "idea", "ideas")}</small></div></div>
+        ${[1, 2, 3, 4, 5, 6].map((f) => h`<div class="celda ${f === 3 || f === 6 ? "puerta" : ""}">${suyas.filter((i) => i.fase === f).map(clip)}</div>`)}</div>`;
+    });
+    return h`<section class="bloque" aria-label="La cinta de la ${d.versionObjetivo}"><div class="bloque-cab">
+        <h2><span class="pz">3</span>La cinta de la ${d.versionObjetivo} <small>· ${plural(ideas.length, "idea", "ideas")} · 4 pistas</small></h2>
+        <div class="transporte" aria-hidden="true"><span class="carrete"></span><span class="botones-t"><span>◀◀</span><span>■</span><span>▶</span><span class="rec">●</span></span>
+          <span class="contador">${d.versionObjetivo} · ${dos(hechas)} HECHAS · ${dos(enEjec)} EN EJECUCIÓN</span><span class="carrete"></span></div></div>
+      <div class="cinta-scroll"><div class="cinta">${regla}${pistas}</div></div>
+      <div class="bandeja">${descartadas.length || pausadas.length ? h`<span>Fuera de la cinta:</span>` : ""}
+        ${descartadas.map((i) => h`<button class="clip ${CAPA_COLOR[i.capa || 0]}" data-accion="ver-clip" data-id="${i.id}"><b>${i.titulo}</b></button>`)}${descartadas.length ? h`<span>${descartadas.length === 1 ? "descartada" : "descartadas"}${pausadas.length ? " ·" : ""}</span>` : ""}
+        ${pausadas.map((i) => h`<button class="clip pausa ${CAPA_COLOR[0]}" data-accion="ver-clip" data-id="${i.id}"><b>${i.titulo}</b></button>`)}${pausadas.length ? h`<span>en pausa</span>` : ""}
+        <span class="der"><span>Las franjas rojas son tus puertas: dar luz verde y lanzar.</span><button class="boton chico" data-accion="nueva-idea">+ Idea</button></span></div></section>`;
+  }
+
+  function bloqueBitacoraSala() {
+    const d = S.sala;
+    const terminado = d.avances.slice(0, 6);
+    const inc = d.incidencias;
+    return h`<section class="bloque" aria-label="Bitácora"><div class="bloque-cab"><h2><span class="pz">5</span>Bitácora</h2><button class="boton chico" data-accion="nueva-incidencia">+ Nueva incidencia</button></div>
+      <div class="bit">
+        <div><h4><span class="led verde"></span><span class="rotulo">Terminado</span></h4>
+          ${terminado.length ? h`<ul>${terminado.map((a) => h`<li class="${FRENTE_COLOR[a.frente] || "c-d"}"><span class="sev"></span><time>${diaMes(a.hecho_en)}</time><div><b>${a.titulo}</b>${a.detalle ? h`<small>${a.detalle}</small>` : ""}</div><span class="estado ok">HECHO</span></li>`)}</ul>`
+            : h`<p class="vacio">Lo que se termine en cada tanda aparece aquí.</p>`}</div>
+        <div><h4><span class="led ${inc.length ? "rojo" : ""}"></span><span class="rotulo">Incidencias abiertas · ${inc.length}</span></h4>
+          ${inc.length ? h`<ul>${inc.map((i) => h`<li class="toca c-${i.gravedad}" data-accion="ver-incidencia" data-id="${i.id}" tabindex="0" role="button"><span class="sev"></span><time>${diaMes(i.creada_en)}<br>${horaCorta(i.creada_en)}</time>
+              <div><b>${i.punto ? i.titulo.replace(/^Toma \d+ · /, "") : i.titulo}</b><small>${i.punto ? `${nombrePropio(i.autor)} · ${telefonoCorto(i.telefono)} · punto ${i.punto} de prueba.${i.toma}` : i.autor || ""}</small></div>
+              <span class="estado ${i.gravedad === "alta" ? "mal" : i.gravedad === "media" ? "esp" : "gris"}">${i.gravedad.toUpperCase()}</span></li>`)}</ul>`
+            : h`<p class="vacio">Ninguna abierta. Las fallas que marquen los supervisores llegan aquí solas.</p>`}</div>
+      </div></section>`;
+  }
+
+  function bloqueContratacion() {
+    const on = !!S.sala.contratacion;
+    return h`<section class="bloque" aria-label="Equipo y contratación"><div class="interruptor">
+        <button class="switch" role="switch" aria-checked="${on}" aria-label="Equipo y contratación" data-accion="contratacion" data-a="${on ? "0" : "1"}"></button>
+        <div><b>Equipo y contratación</b><small>Pases, acta con firma, jornada, accesos y revisión semanal. Guardados, sin borrar.</small></div>
+        <span class="estado ${on ? "ok" : "gris"}">${on ? "ENCENDIDO" : "APAGADO"}</span></div>
+      ${on ? h`<div class="interruptor-pie"><button class="boton chico" data-accion="pestana" data-a="produccion">Abrir Equipo y contratación</button></div>` : ""}</section>`;
+  }
+
+  // ── La hoja del supervisor ──
+  function vistaHoja() {
+    const p = yo();
+    const d = S.hoja;
+    const primera = S.yo.requisito === "politica" || !d || !d.telefono || S.cambiarTelefono;
+    if (primera) return h`<div class="sala">${topeSala()}<div class="marco">${vistaPrimera(d && d.telefono)}</div></div>`;
+    const t = d.toma;
+    const pausa = p.estado === "pausa";
+    const actual = t ? (d.pruebas.find((x) => !x.mio) || {}).id : null;
+    const grupos = [["nuevo", "Lo nuevo de esta toma"], ["siempre", "La ronda de siempre"], ["volver", "Volver a probar"]].map(([g, titulo]) => {
+      const suyos = d.pruebas.filter((x) => x.grupo === g);
+      if (!suyos.length) return "";
+      return h`<div class="grupo"><div class="grupo-cab"><span class="rotulo">${titulo}</span><span class="cuenta">${plural(suyos.length, "punto", "puntos")}</span></div>${suyos.map((x) => puntoHoja(x, x.id === actual, pausa))}</div>`;
+    });
+    const r = d.resumen;
+    const tel = d.telefono;
+    return h`<div class="sala">${topeSala()}<div class="marco">
+      ${pausa ? h`<div class="franja-fuera"><span class="led"></span><span><b>Tu cargo está en pausa.</b> Puedes mirar tu hoja, pero no marcar. Habla con Camilo.</span></div>` : ""}
+      <div class="hoja-cab"><div><div class="rotulo">${t ? `Toma ${nombreToma(t)} · ${fmt({ day: "numeric", month: "long" }).format(t.creadaEn)}` : "Sin toma al aire"}</div>
+          <h1>Mi hoja de pruebas</h1><p>Prueba cada punto en tu teléfono y marca lo que pasó. Puedes hacerlo a cualquier hora: lo que marques se guarda solo.</p></div>
+        <button class="mi-tel" data-accion="cambiar-telefono" aria-label="Cambiar mi teléfono"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M17 1H7c-1.1 0-2 .9-2 2v18c0 1.1.9 2 2 2h10c1.1 0 2-.9 2-2V3c0-1.1-.9-2-2-2zm0 18H7V5h10v14z"/></svg>
+          <div><b>${tel.marca} ${tel.modelo}</b><small>ANDROID ${tel.android} · <u>CAMBIAR</u></small></div></button></div>
+      ${claqueta({ toma: t && { ...t, total: d.pruebas.length, grupos: Object.fromEntries(["nuevo", "siempre", "volver"].map((g) => [g, d.pruebas.filter((x) => x.grupo === g).length])) }, trae: d.trae, ultima: d.ultimaPublicada, version: (t && t.version) || "2.0", modo: "sup", mio: r })}
+      <div class="hoja"><div>${t ? grupos : ""}</div>
+        <div class="col-der">
+          ${r ? h`<section class="bloque avance" aria-label="Mi avance"><div class="rotulo">Mi avance</div><div class="grande-n">${r.funciona + r.falla + r.noPude}<small>de ${r.total}</small></div>${segs(r.total, r.funciona, r.falla, r.noPude)}
+            <ul><li><span class="led verde"></span>${r.funciona === 1 ? "1 funciona" : `${r.funciona} funcionan`}</li><li><span class="led rojo"></span>${plural(r.falla, "falla", "fallas")}${r.falla ? " · ya están en la sala de CG" : ""}</li>
+              <li><span class="led"></span>${r.noPude} no pude</li><li><span class="led hueco"></span>${r.faltan} por probar</li></ul></section>` : ""}
+          <section class="bloque" aria-label="Mi historial"><div class="bloque-cab"><h2>Mi historial</h2></div><ul class="historial">
+            ${d.historial.length ? d.historial.map((x) => {
+              const hechos = x.funciona + x.falla + x.no_pude;
+              return h`<li><div><b>prueba.${x.numero}</b><small>${fmt({ day: "numeric", month: "short" }).format(x.creada_en)} · ${tel.modelo}</small></div>
+                <span class="estado ${x.falla ? "esp" : "ok"}">${hechos} / ${x.total}${x.falla ? ` · ${plural(x.falla, "FALLA", "FALLAS")}` : ""}</span></li>`;
+            }) : h`<li><span class="vacio">Todavía no has cerrado ninguna toma.</span></li>`}</ul></section>
+          <section class="bloque" aria-label="Mis incidencias"><div class="bloque-cab"><h2>Mis incidencias</h2><span class="estado gris">SOLO LEER</span></div><ul class="historial">
+            ${d.incidencias.length ? d.incidencias.map((i) => h`<li><div><b class="texto">${i.titulo.replace(/^Toma \d+ · /, "")}</b><small>${i.punto ? `Punto ${i.punto} · prueba.${i.toma} · ` : ""}${hoyOdia(i.creada_en)}</small></div>
+                <span class="estado ${i.abierta ? "esp" : "ok"}">${i.abierta ? "ABIERTA" : "ARREGLADA"}</span></li>`)
+              : h`<li><span class="vacio">No has abierto ninguna. Cuando marques una falla, aquí ves si ya se arregló.</span></li>`}</ul></section>
+          <div class="tus-datos-sala">Tus datos: tu nombre, tu teléfono y lo que marcas. Nada más. Política de datos (Ley 1581).
+            <nav><button data-accion="mis-datos">Ver mis datos</button><button data-accion="solicitud" data-a="corregir">Pedir una corrección</button><button data-accion="solicitud" data-a="borrar">Pedir que se borren</button>
+              ${S.yo.acta.firmada && !esDuenio() ? h`<button data-accion="ver-acta">Ver el acta</button>` : ""}<button data-ir="politica">Política</button><button data-accion="codigo-aparato">Enlazar otro aparato</button><button data-accion="salir">Salir</button></nav></div>
+        </div></div>
+    </div></div>`;
+  }
+
+  function puntoHoja(x, actual, pausa) {
+    const e = x.mio && x.mio.estado;
+    const pasos = (x.pasos || "").split(/(?<=[.!?»])\s+(?=[A-ZÁÉÍÓÚÑ¿¡«])/).map((s) => s.trim()).filter(Boolean);
+    const etiqueta = x.titulo.includes(":") ? x.titulo.split(":")[0] : (x.idea || "").split(/\s+/)[0];
+    const abierta = S.fallaAbierta === x.id;
+    const boton = (estado, clase, texto) => h`<button class="${clase} ${e === estado ? "on" : ""}" data-accion="marcar" data-id="${x.id}" data-estado="${estado}" aria-pressed="${e === estado}" ${pausa ? crudo("disabled") : ""}>${texto}</button>`;
+    return h`<div class="punto ${e === "funciona" || e === "no-pude" ? "hecho" : ""} ${e === "falla" ? "falla" : ""} ${actual ? "actual" : ""} ${pasos.length ? "" : "corto"}" id="punto-${x.id}">
+      <span class="n">${String(x.orden).padStart(2, "0")}</span>
+      <div><h5>${x.titulo}${x.idea && etiqueta ? h`<span class="idea ${CAPA_COLOR[x.capa || 0]}">${etiqueta}</span>` : ""}</h5>
+        ${pasos.length ? h`<ol>${pasos.map((s) => h`<li>${s}</li>`)}</ol>` : ""}
+        ${x.espera ? h`<div class="debe"><b>Debe pasar</b>${x.espera}</div>` : ""}
+        ${x.requiere && REQUIERE[x.requiere] ? h`<span class="requiere">${REQUIERE[x.requiere]} Si no lo tienes, marca «No pude».</span>` : ""}</div>
+      <div class="tri">${boton("funciona", "f", "✓ Funciona")}${boton("falla", "x", "✕ Falla")}${boton("no-pude", "n", "— No pude")}</div>
+      ${abierta ? h`<div class="nota-falla"><label class="rotulo" for="nota-${x.id}">¿Qué pasó? En qué paso y qué viste</label>
+          <textarea class="control" id="nota-${x.id}" maxlength="500" placeholder="Por ejemplo: en el paso 2 la letra no se ilumina, se queda quieta.">${(x.mio && x.mio.nota) || ""}</textarea>
+          <div class="acciones"><button class="boton chico" data-accion="falla-cancelar">Cancelar</button><button class="boton chico piloto" data-accion="falla-guardar" data-id="${x.id}">Guardar la falla</button></div></div>`
+        : e === "falla" ? h`<div class="notita">${x.mio.nota}<small>INCIDENCIA ABIERTA EN LA SALA · ${hoyOdia(x.mio.marcadoEn)}</small></div>` : ""}
+    </div>`;
+  }
+
+  /** La primera vez (o al cambiar de teléfono): con qué teléfono pruebas y, si falta, la política. */
+  function vistaPrimera(tel) {
+    const politica = S.yo.requisito === "politica";
+    const ver = tel ? tel.android : "";
+    const marcas = ["Samsung", "Xiaomi", "Motorola", "Huawei", "Honor", "Oppo", "Realme", "Tecno", "Infinix", "Vivo", "Google", "OnePlus", "Nokia", "ZTE", "Alcatel", "Sony"];
+    return h`<div class="primera"><div class="rotulo">${tel ? "Cambiar de teléfono" : "Primera vez"}</div><h1>¿Con qué teléfono pruebas?</h1>
+      <p>Vale oro: Life Music tiene que funcionar en todos los teléfonos, no solo en uno. ${tel ? "Lo que marques desde ahora queda con el teléfono nuevo." : "Se pregunta una sola vez."}</p>
+      <form data-forma="primera">
+        <div class="campo"><label for="t-marca">Marca</label><input class="control" id="t-marca" list="t-marcas" required maxlength="40" autocomplete="off" value="${tel ? tel.marca : ""}"><datalist id="t-marcas">${marcas.map((m) => h`<option value="${m}"></option>`)}</datalist></div>
+        <div class="campo"><label for="t-modelo">Modelo</label><input class="control" id="t-modelo" required maxlength="60" autocomplete="off" placeholder="Escríbelo como sale en Ajustes › Acerca del teléfono" value="${tel ? tel.modelo : ""}"></div>
+        <div class="campo"><span class="etq">Android</span><div class="chips">${["9", "10", "11", "12", "13", "14", "15", "16", "17"].map((v) => h`<label><input type="radio" name="t-android" value="${v}" required ${v === ver ? crudo("checked") : ""} aria-label="Android ${v}"><span>${v}</span></label>`)}</div></div>
+        ${politica ? h`<label class="acepto"><input type="checkbox" id="t-autorizo" required><span>Autorizo que se traten mis datos según la <button type="button" data-ir="politica">política de datos</button> (Ley 1581): mi nombre, mi teléfono y lo que marque.</span></label>
+          <label class="acepto"><input type="checkbox" id="t-mayor" required><span>Soy mayor de edad.</span></label>` : ""}
+        <p class="error-campo" id="error-primera" hidden></p>
+        <button class="boton piloto" type="submit">Guardar y ver mi hoja</button>
+        ${tel ? h`<button class="boton" type="button" data-accion="cancelar-telefono">Cancelar</button>` : ""}
+      </form></div>`;
+  }
+
+  function verClip(id) {
+    const i = S.sala && S.sala.cinta.find((x) => x.id === id);
+    if (!i) return;
+    const atras = i.fase - 1, adelante = i.fase + 1;
+    const d = ventana({
+      titulo: i.titulo,
+      cuerpo: h`<p><b>Fase:</b> ${FASES[i.fase]}${i.descartada ? " · descartada" : ""} · <b>Capa:</b> ${CAPAS[i.capa || 0]}${i.version ? ` · para la ${i.version}` : ""}</p>
+        ${i.para_que ? h`<p>${i.para_que}</p>` : ""}
+        ${i.descartada ? "" : h`${campo("v-capa", "Capa (la pista de la cinta)", crudo(`<select class="control" id="v-capa">${CAPAS.map((c, k) => `<option value="${k}" ${k === (i.capa || 0) ? "selected" : ""}>${esc(c)}</option>`).join("")}</select>`))}`}`,
+      pie: i.descartada ? h`<button class="boton" data-cerrar>Cerrar</button>` : h`<button class="boton peligro" id="clip-descartar">Descartar</button>
+        ${atras >= 1 ? h`<button class="boton" id="clip-atras">← ${FASES[atras]}</button>` : ""}
+        ${adelante <= 6 ? h`<button class="boton piloto" id="clip-adelante">${adelante === 3 ? "Dar luz verde" : adelante === 6 ? "Lanzar" : `${FASES[adelante]} →`}</button>` : ""}`,
+    });
+    const hechoY = async (fn) => { d.close(); await hacer(fn); };
+    const capa = d.querySelector("#v-capa");
+    if (capa) capa.addEventListener("change", () => hechoY(() => api("POST", `/ideas/${id}/capa`, { capa: +capa.value || null })));
+    const q = (sel, fn) => { const b = d.querySelector(sel); if (b) b.addEventListener("click", () => hechoY(fn)); };
+    q("#clip-atras", () => api("POST", `/ideas/${id}/fase`, { fase: atras }));
+    q("#clip-adelante", () => api("POST", `/ideas/${id}/fase`, { fase: adelante }));
+    q("#clip-descartar", () => api("POST", `/ideas/${id}/descartar`));
+  }
+
+  function verIncidencia(id) {
+    const i = S.sala && S.sala.incidencias.find((x) => x.id === id);
+    if (!i) return;
+    const d = ventana({
+      titulo: i.titulo,
+      cuerpo: h`<p><b>Gravedad:</b> ${i.gravedad} · abierta ${cuando(i.creada_en)}${i.autor ? ` por ${i.autor}` : ""}</p>
+        ${i.telefono ? h`<p><b>Teléfono:</b> ${i.telefono}${i.punto ? ` · punto ${i.punto} de prueba.${i.toma}` : ""}</p>` : ""}
+        ${i.detalle ? h`<p>${i.detalle}</p>` : ""}
+        <p class="cuidado">Al marcarla arreglada, el supervisor la ve como ARREGLADA en su hoja.</p>`,
+      pie: h`<button class="boton" data-cerrar>Cerrar</button><button class="boton piloto" id="inc-arreglada">Marcar arreglada</button>`,
+    });
+    d.querySelector("#inc-arreglada").addEventListener("click", () => { d.close(); hacer(() => api("POST", `/incidencias/${id}/cerrar`)); });
+  }
+
+  async function marcar(id, estado, nota = "") {
+    try {
+      await api("POST", `/pruebas/${id}/marcar`, { estado, nota });
+      if (estado === "falla") avisar("Se abrió una incidencia en la sala de CG.");
+      S.fallaAbierta = null;
+      await recargar();
+    } catch (e) {
+      avisar(mensajeDe(e), true);
+      if (e.estado === 401 || e.codigo === "toma-cerrada" || e.codigo === "sin-telefono") recargar();
+    }
+  }
+
   // ── Politica de datos y terminos ───────────────────────────────────────────
   function vistaPolitica() {
     const p = S.publico || {};
@@ -772,7 +1175,7 @@
         <p>CG LABS, a cargo de ${r.nombre || falta("el responsable")}, en ${r.ciudad || falta("su ciudad")}, Colombia. Para cualquier asunto de datos: ${r.correo || falta("correo de contacto")}.</p>
         <h2>2. Qué datos se guardan</h2>
         <ul><li>Tu nombre y, si lo das, tu documento de identidad.</li><li>El cargo, la vigencia y el horario de tu pase.</li>
-          <li>El acta firmada: tu firma, la fecha y la hora, y el tipo de aparato desde el que firmaste.</li><li>Tu actividad en la cabina: qué cambiaste y cuándo.</li>
+          <li>El acta firmada: tu firma, la fecha y la hora, y el tipo de aparato desde el que firmaste.</li><li>Tu actividad en la cabina: qué cambiaste y cuándo.</li><li>Si eres supervisor de ejecución: el teléfono con que pruebas (marca, modelo y versión de Android) y lo que marcas en tu hoja de pruebas.</li>
           <li>Una huella de tu conexión, solo para bloquear intentos de entrada fallidos. Se borra a las 24 horas.</li></ul>
         <h2>3. Para qué</h2>
         <p>Para gestionar tu cargo temporal, darte y quitarte accesos, dejar constancia del acta y mantener segura la cabina. Nunca para publicidad. No se venden ni se comparten con nadie para otros fines.</p>
@@ -941,7 +1344,26 @@
       S.vista = b.dataset.a; pintar();
     },
     volver: () => { S.vista = S.antes || "pase"; S.antes = null; recargar(); },
-    pestana: (b) => { S.pestana = b.dataset.a; pintar(); },
+    pestana: (b) => { S.pestana = b.dataset.a; recargar(); scrollTo(0, 0); },
+    contratacion: (b) => hacer(async () => {
+      await api("POST", "/contratacion", { activa: b.dataset.a === "1" });
+      avisar(b.dataset.a === "1" ? "«Equipo y contratación» encendido: vuelven los pases, el acta y la jornada." : "«Equipo y contratación» apagado. Nada se borró.");
+    }),
+    "ver-clip": (b) => verClip(b.dataset.id),
+    "ver-incidencia": (b) => verIncidencia(b.dataset.id),
+    marcar: (b) => {
+      if (b.dataset.estado === "falla") { S.fallaAbierta = b.dataset.id; pintar(); return; }
+      marcar(b.dataset.id, b.dataset.estado);
+    },
+    "falla-cancelar": () => { S.fallaAbierta = null; pintar(); },
+    "falla-guardar": (b) => {
+      const n = document.getElementById(`nota-${b.dataset.id}`);
+      if (!n || n.value.trim().length < 3) { avisar(ERRORES.nota, true); if (n) n.focus(); return; }
+      b.disabled = true;
+      marcar(b.dataset.id, "falla", n.value);
+    },
+    "cambiar-telefono": () => { S.cambiarTelefono = true; pintar(); scrollTo(0, 0); },
+    "cancelar-telefono": () => { S.cambiarTelefono = false; pintar(); },
     "firma-escrita": () => { const n = document.getElementById("f-nombre").value.trim(); if (n.length < 3) { document.getElementById("f-nombre").focus(); return; } firma.escribir(n); },
     "firma-borrar": () => firma.borrar(),
     "firmar-acta": () => firmarActa(),
@@ -963,7 +1385,7 @@
       titulo: "Proponer una idea",
       campos: h`${campo("v-titulo", "Título", crudo('<input class="control" id="v-titulo" required minlength="4" maxlength="120">'))}
         ${campo("v-para", "Para qué sirve", crudo('<textarea class="control" id="v-para" maxlength="600"></textarea>'))}
-        <div class="fila-campos">${campo("v-version", "Versión", crudo(`<input class="control" id="v-version" maxlength="16" value="${esc(S.cabina.versionObjetivo)}">`))}
+        <div class="fila-campos">${campo("v-version", "Versión", crudo(`<input class="control" id="v-version" maxlength="16" value="${esc((S.cabina || S.sala || {}).versionObjetivo || "2.0")}">`))}
         ${campo("v-enlace", "Ficha o PR (opcional)", crudo('<input class="control" id="v-enlace" type="url" maxlength="300" placeholder="https://github.com/…">'))}</div>`,
       boton: "Proponer",
       enviar: (q) => api("POST", "/ideas", { titulo: q("v-titulo").value, paraQue: q("v-para").value, version: q("v-version").value, enlace: q("v-enlace").value }),
@@ -1073,11 +1495,30 @@
     const f = ACCIONES[b.dataset.accion];
     if (f) { e.preventDefault(); f(b, e); }
   });
+  // Las filas que se tocan (role="button") tambien responden a Enter y a la barra espaciadora.
+  document.addEventListener("keydown", (e) => {
+    if ((e.key === "Enter" || e.key === " ") && e.target.matches('[role="button"][data-accion]')) { e.preventDefault(); e.target.click(); }
+  });
   document.addEventListener("submit", async (e) => {
     const forma = e.target.closest("[data-forma]");
     if (!forma) return;
     e.preventDefault();
     if (forma.dataset.forma === "arranque") return arrancar();
+    if (forma.dataset.forma === "primera") {
+      const v = (id) => document.getElementById(id);
+      const android = forma.querySelector('input[name="t-android"]:checked');
+      const err = document.getElementById("error-primera");
+      const boton = forma.querySelector('button[type="submit"]');
+      boton.disabled = true;
+      try {
+        if (S.yo.requisito === "politica") await api("POST", "/politica/aceptar", { autorizo: v("t-autorizo").checked, mayor: v("t-mayor").checked });
+        await api("POST", "/telefono", { marca: v("t-marca").value, modelo: v("t-modelo").value, android: android ? android.value : "" });
+        S.cambiarTelefono = false;
+        await recargar();
+        scrollTo(0, 0);
+      } catch (x) { err.textContent = mensajeDe(x); err.hidden = false; boton.disabled = false; }
+      return;
+    }
     if (forma.dataset.forma === "pase") {
       const v = (id) => document.getElementById(id).value;
       const dias = [...forma.querySelectorAll('input[name="dia"]:checked')].map((x) => x.value).join(",");
@@ -1092,7 +1533,7 @@
 
   // Cada minuto se refresca la cabina (la luz AL AIRE, el monitoreo), salvo si alguien esta escribiendo.
   setInterval(() => {
-    if (!["cabina", "duenio"].includes(S.vista) || abiertaUnaVentana()) return;
+    if (!["cabina", "duenio", "hoja"].includes(S.vista) || abiertaUnaVentana() || S.fallaAbierta || S.cambiarTelefono) return;
     const foco = document.activeElement;
     if (foco && /INPUT|TEXTAREA|SELECT/.test(foco.tagName)) return;
     if (S.ultimoPase) return;
