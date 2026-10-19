@@ -159,3 +159,23 @@ Ese mismo día ya se pasaron a la base real las ideas hechas: Nova (19) quedó e
 2. **Permiso** para que yo escriba «Al aire», la toma, la consola y la bitácora en la base de la cabina al cerrar cada
    tanda.
 3. **La maqueta:** ¿se la pido a la sesión de Diseño y marca, como dice la regla, o la hago aquí esta vez?
+
+**18-10, noche: la tanda 2 (la página) está HECHA y probada en local** (commit 6f4981c5, sin publicar).
+- **Maqueta aprobada por CG:** `Brand/maquetas/2026-10-18-sala-de-control.{png,html}`. Las decisiones de CG fueron:
+  - la claqueta va siempre arriba; sin toma, muestra la última publicada;
+  - el tema es automático;
+  - el supervisor ve «Mis incidencias», solo para leer;
+  - el fader se queda, con el campo `progreso` de cada frente.
+- **Archivos:** `web/equipo/sala.css`, todo dentro de `.sala`. Las vistas nuevas están en `equipo.js`: `vistaSala`,
+  `vistaHoja`, `vistaPrimera` y `claqueta`.
+  - Con la CSP no se puede escribir estilo dentro del HTML, así que el fader se ubica con `data-top` desde
+    `despuesDePintar`.
+- **Pruebas en local:**
+  - la página se sirve con `scratchpad/servir-sala.mjs`, que repite la CSP de producción;
+  - `wrangler dev` sirvió la API con datos reales copiados de la base;
+  - en local, `?api=PUERTO` elige el puerto de la API.
+- **Lo que se vio funcionar:** escritorio, teléfono, tema claro y oscuro, la primera vez del supervisor, marcar
+  «funciona» y «falla» con su nota y su aviso, la falla en la bitácora de la sala con nombre, teléfono y punto, y las
+  ventanas de la idea y de la incidencia.
+- **Al publicar:** `wrangler pages deploy web` sube toda la carpeta `web`. Antes hay que revisar que no vaya nada más
+  sin aprobar.
