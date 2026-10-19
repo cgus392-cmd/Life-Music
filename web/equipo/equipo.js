@@ -29,7 +29,7 @@
     "codigo-invalido": "Ese código no sirve o ya venció. Genera otro desde el aparato donde ya entraste.",
     bloqueado: "Demasiados códigos equivocados desde esta conexión. Espera 15 minutos y vuelve a intentar.",
     "fuera-de-jornada": "Fuera de tu jornada la cabina es de solo lectura.",
-    "acta-pendiente": "Primero tienes que firmar el acta de tu cargo.",
+    "acta-pendiente": "Primero tienes que aceptar las condiciones de tu cargo.",
     "sin-sesion": "Tu sesión se cerró. Vuelve a entrar con un pase.",
     permiso: "Tu cargo no permite hacer eso.",
     clave: "Esa no es la clave de arranque.",
@@ -237,7 +237,7 @@
         <p>${p ? "Revisa que el pase esté a tu nombre y valídalo para seguir." : "Esta es la cabina de Life Music: aquí trabaja el equipo que hace la app. Escribe el código que te dio Camilo."}</p>
         <ol>
           <li><span>01</span><div>El código sirve <b>una sola vez</b> y vence en <b>48 horas</b>.</div></li>
-          <li><span>02</span><div>Después lees el <b>acta de tu cargo</b> y la firmas.</div></li>
+          <li><span>02</span><div>Después aceptas las <b>condiciones de tu cargo</b> y entras a tu hoja de pruebas.</div></li>
           <li><span>03</span><div>Este aparato queda enlazado. Para entrar desde otro, pides un código de 5 minutos o escribes aquí el que te dé tu otro aparato.</div></li>
         </ol>
         ${S.publico && !S.publico.hayDuenio ? h`<p><button class="boton chico" data-accion="ir" data-a="arranque">Soy Camilo: abrir la cabina por primera vez</button></p>` : ""}
