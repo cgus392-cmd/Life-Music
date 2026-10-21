@@ -11,15 +11,25 @@
      POST /prerregistro             {id, secreto, nombre, correo, mayor, acepta, version}
      POST /prerregistro/salir       {id, secreto}: borra sus datos
      POST /calificar                {id, estrellas, comentario, version, idioma}
-     GET  /calificaciones/resumen   promedio y total (solo desde MIN_VISIBLE)
+     POST /calificar/web            lo mismo desde lifemusic.pages.dev/calificar
+     GET  /calificaciones/resumen   promedio y total de la app (desde MIN_VISIBLE)
+     GET  /calificaciones/web       cuantos han votado desde la pagina
      GET  /insignia.svg             la insignia del README
 
-   Las escrituras solo llegan desde la app: un navegador siempre manda Origin en
-   un POST de otro sitio, y aqui se rechaza. La app no lo manda. */
+   Las escrituras llegan desde la app: un navegador siempre manda Origin en un
+   POST de otro sitio, y aqui se rechaza. La app no lo manda.
+
+   La excepcion es /calificar/web (1.3.3), que existe para repartir un enlace y
+   que califiquen sin instalar nada. Esos votos se guardan con origen 'web' y
+   NO entran en el promedio publico ni en la insignia: los pone cualquiera que
+   reciba el enlace, sin haber usado Life Music, y mezclarlos convertiria «lo
+   que opinan quienes la usan» en «lo que opina quien abrio una pagina». Van
+   aparte, con un freno por IP, y CG los lee en su panel. */
 
 const ORIGENES = [/^https:\/\/([a-z0-9-]+\.)?lifemusic\.pages\.dev$/, /^http:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/];
 const MAX_CUERPO = 4096;
 const MIN_VISIBLE = 25; // menos calificaciones que esto no se muestran en publico
+const MAX_WEB_IP_DIA = 5; // votos nuevos por IP y dia desde la pagina; cambiar uno ya puesto no cuenta
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
 const CORREO = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
 const CONTROL = /[\u0000-\u001f\u007f]/;
@@ -133,28 +143,76 @@ async function salir(request, env) {
 
 // ─── Calificacion ───────────────────────────────────────────────────────────
 
-async function calificar(request, env) {
+/* Lo que comparten la calificacion de la app y la de la pagina: validar el
+   cuerpo. Devuelve {error} o los campos ya limpios. */
+async function leerVoto(request) {
   const c = await leerCuerpo(request);
-  if (!c) return json({ ok: false, error: "cuerpo" }, 400);
+  if (!c) return { error: "cuerpo" };
   const id = typeof c.id === "string" ? c.id.toLowerCase() : "";
-  if (!UUID.test(id)) return json({ ok: false, error: "id" }, 400);
+  if (!UUID.test(id)) return { error: "id" };
   const estrellas = c.estrellas;
-  if (!Number.isInteger(estrellas) || estrellas < 1 || estrellas > 5) return json({ ok: false, error: "estrellas" }, 400);
+  if (!Number.isInteger(estrellas) || estrellas < 1 || estrellas > 5) return { error: "estrellas" };
   const comentario = c.comentario == null || c.comentario === "" ? null : texto(c.comentario, 500);
-  if (c.comentario && comentario === null) return json({ ok: false, error: "comentario" }, 400);
+  if (c.comentario && comentario === null) return { error: "comentario" };
+  return { id, estrellas, comentario, version: texto(c.version, 20), idioma: texto(c.idioma, 10) };
+}
 
+/* Guarda el voto. Un id ya visto actualiza el suyo: un voto por telefono (o por
+   navegador), que se puede cambiar. El origen no se toca al actualizar, para
+   que un voto de la app no pueda pasarse a 'web' ni al reves. */
+async function guardarVoto(env, v, origen) {
   await env.DB.prepare(
-    `insert into calificaciones (id, estrellas, comentario, version_app, idioma)
-     values (?1, ?2, ?3, ?4, ?5)
+    `insert into calificaciones (id, estrellas, comentario, version_app, idioma, origen)
+     values (?1, ?2, ?3, ?4, ?5, ?6)
      on conflict(id) do update set estrellas = excluded.estrellas, comentario = excluded.comentario,
        version_app = excluded.version_app, idioma = excluded.idioma, cambiada_en = datetime('now')`,
-  ).bind(id, estrellas, comentario, texto(c.version, 20), texto(c.idioma, 10)).run();
+  ).bind(v.id, v.estrellas, v.comentario, v.version, v.idioma, origen).run();
+}
+
+async function calificar(request, env) {
+  const v = await leerVoto(request);
+  if (v.error) return json({ ok: false, error: v.error }, 400);
+  await guardarVoto(env, v, "app");
   return json({ ok: true });
 }
 
+/* Calificar desde lifemusic.pages.dev/calificar (1.3.3).
+
+   Dos frenos, los que se decidieron: el navegador se guarda su id y reenviarlo
+   cambia el voto en vez de sumar uno nuevo, y aqui se limita cuantos votos
+   NUEVOS acepta una misma IP al dia. Cambiar un voto ya puesto no gasta cupo,
+   porque no mueve el total. Nada de esto frena a alguien decidido con una VPN;
+   para eso estaba la opcion de Turnstile, y se dejo fuera a proposito. */
+async function calificarWeb(request, env) {
+  const v = await leerVoto(request);
+  if (v.error) return json({ ok: false, error: v.error }, 400);
+
+  const yaEsta = await env.DB.prepare("select origen from calificaciones where id = ?1").bind(v.id).first();
+  if (yaEsta && yaEsta.origen !== "web") return json({ ok: false, error: "id" }, 400);
+
+  if (!yaEsta) {
+    const ip = request.headers.get("cf-connecting-ip") || "";
+    const dia = new Date().toISOString().slice(0, 10);
+    const huella = await sha256(dia + "|" + ip);
+    // Las huellas de dias pasados ya no sirven para nada y se van solas.
+    await env.DB.prepare("delete from limite_web where dia <> ?1").bind(dia).run();
+    const fila = await env.DB.prepare(
+      `insert into limite_web (huella, n, dia) values (?1, 1, ?2)
+       on conflict(huella) do update set n = n + 1
+       returning n`,
+    ).bind(huella, dia).first();
+    if (fila && fila.n > MAX_WEB_IP_DIA) return json({ ok: false, error: "demasiados" }, 429);
+  }
+
+  await guardarVoto(env, v, "web");
+  return json({ ok: true });
+}
+
+/* El promedio publico y la insignia: SOLO los votos de la app. Los de la pagina
+   quedan fuera a proposito (ver la cabecera). */
 async function resumen(env) {
   const { results } = await env.DB.prepare(
-    "select estrellas, count(*) as n from calificaciones group by estrellas",
+    "select estrellas, count(*) as n from calificaciones where origen = 'app' group by estrellas",
   ).all();
   const porEstrella = { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 };
   let total = 0;
@@ -188,6 +246,21 @@ export function insignia(r) {
 </g></svg>`;
 }
 
+/* Lo que ensena la pagina de calificar sobre si misma. Aqui no hay minimo que
+   esperar: es su propio contador, no el numero que se publica en el README. */
+async function resumenWeb(env) {
+  const { results } = await env.DB.prepare(
+    "select estrellas, count(*) as n from calificaciones where origen = 'web' group by estrellas",
+  ).all();
+  let total = 0;
+  let suma = 0;
+  for (const r of results) {
+    total += r.n;
+    suma += r.estrellas * r.n;
+  }
+  return total ? { total, promedio: Math.round((suma / total) * 10) / 10 } : { total: 0 };
+}
+
 export default {
   async fetch(request, env) {
     const url = new URL(request.url);
@@ -197,7 +270,13 @@ export default {
 
     if (request.method === "OPTIONS") {
       return new Response(null, {
-        headers: { "access-control-allow-origin": "*", "access-control-allow-methods": "GET", "access-control-max-age": "86400" },
+        headers: {
+          "access-control-allow-origin": "*",
+          // POST por /calificar/web; su cuerpo es JSON, y eso pide el preflight.
+          "access-control-allow-methods": "GET, POST",
+          "access-control-allow-headers": "content-type",
+          "access-control-max-age": "86400",
+        },
       });
     }
 
@@ -214,6 +293,7 @@ export default {
       }
       if (ruta === "/prerregistro/estado") return json(await estado(env), 200, { "cache-control": "public, max-age=30" });
       if (ruta === "/calificaciones/resumen") return json(await resumen(env), 200, { "cache-control": "public, max-age=300" });
+      if (ruta === "/calificaciones/web") return json(await resumenWeb(env), 200, { "cache-control": "public, max-age=60" });
       if (ruta === "/insignia.svg") {
         return new Response(insignia(await resumen(env)), {
           headers: { "content-type": "image/svg+xml; charset=utf-8", "cache-control": "public, max-age=3600" },
@@ -223,7 +303,14 @@ export default {
     }
 
     if (request.method === "POST") {
-      // Las escrituras, solo desde la app (sin Origin).
+      // La unica escritura que acepta un navegador, y solo desde los origenes
+      // de arriba, que ya se comprobaron. Va antes del cierre de la linea
+      // siguiente, que es el que vale para todo lo demas.
+      if (ruta === "/calificar/web") {
+        if (!origen) return json({ ok: false, error: "solo-web" }, 403);
+        return calificarWeb(request, env);
+      }
+      // El resto de escrituras, solo desde la app (sin Origin).
       if (origen) return json({ error: "solo-app" }, 403);
       if (ruta === "/prerregistro") return prerregistrar(request, env);
       if (ruta === "/prerregistro/salir") return salir(request, env);

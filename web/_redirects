@@ -4,6 +4,8 @@
 /apk-arm64   https://github.com/cgus392-cmd/Life-Music/releases/latest/download/lifemusic-arm64.apk  302
 /descargar   /apk                                                                                     302
 /github      https://github.com/cgus392-cmd/Life-Music                                                302
+# El enlace que se reparte para calificar; /califica es por si alguien lo escribe asi.
+/califica    /calificar                                                                               302
 /novedades   https://github.com/cgus392-cmd/Life-Music/releases/latest                                302
 /privacidad  https://github.com/cgus392-cmd/Life-Music/blob/main/PRIVACY_POLICY.md                    302
 # Life Music TV en el navegador: la misma pagina del receptor de Cast (200 = se

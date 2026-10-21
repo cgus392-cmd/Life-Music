@@ -1,0 +1,300 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Califica Life Music</title>
+<meta name="description" content="Dinos qué te parece Life Music. Son cinco estrellas y, si quieres, una línea. Sin registrarte y sin dejar tu nombre.">
+<meta name="theme-color" content="#0B0F0D" media="(prefers-color-scheme: dark)">
+<meta name="theme-color" content="#F4F8F6" media="(prefers-color-scheme: light)">
+<link rel="canonical" href="https://lifemusic.pages.dev/calificar">
+<link rel="icon" type="image/png" href="/img/lifemusic.png">
+<link rel="apple-touch-icon" href="/img/lifemusic.png">
+
+<!-- Vista previa al repartir el enlace por WhatsApp -->
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Life Music">
+<meta property="og:title" content="Califica Life Music">
+<meta property="og:description" content="Cinco estrellas y, si quieres, una línea. Sin registrarte.">
+<meta property="og:image" content="https://lifemusic.pages.dev/img/og.jpg">
+<meta property="og:url" content="https://lifemusic.pages.dev/calificar">
+<meta property="og:locale" content="es_CO">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Califica Life Music">
+<meta name="twitter:description" content="Cinco estrellas y, si quieres, una línea. Sin registrarte.">
+<meta name="twitter:image" content="https://lifemusic.pages.dev/img/og.jpg">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap">
+<!--
+  Calificar desde la web (1.3.3). Pensada para repartir el enlace: quien llega
+  aqui puede no tener la app, asi que no se le pide nada.
+
+  Estos votos se guardan aparte (origen 'web' en el Worker) y NO entran en el
+  promedio publico ni en la insignia del README, que siguen contando solo lo que
+  opina quien de verdad usa Life Music. Por eso esta pagina ensena su propio
+  contador y no el de la app.
+-->
+<style>
+  :root{
+    --fondo:#0B0F0D;--superficie:#131A16;--superficie-2:#1A231E;--borde:rgba(255,255,255,.08);
+    --texto:#F2F5F3;--texto-2:#A9B4AE;--texto-3:#6F7B75;
+    --verde:#34D399;--verde-texto:#34D399;--rojo:#F87171;--estrella:#FFC53D;
+    --radio:24px;color-scheme:dark;
+  }
+  @media (prefers-color-scheme:light){
+    :root:not([data-theme="dark"]){
+      --fondo:#F4F8F6;--superficie:#FFFFFF;--superficie-2:#E9F1EC;--borde:rgba(10,30,20,.09);
+      --texto:#0F1512;--texto-2:#4B5751;--texto-3:#7A867F;--verde-texto:#0B8A5F;--rojo:#DC2626;
+      color-scheme:light;
+    }
+  }
+  *{box-sizing:border-box}
+  body{margin:0;min-height:100vh;background:var(--fondo);color:var(--texto);
+       font:16px/1.55 "Plus Jakarta Sans",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+       -webkit-text-size-adjust:100%}
+  main{width:min(560px,100% - 32px);margin:0 auto;padding:28px 0 56px}
+  header{display:flex;align-items:center;gap:12px;margin-bottom:30px}
+  header img{width:40px;height:40px;border-radius:11px}
+  header a{text-decoration:none;color:inherit;font-weight:800;font-size:18px}
+  h1{font-size:clamp(28px,7vw,40px);line-height:1.1;margin:0 0 10px;letter-spacing:-.02em}
+  .entrada{color:var(--texto-2);margin:0 0 26px}
+
+  .tarjeta{background:var(--superficie);border:1px solid var(--borde);border-radius:var(--radio);padding:24px 20px}
+
+  /* Las estrellas son botones de verdad: se llega con el tabulador y se marcan
+     con la barra espaciadora, no solo con el dedo. */
+  .estrellas{display:flex;justify-content:center;gap:6px;margin:0 0 6px;padding:0;border:0}
+  .estrellas button{
+    flex:none;width:52px;height:52px;padding:0;border:0;background:transparent;cursor:pointer;
+    font-size:40px;line-height:1;color:var(--texto-3);
+    transition:transform .12s ease,color .12s ease;
+  }
+  .estrellas button::before{content:"\2605"}
+  .estrellas button.puesta{color:var(--estrella)}
+  .estrellas button:active{transform:scale(.88)}
+  .estrellas button:focus-visible{outline:2px solid var(--verde);outline-offset:3px;border-radius:10px}
+  @media (prefers-reduced-motion:reduce){.estrellas button{transition:none}}
+  .pie-estrellas{text-align:center;color:var(--texto-2);font-weight:600;min-height:24px;margin:0}
+
+  .despues{margin-top:20px}
+  .despues[hidden]{display:none}
+  label{display:block;font-weight:700;margin:0 0 8px}
+  textarea{
+    width:100%;min-height:96px;resize:vertical;padding:12px 14px;
+    font:inherit;color:var(--texto);background:var(--superficie-2);
+    border:1px solid var(--borde);border-radius:14px;
+  }
+  textarea:focus-visible{outline:2px solid var(--verde);outline-offset:1px}
+  .cuenta{text-align:right;font-size:13px;color:var(--texto-3);margin:6px 0 0}
+
+  .acciones{display:flex;gap:10px;margin-top:16px}
+  button.enviar{
+    flex:1;font:inherit;font-weight:800;font-size:17px;padding:14px 20px;cursor:pointer;
+    color:#07140E;background:var(--verde);border:0;border-radius:99px;
+  }
+  button.enviar:disabled{opacity:.55;cursor:default}
+  button.enviar:focus-visible,a.boton:focus-visible{outline:2px solid var(--verde);outline-offset:3px}
+
+  .aviso{margin:14px 0 0;font-size:14px;color:var(--rojo);font-weight:600}
+  .aviso[hidden]{display:none}
+
+  /* Gracias */
+  .gracias[hidden]{display:none}
+  .gracias h2{font-size:26px;margin:0 0 8px;letter-spacing:-.01em}
+  .gracias p{color:var(--texto-2);margin:0 0 18px}
+  a.boton{
+    display:block;text-align:center;text-decoration:none;font-weight:800;font-size:17px;
+    padding:14px 20px;border-radius:99px;color:#07140E;background:var(--verde);
+  }
+  a.secundario{color:var(--texto);background:transparent;border:1px solid var(--borde);margin-top:10px}
+  button.texto{
+    display:block;width:100%;margin-top:12px;font:inherit;font-weight:700;color:var(--texto-2);
+    background:transparent;border:0;cursor:pointer;text-decoration:underline;text-underline-offset:3px;
+  }
+
+  .nota{margin:20px 2px 0;font-size:14px;color:var(--texto-3)}
+  .nota a{color:var(--texto-2)}
+  .contador{margin:14px 2px 0;font-size:14px;color:var(--texto-3);min-height:21px}
+</style>
+</head>
+<body>
+<main>
+  <header><img src="/img/lifemusic.png" alt=""><a href="/">Life Music</a></header>
+
+  <!-- Votar -->
+  <section id="votar">
+    <h1>¿Qué te parece Life&nbsp;Music?</h1>
+    <p class="entrada">Cinco estrellas y, si quieres, una línea. No pedimos tu nombre ni tu correo.</p>
+
+    <div class="tarjeta">
+      <fieldset class="estrellas" id="estrellas" aria-label="Estrellas, de 1 a 5">
+        <button type="button" value="1" aria-label="1 estrella"></button>
+        <button type="button" value="2" aria-label="2 estrellas"></button>
+        <button type="button" value="3" aria-label="3 estrellas"></button>
+        <button type="button" value="4" aria-label="4 estrellas"></button>
+        <button type="button" value="5" aria-label="5 estrellas"></button>
+      </fieldset>
+      <p class="pie-estrellas" id="pie"></p>
+
+      <div class="despues" id="despues" hidden>
+        <label for="comentario" id="pregunta">¿Qué nos quieres contar?</label>
+        <textarea id="comentario" maxlength="500" rows="4"></textarea>
+        <p class="cuenta"><span id="usados">0</span>/500</p>
+        <div class="acciones">
+          <button type="button" class="enviar" id="enviar">Enviar</button>
+        </div>
+        <p class="aviso" id="aviso" hidden></p>
+      </div>
+    </div>
+
+    <p class="contador" id="contador"></p>
+    <p class="nota">
+      Se guardan solo las estrellas, el comentario y la fecha. Sin nombre, sin correo.
+      Los comentarios no se publican: los lee CG LABS para saber qué arreglar.
+      <a href="/privacidad">Política de privacidad</a>.
+    </p>
+  </section>
+
+  <!-- Gracias -->
+  <section class="gracias tarjeta" id="gracias" hidden>
+    <h2 id="gracias-titulo">¡Gracias!</h2>
+    <p id="gracias-texto"></p>
+    <a class="boton" href="/apk" id="gracias-descarga">Descargar Life Music</a>
+    <a class="boton secundario" href="/">Ver de qué se trata</a>
+    <button type="button" class="texto" id="cambiar">Cambiar mi calificación</button>
+  </section>
+</main>
+
+<script>
+  var COMUNIDAD = "https://lifemusic-comunidad.cho--usic.workers.dev";
+  var LLAVE = "calificacion-web"; // {id, estrellas} de este navegador
+
+  var estrellas = 0;
+  var botones = [].slice.call(document.querySelectorAll("#estrellas button"));
+  var PIES = ["", "Muy mal", "Regular", "Ni fu ni fa", "Está buena", "¡Me encanta!"];
+
+  // El almacenamiento del navegador falla en incognito o con los datos
+  // bloqueados: aqui nada depende de que funcione, solo se pierde el poder
+  // cambiar el voto despues.
+  function guardado() {
+    try { return JSON.parse(localStorage.getItem(LLAVE) || "null"); } catch (e) { return null; }
+  }
+  function guardar(v) {
+    try { localStorage.setItem(LLAVE, JSON.stringify(v)); } catch (e) {}
+  }
+  function miId() {
+    var g = guardado();
+    if (g && g.id) return g.id;
+    if (window.crypto && crypto.randomUUID) return crypto.randomUUID();
+    // Respaldo para navegadores sin randomUUID: mismo formato, de crypto.
+    var b = new Uint8Array(16);
+    crypto.getRandomValues(b);
+    b[6] = (b[6] & 0x0f) | 0x40;
+    b[8] = (b[8] & 0x3f) | 0x80;
+    var h = [].map.call(b, function (x) { return (x + 0x100).toString(16).slice(1); }).join("");
+    return h.slice(0, 8) + "-" + h.slice(8, 12) + "-" + h.slice(12, 16) + "-" + h.slice(16, 20) + "-" + h.slice(20);
+  }
+
+  function pintar(n) {
+    estrellas = n;
+    botones.forEach(function (b, i) {
+      var puesta = i < n;
+      b.classList.toggle("puesta", puesta);
+      b.setAttribute("aria-pressed", puesta ? "true" : "false");
+    });
+    document.getElementById("pie").textContent = PIES[n] || "";
+    document.getElementById("despues").hidden = n === 0;
+    document.getElementById("pregunta").textContent =
+      n >= 4 ? "¿Qué es lo que más te gusta?" : "¿Qué mejorarías?";
+  }
+
+  botones.forEach(function (b) {
+    b.onclick = function () { pintar(Number(b.value)); };
+  });
+
+  var comentario = document.getElementById("comentario");
+  comentario.oninput = function () {
+    document.getElementById("usados").textContent = comentario.value.length;
+  };
+
+  function mostrarGracias(n) {
+    document.getElementById("votar").hidden = true;
+    var g = document.getElementById("gracias");
+    g.hidden = false;
+    document.getElementById("gracias-titulo").textContent = n >= 4 ? "¡Gracias!" : "Gracias por decirlo";
+    document.getElementById("gracias-texto").textContent = n >= 4
+      ? "Nos alegra que te guste. Si todavía no la tienes, aquí la descargas."
+      : "Lo leemos todo y lo vamos a tener en cuenta.";
+    document.getElementById("gracias-descarga").textContent = n >= 4
+      ? "Descargar Life Music" : "Probar Life Music";
+  }
+
+  var enviar = document.getElementById("enviar");
+  enviar.onclick = function () {
+    if (!estrellas) return;
+    var aviso = document.getElementById("aviso");
+    aviso.hidden = true;
+    enviar.disabled = true;
+    enviar.textContent = "Enviando…";
+
+    var id = miId();
+    fetch(COMUNIDAD + "/calificar/web", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({
+        id: id,
+        estrellas: estrellas,
+        comentario: comentario.value.trim() || null,
+        idioma: (navigator.language || "").slice(0, 10),
+      }),
+    })
+      .then(function (r) { return r.json().then(function (j) { return { estado: r.status, cuerpo: j }; }); })
+      .catch(function () { return { estado: 0, cuerpo: null }; })
+      .then(function (r) {
+        enviar.disabled = false;
+        enviar.textContent = "Enviar";
+        if (r.cuerpo && r.cuerpo.ok) {
+          guardar({ id: id, estrellas: estrellas });
+          mostrarGracias(estrellas);
+          return;
+        }
+        aviso.hidden = false;
+        aviso.textContent = r.estado === 429
+          ? "Ya se recibieron varias calificaciones desde esta conexión hoy. Inténtalo mañana."
+          : r.estado === 0
+            ? "No hay conexión. Revisa el internet e inténtalo otra vez."
+            : "No se pudo enviar. Inténtalo otra vez en un momento.";
+      });
+  };
+
+  document.getElementById("cambiar").onclick = function () {
+    document.getElementById("gracias").hidden = true;
+    document.getElementById("votar").hidden = false;
+  };
+
+  // Si este navegador ya votó, se arranca con su voto puesto y en «gracias»:
+  // puede cambiarlo, y cambiarlo no suma uno nuevo.
+  var previo = guardado();
+  if (previo && previo.estrellas) {
+    pintar(previo.estrellas);
+    mostrarGracias(previo.estrellas);
+  }
+
+  // El contador propio de esta página. Si no responde, no se enseña nada: es un
+  // adorno, no hace falta para calificar.
+  fetch(COMUNIDAD + "/calificaciones/web")
+    .then(function (r) { return r.json(); })
+    .then(function (c) {
+      if (!c || !c.total) return;
+      document.getElementById("contador").textContent =
+        c.total === 1
+          ? "1 persona ha calificado desde aquí."
+          : c.total.toLocaleString("es-CO") + " personas han calificado desde aquí · ★ " +
+            String(c.promedio).replace(".", ",");
+    })
+    .catch(function () {});
+</script>
+</body>
+</html>

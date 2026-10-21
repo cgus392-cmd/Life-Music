@@ -25,8 +25,20 @@ create table if not exists calificaciones (
   comentario   text,
   version_app  text,
   idioma       text,
+  -- 'app' o 'web' (1.3.3). El promedio publico y la insignia cuentan solo los
+  -- de la app: los de la web los pone cualquiera con el enlace, sin haber usado
+  -- Life Music, y mezclarlos le quitaria el sentido al numero que se ensena.
+  origen       text not null default 'app',
   creada_en    text not null default (datetime('now')),
   cambiada_en  text not null default (datetime('now'))
+);
+
+-- Freno por IP de los votos del navegador (1.3.3). No guarda la IP: guarda el
+-- sha256 de la IP junto al dia, que no se puede deshacer y caduca solo.
+create table if not exists limite_web (
+  huella text primary key,
+  n      integer not null default 0,
+  dia    text not null
 );
 
 -- Ajustes que CG cambia sin sacar version: fechas, meta, premio y video.
