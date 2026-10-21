@@ -1,0 +1,176 @@
+/* lifemusic.app · la «landing viva» con la identidad «03 · Pulso» (aprobada por CG el 21-10-2026).
+   Maqueta: Brand/maquetas/2026-10-21-landing-viva/. «Blanco y aire»: mucho espacio, letra fina, casi sin color.
+   El unico color de la pagina es el pulso: lo pone landing.js segun la caratula que suena. */
+
+@font-face{font-family:"Geist";font-style:normal;font-weight:300 700;font-display:swap;src:url("/fuentes/geist.woff2") format("woff2")}
+@font-face{font-family:"Geist Mono";font-style:normal;font-weight:400 500;font-display:swap;src:url("/fuentes/geist-mono.woff2") format("woff2")}
+
+:root{
+  --fondo:#F5F5F3; --texto:#111111; --gris:#5F5F5C;
+  --linea:rgba(17,17,17,.1); --linea-suave:rgba(17,17,17,.06); --marcador:rgba(17,17,17,.35);
+  --borde-fantasma:#CFCFCB; --boton:#111111; --boton-texto:#F5F5F3; --halo-cabeza:rgba(255,255,255,.7);
+  --pie:rgba(17,17,17,.04); --pulso:#FF6B3D;
+  --fondo-vivo:var(--fondo); --fondo-barra:rgba(245,245,243,.85);
+  color-scheme:light;
+}
+@media (prefers-color-scheme: dark){
+  :root{
+    --fondo:#0E0E0E; --texto:#F2F2EF; --gris:#A1A19D;
+    --linea:rgba(242,242,239,.12); --linea-suave:rgba(242,242,239,.08); --marcador:rgba(242,242,239,.4);
+    --borde-fantasma:rgba(242,242,239,.24); --boton:#F2F2EF; --boton-texto:#111111; --halo-cabeza:rgba(0,0,0,.6);
+    --pie:rgba(242,242,239,.04); --fondo-barra:rgba(14,14,14,.85);
+    color-scheme:dark;
+  }
+}
+
+*{box-sizing:border-box}
+html{scroll-padding-top:84px}
+body{margin:0;overflow-x:clip;background:var(--fondo-vivo);color:var(--texto);
+  font:400 17px/1.6 "Geist",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;-webkit-font-smoothing:antialiased;transition:background-color .9s ease}
+a{color:inherit}a:hover{opacity:.75}
+button{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--texto);outline-offset:3px;border-radius:6px}
+h1,h2{text-wrap:balance}
+.salto{position:absolute;left:12px;top:-60px;z-index:50;padding:10px 14px;border-radius:10px;background:var(--boton);color:var(--boton-texto);text-decoration:none}
+.salto:focus{top:12px}
+
+.ancho{max-width:1240px;margin:0 auto;padding:0 48px}
+.mono{font-family:"Geist Mono",ui-monospace,Consolas,monospace;font-size:13px}
+.gris{color:var(--gris)}
+.punto{display:inline-block;width:8px;height:8px;border-radius:50%;flex:none;background:var(--pulso);transition:background-color .9s ease}
+.punto.apagado{background:#8A8A86}
+.boton{display:inline-flex;align-items:center;gap:12px;height:54px;padding:0 24px;border:0;border-radius:14px;background:var(--boton);color:var(--boton-texto);
+  text-decoration:none;font:500 16px/1 "Geist",system-ui,sans-serif;white-space:nowrap;cursor:pointer}
+.boton.chico{height:40px;padding:0 16px;border-radius:12px;font-size:14px;gap:10px}
+.fantasma{display:inline-flex;align-items:center;gap:10px;height:54px;padding:0 22px;border:0;border-radius:14px;background:transparent;box-shadow:inset 0 0 0 1px var(--borde-fantasma);
+  color:var(--texto);font:400 16px/1 "Geist",system-ui,sans-serif;white-space:nowrap;cursor:pointer;text-decoration:none}
+.fantasma svg{width:16px;height:16px;fill:currentColor}
+.fantasma .pausa,.fantasma[aria-pressed="true"] .play{display:none}
+.fantasma[aria-pressed="true"] .pausa{display:block}
+
+/* La barra: la marca, la cancion que avanza con el scroll y la descarga */
+.barra{position:sticky;top:0;z-index:20;background:var(--fondo-barra);-webkit-backdrop-filter:blur(14px) saturate(140%);backdrop-filter:blur(14px) saturate(140%);
+  border-bottom:1px solid var(--linea-suave);transition:background-color .9s ease}
+.barra .ancho{position:relative;display:grid;grid-template-columns:auto minmax(0,1fr) auto;align-items:center;gap:40px;height:76px}
+.marca{display:flex;align-items:flex-end;gap:4px;text-decoration:none;font-size:21px;font-weight:600;letter-spacing:-.045em;line-height:1}
+.marca .punto{width:6px;height:6px;margin-bottom:3px}
+.tiempo{display:grid;grid-template-columns:44px minmax(0,1fr) 44px;align-items:center;gap:16px}
+.tiempo .mono:last-child{text-align:right}
+.linea-t{position:relative;height:30px}
+.linea-t .base{position:absolute;left:0;right:0;top:14px;height:2px;border-radius:1px;background:var(--linea)}
+.linea-t .relleno{position:absolute;left:0;top:14px;width:0;height:2px;border-radius:1px;background:var(--texto)}
+.linea-t .cabeza{position:absolute;left:0;top:9px;width:12px;height:12px;margin-left:-6px;border-radius:50%;background:var(--pulso);box-shadow:0 0 0 4px var(--halo-cabeza);transition:background-color .9s ease}
+.marcador{position:absolute;top:0;height:30px;padding:0;border:0;background:none;cursor:pointer;transform:translateX(-1px)}
+.marcador i{position:absolute;left:0;top:10px;width:2px;height:10px;border-radius:1px;background:var(--marcador)}
+.marcador span{position:absolute;left:8px;top:-1px;white-space:nowrap;font:500 11px/1 "Geist Mono",ui-monospace,monospace;color:var(--gris)}
+.marcador.activo i{background:var(--texto)}
+.marcador.activo span{color:var(--texto)}
+
+/* Intro: el heroe vivo */
+.heroe{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:40px;align-items:center;padding:40px 0 24px}
+.vivo-fila{display:flex;flex-wrap:wrap;align-items:center;gap:6px 18px;min-height:21px}
+.vivo-fila b{font-weight:500}
+.heroe h1{margin:28px 0 26px;font-size:96px;line-height:.93;font-weight:600;letter-spacing:-.055em}
+.heroe h1 .punto{width:18px;height:18px;margin-left:6px}
+.lifeline{display:flex;align-items:center;gap:12px;min-height:30px;margin:0 0 22px;font-family:"Geist Mono",ui-monospace,monospace;font-size:17px}
+.sub{max-width:31em;margin:0 0 34px;font-size:19px;line-height:1.55}
+.acciones{display:flex;flex-wrap:wrap;gap:12px}
+.escena{position:relative;height:580px;touch-action:pan-y;cursor:crosshair}
+.esfera{position:absolute;inset:0;width:100%;height:100%;display:block}
+.ahora{position:absolute;left:0;right:0;bottom:6px;text-align:center}
+.discos{padding:28px 0 40px;border-top:1px solid var(--linea)}
+.discos-cab{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:baseline;gap:6px 20px;margin-bottom:22px}
+.fila-discos{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:20px}
+.disco{display:flex;flex-direction:column;align-items:flex-start;gap:6px;padding:0;border:0;background:none;text-align:left;cursor:pointer;color:var(--texto)}
+.disco .caratula{width:100%;aspect-ratio:1;border-radius:12px;box-shadow:0 0 0 1px rgba(0,0,0,.06);transition:box-shadow .3s ease,transform .3s ease}
+.disco:hover .caratula{transform:translateY(-3px)}
+.disco[aria-pressed="true"] .caratula{box-shadow:0 0 0 3px var(--c),0 14px 30px -12px var(--c)}
+.disco b{margin-top:8px;font-size:16px;font-weight:500;letter-spacing:-.02em}
+/* Las cinco caratulas de ejemplo, dibujadas con CSS (no son canciones reales) */
+.d1{--c:#FF6B3D}.d1 .caratula{background:radial-gradient(circle at 50% 40%,#FFB49A 0 29%,transparent 30%),linear-gradient(#FF6B3D 0 64%,#C9431C 64%)}
+.d2{--c:#3B6CF6}.d2 .caratula{background:radial-gradient(circle at 32% 66%,#FF4FA3 0 20%,transparent 21%),linear-gradient(140deg,#0D1B3D,#3B6CF6)}
+.d3{--c:#8B5CF6}.d3 .caratula{background:radial-gradient(circle,#F8FAFC 0 7%,transparent 8%),radial-gradient(circle,transparent 0 30%,#B4A2F6 31% 33%,transparent 34%),#140F2A}
+.d4{--c:#1F9D6B}.d4 .caratula{background:repeating-linear-gradient(120deg,rgba(0,0,0,.18) 0 6px,transparent 6px 18px),linear-gradient(200deg,#0F3D2E,#1F9D6B)}
+.d5{--c:#D98A00}.d5 .caratula{background:radial-gradient(circle at 34% 30%,#FBD38D,#B7791F 48%,#3D2208)}
+
+/* Las partes de la cancion */
+.parte{padding:120px 0;border-top:1px solid var(--linea)}
+.viva .parte{will-change:opacity,transform,filter}
+.parte-cab{display:grid;grid-template-columns:minmax(0,280px) minmax(0,1fr);gap:40px;margin-bottom:56px}
+.parte-cab .mono{padding-top:14px}
+.parte h2{margin:0;font-size:64px;line-height:1;font-weight:600;letter-spacing:-.05em}
+.etq{display:flex;flex-direction:column;gap:4px}
+.etq b{font-weight:500;color:var(--texto)}
+.funciones{list-style:none;margin:0;padding:0}
+.funcion{display:grid;grid-template-columns:minmax(0,280px) minmax(0,340px) minmax(0,1fr);gap:40px;align-items:baseline;padding:28px 0;border-top:1px solid var(--linea)}
+.funcion:last-child{border-bottom:1px solid var(--linea)}
+.funcion b{font-size:27px;font-weight:500;letter-spacing:-.03em}
+.funcion p{margin:0}
+.tv{display:grid;grid-template-columns:minmax(0,280px) minmax(0,1fr);gap:40px}
+.tv h2{margin-bottom:30px}
+.tv .url{font-family:"Geist Mono",ui-monospace,monospace;font-size:48px;letter-spacing:-.03em;overflow-wrap:anywhere}
+.tv p{max-width:34em;margin:24px 0 30px}
+.fila{display:flex;flex-wrap:wrap;align-items:center;gap:14px 32px}
+.estado{display:inline-flex;align-items:center;gap:10px}
+.pasos{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:40px}
+.paso{padding-top:24px;border-top:1px solid var(--texto)}
+.paso b{display:block;margin:18px 0 8px;font-size:23px;font-weight:500;letter-spacing:-.025em}
+.paso p{margin:0;font-size:16px}
+.coro{display:flex;flex-wrap:wrap;align-items:center;gap:16px;margin-top:64px}
+.final-grid{display:grid;grid-template-columns:minmax(0,280px) minmax(0,1fr) minmax(0,1fr);gap:40px}
+.dato{padding-top:22px;border-top:1px solid var(--linea)}
+.dato .num{display:block;margin-top:10px;font-size:52px;line-height:1;font-weight:600;letter-spacing:-.05em;font-variant-numeric:tabular-nums}
+.dato p{margin:12px 0 0}
+.avisos{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:40px;margin-top:72px;padding-top:40px;border-top:1px solid var(--linea)}
+.aviso .mono{display:flex;align-items:center;gap:10px}
+.aviso p{margin:10px 0 0}
+.pie{padding:56px 0 120px;background:var(--pie)}
+.pie-arriba{display:flex;justify-content:space-between;align-items:center;gap:30px;padding-bottom:32px}
+.pie-arriba img{display:block;height:24px;width:auto}
+.pie nav{display:flex;flex-wrap:wrap;gap:12px 32px;font-size:15px}
+.pie nav a{text-decoration:none}
+.legal{max-width:62em;margin:28px 0 0;padding-top:24px;border-top:1px solid var(--linea);font-size:14px}
+
+/* Life Line, abajo: narra lo que pasa mientras recorres la cancion */
+.narra{position:fixed;left:24px;bottom:24px;z-index:30;display:flex;align-items:center;gap:12px;max-width:min(560px,calc(100% - 48px));padding:14px 18px;border-radius:14px;
+  background:var(--boton);color:var(--boton-texto);box-shadow:0 18px 40px -16px rgba(0,0,0,.45)}
+.narra .mono{font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+
+@media (max-width: 760px){
+  html{scroll-padding-top:70px}
+  .ancho{padding:0 20px}
+  .barra .ancho{grid-template-columns:auto minmax(0,1fr) auto;gap:14px;height:64px}
+  .tiempo{grid-template-columns:minmax(0,1fr);gap:0}
+  .tiempo .mono:last-child,.marcador span{display:none}
+  .tiempo .mono:first-child{text-align:center}
+  .linea-t{position:absolute;left:0;right:0;bottom:-1px;height:3px}
+  .linea-t .base,.linea-t .relleno{top:0;height:3px;border-radius:0}
+  .linea-t .cabeza,.marcador{display:none}
+  .heroe{grid-template-columns:minmax(0,1fr);gap:0;padding:8px 0 16px}
+  .escena{order:-1;height:330px}
+  .heroe h1{font-size:50px;margin:18px 0}
+  .heroe h1 .punto{width:11px;height:11px}
+  .lifeline{font-size:15px}
+  .sub{font-size:16px;margin-bottom:26px}
+  .acciones .boton,.acciones .fantasma{flex:1 1 100%;justify-content:center}
+  .fila-discos{display:flex;overflow-x:auto;gap:14px;padding-bottom:6px;scroll-snap-type:x mandatory}
+  .disco{flex:0 0 138px;scroll-snap-align:start}
+  .parte{padding:72px 0}
+  .parte-cab,.tv,.final-grid{grid-template-columns:minmax(0,1fr);gap:12px;margin-bottom:32px}
+  .parte-cab .mono{padding-top:0}
+  .parte h2{font-size:38px}
+  .funcion{grid-template-columns:44px minmax(0,1fr);gap:6px 12px;padding:22px 0}
+  .funcion p{grid-column:2}
+  .funcion b{font-size:22px}
+  .tv .url{font-size:26px}
+  .pasos{grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:32px 20px}
+  .coro .boton,.coro .fantasma{flex:1 1 100%;justify-content:center}
+  .dato .num{font-size:40px}
+  .avisos{grid-template-columns:minmax(0,1fr);gap:28px;margin-top:48px}
+  .pie-arriba{flex-direction:column;align-items:flex-start}
+  .narra{left:12px;right:12px;bottom:12px;max-width:none}
+}
+@media (prefers-reduced-motion: reduce){
+  body,.punto,.barra,.linea-t .cabeza{transition:none}
+  .disco:hover .caratula{transform:none}
+}

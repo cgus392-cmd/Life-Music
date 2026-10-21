@@ -5,13 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Life Music · App de música gratis para Android, sin anuncios</title>
 <meta name="description" content="Música sin cortes para Android: Automix con transiciones de DJ, Life Line que te cuenta lo que hace, letras sincronizadas y sin anuncios. Gratis, de código abierto, un desarrollo de CG LABS.">
-<meta name="theme-color" content="#0B0F0D" media="(prefers-color-scheme: dark)">
-<meta name="theme-color" content="#F4F8F6" media="(prefers-color-scheme: light)">
-<script>
-  // Tema: la eleccion guardada manda; si no hay, el del sistema. Va aqui, antes
-  // del CSS, para que la pagina no parpadee de oscuro a claro al cargar.
-  try { var t = localStorage.getItem("tema"); if (t === "light" || t === "dark") document.documentElement.setAttribute("data-theme", t); } catch (e) {}
-</script>
+<meta name="theme-color" content="#0E0E0E" media="(prefers-color-scheme: dark)">
+<meta name="theme-color" content="#F5F5F3" media="(prefers-color-scheme: light)">
 <link rel="canonical" href="https://lifemusic.app/">
 <link rel="icon" type="image/png" href="/img/lifemusic.png">
 <link rel="apple-touch-icon" href="/img/lifemusic.png">
@@ -55,453 +50,134 @@
 }
 </script>
 
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,400;0,500;0,600;0,700;0,800;1,500;1,700;1,800&family=JetBrains+Mono:wght@400;500&display=swap">
-
-<style>
-  /* ───────────── tokens: la app en oscuro, con el verde de la campaña ───────────── */
-  :root{
-    --fondo:#0B0F0D;
-    --fondo-2:#10161300;
-    --superficie:#131A16;
-    --superficie-2:#1A231E;
-    --borde:rgba(255,255,255,.08);
-    --texto:#F2F5F3;
-    --texto-2:#A9B4AE;
-    --texto-3:#6F7B75;
-    --verde:#34D399;
-    --verde-oscuro:#0F5C43;
-    --rosa:#F8BBD0;
-    --azul:#90CAF9;
-    --lila:#CE93D8;
-    --menta:#80CBC4;
-    --melon:#FFAB91;
-    --amarillo:#FFE082;
-    --verde-texto:#34D399;
-    --aurora-a:rgba(52,211,153,.45);
-    --aurora-b:rgba(248,187,208,.28);
-    --aurora-c:rgba(144,202,249,.16);
-    --grano:.05;
-    --telefono-marco:#0E1411;
-    --logo-claro:none;--logo-oscuro:block;
-    --radio:24px;
-    --display:"Plus Jakarta Sans",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
-    --mono:"JetBrains Mono",ui-monospace,SFMono-Regular,Menlo,monospace;
-    color-scheme:dark;
-  }
-  /* Modo claro: por el sistema (si no se ha elegido nada) y por eleccion. Mismos
-     tokens, otro juego de valores; el verde de texto se oscurece para que se lea. */
-  @media (prefers-color-scheme:light){
-    :root:not([data-theme="dark"]){
-      --fondo:#F4F8F6;--superficie:#FFFFFF;--superficie-2:#E9F1EC;--borde:rgba(10,30,20,.09);
-      --texto:#0F1512;--texto-2:#4B5751;--texto-3:#7A867F;--verde-texto:#0B8A5F;
-      --aurora-a:rgba(52,211,153,.30);--aurora-b:rgba(248,187,208,.40);--aurora-c:rgba(144,202,249,.28);
-      --grano:.035;color-scheme:light;--logo-claro:block;--logo-oscuro:none;
-    }
-  }
-  :root[data-theme="light"]{
-    --fondo:#F4F8F6;--superficie:#FFFFFF;--superficie-2:#E9F1EC;--borde:rgba(10,30,20,.09);
-    --texto:#0F1512;--texto-2:#4B5751;--texto-3:#7A867F;--verde-texto:#0B8A5F;
-    --aurora-a:rgba(52,211,153,.30);--aurora-b:rgba(248,187,208,.40);--aurora-c:rgba(144,202,249,.28);
-    --grano:.035;color-scheme:light;--logo-claro:block;--logo-oscuro:none;
-  }
-  :root[data-theme="dark"]{
-    --fondo:#0B0F0D;--superficie:#131A16;--superficie-2:#1A231E;--borde:rgba(255,255,255,.08);
-    --texto:#F2F5F3;--texto-2:#A9B4AE;--texto-3:#6F7B75;--verde-texto:#34D399;
-    --aurora-a:rgba(52,211,153,.45);--aurora-b:rgba(248,187,208,.28);--aurora-c:rgba(144,202,249,.16);
-    --grano:.05;color-scheme:dark;--logo-claro:none;--logo-oscuro:block;
-  }
-  .logo-claro{display:var(--logo-claro)}.logo-oscuro{display:var(--logo-oscuro)}
-  body{transition:background-color .35s ease,color .35s ease}
-  *{box-sizing:border-box}
-  html{scroll-behavior:smooth}
-  body{
-    margin:0;background:var(--fondo);color:var(--texto);
-    font-family:var(--display);font-size:16px;line-height:1.55;
-    -webkit-font-smoothing:antialiased;overflow-x:hidden;
-  }
-  a{color:inherit}
-  img{max-width:100%;display:block}
-  .contenedor{width:min(1100px,100% - 40px);margin-inline:auto}
-  @media (max-width:640px){.contenedor{width:min(1100px,100% - 32px)}}
-
-  /* ───────────── fondo vivo: dos manchas de luz que derivan (como en la app) ───────────── */
-  .aurora{position:fixed;inset:0;z-index:-1;overflow:hidden;pointer-events:none;background:var(--fondo)}
-  .aurora i{position:absolute;border-radius:50%;filter:blur(60px);opacity:.55;will-change:transform}
-  .aurora .a{width:70vmax;height:70vmax;left:-20vmax;top:-25vmax;background:radial-gradient(circle,var(--aurora-a),transparent 60%);animation:derivaA 26s ease-in-out infinite alternate}
-  .aurora .b{width:60vmax;height:60vmax;right:-22vmax;bottom:-20vmax;background:radial-gradient(circle,var(--aurora-b),transparent 60%);animation:derivaB 31s ease-in-out infinite alternate}
-  .aurora .c{width:40vmax;height:40vmax;left:35vw;top:40vh;background:radial-gradient(circle,var(--aurora-c),transparent 60%);animation:derivaA 38s ease-in-out infinite alternate-reverse}
-  @keyframes derivaA{from{transform:translate(0,0) scale(1)}to{transform:translate(14vw,8vh) scale(1.12)}}
-  @keyframes derivaB{from{transform:translate(0,0) scale(1)}to{transform:translate(-12vw,-10vh) scale(1.08)}}
-  .grano{position:fixed;inset:0;z-index:-1;pointer-events:none;opacity:var(--grano);
-    background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/></filter><rect width='160' height='160' filter='url(%23n)' opacity='.8'/></svg>")}
-
-  /* ───────────── cabecera ───────────── */
-  header{padding:22px 0}
-  .marca{display:flex;align-items:center;gap:12px;text-decoration:none}
-  .marca img{width:40px;height:40px;border-radius:12px}
-  .marca b{font-weight:800;letter-spacing:-.01em;font-size:18px}
-  .marca small{display:flex;align-items:center;gap:6px;font-size:11px;color:var(--texto-3);letter-spacing:.14em;text-transform:uppercase;font-weight:600;margin-top:-2px}
-  .marca small img{width:14px;height:14px;border-radius:50%;opacity:.9}
-  nav{display:flex;justify-content:space-between;align-items:center;gap:16px}
-  nav .enlaces{display:flex;gap:18px;font-size:14px;color:var(--texto-2);white-space:nowrap}
-  nav .enlaces a{text-decoration:none}
-  nav .enlaces a:hover{color:var(--texto)}
-  @media (max-width:1180px){nav .enlaces{display:none}}
-  @media (max-width:480px){.marca small{display:none}}
-  .tema{display:inline-flex;gap:2px;padding:3px;border-radius:999px;background:var(--superficie);border:1px solid var(--borde)}
-  .tema button{appearance:none;border:0;background:transparent;color:var(--texto-3);width:34px;height:30px;border-radius:999px;display:grid;place-items:center;cursor:pointer;transition:background .2s ease,color .2s ease}
-  .tema button svg{width:16px;height:16px}
-  .tema button[aria-pressed="true"]{background:var(--superficie-2);color:var(--texto)}
-  .tema button:hover{color:var(--texto)}
-  nav .derecha{display:flex;align-items:center;gap:18px}
-  /* Atajos siempre visibles (1.3.2): abrir el receptor del TV y el estado del sistema. */
-  .atajos{display:flex;gap:8px}
-  .atajo{display:inline-flex;align-items:center;gap:7px;padding:7px 13px;border-radius:999px;text-decoration:none;font-size:13px;font-weight:700;white-space:nowrap;
-    color:var(--texto);background:var(--superficie);border:1px solid var(--borde);transition:border-color .2s ease,transform .2s ease}
-  .atajo:hover{border-color:var(--verde-texto);transform:translateY(-1px)}
-  .atajo svg{width:16px;height:16px;flex:none}
-  .atajo .punto-estado{width:8px;height:8px;border-radius:50%;background:var(--texto-3)}
-  .atajo.ok .punto-estado{background:var(--verde-texto);box-shadow:0 0 0 3px rgba(52,211,153,.18)}
-  .atajo.mal .punto-estado{background:#F87171}
-  @media (max-width:640px){.atajo .largo{display:none}.atajo{padding:7px 10px}nav .derecha{gap:8px}.atajos{gap:6px}}
-  @media (max-width:420px){.tema{display:none}.marca b{font-size:16px;white-space:nowrap}}
-  /* Sección del TV */
-  .reto.tv-tarjeta .imagen{aspect-ratio:16/9}
-  .reto.tv-tarjeta .imagen img{animation:none;object-fit:cover}
-  .estado-tv{display:flex;align-items:center;gap:8px;font-weight:600;margin:0 0 16px}
-  .estado-tv .punto-estado{width:9px;height:9px;border-radius:50%;background:var(--texto-3)}
-  .estado-tv.ok .punto-estado{background:var(--verde-texto)}
-  .estado-tv.mal .punto-estado{background:#F87171}
-  .botones-fila{display:flex;gap:10px;flex-wrap:wrap}
-
-  /* ───────────── héroe ───────────── */
-  .heroe{display:grid;grid-template-columns:1.1fr .9fr;gap:40px;align-items:center;padding:36px 0 56px;min-height:0}
-  @media (max-width:860px){.heroe{grid-template-columns:1fr;gap:28px;padding-top:14px}}
-  .eyebrow{display:inline-flex;align-items:center;gap:10px;padding:8px 14px;border-radius:999px;background:var(--superficie);border:1px solid var(--borde);font-size:13px;color:var(--texto-2);font-weight:600}
-  .eyebrow .punto{width:8px;height:8px;border-radius:50%;background:var(--verde);animation:late 1.6s ease-in-out infinite alternate}
-  @keyframes late{from{opacity:.35}to{opacity:1}}
-  h1{font-size:clamp(44px,8vw,78px);line-height:1;letter-spacing:-.03em;margin:22px 0 14px;font-weight:500;font-style:italic;text-wrap:balance}
-  h1 b{display:block;font-weight:800;color:var(--verde-texto)}
-  .linea-viva{min-height:28px;font-size:clamp(16px,2.2vw,20px);color:var(--texto-2);font-style:italic}
-  .linea-viva span{display:inline-block;animation:entra .5s ease both}
-  @keyframes entra{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
-  .subtitulo{font-size:clamp(16px,2vw,18px);color:var(--texto-2);max-width:52ch;margin:18px 0 26px}
-
-  .acciones{display:flex;flex-wrap:wrap;gap:12px;align-items:center}
-  .boton{--g:0 0 0 0 rgba(52,211,153,0);
-    display:inline-flex;align-items:center;gap:12px;padding:18px 26px;border-radius:999px;
-    background:var(--verde);color:#062017;text-decoration:none;font-weight:800;font-size:17px;
-    border:0;cursor:pointer;transition:transform .15s ease,box-shadow .3s ease;
-    box-shadow:0 0 0 0 rgba(52,211,153,.55);animation:pulso 2.6s ease-out infinite}
-  .boton:hover{transform:translateY(-2px)}
-  .boton:active{transform:translateY(0) scale(.99)}
-  .boton svg{width:22px;height:22px}
-  @keyframes pulso{0%{box-shadow:0 0 0 0 rgba(52,211,153,.55)}70%{box-shadow:0 0 0 18px rgba(52,211,153,0)}100%{box-shadow:0 0 0 0 rgba(52,211,153,0)}}
-  .boton.secundario{background:transparent;color:var(--texto);border:1px solid var(--borde);animation:none;box-shadow:none;font-weight:600}
-  .meta{width:100%;display:flex;flex-wrap:wrap;gap:8px 18px;margin-top:6px;font-family:var(--mono);font-size:12px;color:var(--texto-3)}
-  .meta b{color:var(--texto-2);font-weight:500}
-
-  /* teléfono */
-  .telefono-caja{display:flex;justify-content:center;perspective:1200px}
-  .telefono{width:min(300px,72vw);aspect-ratio:9/19.2;border-radius:44px;padding:10px;background:var(--telefono-marco);
-    border:1px solid rgba(255,255,255,.12);box-shadow:0 40px 80px -30px rgba(0,0,0,.8),0 0 0 6px rgba(255,255,255,.03),0 30px 60px -20px rgba(52,211,153,.25);
-    animation:flota 7s ease-in-out infinite;transform-origin:center}
-  .telefono .pantalla{width:100%;height:100%;border-radius:36px;overflow:hidden;background:#dedede;position:relative}
-  .telefono .pantalla img{width:100%;height:100%;object-fit:cover;object-position:top}
-  .telefono .isla{position:absolute;top:12px;left:50%;transform:translateX(-50%);width:26%;height:22px;border-radius:999px;background:var(--telefono-marco)}
-  @keyframes flota{0%,100%{transform:translateY(0) rotateY(-8deg) rotateX(2deg)}50%{transform:translateY(-14px) rotateY(-5deg) rotateX(3deg)}}
-  .voz{position:absolute;left:10px;right:10px;bottom:18px;padding:12px 14px;border-radius:16px;background:rgba(14,20,17,.88);backdrop-filter:blur(8px);color:#fff;font-size:12.5px;line-height:1.35;border:1px solid rgba(255,255,255,.08);box-shadow:0 10px 30px rgba(0,0,0,.4)}
-  .voz small{display:block;color:var(--verde);font-weight:700;letter-spacing:.12em;text-transform:uppercase;font-size:9.5px;margin-bottom:4px}
-  .voz .ola{display:inline-flex;gap:2px;align-items:flex-end;height:12px;margin-left:6px;vertical-align:middle}
-  .voz .ola i{width:2px;background:var(--verde);border-radius:1px;animation:ola 1s ease-in-out infinite}
-  .voz .ola i:nth-child(1){height:5px}.voz .ola i:nth-child(2){height:11px;animation-delay:.15s}.voz .ola i:nth-child(3){height:7px;animation-delay:.3s}.voz .ola i:nth-child(4){height:10px;animation-delay:.45s}
-  @keyframes ola{0%,100%{transform:scaleY(.4)}50%{transform:scaleY(1)}}
-
-  /* ───────────── reto ───────────── */
-  .seccion{padding:56px 0}
-  .titulo-seccion{font-size:12px;letter-spacing:.16em;text-transform:uppercase;font-weight:700;color:var(--verde-texto);margin:0 0 14px}
-  h2{font-size:clamp(28px,4.4vw,44px);line-height:1.08;letter-spacing:-.02em;margin:0 0 12px;font-weight:800;text-wrap:balance}
-  h2 i{font-weight:500;color:var(--texto-2)}
-  .reto{display:grid;grid-template-columns:1fr 1fr;gap:28px;align-items:center;background:var(--superficie);border:1px solid var(--borde);border-radius:var(--radio);padding:22px;overflow:hidden}
-  @media (max-width:860px){.reto{grid-template-columns:1fr}}
-  .reto .imagen{border-radius:18px;overflow:hidden;aspect-ratio:1200/896;background:#000}
-  .reto .imagen img{width:100%;height:100%;object-fit:cover;animation:kenburns 14s ease-in-out infinite alternate}
-  @keyframes kenburns{from{transform:scale(1)}to{transform:scale(1.07)}}
-  .reto p{color:var(--texto-2);margin:0 0 14px}
-  .reglas{display:grid;gap:8px;margin:0 0 18px;padding:0;list-style:none;font-size:14.5px;color:var(--texto-2)}
-  .reglas li{display:flex;gap:10px;align-items:flex-start}
-  .reglas li::before{content:"";flex:none;width:7px;height:7px;border-radius:50%;background:var(--verde);margin-top:8px}
-  .cuenta{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:18px}
-  .cuenta div{padding:10px 14px;border-radius:14px;background:var(--superficie-2);border:1px solid var(--borde);min-width:74px;text-align:center}
-  .cuenta b{display:block;font-size:24px;font-weight:800;line-height:1;font-variant-numeric:tabular-nums}
-  .cuenta small{font-size:11px;color:var(--texto-3);letter-spacing:.08em;text-transform:uppercase;font-weight:600}
-
-  /* ───────────── funciones ───────────── */
-  .rejilla{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
-  @media (max-width:860px){.rejilla{grid-template-columns:repeat(2,1fr)}}
-  @media (max-width:560px){.rejilla{grid-template-columns:1fr}}
-  .azulejo{background:var(--superficie);border:1px solid var(--borde);border-radius:20px;padding:20px;display:flex;gap:16px;align-items:flex-start;transition:transform .2s ease,border-color .2s ease}
-  .azulejo:hover{transform:translateY(-3px);border-color:rgba(255,255,255,.16)}
-  .azulejo .icono{flex:none;width:48px;height:48px;border-radius:14px;display:grid;place-items:center;color:#1B1B1B}
-  .azulejo .icono svg{width:24px;height:24px}
-  .azulejo h3{margin:0 0 4px;font-size:16.5px;font-weight:700}
-  .azulejo p{margin:0;font-size:14px;color:var(--texto-2);line-height:1.45}
-
-  /* ───────────── instalar ───────────── */
-  .pasos{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;counter-reset:paso}
-  @media (max-width:860px){.pasos{grid-template-columns:repeat(2,1fr)}}
-  @media (max-width:480px){.pasos{grid-template-columns:1fr}}
-  .paso{position:relative;background:var(--superficie);border:1px solid var(--borde);border-radius:20px;padding:22px 20px 20px}
-  .paso::before{counter-increment:paso;content:counter(paso,decimal-leading-zero);font-family:var(--mono);font-size:12px;color:var(--verde-texto);letter-spacing:.1em}
-  .paso h3{margin:10px 0 6px;font-size:16px;font-weight:700}
-  .paso p{margin:0;font-size:14px;color:var(--texto-2)}
-  .aviso{margin-top:16px;font-size:13.5px;color:var(--texto-3);max-width:70ch}
-
-  /* ───────────── pie ───────────── */
-  footer{padding:40px 0 60px;border-top:1px solid var(--borde);margin-top:30px;font-size:13.5px;color:var(--texto-3)}
-  footer .fila{display:flex;flex-wrap:wrap;justify-content:space-between;gap:14px 24px;align-items:center}
-  footer .cglabs{display:flex;align-items:center;gap:14px;margin-top:26px;padding-top:22px;border-top:1px solid var(--borde)}
-  footer .cglabs img{height:28px;width:auto;opacity:.85}
-  footer .cglabs span{font-size:12.5px;color:var(--texto-3)}
-  footer a{color:var(--texto-2);text-decoration:none}
-  footer a:hover{color:var(--texto)}
-  footer p{max-width:72ch;margin:14px 0 0}
-
-  /* ───────────── entradas escalonadas ───────────── */
-  .escalonado{opacity:0;transform:translateY(18px);animation:sube .6s cubic-bezier(.2,.7,.2,1) forwards}
-  .escalonado:nth-child(1){animation-delay:.05s}.escalonado:nth-child(2){animation-delay:.15s}.escalonado:nth-child(3){animation-delay:.25s}.escalonado:nth-child(4){animation-delay:.35s}.escalonado:nth-child(5){animation-delay:.45s}.escalonado:nth-child(6){animation-delay:.55s}
-  @keyframes sube{to{opacity:1;transform:none}}
-  .revela{opacity:0;transform:translateY(22px);transition:opacity .7s ease,transform .7s cubic-bezier(.2,.7,.2,1)}
-  .revela.visto{opacity:1;transform:none}
-
-  @media (prefers-reduced-motion:reduce){
-    *,*::before,*::after{animation:none!important;transition:none!important}
-    .escalonado,.revela{opacity:1;transform:none}
-  }
-  a:focus-visible,button:focus-visible{outline:2px solid var(--verde);outline-offset:3px}
-</style>
+<!--
+  La «landing viva» con la identidad «03 · Pulso» (aprobada por CG el 21-10-2026).
+  Maqueta: Brand/maquetas/2026-10-21-landing-viva/. La pagina es una cancion de 3:58: el scroll es el tiempo.
+  Sin analitica, sin letras de afuera: Geist y Geist Mono (OFL) se sirven desde /fuentes.
+-->
+<link rel="preload" href="/fuentes/geist.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="/landing.css?v=1">
 </head>
 <body>
-<div class="aurora" aria-hidden="true"><i class="a"></i><i class="b"></i><i class="c"></i></div>
-<div class="grano" aria-hidden="true"></div>
+<a class="salto" href="#verso">Saltar al contenido</a>
 
-<header class="contenedor">
-  <nav>
-    <a class="marca" href="/">
-      <img src="/img/lifemusic.png" alt="">
-      <span><b>Life Music</b><small><img class="logo-oscuro" src="/img/cglabs_avatar_blanco.webp" alt=""><img class="logo-claro" src="/img/cglabs_avatar_negro.webp" alt="">Un desarrollo de CG LABS</small></span>
-    </a>
-    <div class="derecha">
-      <div class="enlaces">
-        <a href="#reto">Nuevo concurso</a>
-        <a href="#tv">Life Music TV</a>
-        <a href="#funciones">Qué hace</a>
-        <a href="#instalar">Cómo instalar</a>
-        <a href="/github" rel="noopener">Código</a>
+<header class="barra">
+  <div class="ancho">
+    <a class="marca" href="#intro" aria-label="Life Music, al comienzo">Life Music<span class="punto"></span></a>
+    <div class="tiempo" aria-label="La página como una canción">
+      <span class="mono" id="tiempo">0:00</span>
+      <div class="linea-t" id="linea-t">
+        <span class="base"></span>
+        <span class="relleno" id="relleno"></span>
+        <span class="cabeza" id="cabeza"></span>
       </div>
-      <div class="atajos">
-        <a class="atajo" href="/tv" title="Abrir el receptor de Life Music TV en este navegador"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 16a6 6 0 0 1 6 6M2 12a10 10 0 0 1 10 10"/><path d="M2 8V6a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2h-6"/></svg>TV<span class="largo">&nbsp;· abrir receptor</span></a>
-        <a class="atajo" id="atajoEstado" href="/estado/" title="Estado del sistema"><span class="punto-estado" aria-hidden="true"></span>Estado</a>
-      </div>
-      <div class="tema" role="group" aria-label="Tema">
-        <button type="button" data-tema="system" title="Como el sistema" aria-label="Como el sistema"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="12" rx="2"/><path d="M8 20h8M12 16v4"/></svg></button>
-        <button type="button" data-tema="light" title="Claro" aria-label="Claro"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M2 12h2M20 12h2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg></button>
-        <button type="button" data-tema="dark" title="Oscuro" aria-label="Oscuro"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg></button>
-      </div>
+      <span class="mono gris">3:58</span>
     </div>
-  </nav>
+    <a class="boton chico" href="#coro"><span class="punto"></span>Descargar</a>
+  </div>
 </header>
 
-<main class="contenedor">
-  <section class="heroe">
+<main class="ancho">
+  <section class="heroe" id="intro" data-parte="Intro" data-dice="Intro. Toca una carátula o dale a «Escuchar».">
     <div>
-      <div class="escalonado"><span class="eyebrow"><i class="punto"></i> Gratis · Sin anuncios · Android</span></div>
-      <h1 class="escalonado">La música que te habla,<b>sin cortes.</b></h1>
-      <div class="linea-viva escalonado" id="lineaViva" aria-live="polite"><span>«¿Listo para la sesión de hoy?»</span></div>
-      <p class="subtitulo escalonado">Life Music encadena tus canciones como un DJ, te cuenta lo que está haciendo y se viste con los colores de tu teléfono. Todo el catálogo de YouTube Music, sin publicidad y sin rastrearte.</p>
-      <div class="acciones escalonado">
-        <a class="boton" href="/apk" id="botonDescarga">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v13"/><path d="m7 11 5 5 5-5"/><path d="M4 21h16"/></svg>
-          Descargar Life Music
-        </a>
-        <a class="boton secundario" href="#instalar">Cómo se instala</a>
-        <div class="meta"><span>Versión <b id="version">1.3.2</b></span><span>APK <b id="tamano">70 MB</b></span><span>Android 8 o superior</span><span><a href="/apk-arm64" style="color:var(--texto-2)">Versión ligera (arm64, 41 MB)</a></span><span id="calificacion" hidden style="color:var(--verde-texto);font-weight:700"></span></div>
+      <div class="vivo-fila mono gris"><span class="punto"></span><b>En vivo</b><span id="vivo-version">Versión 1.3.2</span><span id="vivo-descargas" hidden></span><span id="vivo-tv">Revisando el servidor del TV…</span></div>
+      <h1>La música que te habla, sin cortes<span class="punto"></span></h1>
+      <p class="lifeline"><span class="punto"></span><span id="linea">¿Listo para la sesión de hoy?</span></p>
+      <p class="sub gris">Encadena tus canciones como un DJ, te cuenta lo que está haciendo y se viste con los colores de tu música. Todo el catálogo de YouTube Music, sin anuncios y sin rastrearte.</p>
+      <div class="acciones">
+        <a class="boton" href="#coro"><span class="punto"></span>Descargar Life Music</a>
+        <button class="fantasma" type="button" id="escuchar" aria-pressed="false">
+          <svg class="play" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5v14l11-7z"></path></svg>
+          <svg class="pausa" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"></path></svg>
+          <span id="texto-escuchar">Escuchar</span>
+        </button>
       </div>
     </div>
-    <div class="telefono-caja escalonado">
-      <div class="telefono">
-        <div class="pantalla">
-          <div class="isla" aria-hidden="true"></div>
-          <img src="/img/reproductor.webp" alt="Reproductor de Life Music con letra sincronizada y Life Line" width="720" height="1494" fetchpriority="high">
-          <div class="voz" aria-hidden="true"><small>Life Line</small>Fundiendo las notas… <span class="ola"><i></i><i></i><i></i><i></i></span></div>
-        </div>
-      </div>
+    <div class="escena" id="escena">
+      <canvas class="esfera" id="esfera" role="img" aria-label="Esfera de luz que se mueve con la música"></canvas>
+      <div class="ahora mono gris" id="ahora">Lista · Marea alta · 98 BPM</div>
     </div>
   </section>
 
-  <section class="seccion" id="reto">
-    <p class="titulo-seccion revela">Nuevo concurso · Prerregistro</p>
-    <div class="reto revela">
-      <div class="imagen"><video src="/concurso/video.mp4" controls playsinline preload="metadata" style="width:100%;display:block;border-radius:inherit;background:#000;aspect-ratio:16/9" aria-label="Video del nuevo concurso"></video></div>
+  <section class="discos" aria-labelledby="t-discos">
+    <div class="discos-cab mono gris"><span id="t-discos">Toca una carátula: la página toma sus colores</span><span>Canciones de ejemplo</span></div>
+    <div class="fila-discos">
+      <button class="disco d1" type="button" data-disco="0" aria-pressed="true"><span class="caratula"></span><b>Marea alta</b><span class="mono gris">98 BPM</span></button>
+      <button class="disco d2" type="button" data-disco="1" aria-pressed="false"><span class="caratula"></span><b>Luz de neón</b><span class="mono gris">118 BPM</span></button>
+      <button class="disco d3" type="button" data-disco="2" aria-pressed="false"><span class="caratula"></span><b>Órbita</b><span class="mono gris">84 BPM</span></button>
+      <button class="disco d4" type="button" data-disco="3" aria-pressed="false"><span class="caratula"></span><b>Selva</b><span class="mono gris">104 BPM</span></button>
+      <button class="disco d5" type="button" data-disco="4" aria-pressed="false"><span class="caratula"></span><b>Cobre</b><span class="mono gris">92 BPM</span></button>
+    </div>
+  </section>
+
+  <section class="parte" id="verso" aria-labelledby="t-verso" data-parte="Verso" data-dice="Cambiando de pista · Verso: lo que hace la app.">
+    <div class="parte-cab"><span class="etq mono gris"><b>Verso</b><span><span data-marca="1">0:00</span> · Funciones</span></span><h2 id="t-verso">Hecha para que la música no se corte.</h2></div>
+    <ol class="funciones">
+      <li class="funcion"><span class="mono gris">01</span><b>Automix</b><p class="gris">Un DJ algorítmico: analiza ritmo y tonalidad, sabe dónde empieza y acaba la música de verdad y mezcla con filtro. Lo acabas de oír arriba.</p></li>
+      <li class="funcion"><span class="mono gris">02</span><b>Life Line</b><p class="gris">La línea de abajo, la que te narra esta página. En la app te cuenta qué está haciendo mientras suena.</p></li>
+      <li class="funcion"><span class="mono gris">03</span><b>Letras</b><p class="gris">Sincronizadas palabra por palabra, con traducción opcional y modo karaoke.</p></li>
+      <li class="funcion"><span class="mono gris">04</span><b>Sin conexión</b><p class="gris">Descarga y escucha donde no hay señal. Tu biblioteca y tu historial viven en tu teléfono.</p></li>
+      <li class="funcion"><span class="mono gris">05</span><b>A tu gusto</b><p class="gris">Se viste con los colores de lo que suena, como esta página cuando tocas una carátula.</p></li>
+      <li class="funcion"><span class="mono gris">06</span><b>Sin rastreo</b><p class="gris">Sin analítica, sin publicidad y sin cuentas con nosotros. Código abierto bajo GPL-3.0.</p></li>
+    </ol>
+  </section>
+
+  <section class="parte" id="puente" aria-labelledby="t-puente" data-parte="Puente" data-dice="Mandando la señal al TV…">
+    <div class="tv">
+      <span class="etq mono gris"><b>Puente</b><span><span data-marca="2">0:00</span> · Life Music TV</span></span>
       <div>
-        <h2>Viene un <i>JBL PartyBox 330</i>.<br>Faltan ustedes.</h2>
-        <p>Es un prerregistro: cuando seamos 100, arranca un concurso por misiones, y participan las personas prerregistradas. Solo nombre y correo, desde la copa de Inicio en la app.</p>
-        <p style="font-weight:700" id="prerregistroCuenta" aria-live="polite"></p>
-        <ul class="reglas">
-          <li>Dura 6 días; si no llegamos a 100, sigue abierto hasta llegar.</li>
-          <li>Sin listas públicas: solo se muestra cuántos van.</li>
-          <li>Se gana completando misiones, no por sorteo.</li>
-        </ul>
-        <a class="boton" href="/concurso/">Ver el prerregistro</a>
+        <h2 id="t-puente">¿Tu TV no tiene Cast? Tiene navegador.</h2>
+        <div class="url">lifemusic.app/tv</div>
+        <p class="gris">Ábrelo en el navegador del TV, escanea el QR o escribe el código en la app, y tu música sale en la pantalla grande, con letra. El TV se acuerda de tu teléfono para la próxima vez.</p>
+        <div class="fila"><a class="fantasma" href="/tv">Abrir el receptor</a><span class="estado mono gris"><span class="punto" id="punto-tv"></span><span id="estado-tv">Revisando el servidor del TV…</span></span></div>
       </div>
     </div>
   </section>
 
-  <section class="seccion" id="tv">
-    <p class="titulo-seccion revela">Life Music TV</p>
-    <div class="reto tv-tarjeta revela">
-      <div class="imagen"><img src="/img/tv-enlace.webp" alt="La pantalla de enlace de Life Music TV, con el código y el QR" width="1200" height="675" loading="lazy"></div>
-      <div>
-        <h2>¿Tu TV no tiene Cast?<br><i>Tiene navegador.</i></h2>
-        <p>Abre <b>lifemusic.app/tv</b> en el navegador del TV, escanea el QR o escribe el código en la app, y listo: tu música, con letra y temas, en la pantalla grande. El TV se acuerda de tu teléfono para la próxima vez.</p>
-        <p class="estado-tv" id="estadoTv" aria-live="polite"><span class="punto-estado" aria-hidden="true"></span><span id="estadoTvTexto">Revisando el servidor del TV…</span></p>
-        <div class="botones-fila">
-          <a class="boton" href="/tv">Abrir el receptor</a>
-          <a class="boton secundario" href="/estado/">Estado del sistema</a>
-        </div>
-      </div>
+  <section class="parte" id="coro" aria-labelledby="t-coro" data-parte="Coro" data-dice="El coro: un minuto y la tienes.">
+    <div class="parte-cab"><span class="etq mono gris"><b>Coro</b><span><span data-marca="3">0:00</span> · Instalar</span></span><h2 id="t-coro">Un minuto, de verdad.</h2></div>
+    <ol class="pasos">
+      <li class="paso"><span class="mono gris">01</span><b>Descarga</b><p class="gris">Toca «Descargar Life Music». El archivo baja a tu carpeta de descargas.</p></li>
+      <li class="paso"><span class="mono gris">02</span><b>Ábrelo</b><p class="gris">Desde la notificación de la descarga o desde la app Archivos.</p></li>
+      <li class="paso"><span class="mono gris">03</span><b>Permite instalar</b><p class="gris">Si el teléfono pregunta, activa «Permitir instalar apps de esta fuente». Es normal: no viene de Play Store.</p></li>
+      <li class="paso"><span class="mono gris">04</span><b>Dale play</b><p class="gris">Las próximas versiones te llegan dentro de la app.</p></li>
+    </ol>
+    <div class="coro">
+      <a class="boton" href="/apk"><span class="punto"></span>Descargar Life Music</a>
+      <span class="mono gris"><span id="peso-apk">APK</span> · Android 8 o superior · <a href="/apk-arm64" id="enlace-ligera">versión ligera arm64</a></span>
     </div>
   </section>
 
-  <section class="seccion" id="funciones">
-    <p class="titulo-seccion revela">Qué hace</p>
-    <h2 class="revela">Lo que la hace <i>Life Music</i>.</h2>
-    <div class="rejilla">
-      <div class="azulejo revela"><div class="icono" style="background:var(--azul)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 12c4 0 4-7 8-7s4 14 8 14 4-7 4-7"/></svg></div><div><h3>Automix</h3><p>Un DJ algorítmico: analiza ritmo y tonalidad, sabe dónde empieza y acaba la música de verdad, y mezcla con filtro como en cabina. Cinco estilos, dos modos.</p></div></div>
-      <div class="azulejo revela"><div class="icono" style="background:var(--melon)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5h16v11H9l-5 4z"/></svg></div><div><h3>Life Line</h3><p>La app que habla: te cuenta qué está haciendo —«Fundiendo las notas…», «Cerrando el filtro…»— y te saluda al abrirla con una frase distinta cada vez.</p></div></div>
-      <div class="azulejo revela"><div class="icono" style="background:var(--lila)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 6h16M4 12h10M4 18h13"/></svg></div><div><h3>Letras sincronizadas</h3><p>Palabra por palabra, con traducción opcional, en el reproductor y en modo karaoke.</p></div></div>
-      <div class="azulejo revela"><div class="icono" style="background:var(--menta)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12"/><path d="m8 11 4 4 4-4"/><path d="M5 20h14"/></svg></div><div><h3>Sin conexión</h3><p>Descarga y escucha donde no hay señal. Tu biblioteca, tus listas y tu historial viven en tu teléfono.</p></div></div>
-      <div class="azulejo revela"><div class="icono" style="background:var(--rosa)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 3a9 9 0 0 1 0 18"/></svg></div><div><h3>Diseño a tu gusto</h3><p>Reproductor «Apple Music Inspired», colores de Material You tomados de tu fondo de pantalla, y texto que siempre se lee sobre la carátula.</p></div></div>
-      <div class="azulejo revela"><div class="icono" style="background:var(--amarillo)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2 4 6v6c0 5 3.5 8.5 8 10 4.5-1.5 8-5 8-10V6z"/></svg></div><div><h3>Sin rastreo</h3><p>Nada de analítica, ni publicidad, ni cuentas con nosotros. Código abierto bajo GPL-3.0: se puede comprobar.</p></div></div>
+  <section class="parte" id="final" aria-labelledby="t-final" data-parte="Final" data-dice="Cerrando la sesión. Vuelve cuando quieras.">
+    <h2 class="salto-visual" id="t-final" hidden>En vivo</h2>
+    <div class="final-grid">
+      <span class="etq mono gris"><b>Final</b><span><span data-marca="4">0:00</span> · En vivo</span></span>
+      <div class="dato"><span class="mono gris">Descargas en GitHub</span><span class="num" id="num-descargas">—</span><p class="gris" id="detalle-descargas">Se cuenta solo, desde GitHub.</p></div>
+      <div class="dato"><span class="mono gris">En Barranquilla</span><span class="num" id="hora">—</span><p class="gris">Donde se hace Life Music, en CG LABS.</p></div>
     </div>
-  </section>
-
-  <section class="seccion" id="instalar">
-    <p class="titulo-seccion revela">Cómo instalar</p>
-    <h2 class="revela">Un minuto, <i>de verdad</i>.</h2>
-    <div class="pasos">
-      <div class="paso revela"><h3>Descarga</h3><p>Toca «Descargar Life Music». El archivo <code>lifemusic.apk</code> baja a tu carpeta de descargas.</p></div>
-      <div class="paso revela"><h3>Ábrelo</h3><p>Toca la notificación de descarga, o búscalo en la app Archivos.</p></div>
-      <div class="paso revela"><h3>Permite instalar</h3><p>Si el teléfono pregunta, activa «Permitir instalar apps de esta fuente». Es normal: no viene de Play Store.</p></div>
-      <div class="paso revela"><h3>Listo</h3><p>Abre Life Music. Las actualizaciones te llegan desde la propia app.</p></div>
+    <div class="avisos">
+      <div class="aviso"><span class="mono gris"><span class="punto"></span>2.0 · En pruebas privadas</span><p>La próxima gran versión ya se está probando. Se anuncia aquí y en Telegram @cglabsti.</p></div>
+      <div class="aviso"><span class="mono gris"><span class="punto apagado"></span>Concurso JBL · En pausa</span><p>Quienes se prerregistraron conservan su lugar.</p></div>
     </div>
-    <p class="aviso revela">Life Music es un proyecto educativo y sin ánimo de lucro de CG LABS, basado en Echo Music. Reproduce el catálogo de YouTube Music; no está en Play Store porque ese tipo de aplicación no cumple sus normas, no porque tenga nada raro. Puedes leer el código completo.</p>
   </section>
 </main>
 
-<footer>
-  <div class="contenedor">
-    <div class="fila">
-      <a class="marca" href="/"><img src="/img/lifemusic.png" alt=""><span><b>Life Music</b><small>Un desarrollo de CG LABS</small></span></a>
-      <div style="display:flex;gap:20px;flex-wrap:wrap">
-        <a href="/tv">Life Music TV</a>
-        <a href="/concurso/">Nuevo concurso</a>
-        <a href="/estado/">Estado del sistema</a>
-        <a href="/github" rel="noopener">Código en GitHub</a>
-        <a href="/privacidad" rel="noopener">Política de privacidad</a>
-        <a href="/novedades" rel="noopener">Novedades</a>
-      </div>
+<footer class="pie">
+  <div class="ancho">
+    <div class="pie-arriba">
+      <a class="marca" href="#intro">Life Music<span class="punto"></span></a>
+      <picture>
+        <source srcset="/img/cglabs_lockup_blanco.webp" media="(prefers-color-scheme: dark)">
+        <img src="/img/cglabs_lockup_negro.webp" alt="Un desarrollo de CG LABS" height="24">
+      </picture>
     </div>
-    <p>Software libre bajo GPL-3.0, heredada de Echo Music, Metrolist e InnerTune. Sin telemetría, sin publicidad, sin venta. YouTube y YouTube Music son marcas de Google; JBL es marca de Harman. Ninguno tiene relación con este proyecto.</p>
-    <div class="cglabs">
-      <a href="https://github.com/cgus392-cmd" rel="noopener" aria-label="CG LABS en GitHub">
-        <img class="logo-oscuro" src="/img/cglabs_lockup_blanco.webp" alt="CG LABS" height="28">
-        <img class="logo-claro" src="/img/cglabs_lockup_negro.webp" alt="CG LABS" height="28">
-      </a>
-      <span>Life Music by CG · CG LABS · © 2026</span>
-    </div>
+    <nav aria-label="Enlaces" class="gris"><a href="/tv">Life Music TV</a><a href="/estado/">Estado del sistema</a><a href="/novedades">Novedades</a><a href="/github">Código en GitHub</a><a href="/privacidad">Privacidad</a></nav>
+    <p class="legal gris">Life Music es un proyecto educativo y sin ánimo de lucro de CG LABS, basado en Echo Music, Metrolist e InnerTune. Software libre bajo GPL-3.0: sin telemetría, sin publicidad y sin venta. Reproduce el catálogo de YouTube Music; no está en Play Store porque ese tipo de aplicación no cumple sus normas. YouTube y YouTube Music son marcas de Google; JBL es marca de Harman; ninguno tiene relación con este proyecto. Life Music by CG · CG LABS · © 2026</p>
   </div>
 </footer>
 
-<script>
-  // ── Tema: sistema / claro / oscuro, con memoria ──
-  const botonesTema = document.querySelectorAll(".tema button");
-  function aplicarTema(t) {
-    if (t === "light" || t === "dark") document.documentElement.setAttribute("data-theme", t);
-    else document.documentElement.removeAttribute("data-theme");
-    try { if (t === "system") localStorage.removeItem("tema"); else localStorage.setItem("tema", t); } catch (e) {}
-    botonesTema.forEach(b => b.setAttribute("aria-pressed", String(b.dataset.tema === t)));
-  }
-  let temaGuardado = "system";
-  try { temaGuardado = localStorage.getItem("tema") || "system"; } catch (e) {}
-  aplicarTema(temaGuardado);
-  botonesTema.forEach(b => b.addEventListener("click", () => aplicarTema(b.dataset.tema)));
+<div class="narra" aria-live="polite"><span class="punto"></span><span class="mono" id="narra">¿Listo para la sesión de hoy?</span></div>
 
-  // ── Life Line: la app que habla, también aquí ──
-  const frases = [
-    "«¿Listo para la sesión de hoy?»",
-    "«Fundiendo las notas…»",
-    "«Cerrando el filtro…»",
-    "«¿A quién se las vas a dedicar hoy?»",
-    "«Cambiando de pista…»",
-    "«Verte de nuevo es un gusto.»",
-  ];
-  const linea = document.getElementById("lineaViva");
-  let i = 0;
-  const reducido = matchMedia("(prefers-reduced-motion: reduce)").matches;
-  if (!reducido) setInterval(() => {
-    i = (i + 1) % frases.length;
-    const s = document.createElement("span"); s.textContent = frases[i];
-    linea.replaceChildren(s);
-  }, 3600);
-
-  // ── Revelado al hacer scroll ──
-  const revelables = document.querySelectorAll(".revela");
-  if ("IntersectionObserver" in window) {
-    const io = new IntersectionObserver((es) => es.forEach(e => { if (e.isIntersecting) { e.target.classList.add("visto"); io.unobserve(e.target); } }), { threshold: .12 });
-    revelables.forEach(el => io.observe(el));
-  }
-  // Red de seguridad: pase lo que pase, a los tres segundos se ve todo.
-  setTimeout(() => revelables.forEach(el => el.classList.add("visto")), 3000);
-
-  // ── Comunidad (1.3.1): cuántos van en el prerregistro y la calificación ──
-  // Solo números: el servidor nunca devuelve nombres, correos ni comentarios.
-  const COMUNIDAD = "https://lifemusic-comunidad.cho--usic.workers.dev";
-  fetch(COMUNIDAD + "/prerregistro/estado").then(r => r.json()).then(e => {
-    const t = !e.empezo ? "El prerregistro abre muy pronto."
-      : e.abierto ? `Van ${e.contador} de ${e.meta}.`
-      : `¡Llegamos a ${e.meta}! Pronto empieza el concurso.`;
-    document.getElementById("prerregistroCuenta").textContent = t;
-  }).catch(() => { document.getElementById("prerregistroCuenta").textContent = "El prerregistro abre muy pronto."; });
-  // ── Estado del sistema en vivo (1.3.2): el punto del atajo «Estado» y la sección del TV ──
-  const RELEVO_TV = "https://lifemusic-enlace.cho--usic.workers.dev";
-  const salud = (url) => fetch(url + "/salud", { cache: "no-store" }).then(r => r.ok ? r.json() : null).then(j => !!j && j.estado === "ok").catch(() => false);
-  Promise.all([salud(RELEVO_TV), salud(COMUNIDAD)]).then(([tv, comunidad]) => {
-    const atajo = document.getElementById("atajoEstado");
-    atajo.classList.add(tv && comunidad ? "ok" : "mal");
-    atajo.title = tv && comunidad ? "Todo funciona sin problemas" : "Algún servicio no responde";
-    const fila = document.getElementById("estadoTv");
-    fila.classList.add(tv ? "ok" : "mal");
-    document.getElementById("estadoTvTexto").textContent = tv ? "Servidor del TV en línea" : "El servidor del TV no responde ahora mismo";
-  });
-  fetch(COMUNIDAD + "/calificaciones/resumen").then(r => r.json()).then(c => {
-    if (!c.visible) return;
-    const el = document.getElementById("calificacion");
-    el.textContent = `★ ${String(c.promedio).replace(".", ",")} · ${c.total.toLocaleString("es-CO")} calificaciones`;
-    el.hidden = false;
-  }).catch(() => {});
-
-  // ── Versión y tamaño reales, desde la última publicación ──
-  fetch("https://api.github.com/repos/cgus392-cmd/Life-Music/releases/latest", { headers: { Accept: "application/vnd.github+json" } })
-    .then(r => r.ok ? r.json() : null)
-    .then(rel => {
-      if (!rel) return;
-      document.getElementById("version").textContent = (rel.tag_name || "").replace(/^v/, "") || "1.3.2";
-      const apk = (rel.assets || []).find(a => a.name === "lifemusic.apk");
-      if (apk) document.getElementById("tamano").textContent = Math.round(apk.size / 1048576) + " MB";
-    }).catch(() => {});
-</script>
+<script src="/landing.js?v=1" defer></script>
 </body>
 </html>
