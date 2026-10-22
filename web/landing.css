@@ -52,8 +52,12 @@ h1,h2{text-wrap:balance}
 .barra{position:sticky;top:0;z-index:20;background:var(--fondo-barra);-webkit-backdrop-filter:blur(14px) saturate(140%);backdrop-filter:blur(14px) saturate(140%);
   border-bottom:1px solid var(--linea-suave);transition:background-color .9s ease}
 .barra .ancho{position:relative;display:grid;grid-template-columns:auto minmax(0,1fr) auto;align-items:center;gap:40px;height:76px}
-.marca{display:flex;align-items:flex-end;gap:4px;text-decoration:none;font-size:21px;font-weight:600;letter-spacing:-.045em;line-height:1}
-.marca .punto{width:6px;height:6px;margin-bottom:3px}
+.marca{display:flex;align-items:center;text-decoration:none;color:var(--texto);line-height:1}
+/* El logo «la nota es el pulso»: proporciones de life-music-horizontal.svg (Geist 600). El trazo nunca cambia de
+   color; la cabeza de la nota sigue el pulso de la cancion, como permite la guia del logo. */
+.logo{display:block;height:26px;width:138px;overflow:visible}
+.logo text{fill:currentColor;font-family:"Geist",system-ui,sans-serif}
+.logo .nota{fill:var(--pulso);transition:fill .9s ease}
 .tiempo{display:grid;grid-template-columns:44px minmax(0,1fr) 44px;align-items:center;gap:16px}
 .tiempo .mono:last-child{text-align:right}
 .linea-t{position:relative;height:30px}
@@ -140,6 +144,7 @@ h1,h2{text-wrap:balance}
   html{scroll-padding-top:70px}
   .ancho{padding:0 20px}
   .barra .ancho{grid-template-columns:auto minmax(0,1fr) auto;gap:14px;height:64px}
+  .logo.en-barra{height:22px;width:117px}
   .tiempo{grid-template-columns:minmax(0,1fr);gap:0}
   .tiempo .mono:last-child,.marcador span{display:none}
   .tiempo .mono:first-child{text-align:center}
@@ -171,6 +176,6 @@ h1,h2{text-wrap:balance}
   .narra{left:12px;right:12px;bottom:12px;max-width:none}
 }
 @media (prefers-reduced-motion: reduce){
-  body,.punto,.barra,.linea-t .cabeza{transition:none}
+  body,.punto,.barra,.linea-t .cabeza,.logo .nota{transition:none}
   .disco:hover .caratula{transform:none}
 }
