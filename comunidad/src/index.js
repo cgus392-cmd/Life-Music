@@ -193,6 +193,12 @@ async function salDelDia(env) {
   return sal;
 }
 
+// La politica promete que la huella se borra a las 24 horas: se limpia al escribir y tambien al leer, para que
+// no se quede si nadie vuelve a calificar.
+function borrarHuellasViejas(env) {
+  return env.DB.prepare("delete from limites where creada_en < datetime('now', '-1 day')").run();
+}
+
 async function resenar(request, env) {
   const c = await leerCuerpo(request);
   if (!c) return json({ ok: false, error: "cuerpo" }, 400);
@@ -213,7 +219,7 @@ async function resenar(request, env) {
   if (plano && comentario === null) return json({ ok: false, error: "comentario" }, 400);
 
   const huella = await sha256((request.headers.get("cf-connecting-ip") || "") + "|" + (await salDelDia(env)));
-  await env.DB.prepare("delete from limites where creada_en < datetime('now', '-1 day')").run();
+  await borrarHuellasViejas(env);
   const n = await env.DB.prepare("select count(*) as n from limites where huella = ?1 and creada_en > datetime('now', '-1 hour')").bind(huella).first();
   if (n && n.n >= POR_HORA) return json({ ok: false, error: "muchas" }, 429);
   await env.DB.batch([
@@ -226,6 +232,7 @@ async function resenar(request, env) {
 
 // Lo publico: nombre, notas, comentario y fecha. Nunca el correo.
 async function resenasPublicas(env) {
+  await borrarHuellasViejas(env).catch(() => {});
   const { results } = await env.DB.prepare(
     "select nombre, notas, comentario, creada_en from resenas where estado = 'aprobada' order by creada_en desc limit 30",
   ).all();
