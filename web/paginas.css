@@ -151,7 +151,7 @@
   .pagina-cab p{font-size:17px}
   .tarjeta-form{padding:24px}
   .fila-notas{gap:2px}
-  .fila-notas label{width:52px;height:56px}
+  .fila-notas label{flex:1 1 0;width:auto;max-width:52px;min-width:44px;height:56px}
   .fila-notas svg{width:38px;height:31px}
   .promedio .grande{font-size:64px}
   .github-invita{grid-template-columns:minmax(0,1fr)}
