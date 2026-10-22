@@ -132,7 +132,7 @@ en <https://lifemusic.app/calificar/>, se guardan en el mismo servidor sus
 **La página lifemusic.app** no tiene analítica, ni píxeles de seguimiento, ni
 cookies (salvo la de la sesión de la Sala de control, solo para el equipo). Para
 mostrar datos en vivo, su navegador consulta la API pública de GitHub, el relevo
-del TV y el servidor de la comunidad; la respuesta de GitHub se guarda 10 minutos
+del TV y el servidor de la comunidad; la respuesta de GitHub se guarda 10 minutos (30 en las novedades)
 en su navegador.
 
 **Life Music TV en el navegador.** Para enlazar un TV con código, el teléfono y
