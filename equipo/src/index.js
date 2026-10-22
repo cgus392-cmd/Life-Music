@@ -32,6 +32,9 @@ const MAX_FALLOS = 5;
 const MAX_CUERPO = 8192;
 const MAX_FIRMA = 160000;
 const ID = /^[0-9a-f-]{36}$/;
+// Decision de CG (22-10): la Sala queda cerrada para el equipo hasta nuevo aviso. Solo el dueño entra;
+// los pases y los codigos de otros aparatos no abren, y quien ya tenia sesion ve «no disponible».
+const SALA_CERRADA = true;
 
 // ── Respuestas ───────────────────────────────────────────────────────────────
 
@@ -280,7 +283,7 @@ async function enrutar(ctx) {
   if (m === "GET" && r0 === "estado") {
     const duenio = await db.prepare("select count(*) as n from personas where rol = 'duenio'").first();
     return respuesta(ctx, {
-      ok: true, hayDuenio: duenio.n > 0, politicaVersion: +cfg.politica_version || 1, retencionMeses: +cfg.retencion_meses || 12, estreno: cfg.estreno || null,
+      ok: true, cerrada: SALA_CERRADA, hayDuenio: duenio.n > 0, politicaVersion: +cfg.politica_version || 1, retencionMeses: +cfg.retencion_meses || 12, estreno: cfg.estreno || null,
       responsable: { nombre: cfg.responsable_nombre || null, ciudad: cfg.responsable_ciudad || null, correo: cfg.responsable_correo || null },
     });
   }
@@ -314,6 +317,7 @@ async function enrutar(ctx) {
 
   // El pase: ver (no lo gasta) y validar (lo gasta)
   if (m === "POST" && r0 === "pase" && (r1 === "ver" || r1 === "validar")) {
+    if (SALA_CERRADA) return error(ctx, "sala-cerrada", 503); // los pases son solo para el equipo
     const intento = await revisarIntentos(ctx);
     if (intento.bloqueado) return error(ctx, "bloqueado", 429);
     const c = await leerCuerpo(ctx);
@@ -350,13 +354,14 @@ async function enrutar(ctx) {
     const codigo = normalizarCodigo(c && c.codigo);
     let f = null;
     if (codigo.length === 6) {
-      f = await db.prepare("select c.huella, c.vence_en, p.id, p.nombre, p.estado from codigos_aparato c join personas p on p.id = c.persona_id where c.huella = ? and c.usado_en is null")
+      f = await db.prepare("select c.huella, c.vence_en, p.id, p.nombre, p.estado, p.rol from codigos_aparato c join personas p on p.id = c.persona_id where c.huella = ? and c.usado_en is null")
         .bind(await huella(env, "aparato", codigo)).first();
     }
     if (!f || f.vence_en < ctx.ahora || f.estado === "terminada") {
       await fallo(ctx, intento);
       return error(ctx, "codigo-invalido", 404);
     }
+    if (SALA_CERRADA && f.rol !== "duenio") return error(ctx, "sala-cerrada", 503);
     const usado = await db.prepare("update codigos_aparato set usado_en = ? where huella = ? and usado_en is null").bind(ctx.ahora, f.huella).run();
     if (!usado.meta.changes) return error(ctx, "codigo-invalido", 404);
     await abrirSesion(ctx, f.id);
@@ -369,6 +374,7 @@ async function enrutar(ctx) {
   if (!s) return error(ctx, "sin-sesion", 401);
   const yo = s.persona;
   const duenio = yo.rol === "duenio";
+  if (SALA_CERRADA && !duenio && !(m === "POST" && r0 === "salir")) return error(ctx, "sala-cerrada", 503);
   const jornada = estadoJornada(yo, festivos, ctx.ahora);
   const miActa = duenio ? null : await actaDePersona(env, yo.id);
   // 2.0: sin contratacion, para entrar basta aceptar la politica de datos (Ley 1581);

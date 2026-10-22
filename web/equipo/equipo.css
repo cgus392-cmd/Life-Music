@@ -506,3 +506,7 @@ dialog.ancha{width:min(860px,calc(100vw - 32px))}
 .espacio{height:clamp(18px,2.4vw,28px)}
 .chequeo li:focus-within{outline:2px solid var(--piloto);outline-offset:-2px}
 .chequeo li button[disabled]{cursor:not-allowed}
+/* La Sala cerrada para el equipo (22-10): el aviso, centrado en la pantalla. */
+.sala-cerrada{min-height:70vh;align-content:center;max-width:540px;margin:0 auto}
+.sala-cerrada b{font-size:22px}
+.sala-cerrada p{font-size:15px;line-height:1.55}

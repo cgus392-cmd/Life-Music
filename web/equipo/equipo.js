@@ -25,6 +25,7 @@
 
   // ── Servidor ───────────────────────────────────────────────────────────────
   const ERRORES = {
+    "sala-cerrada": "La Sala está cerrada por ahora. Camilo avisa cuando vuelva a abrir.",
     "pase-invalido": "Ese pase no sirve: ya se usó, venció o fue anulado. Pídele uno nuevo a Camilo.",
     "codigo-invalido": "Ese código no sirve o ya venció. Genera otro desde el aparato donde ya entraste.",
     bloqueado: "Demasiados códigos equivocados desde esta conexión. Espera 15 minutos y vuelve a intentar.",
@@ -152,10 +153,12 @@
       S.yo = await api("GET", "/yo");
     } catch (e) {
       S.yo = null;
+      if (e.codigo === "sala-cerrada") { S.vista = "cerrada"; pintar(); return; }
       if (e.estado !== 401) { pintarError(e); return; }
     }
     if (S.vista === "politica") { pintar(); return; }
-    if (!S.yo) S.vista = location.hash === "#arranque" ? "arranque" : "pase";
+    // Con la Sala cerrada (decision de CG, 22-10) se ve el aviso; solo Camilo pasa a su pase desde ahi.
+    if (!S.yo) S.vista = location.hash === "#arranque" ? "arranque" : S.publico && S.publico.cerrada && S.vista !== "pase" ? "cerrada" : "pase";
     else if (esDuenio()) S.vista = "duenio";
     // 2.0: el supervisor trabaja con su hoja de pruebas. El acta solo se pide con «Equipo y contratación» encendido.
     else if (S.yo.requisito === "acta") S.vista = "acta";
@@ -191,11 +194,17 @@
   // ── Pintar ─────────────────────────────────────────────────────────────────
   function pintar() {
     const v = S.vista;
-    const html = v === "pase" ? vistaPase() : v === "arranque" ? vistaArranque() : v === "acta" ? vistaActa()
+    const html = v === "cerrada" ? vistaCerrada() : v === "pase" ? vistaPase() : v === "arranque" ? vistaArranque() : v === "acta" ? vistaActa()
       : v === "politica" ? vistaPolitica() : v === "hoja" ? vistaHoja()
       : v === "duenio" ? (S.pestana === "sala" ? vistaSala() : S.pestana === "produccion" ? vistaProduccion() : vistaCabina()) : v === "cabina" ? vistaCabina() : h`<p class="cargando">SALA · CARGANDO…</p>`;
     app.innerHTML = esc(html);
     despuesDePintar();
+  }
+  function vistaCerrada() {
+    return h`<div class="en-blanco sala-cerrada"><b>La Sala no está disponible</b>
+      <p>Está cerrada para el equipo hasta nuevo aviso. Gracias por todo lo que has probado: Camilo avisa por los canales de siempre cuando vuelva a abrir.</p>
+      <p>¿Quieres ver o borrar tus datos? Escribe a cgus392@gmail.com.</p>
+      <p><button class="boton chico" data-accion="ir" data-a="pase">Soy Camilo: entrar</button></p></div>`;
   }
   function pintarError(e) {
     app.innerHTML = esc(h`<div class="en-blanco"><span class="hueco">!</span><b>No se pudo abrir la cabina</b><p>${mensajeDe(e)}</p><button class="boton" data-accion="recargar">Intentar de nuevo</button></div>`);
