@@ -66,7 +66,10 @@ p{margin:0}
 .barra{position:sticky;top:0;z-index:40;background:var(--fondo-barra);-webkit-backdrop-filter:blur(14px) saturate(140%);backdrop-filter:blur(14px) saturate(140%);
   border-bottom:1px solid var(--linea-suave);transition:background-color .9s ease}
 .barra .ancho{position:relative;display:grid;grid-template-columns:auto minmax(0,1fr) auto;align-items:center;gap:40px;height:76px}
-.marca{display:flex;align-items:center;text-decoration:none;color:var(--texto)}
+.marca{display:flex;flex-direction:column;align-items:flex-start;gap:6px;text-decoration:none;color:var(--texto)}
+/* La firma de CG LABS bajo el logo, como en la landing anterior. */
+.firma{display:flex;align-items:center;gap:6px;padding-left:1px;font-size:11.5px;line-height:1;color:var(--gris);white-space:nowrap}
+.firma img{width:14px;height:14px}
 .tiempo{display:grid;grid-template-columns:44px minmax(0,1fr) 44px;align-items:center;gap:16px;font:500 13px/1 "Geist Mono",ui-monospace,monospace;font-variant-numeric:tabular-nums}
 .tiempo span:last-child{text-align:right;color:var(--gris)}
 .linea-t{position:relative;height:30px}
@@ -79,14 +82,41 @@ p{margin:0}
 .marcador span{position:absolute;left:7px;top:-1px;white-space:nowrap;font:500 11px/1 "Geist",system-ui,sans-serif;color:var(--gris)}
 .marcador.activo span{color:var(--texto)}
 .marcador.activo i{background:var(--texto)}
+/* Con musica, la linea respira: se vuelve la onda de lo que suena. */
+.linea-t .base,.linea-t .relleno{transition:opacity .4s ease}
+.linea-t .onda{position:absolute;left:0;top:0;width:100%;height:30px;opacity:0;transition:opacity .4s ease;pointer-events:none}
+.linea-t.con-onda .onda{opacity:1}
+.linea-t.con-onda .base,.linea-t.con-onda .relleno{opacity:0}
 
 /* ── Intro: Nova presenta la app ─────────────────────────────────────── */
 .heroe{display:grid;grid-template-columns:minmax(0,1.05fr) minmax(0,.95fr);gap:40px;align-items:center;min-height:calc(100svh - 76px);padding:24px 0 48px}
-.heroe h1{font-size:96px;line-height:.93;font-weight:600;letter-spacing:-.055em}
+.heroe h1{position:relative;font-size:96px;line-height:.93;font-weight:600;letter-spacing:-.055em}
+/* El titular se canta como una letra sincronizada: palabra por palabra al abrir, y con musica la palabra del golpe
+   salta y se subraya con el pulso (el subrayado lo pone el navegador bajo la linea base, sin tapar la otra linea). */
+.heroe h1 .w{display:inline-block;text-decoration:underline;text-decoration-color:transparent;text-decoration-thickness:.07em;text-underline-offset:.1em;
+  transition:color .3s ease,text-decoration-color .15s ease,transform .22s cubic-bezier(.3,1.7,.5,1)}
+.heroe h1.cantando .w{color:var(--tenue)}
+.heroe h1.cantando .w.cantada{color:var(--texto)}
+.heroe h1 .w.golpe{text-decoration-color:var(--pulso);transform:translateY(-.05em)}
 .sub{max-width:31em;margin-top:28px;font-size:19px;line-height:1.55;color:var(--gris)}
 .acciones{display:flex;flex-wrap:wrap;align-items:center;gap:12px 20px;margin-top:36px}
-.hechos{max-width:34em;margin-top:22px;font-size:15px;color:var(--gris)}
+/* El contador de descargas: ruedas de numeros, como un contador mecanico. */
+.cuenta{display:flex;flex-wrap:wrap;align-items:baseline;gap:4px 10px;margin-top:30px}
+.odometro{display:inline-flex;color:var(--texto);font:600 34px/1.1 "Geist",system-ui,sans-serif;letter-spacing:-.03em;font-variant-numeric:tabular-nums}
+.odometro .dig{display:inline-block;height:1.1em;overflow:hidden}
+.odometro .tira{display:flex;flex-direction:column;transition:transform 1.3s cubic-bezier(.2,.8,.2,1)}
+.odometro .tira span{display:block;height:1.1em}
+.odometro.quieto .tira{transition:none}
+.cuenta-texto{font-size:16px;color:var(--gris)}
+.cuenta.chica{margin-top:22px}
+.cuenta.chica .odometro{font-size:26px}
+.hechos{max-width:34em;margin-top:8px;font-size:15px;color:var(--gris)}
 .escenario{position:relative;display:grid;justify-items:center;align-content:center;gap:18px;min-height:520px;touch-action:pan-y}
+.escenario > *{position:relative;z-index:1}
+/* Las notas que suben: cabezas de nota del logo, del color de lo que suena. */
+.lienzo-notas{position:absolute;pointer-events:none;z-index:0}
+.escenario > .lienzo-notas{left:-15%;top:-12%;width:130%;height:100%}
+.acompana > .lienzo-notas{right:-24px;bottom:24px;width:150px;height:260px}
 .nova-grande{width:min(380px,82vw);aspect-ratio:1;transform:scale(.06);opacity:0;transform-origin:50% 50%}
 .nova-grande.llega{transition:transform 1.15s cubic-bezier(.18,1.35,.32,1),opacity .4s ease}
 .nova-grande.lista{transform:scale(1);opacity:1}
@@ -110,13 +140,27 @@ p{margin:0}
 .discos-cab{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:baseline;gap:6px 24px;margin-bottom:24px}
 .discos-cab h2{font-size:24px;font-weight:500;letter-spacing:-.02em}
 .discos-cab p{font-size:14px;color:var(--gris)}
-.fila-discos{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:20px}
+.fila-discos{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:20px;padding-top:60px}
 .disco{display:flex;flex-direction:column;align-items:flex-start;gap:4px;padding:0;border:0;background:none;text-align:left;cursor:pointer;color:var(--texto)}
-.disco .caratula{width:100%;aspect-ratio:1;border-radius:12px;box-shadow:0 0 0 1px rgba(0,0,0,.06);transition:box-shadow .3s ease,transform .3s ease}
-.disco:hover .caratula{transform:translateY(-3px)}
+/* Cada caratula es una funda: la elegida saca su vinilo, que gira mientras suena. */
+.funda{position:relative;display:block;width:100%;aspect-ratio:1;perspective:700px}
+.disco .caratula{position:absolute;inset:0;z-index:1;border-radius:12px;box-shadow:0 0 0 1px rgba(0,0,0,.06);
+  transform:translateY(var(--sube,0)) rotateX(var(--rx,0deg)) rotateY(var(--ry,0deg));transition:box-shadow .3s ease,transform .18s ease}
+.disco:hover .caratula{--sube:-3px}
 .disco[aria-pressed="true"] .caratula{box-shadow:0 0 0 3px var(--c),0 14px 30px -12px var(--c)}
+.vinilo{position:absolute;left:5%;top:5%;width:90%;height:90%;z-index:0;transition:transform .7s cubic-bezier(.2,.8,.2,1)}
+.vinilo .giro{position:absolute;inset:0;display:grid;place-items:center;border-radius:50%;
+  box-shadow:0 10px 20px -10px rgba(0,0,0,.6),0 0 0 1px rgba(255,255,255,.12) inset;
+  background:radial-gradient(circle,var(--c) 0 29%,#0B0B0B 30% 31%,transparent 31.5%),
+    conic-gradient(from 20deg,transparent 0 8%,rgba(255,255,255,.16) 13%,transparent 19% 58%,rgba(255,255,255,.12) 63%,transparent 69%),
+    repeating-radial-gradient(circle,#2A2A2A 0 1px,#121212 1px 3px);
+  animation:gira 1.8s linear infinite paused}
+.vinilo svg{width:17%;height:17%;color:#fff;overflow:visible}
+.disco[aria-pressed="true"] .vinilo{transform:translateY(-31%)}
+.sonando .disco[aria-pressed="true"] .vinilo .giro{animation-play-state:running}
+@keyframes gira{to{transform:rotate(360deg)}}
 .disco b{margin-top:10px;font-size:16px;font-weight:500;letter-spacing:-.02em}
-.disco span:last-child{font-size:14px;color:var(--gris)}
+.disco > span:last-child{font-size:14px;color:var(--gris)}
 .d1{--c:#FF6B3D}.d1 .caratula{background:radial-gradient(circle at 50% 40%,#FFB49A 0 29%,transparent 30%),linear-gradient(#FF6B3D 0 64%,#C9431C 64%)}
 .d2{--c:#3B6CF6}.d2 .caratula{background:radial-gradient(circle at 32% 66%,#FF4FA3 0 20%,transparent 21%),linear-gradient(140deg,#0D1B3D,#3B6CF6)}
 .d3{--c:#8B5CF6}.d3 .caratula{background:radial-gradient(circle,#F8FAFC 0 7%,transparent 8%),radial-gradient(circle,transparent 0 30%,#B4A2F6 31% 33%,transparent 34%),#140F2A}
@@ -167,6 +211,11 @@ p{margin:0}
 .tarjeta-descarga p{margin-top:8px;color:var(--gris)}
 .tarjeta-descarga .boton{margin-top:28px;width:100%;justify-content:center}
 .tarjeta-descarga .ligera{display:inline-block;margin-top:16px;font-size:14px;color:var(--gris)}
+.al-telefono{display:grid;grid-template-columns:116px minmax(0,1fr);gap:18px;align-items:center;margin-top:26px;padding-top:24px;border-top:1px solid var(--linea)}
+.al-telefono[hidden]{display:none}
+.al-telefono canvas{width:116px;height:116px;border-radius:10px;background:#fff}
+.tarjeta-descarga .al-telefono p{margin:0;font-size:14px}
+.al-telefono b{display:block;margin-bottom:2px;color:var(--texto);font-weight:500}
 .pasos{list-style:none;margin:0;padding:0;counter-reset:paso;display:grid;gap:30px}
 .paso{counter-increment:paso;display:grid;grid-template-columns:56px minmax(0,1fr);gap:20px;align-items:baseline}
 .paso::before{content:counter(paso);font-size:40px;line-height:1;font-weight:300;letter-spacing:-.04em;color:var(--tenue)}
@@ -175,6 +224,17 @@ p{margin:0}
 .carro{display:grid;grid-template-columns:minmax(0,240px) minmax(0,1fr);gap:40px;margin-top:88px;padding-top:40px;border-top:1px solid var(--linea)}
 .carro h3{font-size:24px;font-weight:500;letter-spacing:-.025em}
 .carro p{max-width:40em;color:var(--gris)}
+.carro-accion{display:flex;flex-wrap:wrap;align-items:center;gap:12px 20px;margin-top:22px}
+.carro-accion p{max-width:26em;font-size:14px}
+/* El boton del carro espera apagado hasta su primera beta (lo enciende landing.js leyendo GitHub). */
+.boton.apagado{background:transparent;color:var(--tenue);box-shadow:inset 0 0 0 1px var(--linea);cursor:not-allowed}
+.boton.apagado:hover{transform:none}
+.boton.apagado .nota{fill:var(--tenue)}
+
+/* Lo que entra al bajar: sube un poco y aparece, en orden. */
+.viva .revela{opacity:0;transform:translateY(18px);transition:opacity .7s ease,transform .7s cubic-bezier(.2,.8,.2,1);transition-delay:calc(var(--i,0) * 70ms)}
+.viva .revela.visto{opacity:1;transform:none}
+.marco-tel,.marco-tv{will-change:transform}
 
 /* Final: lo nuevo, las preguntas y los avisos */
 .final-grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:72px}
@@ -207,6 +267,7 @@ p{margin:0}
 
 /* ── Telefono ─────────────────────────────────────────────────────────── */
 @media (max-width: 1100px){
+  .heroe h1{font-size:clamp(56px,7.4vw,80px)}
   .recorrido{grid-template-columns:minmax(0,260px) minmax(0,1fr);gap:40px}
   .funciones{grid-template-columns:minmax(0,1fr);gap:28px}
   .tv-demo,.instalar,.final-grid{grid-template-columns:minmax(0,1fr);gap:48px}
@@ -216,6 +277,10 @@ p{margin:0}
   .ancho{padding:0 20px}
   .barra .ancho{gap:14px;height:64px}
   .logo{height:22px;width:117px}
+  .marca{gap:5px}
+  .firma{font-size:10.5px;gap:5px}
+  .firma img{width:12px;height:12px}
+  .linea-t .onda{display:none}
   .tiempo{grid-template-columns:minmax(0,1fr);gap:0}
   .tiempo span:last-child,.marcador{display:none}
   .tiempo span:first-child{text-align:center}
@@ -230,7 +295,9 @@ p{margin:0}
   .acciones{margin-top:26px}
   .acciones .boton{flex:1 1 100%;justify-content:center}
   .dice{font-size:16px}
-  .fila-discos{display:flex;overflow-x:auto;gap:14px;padding-bottom:6px;scroll-snap-type:x mandatory}
+  .fila-discos{display:flex;overflow-x:auto;gap:14px;padding-top:42px;padding-bottom:6px;scroll-snap-type:x mandatory}
+  .odometro{font-size:28px}
+  .cuenta{margin-top:24px}
   .disco{flex:0 0 138px;scroll-snap-align:start}
   .parte{padding:76px 0}
   .parte-cab,.carro{grid-template-columns:minmax(0,1fr);gap:14px;margin-bottom:40px}
@@ -256,4 +323,7 @@ p{margin:0}
   body,.nota,.barra,.linea-t .cabezal,.dice,.globo,.acompana,.boton{transition:none}
   .nova-grande{transform:none;opacity:1}
   .disco:hover .caratula,.boton:hover{transform:none}
+  .disco .caratula{--sube:0;--rx:0deg;--ry:0deg}
+  .vinilo,.odometro .tira,.heroe h1 .w{transition:none}
+  .vinilo .giro{animation:none}
 }

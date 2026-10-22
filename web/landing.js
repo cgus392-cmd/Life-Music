@@ -203,8 +203,8 @@
     voz.textContent = texto; // para lectores de pantalla, una sola vez
     const mostrar = () => {
       n.estado = "habla";
-      if (enEscena) { dice.textContent = texto; dice.classList.add("visible"); }
-      else { globo.textContent = texto; globo.classList.add("visible"); }
+      if (enEscena) { dice.textContent = texto; dice.classList.add("visible"); globo.classList.remove("visible"); }
+      else { globo.textContent = texto; globo.classList.add("visible"); dice.classList.remove("visible"); }
       bajarMusica(true);
       const dur = limitar(texto.length * 52, 1300, 5200);
       luego(dur, () => {
@@ -220,6 +220,7 @@
   // ── La musica: un ritmo generado en el navegador, sin canciones con derechos ─
   let ac = null, master = null, filtroMaestro = null, analizador = null, muestras = null, ruido = null;
   let decks = [], sonando = false, nivel = 0;
+  const golpes = []; // la hora de cada bombo del deck que manda: el titular y las notas van a ese golpe
   function bajarMusica(baja) {
     if (!master || !ac || !sonando) return;
     const t = ac.currentTime;
@@ -268,6 +269,7 @@
       o.frequency.setValueAtTime(150, t); o.frequency.exponentialRampToValueAtTime(42, t + 0.12);
       g.gain.setValueAtTime(0.9, t); g.gain.exponentialRampToValueAtTime(0.001, t + 0.35);
       o.connect(g).connect(out); o.start(t); o.stop(t + 0.4);
+      if (d === decks[decks.length - 1] && golpes.length < 16) golpes.push(t);
     }
     if (p % 4 === 2) ruidoCorto(out, t, "highpass", 7500, 0.1, 0.05); // hi-hat
     if (p % 8 === 4) ruidoCorto(out, t, "bandpass", 1600, 0.2, 0.14); // palmas
@@ -293,6 +295,8 @@
   function ponerBoton() {
     $("escuchar").setAttribute("aria-pressed", String(sonando));
     $("texto-escuchar").textContent = sonando ? "Pausar la música" : "Ponle música";
+    document.body.classList.toggle("sonando", sonando);
+    if (!sonando) golpes.length = 0;
   }
   function alternar() {
     if (!ac && !iniciarAudio()) { decir("Tu navegador no me deja poner música aquí."); return; }
@@ -351,6 +355,7 @@
 
   // ── La pagina es una cancion: el scroll es el tiempo ──────────────────────
   const partes = [...document.querySelectorAll("[data-parte]")];
+  const paralaje = [...document.querySelectorAll(".marco-tel, .marco-tv")];
   const lineaT = $("linea-t");
   let marcas = partes.map(() => 0), parteActual = 0;
   const reloj = (s) => { const t = Math.round(limitar(s, 0, DURACION)); return Math.floor(t / 60) + ":" + String(t % 60).padStart(2, "0"); };
@@ -381,6 +386,12 @@
         const entra = limitar((vh - r.top) / (vh * 0.35), 0, 1);
         el.style.opacity = String(0.2 + 0.8 * entra);
         el.style.transform = "translateY(" + ((1 - entra) * 28).toFixed(1) + "px)";
+      });
+      // El telefono y el TV flotan un poco mas lento que la pagina (parallax suave).
+      paralaje.forEach((el) => {
+        const r = el.parentElement.getBoundingClientRect();
+        if (r.bottom < -200 || r.top > vh + 200) return;
+        el.style.transform = "translateY(" + ((r.top + r.height / 2 - vh / 2) * -0.06).toFixed(1) + "px)";
       });
     }
     const prog = limitar(y / alto, 0, 1);
@@ -458,23 +469,188 @@
   }));
   Object.values(TEMAS_TV).forEach((t) => { const i = new Image(); i.src = t.img; });
 
+  // ── Las notas que flotan: cabezas de nota del logo que salen de Nova ──────
+  // Salen con cada golpe del bombo cuando suena musica, y mientras Nova habla. Nada de esto con movimiento reducido.
+  const DPR = Math.min(2, window.devicePixelRatio || 1);
+  function lienzoNotas(padre, nova, tamano) {
+    const c = document.createElement("canvas");
+    c.className = "lienzo-notas";
+    c.setAttribute("aria-hidden", "true");
+    padre.insertBefore(c, padre.firstChild);
+    return { c, g: c.getContext("2d"), nova, tamano, notas: [], w: 0, h: 0 };
+  }
+  const lienzos = reducido ? [] : [lienzoNotas($("escenario"), novaGrande, 1), lienzoNotas(acompana, novaChica, 0.6)];
+  function soltarNota(L, cuantas = 1) {
+    if (!L || L.notas.length > 36) return;
+    const cr = L.c.getBoundingClientRect(), nr = L.nova.contenedor.getBoundingClientRect();
+    if (!cr.width || !nr.width) return;
+    const cx = nr.left + nr.width / 2 - cr.left, cy = nr.top + nr.height / 2 - cr.top, r = nr.width * 0.28;
+    for (let i = 0; i < cuantas; i++) {
+      const a = -Math.PI / 2 + (Math.random() - 0.5) * Math.PI * 1.1;
+      L.notas.push({
+        x: cx + Math.cos(a) * r * 0.85, y: cy + Math.sin(a) * r * 0.85,
+        vx: Math.cos(a) * 14, vy: -(26 + Math.random() * 40) * (0.6 + L.tamano * 0.4),
+        s: (4 + Math.random() * 4.5) * L.tamano + 2, fase: Math.random() * 6.28, vida: 0, dura: 2.2 + Math.random() * 1.4,
+      });
+    }
+  }
+  function moverNotas(L, dt) {
+    if (!L.notas.length && !L.sucio) return;
+    const w = L.c.clientWidth, h = L.c.clientHeight;
+    if (w !== L.w || h !== L.h) { L.w = w; L.h = h; L.c.width = Math.round(w * DPR); L.c.height = Math.round(h * DPR); }
+    const g = L.g;
+    g.setTransform(DPR, 0, 0, DPR, 0, 0);
+    g.clearRect(0, 0, w, h);
+    g.fillStyle = aHex(L.nova.c1);
+    L.notas = L.notas.filter((n) => (n.vida += dt) < n.dura);
+    for (const n of L.notas) {
+      n.x += (n.vx + Math.sin(n.vida * 2.2 + n.fase) * 10) * dt;
+      n.y += n.vy * dt;
+      n.vx *= 0.985;
+      const entra = Math.min(1, n.vida / 0.18), sale = 1 - Math.max(0, (n.vida - n.dura * 0.55) / (n.dura * 0.45));
+      g.globalAlpha = Math.max(0, entra * sale) * 0.9;
+      g.save();
+      g.translate(n.x, n.y);
+      g.rotate((-22 + Math.sin(n.vida * 3 + n.fase) * 10) * Math.PI / 180);
+      g.beginPath();
+      g.ellipse(0, 0, n.s, n.s * 0.74, 0, 0, Math.PI * 2);
+      g.fill();
+      g.restore();
+    }
+    g.globalAlpha = 1;
+    L.sucio = L.notas.length > 0;
+  }
+
+  // ── El titular, cantado como una letra sincronizada ───────────────────────
+  const titular = document.querySelector(".heroe h1");
+  const palabras = [];
+  {
+    const texto = titular.textContent.trim().split(/\s+/);
+    titular.textContent = "";
+    texto.forEach((p, i) => {
+      const s = document.createElement("span");
+      s.className = "w";
+      s.textContent = p;
+      titular.appendChild(s);
+      palabras.push(s);
+      if (i < texto.length - 1) titular.appendChild(document.createTextNode(" "));
+    });
+  }
+  function cantarTitular() {
+    if (reducido) return;
+    titular.classList.add("cantando");
+    palabras.forEach((p, i) => setTimeout(() => p.classList.add("cantada"), 250 + i * 230));
+    setTimeout(() => titular.classList.remove("cantando"), 400 + palabras.length * 230);
+  }
+  let palabraGolpe = -1;
+  // Con musica: la palabra del golpe salta un poco y se subraya con el color del pulso, una por golpe,
+  // y el titular descansa dos golpes al final, como una letra que vuelve a empezar.
+  function marcarPalabra(i) {
+    palabras.forEach((p, k) => p.classList.toggle("golpe", k === i));
+  }
+  function alGolpe() {
+    palabraGolpe = (palabraGolpe + 1) % (palabras.length + 2);
+    if (!reducido) marcarPalabra(palabraGolpe);
+    const L = lienzos[enEscena ? 0 : 1];
+    if (L && Math.random() < 0.75) soltarNota(L, Math.random() < 0.3 ? 2 : 1);
+  }
+
+  // ── La barra respira: la linea de tiempo se vuelve la onda de lo que suena ─
+  const onda = $("onda"), gOnda = onda.getContext("2d");
+  let colorTexto = "", colorTenue = "";
+  function leerColores() {
+    const cs = getComputedStyle(raiz);
+    colorTexto = cs.getPropertyValue("--texto").trim();
+    colorTenue = cs.getPropertyValue("--tenue").trim();
+  }
+  leerColores();
+  oscuro.addEventListener("change", leerColores);
+  function dibujarOnda() {
+    const activa = sonando && nivel > 0.01 && onda.offsetWidth > 0;
+    lineaT.classList.toggle("con-onda", activa);
+    if (!activa) return;
+    const w = onda.clientWidth, h = onda.clientHeight;
+    if (onda.width !== Math.round(w * DPR)) { onda.width = Math.round(w * DPR); onda.height = Math.round(h * DPR); }
+    gOnda.setTransform(DPR, 0, 0, DPR, 0, 0);
+    gOnda.clearRect(0, 0, w, h);
+    const corte = (parseFloat($("cabezal").style.left) || 0) / 100 * w;
+    const pasos = Math.max(24, Math.floor(w / 3)), mitad = 15;
+    let pico = 0.05;
+    for (let i = 0; i < muestras.length; i += 4) pico = Math.max(pico, Math.abs(muestras[i]));
+    const escala = (9 * Math.min(1, nivel * 4)) / pico; // la onda llena la barra aunque la musica este bajita
+    for (const [color, desde, hasta] of [[colorTexto, 0, corte], [colorTenue, corte, w]]) {
+      if (hasta - desde < 1) continue;
+      gOnda.strokeStyle = color;
+      gOnda.lineWidth = 2;
+      gOnda.lineJoin = "round";
+      gOnda.beginPath();
+      let empezo = false;
+      for (let i = 0; i <= pasos; i++) {
+        const x = (i / pasos) * w;
+        if (x < desde - 3 || x > hasta + 3) continue;
+        const m = muestras[Math.floor((i / pasos) * (muestras.length - 1))] || 0;
+        const borde = Math.sin((i / pasos) * Math.PI); // quieta en las puntas, viva en el centro
+        const y = mitad + limitar(m * escala * borde, -12, 12);
+        const xc = limitar(x, desde, hasta);
+        if (!empezo) { gOnda.moveTo(xc, y); empezo = true; } else gOnda.lineTo(xc, y);
+      }
+      gOnda.stroke();
+    }
+  }
+
+  // ── Las caratulas se inclinan hacia el puntero ────────────────────────────
+  if (!reducido) {
+    document.querySelectorAll(".disco").forEach((b) => {
+      const caratula = b.querySelector(".caratula");
+      b.addEventListener("pointermove", (e) => {
+        if (e.pointerType === "touch") return;
+        const r = b.querySelector(".funda").getBoundingClientRect();
+        const x = (e.clientX - r.left) / r.width - 0.5, y = (e.clientY - r.top) / r.height - 0.5;
+        caratula.style.setProperty("--ry", (x * 16).toFixed(1) + "deg");
+        caratula.style.setProperty("--rx", (-y * 12).toFixed(1) + "deg");
+      });
+      b.addEventListener("pointerleave", () => { caratula.style.removeProperty("--rx"); caratula.style.removeProperty("--ry"); });
+    });
+  }
+
+  // ── Lo que entra al bajar, en orden ───────────────────────────────────────
+  if (!reducido && "IntersectionObserver" in window) {
+    const revelar = new IntersectionObserver((es) => es.forEach((e) => {
+      if (e.isIntersecting) { e.target.classList.add("visto"); revelar.unobserve(e.target); }
+    }), { rootMargin: "0px 0px -8% 0px" });
+    document.querySelectorAll(".funcion, .paso, .novedades li, .preguntas details, .aviso, .carro-accion").forEach((el) => {
+      el.classList.add("revela");
+      el.style.setProperty("--i", [...el.parentElement.children].indexOf(el) % 6);
+      revelar.observe(el);
+    });
+  }
+
   // Un solo bucle de animacion, que se detiene si no hay nada que mover.
-  let raf = 0, quietoDesde = 0;
+  let raf = 0, quietoDesde = 0, tAnterior = 0, ultNotaHabla = 0;
   function cuadro(t) {
     raf = 0;
+    const dt = Math.min(0.05, (t - (tAnterior || t)) / 1000);
+    tAnterior = t;
     if (analizador && ac && ac.state === "running") {
       analizador.getFloatTimeDomainData(muestras);
       let suma = 0;
       for (let i = 0; i < muestras.length; i++) suma += muestras[i] * muestras[i];
       nivel = nivel * 0.8 + Math.min(1, Math.sqrt(suma / muestras.length) * 3.2) * 0.2;
+      while (golpes.length && golpes[0] <= ac.currentTime) { golpes.shift(); if (sonando) alGolpe(); }
     } else nivel *= 0.9;
+    if (!sonando && palabraGolpe !== -1) { palabraGolpe = -1; marcarPalabra(-1); }
     apuntarMiradas(velScroll);
     const visibles = [];
     if (enEscena || novaGrande.estado !== "escucha") visibles.push(novaGrande);
     if (!enEscena) visibles.push(novaChica);
     for (const n of visibles) n.dibujar(t, nivel);
+    // Mientras habla, a Nova se le escapa una nota de vez en cuando.
+    const habla = enEscena ? novaGrande : novaChica;
+    if (habla.estado === "habla" && t - ultNotaHabla > 520) { ultNotaHabla = t; soltarNota(lienzos[enEscena ? 0 : 1]); }
+    lienzos.forEach((L) => moverNotas(L, dt));
+    dibujarOnda();
     // Con la pestana oculta, nada; si todo esta quieto y no hay musica, se duerme hasta el proximo evento.
-    const movido = sonando || novas.some((n) => n.estado !== "escucha") || puntero;
+    const movido = sonando || novas.some((n) => n.estado !== "escucha") || puntero || lienzos.some((L) => L.notas.length);
     if (movido) quietoDesde = t;
     if (!document.hidden && (t - quietoDesde < 8000 || !reducido)) raf = requestAnimationFrame(cuadro);
   }
@@ -497,41 +673,140 @@
     .catch(() => false)
     .then((ok) => { $("estado-tv").textContent = ok ? "El servidor del TV está en línea ahora mismo." : "El servidor del TV no responde en este momento. Prueba en un rato."; });
 
-  // Descargas, version y pesos, de la API publica de GitHub (60 consultas por hora sin clave): se guardan 30 min.
-  function leerCache() {
-    try { const c = JSON.parse(localStorage.getItem("lm-github") || "null"); return c && Date.now() - c.hora < 1800000 ? c.datos : null; } catch { return null; }
+  // ── El contador de descargas ──────────────────────────────────────────────
+  // Decision de CG (22-10): la cuenta arranca en 7.000 y a eso se le suman las descargas reales de GitHub
+  // (7.000 + 490 = 7.490, y de ahi sube con cada descarga). La pagina la vuelve a pedir cada 10 minutos.
+  const BASE_DESCARGAS = 7000;
+  let descargasReales = null;
+  const odometros = [...document.querySelectorAll("[data-odometro]")];
+  function odometro(el, n, animar) {
+    const txt = fmtNum(n), forma = txt.replace(/\d/g, "0");
+    if (el.dataset.forma !== forma) {
+      el.textContent = "";
+      for (const ch of txt) {
+        if (/\d/.test(ch)) {
+          const dig = document.createElement("span"), tira = document.createElement("span");
+          dig.className = "dig"; tira.className = "tira";
+          for (let k = 0; k < 10; k++) { const s = document.createElement("span"); s.textContent = k; tira.appendChild(s); }
+          dig.appendChild(tira); el.appendChild(dig);
+        } else { const s = document.createElement("span"); s.textContent = ch; el.appendChild(s); }
+      }
+      el.dataset.forma = forma;
+    }
+    el.classList.toggle("quieto", !animar);
+    const tiras = el.querySelectorAll(".tira"), digitos = txt.replace(/\D/g, "");
+    tiras.forEach((t, k) => {
+      t.style.transform = "translateY(" + (-digitos[k] * 10) + "%)";
+      t.style.transitionDelay = ((tiras.length - 1 - k) * 70) + "ms"; // como un contador: las unidades primero
+    });
   }
-  function guardarCache(datos) { try { localStorage.setItem("lm-github", JSON.stringify({ hora: Date.now(), datos })); } catch {} }
-  function ponerGitHub(d) {
-    if (!d || !d.version) return;
-    const peso = d.peso ? ", " + megas(d.peso) : "";
-    $("hechos").textContent = "Gratis y sin anuncios. Versión " + d.version + " para Android 8 o superior" + peso + "." + (d.total ? " La han bajado " + fmtNum(d.total) + " veces." : "");
-    $("titulo-version").textContent = "Life Music " + d.version;
-    $("detalle-version").textContent = "Para Android 8 o superior" + peso + ". Gratis, sin anuncios.";
-    if (d.pesoLigera) $("enlace-ligera").textContent = "¿Teléfono con poco espacio? Versión ligera para arm64, " + megas(d.pesoLigera);
+  function ponerCuenta(animar) {
+    const n = BASE_DESCARGAS + (descargasReales || 0);
+    odometros.forEach((el) => odometro(el, n, animar && !reducido));
+    document.querySelectorAll("[data-cuenta-lector]").forEach((el) => {
+      el.textContent = descargasReales == null ? "Más de 7.000 descargas" : fmtNum(n) + " descargas";
+    });
   }
-  const enCache = leerCache();
-  if (enCache) ponerGitHub(enCache);
-  else {
+  ponerCuenta(false);
+
+  // Version, pesos, descargas y el carro, de la API publica de GitHub (60 consultas por hora sin clave): 10 min de cache.
+  const CACHE = "lm-github-2", CACHE_MS = 600000;
+  function leerCache(cualquiera) {
+    try { const c = JSON.parse(localStorage.getItem(CACHE) || "null"); return c && (cualquiera || Date.now() - c.hora < CACHE_MS) ? c.datos : null; } catch { return null; }
+  }
+  function guardarCache(datos, hora) { try { localStorage.setItem(CACHE, JSON.stringify({ hora: hora || Date.now(), datos })); } catch {} }
+  function ponerGitHub(d, animar) {
+    if (!d) return;
+    if (typeof d.total === "number" && d.total !== descargasReales) {
+      const subio = descargasReales != null && d.total > descargasReales;
+      descargasReales = d.total;
+      ponerCuenta(animar);
+      if (subio && sonando === false && enEscena === false) decir("Alguien acaba de bajar Life Music. Ya van " + fmtNum(BASE_DESCARGAS + d.total) + ".", { pensar: false });
+    }
+    if (d.version) {
+      const peso = d.peso ? ", " + megas(d.peso) : "";
+      $("hechos").textContent = "Gratis y sin anuncios. Versión " + d.version + " para Android 8 o superior" + peso + ".";
+      $("titulo-version").textContent = "Life Music " + d.version;
+      $("detalle-version").textContent = "Para Android 8 o superior" + peso + ". Gratis, sin anuncios.";
+      if (d.pesoLigera) $("enlace-ligera").textContent = "¿Teléfono con poco espacio? Versión ligera para arm64, " + megas(d.pesoLigera);
+    }
+    ponerCarro(d.carro);
+  }
+  // El boton del carro se enciende solo cuando GitHub tenga una version estable o una beta (las «prueba» no cuentan).
+  function ponerCarro(c) {
+    const b = $("boton-carro");
+    if (!c || !c.url) return;
+    b.href = c.url;
+    b.classList.remove("apagado");
+    b.lastChild.textContent = "Descargar Life Music for Car " + c.version;
+    $("estado-carro").textContent = /beta/i.test(c.version)
+      ? "Es una beta: puede tener detalles. Para radios Android 8 o superior."
+      : "Para radios Android 8 o superior.";
+  }
+  function pedirGitHub() {
     fetch(RELEASES, { headers: { Accept: "application/vnd.github+json" } })
       .then((r) => (r.ok ? r.json() : null))
       .then((lista) => {
         if (!Array.isArray(lista)) return;
         const total = lista.reduce((s, r) => s + (r.assets || []).reduce((a, x) => a + (x.download_count || 0), 0), 0);
+        const masNueva = (a, b) => Date.parse(b.published_at) - Date.parse(a.published_at);
         // La oficial: la ultima publicada que no es prueba ni del carro.
-        const oficial = lista.filter((r) => !r.draft && !r.prerelease && /^v\d/.test(r.tag_name))
-          .sort((a, b) => Date.parse(b.published_at) - Date.parse(a.published_at))[0];
+        const oficial = lista.filter((r) => !r.draft && !r.prerelease && /^v\d/.test(r.tag_name)).sort(masNueva)[0];
         const asset = (nombre) => oficial && (oficial.assets || []).find((x) => x.name === nombre);
+        const carro = lista.filter((r) => !r.draft && /^carro-v\d+\.\d+\.\d+(-beta(\.\d+)?)?$/i.test(r.tag_name)).sort(masNueva)[0];
+        const apkCarro = carro && (carro.assets || []).find((x) => /\.apk$/i.test(x.name));
         const datos = {
           total,
           version: oficial ? oficial.tag_name.replace(/^v/, "") : null,
           peso: asset("lifemusic.apk") ? asset("lifemusic.apk").size : 0,
           pesoLigera: asset("lifemusic-arm64.apk") ? asset("lifemusic-arm64.apk").size : 0,
+          carro: carro ? { version: carro.tag_name.replace(/^carro-v/i, ""), url: apkCarro ? apkCarro.browser_download_url : carro.html_url } : null,
         };
         guardarCache(datos);
-        ponerGitHub(datos);
+        ponerGitHub(datos, true);
       })
       .catch(() => {});
+  }
+  // Primero lo guardado (aunque sea viejo, para no mostrar «7.000» pelado) y, si ya vencio, se pide de nuevo.
+  const guardado = leerCache(true);
+  if (guardado) setTimeout(() => ponerGitHub(guardado, true), reducido ? 0 : 700);
+  if (!leerCache(false)) pedirGitHub();
+  setInterval(() => { if (!document.hidden) pedirGitHub(); }, CACHE_MS);
+
+  // Cada descarga desde esta pagina suma una de una vez (GitHub la cuenta igual al rato).
+  function sumarDescarga() {
+    if (descargasReales == null) return;
+    descargasReales += 1;
+    ponerCuenta(true);
+    const c = leerCache(true);
+    if (c) { c.total = descargasReales; guardarCache(c, Date.now() - CACHE_MS + 120000); }
+    decir("¡Una más! Ya van " + fmtNum(BASE_DESCARGAS + descargasReales) + ". Si el teléfono pregunta, dale permitir.", { pensar: false });
+  }
+  // En Android el boton de arriba descarga de una; en el computador lleva a la tarjeta, con el QR para el telefono.
+  const esAndroid = /Android/i.test(navigator.userAgent);
+  if (esAndroid) document.querySelectorAll('a.descargar[href="#coro"]').forEach((a) => { a.href = "/apk"; });
+  document.querySelectorAll("a.descargar, #enlace-ligera").forEach((a) => a.addEventListener("click", () => {
+    if (/\/apk(-arm64)?$/.test(a.getAttribute("href"))) sumarDescarga();
+  }));
+  const esComputador = !esAndroid && !/iPhone|iPad|iPod/i.test(navigator.userAgent) && window.matchMedia && matchMedia("(hover: hover) and (pointer: fine)").matches;
+  if (esComputador) {
+    const s = document.createElement("script");
+    s.src = "/cast/qrcode.js";
+    s.onload = () => {
+      const lienzo = $("qr-descarga");
+      if (!window.qrcode) return;
+      const qr = window.qrcode(0, "M");
+      qr.addData("https://lifemusic.app/apk");
+      qr.make();
+      const n = qr.getModuleCount(), margen = 2, celda = Math.floor(lienzo.width / (n + margen * 2));
+      const g = lienzo.getContext("2d"), ancho = celda * (n + margen * 2), desde = Math.floor((lienzo.width - ancho) / 2);
+      g.fillStyle = "#FFFFFF"; g.fillRect(0, 0, lienzo.width, lienzo.height);
+      g.fillStyle = "#111111";
+      for (let f = 0; f < n; f++) for (let k = 0; k < n; k++) if (qr.isDark(f, k)) g.fillRect(desde + (k + margen) * celda, desde + (f + margen) * celda, celda, celda);
+      $("al-telefono").hidden = false;
+      medir();
+    };
+    document.head.appendChild(s);
   }
 
   // ── Arranque: Nova aparece pequena y se expande ──────────────────────────
@@ -552,6 +827,7 @@
     });
     setTimeout(() => { if (novaGrande.estado === "apagada") novaGrande.estado = "escucha"; }, 350);
     setTimeout(() => saludar(), 1300);
+    cantarTitular();
   }
   arrancar();
   addEventListener("load", () => { medir(); recorrer(); });

@@ -59,7 +59,7 @@
   Sin analitica, sin letras de afuera: Geist y Geist Mono (OFL) se sirven desde /fuentes.
 -->
 <link rel="preload" href="/fuentes/geist.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="/landing.css?v=3">
+<link rel="stylesheet" href="/landing.css?v=4">
 </head>
 <body>
 <a class="salto" href="#verso">Saltar al contenido</a>
@@ -72,12 +72,13 @@
 
 <header class="barra">
   <div class="ancho">
-    <a class="marca" href="#intro" aria-label="Life Music, al comienzo">
+    <a class="marca" href="#intro" aria-label="Life Music, un desarrollo de CG LABS. Volver al comienzo">
       <svg class="logo" viewBox="-14 0 532 100" aria-hidden="true" focusable="false"><path d="M28 31 Q28 22 21 18 Q13 14 12 8 V80 Q12 92 24 92 Q36 92 36 80 V58 Q36 42 49 42 Q62 42 62 58 V90 V58 Q62 42 75 42 Q88 42 88 58 V90" fill="none" stroke="currentColor" stroke-width="9" stroke-linecap="round" stroke-linejoin="round"/><ellipse class="nota" cx="2.5" cy="85" rx="11.5" ry="8.5" transform="rotate(-22 2.5 85)"/><text x="116" y="88" font-weight="600" font-size="86" letter-spacing="-4.3">Life Music</text></svg>
+      <span class="firma" aria-hidden="true"><picture><source srcset="/img/cglabs_avatar_blanco.webp" media="(prefers-color-scheme: dark)"><img src="/img/cglabs_avatar_negro.webp" alt="" width="14" height="14"></picture>Un desarrollo de CG LABS</span>
     </a>
     <div class="tiempo" aria-label="La página como una canción">
       <span id="tiempo">0:00</span>
-      <div class="linea-t" id="linea-t"><span class="base"></span><span class="relleno" id="relleno"></span><span class="cabezal" id="cabezal"></span></div>
+      <div class="linea-t" id="linea-t"><span class="base"></span><span class="relleno" id="relleno"></span><canvas class="onda" id="onda" aria-hidden="true"></canvas><span class="cabezal" id="cabezal"></span></div>
       <span>3:58</span>
     </div>
     <a class="boton chico descargar" href="#coro"><svg class="simbolo" viewBox="-13 1 107 98" aria-hidden="true" focusable="false"><use href="#trazo-chico"/><ellipse class="nota" cx="1.5" cy="84" rx="13.5" ry="10" transform="rotate(-22 1.5 84)"/></svg>Descargar</a>
@@ -97,6 +98,7 @@
           <span id="texto-escuchar">Ponle música</span>
         </button>
       </div>
+      <p class="cuenta"><span class="odometro" data-odometro aria-hidden="true">7.000</span> <span class="cuenta-texto">descargas, y contando</span><span class="solo-lector" data-cuenta-lector>Más de 7.000 descargas</span></p>
       <p class="hechos" id="hechos">Gratis y sin anuncios. Versión 1.3.2 para Android 8 o superior.</p>
     </div>
     <div class="escenario" id="escenario">
@@ -108,11 +110,11 @@
   <section class="discos" aria-labelledby="t-discos">
     <div class="discos-cab"><h2 id="t-discos">Elige una carátula y Nova la pone</h2><p>Canciones de ejemplo, hechas para esta página. La página toma sus colores.</p></div>
     <div class="fila-discos">
-      <button class="disco d1" type="button" data-disco="0" aria-pressed="true"><span class="caratula"></span><b>Marea alta</b><span>98 BPM</span></button>
-      <button class="disco d2" type="button" data-disco="1" aria-pressed="false"><span class="caratula"></span><b>Luz de neón</b><span>118 BPM</span></button>
-      <button class="disco d3" type="button" data-disco="2" aria-pressed="false"><span class="caratula"></span><b>Órbita</b><span>84 BPM</span></button>
-      <button class="disco d4" type="button" data-disco="3" aria-pressed="false"><span class="caratula"></span><b>Selva</b><span>104 BPM</span></button>
-      <button class="disco d5" type="button" data-disco="4" aria-pressed="false"><span class="caratula"></span><b>Cobre</b><span>92 BPM</span></button>
+      <button class="disco d1" type="button" data-disco="0" aria-pressed="true"><span class="funda" aria-hidden="true"><span class="vinilo"><span class="giro"><svg viewBox="-13 1 107 98" focusable="false"><use href="#trazo-chico"/></svg></span></span><span class="caratula"></span></span><b>Marea alta</b><span>98 BPM</span></button>
+      <button class="disco d2" type="button" data-disco="1" aria-pressed="false"><span class="funda" aria-hidden="true"><span class="vinilo"><span class="giro"><svg viewBox="-13 1 107 98" focusable="false"><use href="#trazo-chico"/></svg></span></span><span class="caratula"></span></span><b>Luz de neón</b><span>118 BPM</span></button>
+      <button class="disco d3" type="button" data-disco="2" aria-pressed="false"><span class="funda" aria-hidden="true"><span class="vinilo"><span class="giro"><svg viewBox="-13 1 107 98" focusable="false"><use href="#trazo-chico"/></svg></span></span><span class="caratula"></span></span><b>Órbita</b><span>84 BPM</span></button>
+      <button class="disco d4" type="button" data-disco="3" aria-pressed="false"><span class="funda" aria-hidden="true"><span class="vinilo"><span class="giro"><svg viewBox="-13 1 107 98" focusable="false"><use href="#trazo-chico"/></svg></span></span><span class="caratula"></span></span><b>Selva</b><span>104 BPM</span></button>
+      <button class="disco d5" type="button" data-disco="4" aria-pressed="false"><span class="funda" aria-hidden="true"><span class="vinilo"><span class="giro"><svg viewBox="-13 1 107 98" focusable="false"><use href="#trazo-chico"/></svg></span></span><span class="caratula"></span></span><b>Cobre</b><span>92 BPM</span></button>
     </div>
   </section>
 
@@ -174,6 +176,11 @@
         <p id="detalle-version">Para Android 8 o superior. Gratis, sin anuncios.</p>
         <a class="boton descargar" href="/apk"><svg class="simbolo" viewBox="-13 1 107 98" aria-hidden="true" focusable="false"><use href="#trazo-chico"/><ellipse class="nota" cx="1.5" cy="84" rx="13.5" ry="10" transform="rotate(-22 1.5 84)"/></svg>Descargar Life Music</a>
         <a class="ligera" href="/apk-arm64" id="enlace-ligera">¿Teléfono con poco espacio? Versión ligera para arm64</a>
+        <p class="cuenta chica"><span class="odometro" data-odometro aria-hidden="true">7.000</span> <span class="cuenta-texto">descargas, y contando</span><span class="solo-lector" data-cuenta-lector>Más de 7.000 descargas</span></p>
+        <div class="al-telefono" id="al-telefono" hidden>
+          <canvas id="qr-descarga" width="232" height="232" role="img" aria-label="Código QR para bajar Life Music en tu teléfono"></canvas>
+          <p><b>¿Estás en el computador?</b> Escanéalo con la cámara del teléfono y la descarga empieza allá.</p>
+        </div>
       </div>
       <ol class="pasos">
         <li class="paso"><div><b>Descárgala</b><p>Toca «Descargar Life Music». El archivo baja a tu carpeta de descargas.</p></div></li>
@@ -184,7 +191,13 @@
     </div>
     <div class="carro">
       <h3>¿Y en el carro?</h3>
-      <p>Life Music for Car se está probando en radios Android: la canción y Life Line en la pantalla del carro, con los controles del volante. Se avisa aquí cuando esté lista.</p>
+      <div>
+        <p>Life Music for Car se está probando en radios Android: la canción y Life Line en la pantalla del carro, con los controles del volante.</p>
+        <div class="carro-accion">
+          <a class="boton apagado" id="boton-carro" aria-describedby="estado-carro"><svg class="simbolo" viewBox="-13 1 107 98" aria-hidden="true" focusable="false"><use href="#trazo-chico"/><ellipse class="nota" cx="1.5" cy="84" rx="13.5" ry="10" transform="rotate(-22 1.5 84)"/></svg>Life Music for Car</a>
+          <p id="estado-carro">Todavía en pruebas. Este botón se enciende solo cuando salga su primera beta.</p>
+        </div>
+      </div>
     </div>
   </section>
 
@@ -243,6 +256,6 @@
 </aside>
 <p class="solo-lector" id="voz" aria-live="polite"></p>
 
-<script src="/landing.js?v=3" defer></script>
+<script src="/landing.js?v=4" defer></script>
 </body>
 </html>
