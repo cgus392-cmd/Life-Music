@@ -250,7 +250,17 @@ p{margin:0}
 .preguntas summary::after{content:"";width:12px;height:12px;flex:none;border-right:2px solid var(--gris);border-bottom:2px solid var(--gris);transform:rotate(45deg) translate(-3px,-3px);transition:transform .2s ease}
 .preguntas details[open] summary::after{transform:rotate(-135deg)}
 .preguntas details p{padding:0 0 20px;max-width:38em;color:var(--gris)}
-.avisos{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:40px;margin-top:88px;padding-top:40px;border-top:1px solid var(--linea)}
+/* Calificar sin salir de la pagina: las mismas cinco notas de /calificar (estilos de las notas y campos en paginas.css). */
+.califica-rapido{display:grid;grid-template-columns:minmax(0,.8fr) minmax(0,1.2fr);gap:32px 64px;align-items:start;margin-bottom:88px;padding:40px;border-radius:24px;
+  background:var(--superficie);box-shadow:var(--sombra),0 0 0 1px var(--linea-suave)}
+.califica-rapido h3{font-size:34px;font-weight:600;letter-spacing:-.04em}
+.cr-texto p{margin-top:12px;color:var(--gris)}
+.cr-form fieldset{margin:0;padding:0;border:0;min-width:0}
+.cr-form .fila-notas{margin-top:0}
+.cr-form .campo{margin-top:18px}
+.cr-enviar{display:flex;flex-wrap:wrap;align-items:center;gap:12px 20px;margin-top:22px}
+.cr-enviar .aviso-datos{flex:1 1 220px;margin:0}
+.avisos{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:40px;margin-top:88px;padding-top:40px;border-top:1px solid var(--linea)}
 .aviso h3{font-size:20px;font-weight:500;letter-spacing:-.02em;margin:0}
 .aviso p{margin-top:8px;color:var(--gris)}
 .hecho-en{margin-top:72px;font-size:28px;font-weight:300;letter-spacing:-.03em}
@@ -270,7 +280,8 @@ p{margin:0}
   .heroe h1{font-size:clamp(56px,7.4vw,80px)}
   .recorrido{grid-template-columns:minmax(0,260px) minmax(0,1fr);gap:40px}
   .funciones{grid-template-columns:minmax(0,1fr);gap:28px}
-  .tv-demo,.instalar,.final-grid{grid-template-columns:minmax(0,1fr);gap:48px}
+  .tv-demo,.instalar,.final-grid,.califica-rapido{grid-template-columns:minmax(0,1fr);gap:48px}
+  .califica-rapido{gap:24px}
 }
 @media (max-width: 760px){
   html{scroll-padding-top:72px}
@@ -313,6 +324,8 @@ p{margin:0}
   .paso{grid-template-columns:40px minmax(0,1fr);gap:14px}
   .paso::before{font-size:32px}
   .avisos{grid-template-columns:minmax(0,1fr);gap:28px;margin-top:56px}
+  .califica-rapido{grid-template-columns:minmax(0,1fr);padding:24px;margin-bottom:56px}
+  .califica-rapido h3{font-size:28px}
   .hecho-en{font-size:22px}
   .pie-arriba{flex-direction:column;align-items:flex-start}
   .acompana{right:12px;bottom:12px}
@@ -327,3 +340,5 @@ p{margin:0}
   .vinilo,.odometro .tira,.heroe h1 .w{transition:none}
   .vinilo .giro{animation:none}
 }
+.califica-rapido .gracias h3{font-size:28px;font-weight:600;letter-spacing:-.03em}
+.califica-rapido .gracias a{font-weight:500}

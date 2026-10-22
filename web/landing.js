@@ -22,7 +22,7 @@
     Verso: { dice: "Esta es la app de verdad: la letra va con la canción y nada se corta.", toque: "Pasa por cada función y te la cuento." },
     Puente: { dice: "¿Tu TV no tiene Cast? Elige un tema y te lo muestro en la pantalla grande.", toque: "En el TV abres lifemusic.app/tv, escaneas el QR y listo." },
     Coro: { dice: "Un minuto y la tienes. Si el teléfono pregunta, dale permitir: es normal.", toque: "Bájala con el botón de la tarjeta. Es gratis y sin anuncios." },
-    Final: { dice: "Lo nuevo y lo que siempre preguntan. Y sí: con la 2.0 llego yo a la app.", toque: "Si te quedó alguna duda, mira las preguntas." },
+    Final: { dice: "¿Qué tal te suena? Califícala aquí con unas notas. Y sí: con la 2.0 llego yo a la app.", toque: "Toca las notas de aquí abajo: de una a cinco." },
   };
   const TEMAS_TV = {
     vinilo: { img: "/img/tv-tema-vinilo.jpg", alt: "Life Music TV con el tema Vinilo: un tocadiscos con la carátula y la letra al lado", dice: "Vinilo: tu carátula girando en un tocadiscos, con la letra al lado." },
@@ -807,6 +807,89 @@
       medir();
     };
     document.head.appendChild(s);
+  }
+
+  // ── Calificar sin salir de la pagina (pedido de CG, 22-10) ────────────────
+  // El mismo servidor y las mismas reglas que /calificar: sale en la web solo si CG la aprueba.
+  {
+    const local = /^(localhost|127\.0\.0\.1)$/.test(location.hostname);
+    const pedida = new URLSearchParams(location.search).get("api");
+    const COMUNIDAD = local && pedida && /^http:\/\/(localhost|127\.0\.0\.1):\d+$/.test(pedida) ? pedida : "https://lifemusic-comunidad.cho--usic.workers.dev";
+    const DICE = ["Elige de una a cinco notas.", "No me gustó.", "Le falta.", "Está bien.", "Me gusta.", "¡Me encanta!"];
+    const NOVA_DICE = [
+      "",
+      "Uy. Cuéntame qué falló y CG lo arregla.",
+      "Le falta, entendido. ¿Qué le pondrías?",
+      "Bien, pero puede ser mejor. ¿Qué le cambiarías?",
+      "¡Qué bueno! ¿Qué es lo que más te gusta?",
+      "¡Gracias! Eso me pone feliz.",
+    ];
+    const ERRORES = {
+      nombre: "Escribe tu nombre (dos letras o más).", rapido: "Espera un momentico y vuelve a enviarla.",
+      muchas: "Ya enviaste varias en la última hora. Prueba más tarde.", comentario: "El comentario es muy largo o tiene caracteres raros.",
+    };
+    const labels = [...document.querySelectorAll("#notas-rapido label")];
+    const radios = [...document.querySelectorAll("#notas-rapido input")];
+    const resultado = $("resultado-rapido"), dicho = $("dice-rapido");
+    const abierta = Date.now();
+    let notas = 0;
+    const encender = (n) => { labels.forEach((l, i) => l.classList.toggle("encendida", i < n)); dicho.textContent = DICE[n] || DICE[0]; };
+    radios.forEach((r, i) => {
+      r.addEventListener("change", () => {
+        notas = i + 1;
+        encender(notas);
+        if (!reducido) labels.slice(0, notas).forEach((l, k) => setTimeout(() => { l.classList.add("salta"); setTimeout(() => l.classList.remove("salta"), 500); }, k * 60));
+        decir(NOVA_DICE[notas], { pensar: false });
+        const L = lienzos[enEscena ? 0 : 1];
+        if (notas >= 4 && L) soltarNota(L, notas === 5 ? 5 : 2);
+      });
+      labels[i].addEventListener("pointerenter", (e) => { if (e.pointerType !== "touch") encender(i + 1); });
+    });
+    $("notas-rapido").addEventListener("pointerleave", () => encender(notas));
+    const avisar = (t, mal) => { resultado.textContent = t; resultado.classList.toggle("mal", !!mal); };
+    $("form-rapido").addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const nombre = $("nombre-rapido");
+      nombre.removeAttribute("aria-invalid");
+      if (!notas) { avisar("Primero elige de una a cinco notas.", true); radios[0].focus(); return; }
+      if (nombre.value.trim().length < 2) { nombre.setAttribute("aria-invalid", "true"); avisar(ERRORES.nombre, true); nombre.focus(); return; }
+      const boton = $("enviar-rapido");
+      boton.disabled = true;
+      avisar("Enviando…");
+      try {
+        const r = await fetch(COMUNIDAD + "/resenas", {
+          method: "POST",
+          headers: { "content-type": "application/json" },
+          body: JSON.stringify({ notas, nombre: nombre.value.trim(), correo: "", comentario: $("comentario-rapido").value.trim(), espera: Date.now() - abierta, sitio: $("sitio-rapido").value }),
+        });
+        const j = await r.json().catch(() => ({}));
+        if (!r.ok || !j.ok) {
+          if (j.error === "nombre") nombre.setAttribute("aria-invalid", "true");
+          avisar(ERRORES[j.error] || "No se pudo enviar. Prueba otra vez en un rato.", true);
+          boton.disabled = false;
+          return;
+        }
+        const quien = nombre.value.trim().split(/\s+/)[0];
+        $("form-rapido").hidden = true;
+        const gracias = document.createElement("div");
+        gracias.className = "gracias";
+        gracias.setAttribute("role", "status");
+        gracias.tabIndex = -1;
+        const h = document.createElement("h3"), p = document.createElement("p"), a = document.createElement("a");
+        h.textContent = "¡Gracias, " + quien + "!";
+        p.textContent = "Tu calificación ya llegó. CG la lee y, si la aprueba, sale en la página de calificaciones.";
+        a.href = "/calificar/"; a.textContent = "Ver lo que dicen";
+        gracias.append(h, p, a);
+        $("form-rapido").after(gracias);
+        gracias.focus();
+        decir("¡Gracias, " + quien + "! Se la paso a CG ahora mismo.", { pensar: false });
+        const L = lienzos[enEscena ? 0 : 1];
+        if (L) soltarNota(L, 6);
+      } catch {
+        avisar("No se pudo enviar. Revisa tu conexión y prueba otra vez.", true);
+        boton.disabled = false;
+      }
+    });
   }
 
   // ── Arranque: Nova aparece pequena y se expande ──────────────────────────
