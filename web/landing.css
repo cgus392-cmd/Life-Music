@@ -253,7 +253,13 @@ p{margin:0}
 /* Calificar sin salir de la pagina: las mismas cinco notas de /calificar (estilos de las notas y campos en paginas.css). */
 .califica-rapido{display:grid;grid-template-columns:minmax(0,.8fr) minmax(0,1.2fr);gap:32px 64px;align-items:start;margin-bottom:88px;padding:40px;border-radius:24px;
   background:var(--superficie);box-shadow:var(--sombra),0 0 0 1px var(--linea-suave)}
-.califica-rapido h3{font-size:34px;font-weight:600;letter-spacing:-.04em}
+.califica-arriba{padding:0 0 32px}
+.califica-rapido h2{font-size:34px;font-weight:600;letter-spacing:-.04em}
+.nota-arriba{margin-top:6px;font-size:15px;color:var(--gris)}
+.nota-arriba a{display:inline-flex;align-items:center;gap:8px;min-height:44px;text-decoration:none;color:inherit}
+.nota-arriba a:hover b{text-decoration:underline}
+.nota-arriba b,.cr-promedio b{color:var(--texto);font-weight:600}
+.cr-promedio{display:flex;align-items:center;gap:8px;margin-top:18px;font-size:15px;color:var(--gris)}
 .cr-texto p{margin-top:12px;color:var(--gris)}
 .cr-form fieldset{margin:0;padding:0;border:0;min-width:0}
 .cr-form .fila-notas{margin-top:0}
@@ -325,7 +331,7 @@ p{margin:0}
   .paso::before{font-size:32px}
   .avisos{grid-template-columns:minmax(0,1fr);gap:28px;margin-top:56px}
   .califica-rapido{grid-template-columns:minmax(0,1fr);padding:24px;margin-bottom:56px}
-  .califica-rapido h3{font-size:28px}
+  .califica-rapido h2{font-size:28px}
   .hecho-en{font-size:22px}
   .pie-arriba{flex-direction:column;align-items:flex-start}
   .acompana{right:12px;bottom:12px}

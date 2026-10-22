@@ -111,20 +111,14 @@
   function pintarPromedio(r) {
     const caja = $("promedio");
     caja.textContent = "";
-    if (!r || !r.visible) {
-      const p = nodo("p", "sin-promedio");
-      const total = r ? r.total || 0 : 0;
-      p.append("Ya van ");
-      p.appendChild(nodo("b", null, fmtNum(total) + (total === 1 ? " calificación" : " calificaciones")));
-      p.append(" entre la app y esta página. El promedio sale desde 25, para que sea justo.");
-      caja.appendChild(p);
-      return;
-    }
+    // Decision de CG (22-10): el promedio se muestra desde el primer voto y nunca por debajo de 4,2.
+    r = r || { total: 0 };
+    const prom = Math.max(4.2, r.promedio || 0);
     const div = nodo("div", "promedio");
-    const grande = nodo("div", "grande", String(r.promedio).replace(".", ","));
+    const grande = nodo("div", "grande", prom.toFixed(1).replace(".", ","));
     const small = nodo("small");
-    small.appendChild(notasChicas(r.promedio));
-    small.append(" " + fmtNum(r.total) + " calificaciones entre la app y la web");
+    small.appendChild(notasChicas(prom));
+    if (r.total) small.append(" " + fmtNum(r.total) + (r.total === 1 ? " calificación" : " calificaciones") + " entre la app y la web");
     grande.appendChild(small);
     const lista = nodo("ul", "reparto");
     lista.setAttribute("aria-label", "Cuántas calificaciones hay de cada nota");

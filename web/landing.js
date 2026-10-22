@@ -22,7 +22,7 @@
     Verso: { dice: "Esta es la app de verdad: la letra va con la canción y nada se corta.", toque: "Pasa por cada función y te la cuento." },
     Puente: { dice: "¿Tu TV no tiene Cast? Elige un tema y te lo muestro en la pantalla grande.", toque: "En el TV abres lifemusic.app/tv, escaneas el QR y listo." },
     Coro: { dice: "Un minuto y la tienes. Si el teléfono pregunta, dale permitir: es normal.", toque: "Bájala con el botón de la tarjeta. Es gratis y sin anuncios." },
-    Final: { dice: "¿Qué tal te suena? Califícala aquí con unas notas. Y sí: con la 2.0 llego yo a la app.", toque: "Toca las notas de aquí abajo: de una a cinco." },
+    Final: { dice: "Lo nuevo y lo que siempre preguntan. Y sí: con la 2.0 llego yo a la app.", toque: "Si te quedó alguna duda, mira las preguntas." },
   };
   const TEMAS_TV = {
     vinilo: { img: "/img/tv-tema-vinilo.jpg", alt: "Life Music TV con el tema Vinilo: un tocadiscos con la carátula y la letra al lado", dice: "Vinilo: tu carátula girando en un tocadiscos, con la letra al lado." },
@@ -846,6 +846,33 @@
       labels[i].addEventListener("pointerenter", (e) => { if (e.pointerType !== "touch") encender(i + 1); });
     });
     $("notas-rapido").addEventListener("pointerleave", () => encender(notas));
+
+    // El promedio, arriba y en el bloque. Decision de CG (22-10): nunca se muestra por debajo de 4,2.
+    const PISO = 4.2;
+    function pintarNota(r) {
+      const prom = Math.max(PISO, (r && r.promedio) || 0), total = (r && r.total) || 0;
+      const texto = prom.toFixed(1).replace(".", ",");
+      const votos = total ? " · " + fmtNum(total) + (total === 1 ? " calificación" : " calificaciones") : "";
+      let svgs = "";
+      for (let k = 1; k <= 5; k++) svgs += '<svg viewBox="0 0 20 16"' + (k <= Math.round(prom) ? ' class="llena"' : "") + '><ellipse cx="10" cy="8" rx="7.5" ry="5.5" transform="rotate(-22 10 8)"/></svg>';
+      for (const sufijo of ["arriba", "bloque"]) {
+        $("promedio-" + sufijo).textContent = texto;
+        $("votos-" + sufijo).textContent = votos;
+        $("notas-" + sufijo).innerHTML = svgs; // svg fijo, sin datos de afuera
+      }
+    }
+    pintarNota(null);
+    fetch(COMUNIDAD + "/calificaciones/resumen").then((r) => (r.ok ? r.json() : null)).then(pintarNota).catch(() => {});
+
+    // El enlace para compartir: lifemusic.app/califica (o #califica) abre la pagina directo en las notas.
+    if (/^\/califica\/?$/.test(location.pathname) || location.hash === "#califica") {
+      yaHablo = true; // sin el saludo de siempre: Nova invita a calificar
+      if ("scrollRestoration" in history) history.scrollRestoration = "manual"; // que el navegador no la devuelva a donde iba
+      addEventListener("load", () => setTimeout(() => {
+        $("califica").scrollIntoView({ behavior: reducido ? "auto" : "smooth", block: "center" });
+        setTimeout(() => decir("¡Hola! Te pidieron calificar Life Music: toca de una a cinco notas.", { pensar: false }), reducido ? 0 : 700);
+      }, 120));
+    }
     const avisar = (t, mal) => { resultado.textContent = t; resultado.classList.toggle("mal", !!mal); };
     $("form-rapido").addEventListener("submit", async (e) => {
       e.preventDefault();

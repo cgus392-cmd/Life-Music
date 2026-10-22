@@ -59,7 +59,7 @@
   Sin analitica, sin letras de afuera: Geist y Geist Mono (OFL) se sirven desde /fuentes.
 -->
 <link rel="preload" href="/fuentes/geist.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="/landing.css?v=5">
+<link rel="stylesheet" href="/landing.css?v=6">
 <link rel="stylesheet" href="/paginas.css?v=2">
 </head>
 <body>
@@ -100,6 +100,7 @@
         </button>
       </div>
       <p class="cuenta"><span class="odometro" data-odometro aria-hidden="true">7.000</span> <span class="cuenta-texto">descargas, y contando</span><span class="solo-lector" data-cuenta-lector>Más de 7.000 descargas</span></p>
+      <p class="nota-arriba"><a href="#califica"><span class="notas-chicas" id="notas-arriba" aria-hidden="true"></span><b id="promedio-arriba">4,2</b> de 5<span id="votos-arriba"></span></a></p>
       <p class="hechos" id="hechos">Gratis y sin anuncios. Versión 1.3.2 para Android 8 o superior.</p>
     </div>
     <div class="escenario" id="escenario">
@@ -116,6 +117,39 @@
       <button class="disco d3" type="button" data-disco="2" aria-pressed="false"><span class="funda" aria-hidden="true"><span class="vinilo"><span class="giro"><svg viewBox="-13 1 107 98" focusable="false"><use href="#trazo-chico"/></svg></span></span><span class="caratula"></span></span><b>Órbita</b><span>84 BPM</span></button>
       <button class="disco d4" type="button" data-disco="3" aria-pressed="false"><span class="funda" aria-hidden="true"><span class="vinilo"><span class="giro"><svg viewBox="-13 1 107 98" focusable="false"><use href="#trazo-chico"/></svg></span></span><span class="caratula"></span></span><b>Selva</b><span>104 BPM</span></button>
       <button class="disco d5" type="button" data-disco="4" aria-pressed="false"><span class="funda" aria-hidden="true"><span class="vinilo"><span class="giro"><svg viewBox="-13 1 107 98" focusable="false"><use href="#trazo-chico"/></svg></span></span><span class="caratula"></span></span><b>Cobre</b><span>92 BPM</span></button>
+    </div>
+  </section>
+
+  <section class="califica-arriba" aria-labelledby="t-califica">
+    <div class="califica-rapido" id="califica">
+      <div class="cr-texto">
+        <h2 id="t-califica">¿Qué tal te suena?</h2>
+        <p>Toca de una a cinco notas y deja tu nombre. CG lee cada calificación, y si la aprueba sale en <a href="/calificar/">la página de calificaciones</a>.</p>
+        <p class="cr-promedio"><span class="notas-chicas" id="notas-bloque" aria-hidden="true"></span><b id="promedio-bloque">4,2</b> de 5<span id="votos-bloque"></span></p>
+      </div>
+      <form class="cr-form" id="form-rapido" novalidate>
+        <fieldset>
+          <legend class="solo-lector">Tu calificación</legend>
+          <div class="fila-notas" id="notas-rapido">
+            <input type="radio" name="notas-r" id="r1" value="1"><label for="r1" title="No me gustó"><svg viewBox="0 0 44 36" aria-hidden="true"><ellipse cx="22" cy="18" rx="17" ry="12.5" transform="rotate(-22 22 18)"/></svg><span class="solo-lector">1 nota: no me gustó</span></label>
+            <input type="radio" name="notas-r" id="r2" value="2"><label for="r2" title="Le falta"><svg viewBox="0 0 44 36" aria-hidden="true"><ellipse cx="22" cy="18" rx="17" ry="12.5" transform="rotate(-22 22 18)"/></svg><span class="solo-lector">2 notas: le falta</span></label>
+            <input type="radio" name="notas-r" id="r3" value="3"><label for="r3" title="Está bien"><svg viewBox="0 0 44 36" aria-hidden="true"><ellipse cx="22" cy="18" rx="17" ry="12.5" transform="rotate(-22 22 18)"/></svg><span class="solo-lector">3 notas: está bien</span></label>
+            <input type="radio" name="notas-r" id="r4" value="4"><label for="r4" title="Me gusta"><svg viewBox="0 0 44 36" aria-hidden="true"><ellipse cx="22" cy="18" rx="17" ry="12.5" transform="rotate(-22 22 18)"/></svg><span class="solo-lector">4 notas: me gusta</span></label>
+            <input type="radio" name="notas-r" id="r5" value="5"><label for="r5" title="Me encanta"><svg viewBox="0 0 44 36" aria-hidden="true"><ellipse cx="22" cy="18" rx="17" ry="12.5" transform="rotate(-22 22 18)"/></svg><span class="solo-lector">5 notas: me encanta</span></label>
+          </div>
+          <p class="notas-dice" id="dice-rapido" aria-hidden="true">Elige de una a cinco notas.</p>
+        </fieldset>
+        <div class="cr-mas">
+          <label class="campo"><span>Tu nombre</span><input id="nombre-rapido" required minlength="2" maxlength="40" autocomplete="name"></label>
+          <label class="campo"><span>Comentario <em>(opcional)</em></span><textarea id="comentario-rapido" maxlength="500" rows="2"></textarea></label>
+          <div class="trampa" aria-hidden="true"><label>Tu sitio web<input id="sitio-rapido" tabindex="-1" autocomplete="off"></label></div>
+          <div class="cr-enviar">
+            <button class="boton" type="submit" id="enviar-rapido"><svg class="simbolo" viewBox="-13 1 107 98" aria-hidden="true" focusable="false"><use href="#trazo-chico"/><ellipse class="nota" cx="1.5" cy="84" rx="13.5" ry="10" transform="rotate(-22 1.5 84)"/></svg>Enviar</button>
+            <p class="aviso-datos">Sale en la web solo si CG la aprueba. ¿Quieres que te respondan? <a href="/calificar/">Déjanos tu correo aquí</a>.</p>
+          </div>
+          <p class="resultado" id="resultado-rapido" role="status" aria-live="polite"></p>
+        </div>
+      </form>
     </div>
   </section>
 
@@ -207,35 +241,6 @@
       <p class="cuando"><span class="tc" data-marca="4">3:40</span><span class="nombre">Final</span></p>
       <div><h2 id="t-final">Lo nuevo, y lo que siempre preguntan.</h2></div>
     </div>
-    <div class="califica-rapido" id="califica">
-      <div class="cr-texto">
-        <h3>¿Qué tal te suena?</h3>
-        <p>Toca de una a cinco notas y deja tu nombre. CG lee cada calificación, y si la aprueba sale en <a href="/calificar/">la página de calificaciones</a>.</p>
-      </div>
-      <form class="cr-form" id="form-rapido" novalidate>
-        <fieldset>
-          <legend class="solo-lector">Tu calificación</legend>
-          <div class="fila-notas" id="notas-rapido">
-            <input type="radio" name="notas-r" id="r1" value="1"><label for="r1" title="No me gustó"><svg viewBox="0 0 44 36" aria-hidden="true"><ellipse cx="22" cy="18" rx="17" ry="12.5" transform="rotate(-22 22 18)"/></svg><span class="solo-lector">1 nota: no me gustó</span></label>
-            <input type="radio" name="notas-r" id="r2" value="2"><label for="r2" title="Le falta"><svg viewBox="0 0 44 36" aria-hidden="true"><ellipse cx="22" cy="18" rx="17" ry="12.5" transform="rotate(-22 22 18)"/></svg><span class="solo-lector">2 notas: le falta</span></label>
-            <input type="radio" name="notas-r" id="r3" value="3"><label for="r3" title="Está bien"><svg viewBox="0 0 44 36" aria-hidden="true"><ellipse cx="22" cy="18" rx="17" ry="12.5" transform="rotate(-22 22 18)"/></svg><span class="solo-lector">3 notas: está bien</span></label>
-            <input type="radio" name="notas-r" id="r4" value="4"><label for="r4" title="Me gusta"><svg viewBox="0 0 44 36" aria-hidden="true"><ellipse cx="22" cy="18" rx="17" ry="12.5" transform="rotate(-22 22 18)"/></svg><span class="solo-lector">4 notas: me gusta</span></label>
-            <input type="radio" name="notas-r" id="r5" value="5"><label for="r5" title="Me encanta"><svg viewBox="0 0 44 36" aria-hidden="true"><ellipse cx="22" cy="18" rx="17" ry="12.5" transform="rotate(-22 22 18)"/></svg><span class="solo-lector">5 notas: me encanta</span></label>
-          </div>
-          <p class="notas-dice" id="dice-rapido" aria-hidden="true">Elige de una a cinco notas.</p>
-        </fieldset>
-        <div class="cr-mas">
-          <label class="campo"><span>Tu nombre</span><input id="nombre-rapido" required minlength="2" maxlength="40" autocomplete="name"></label>
-          <label class="campo"><span>Comentario <em>(opcional)</em></span><textarea id="comentario-rapido" maxlength="500" rows="2"></textarea></label>
-          <div class="trampa" aria-hidden="true"><label>Tu sitio web<input id="sitio-rapido" tabindex="-1" autocomplete="off"></label></div>
-          <div class="cr-enviar">
-            <button class="boton" type="submit" id="enviar-rapido"><svg class="simbolo" viewBox="-13 1 107 98" aria-hidden="true" focusable="false"><use href="#trazo-chico"/><ellipse class="nota" cx="1.5" cy="84" rx="13.5" ry="10" transform="rotate(-22 1.5 84)"/></svg>Enviar</button>
-            <p class="aviso-datos">Sale en la web solo si CG la aprueba. ¿Quieres que te respondan? <a href="/calificar/">Déjanos tu correo aquí</a>.</p>
-          </div>
-          <p class="resultado" id="resultado-rapido" role="status" aria-live="polite"></p>
-        </div>
-      </form>
-    </div>
     <div class="final-grid">
       <div>
         <h3>Lo nuevo en la 1.3.2</h3>
@@ -285,6 +290,6 @@
 </aside>
 <p class="solo-lector" id="voz" aria-live="polite"></p>
 
-<script src="/landing.js?v=5" defer></script>
+<script src="/landing.js?v=6" defer></script>
 </body>
 </html>

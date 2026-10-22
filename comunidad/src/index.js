@@ -173,8 +173,9 @@ async function resumen(env) {
     total += r.n;
     suma += r.estrellas * r.n;
   }
-  if (total < MIN_VISIBLE) return { total, visible: false };
-  return { total, visible: true, promedio: Math.round((suma / total) * 10) / 10, porEstrella };
+  // visible sigue igual para la app y la insignia (desde MIN_VISIBLE); la web muestra el promedio desde el primer voto.
+  if (!total) return { total, visible: false };
+  return { total, visible: total >= MIN_VISIBLE, promedio: Math.round((suma / total) * 10) / 10, porEstrella };
 }
 
 // ─── Reseñas de la web (22-10) ──────────────────────────────────────────────

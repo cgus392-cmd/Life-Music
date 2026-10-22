@@ -5,6 +5,9 @@
 /descargar   /apk                                                                                     302
 /github      https://github.com/cgus392-cmd/Life-Music                                                302
 # /novedades, /privacidad, /estado y /calificar son paginas propias desde el 22-10 (carpetas con index.html).
+# El enlace para pedir calificaciones: la portada, que al ver /califica baja sola al bloque de las notas.
+/califica    /            200
+/califica/   /            200
 # Life Music TV en el navegador: la misma pagina del receptor de Cast (200 = se
 # sirve sin cambiar la direccion; la pagina sabe por la ruta que es /tv).
 /tv          /cast/                                                                                   200
