@@ -6,6 +6,38 @@
 /*
   X-Content-Type-Options: nosniff
   Referrer-Policy: strict-origin-when-cross-origin
+  Strict-Transport-Security: max-age=31536000
+# La portada y las paginas de adentro (22-10): sin scripts ni estilos en linea, solo hablan con GitHub, la
+# comunidad y el relevo del TV. La CSP tambien deja afuera cualquier analitica que se inyecte sola.
+# /cast, /tv y /concurso quedan sin CSP: usan el SDK de Cast, hls.js y estilos en linea.
+/
+  Content-Security-Policy: default-src 'self'; script-src 'self'; style-src 'self'; font-src 'self'; img-src 'self' data:; connect-src 'self' https://api.github.com https://lifemusic-comunidad.cho--usic.workers.dev https://lifemusic-enlace.cho--usic.workers.dev; frame-ancestors 'none'; base-uri 'self'; form-action 'self'; object-src 'none'
+  X-Frame-Options: DENY
+  Permissions-Policy: camera=(), microphone=(), geolocation=(), payment=(), usb=()
+/califica
+  Content-Security-Policy: default-src 'self'; script-src 'self'; style-src 'self'; font-src 'self'; img-src 'self' data:; connect-src 'self' https://api.github.com https://lifemusic-comunidad.cho--usic.workers.dev https://lifemusic-enlace.cho--usic.workers.dev; frame-ancestors 'none'; base-uri 'self'; form-action 'self'; object-src 'none'
+  X-Frame-Options: DENY
+  Permissions-Policy: camera=(), microphone=(), geolocation=(), payment=(), usb=()
+/califica/
+  Content-Security-Policy: default-src 'self'; script-src 'self'; style-src 'self'; font-src 'self'; img-src 'self' data:; connect-src 'self' https://api.github.com https://lifemusic-comunidad.cho--usic.workers.dev https://lifemusic-enlace.cho--usic.workers.dev; frame-ancestors 'none'; base-uri 'self'; form-action 'self'; object-src 'none'
+  X-Frame-Options: DENY
+  Permissions-Policy: camera=(), microphone=(), geolocation=(), payment=(), usb=()
+/calificar/*
+  Content-Security-Policy: default-src 'self'; script-src 'self'; style-src 'self'; font-src 'self'; img-src 'self' data:; connect-src 'self' https://api.github.com https://lifemusic-comunidad.cho--usic.workers.dev; frame-ancestors 'none'; base-uri 'self'; form-action 'self'; object-src 'none'
+  X-Frame-Options: DENY
+  Permissions-Policy: camera=(), microphone=(), geolocation=(), payment=(), usb=()
+/novedades/*
+  Content-Security-Policy: default-src 'self'; script-src 'self'; style-src 'self'; font-src 'self'; img-src 'self' data:; connect-src 'self' https://api.github.com; frame-ancestors 'none'; base-uri 'self'; form-action 'self'; object-src 'none'
+  X-Frame-Options: DENY
+  Permissions-Policy: camera=(), microphone=(), geolocation=(), payment=(), usb=()
+/estado/*
+  Content-Security-Policy: default-src 'self'; script-src 'self'; style-src 'self'; font-src 'self'; img-src 'self' data:; connect-src 'self' https://api.github.com https://lifemusic-comunidad.cho--usic.workers.dev https://lifemusic-enlace.cho--usic.workers.dev; frame-ancestors 'none'; base-uri 'self'; form-action 'self'; object-src 'none'
+  X-Frame-Options: DENY
+  Permissions-Policy: camera=(), microphone=(), geolocation=(), payment=(), usb=()
+/privacidad/*
+  Content-Security-Policy: default-src 'self'; script-src 'self'; style-src 'self'; font-src 'self'; img-src 'self' data:; connect-src 'self'; frame-ancestors 'none'; base-uri 'self'; form-action 'self'; object-src 'none'
+  X-Frame-Options: DENY
+  Permissions-Policy: camera=(), microphone=(), geolocation=(), payment=(), usb=()
 # Cabina del equipo (privada): sin scripts, estilos ni fuentes de afuera, sin marcos, sin indexar.
 /equipo
   Content-Security-Policy: default-src 'self'; script-src 'self'; style-src 'self'; font-src 'self'; img-src 'self' data: blob:; connect-src 'self'; frame-ancestors 'none'; base-uri 'none'; form-action 'self'; object-src 'none'
