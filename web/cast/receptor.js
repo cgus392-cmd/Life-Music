@@ -101,7 +101,7 @@
   // ── Saludo ────────────────────────────────────────────────────────────────
   function saludoDelDia() {
     var h = new Date().getHours();
-    if (h >= 5 && h < 12) return "Buenos dias";
+    if (h >= 5 && h < 12) return "Buenos días";
     if (h >= 12 && h < 19) return "Buenas tardes";
     return "Buenas noches";
   }
@@ -111,6 +111,13 @@
     elEstadoSaludo.textContent = texto;
     elEstadoSaludo.classList.toggle("listo", !!listo);
   }
+
+  // Nova, la anfitriona (identidad Pulso, 22-10-2026): en la bienvenida te mira, en el saludo de entrada habla
+  // y en Activar mira el boton. Nunca sale mientras suena la musica (los temas no la llevan).
+  function crearNova(id, opciones) { return window.NovaTV && $(id) ? window.NovaTV.crear($(id), opciones) : null; }
+  crearNova("nova-bienvenida", { mira: [3, 0] });
+  var novaSaludo = crearNova("nova-saludo", { estado: "habla", mira: [4, 1] });
+  crearNova("nova-activar", { mira: [0, 6] });
 
   // ── Cancion y letra ───────────────────────────────────────────────────────
   // El LOAD estandar y el mensaje propio «cancion» llegan por separado y en
@@ -158,7 +165,10 @@
     $("saludo-frase").textContent = frase || "";
     elSaludoPantalla.classList.add("visible");
     saludoActivo = true;
+    if (novaSaludo) novaSaludo.estado("habla");
     clearTimeout(saludoTemporizador);
+    // Nova termina de hablar y sonrie justo antes de que el saludo se vaya.
+    setTimeout(function () { if (novaSaludo && saludoActivo) novaSaludo.estado("termino"); }, SALUDO_MS - 900);
     saludoTemporizador = setTimeout(function () {
       elSaludoPantalla.classList.remove("visible");
       saludoActivo = false;
@@ -176,7 +186,7 @@
     escena.classList.add("vacia");
     escena.classList.remove("con-cancion");
     document.body.classList.remove("con-cancion");
-    estadoSaludo("Elige una cancion en el telefono", true);
+    estadoSaludo("Elige una canción en el teléfono", true);
   }
 
   // Texto que cambia: sale hacia arriba, entra desde abajo.
@@ -1320,7 +1330,7 @@
 
     context.addEventListener(cast.framework.system.EventType.READY, function () {
       estado("Cast listo · esperando la cancion");
-      estadoSaludo("Esperando al telefono…", false);
+      estadoSaludo("Esperando al teléfono…", false);
       mandarDiag = function (texto) { context.sendCustomMessage(NS, undefined, { tipo: "diag", texto: texto }); };
       diag("receptor " + VERSION + " listo");
       // Aviso formal de arranque: el telefono contesta con el saludo (lo que mande antes se pierde).
@@ -1336,10 +1346,10 @@
     });
     context.addEventListener(cast.framework.system.EventType.SENDER_CONNECTED, function () {
       estado("Telefono conectado");
-      estadoSaludo("Telefono conectado · elige una cancion", true);
+      estadoSaludo("Teléfono conectado · elige una canción", true);
     });
     context.addEventListener(cast.framework.system.EventType.SENDER_DISCONNECTED, function () {
-      estadoSaludo("Esperando al telefono…", false);
+      estadoSaludo("Esperando al teléfono…", false);
     });
     var opciones = new cast.framework.CastReceiverOptions();
     opciones.disableIdleTimeout = false;
@@ -1365,7 +1375,7 @@
     if (params.tema) ponerTema(params.tema);
     // En el navegador, la tecla T pasa al tema siguiente.
     document.addEventListener("keydown", function (e) { if (e.key === "t" || e.key === "T") ponerTema(TEMAS[(TEMAS.indexOf(tema) + 1) % TEMAS.length]); });
-    estadoSaludo("Demo: la cancion llega en 3 s", true);
+    estadoSaludo("Demo: la canción llega en 3 s", true);
     if (params.saludo) setTimeout(function () { mostrarSaludo("Buenas noches", "Baja el volumen, sube el sentimiento."); }, 600);
 
     // Caratulas de mentira: un degradado con las iniciales.

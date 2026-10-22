@@ -77,11 +77,14 @@
     </header>
 
     <!-- Sin cancion: la bienvenida. -->
+    <!-- Identidad Pulso (22-10-2026): Nova espera contigo; el estado va abajo, con palabras. -->
     <section id="bienvenida">
-      <div class="logo-halo"><img src="../img/lifemusic.png" alt="Life Music" width="120" height="120"></div>
-      <p id="saludo" class="saludo">Buenas noches</p>
-      <h1>Listo para sonar</h1>
-      <p id="saludo-estado" class="saludo-estado">Esperando al telefono…</p>
+      <div class="marca-tv"><svg viewBox="-14 0 532 100" role="img" aria-label="Life Music"><path d="M28 31 Q28 22 21 18 Q13 14 12 8 V80 Q12 92 24 92 Q36 92 36 80 V58 Q36 42 49 42 Q62 42 62 58 V90 V58 Q62 42 75 42 Q88 42 88 58 V90" fill="none" stroke="#F2F2EF" stroke-width="9" stroke-linecap="round" stroke-linejoin="round"/><ellipse cx="2.5" cy="85" rx="11.5" ry="8.5" transform="rotate(-22 2.5 85)" fill="#FF6B3D"/><text x="116" y="88" font-family="Geist, sans-serif" font-weight="600" font-size="86" letter-spacing="-4.3" fill="#F2F2EF">Life Music</text></svg><span>TV</span></div>
+      <div class="bv-escena">
+        <div class="nova-tv" id="nova-bienvenida"></div>
+        <div><p id="saludo" class="saludo">Buenas noches</p><h1>Listo para sonar</h1></div>
+      </div>
+      <p id="saludo-estado" class="saludo-estado">Esperando al teléfono…</p>
       <!-- Estado del arranque de Cast: para saber, mirando el TV, si la pagina llego a decir «lista». -->
       <p id="estado" class="estado"></p>
     </section>
@@ -178,8 +181,11 @@
 
   <!-- El saludo de entrada de la app, en el TV: llega del telefono al conectar. -->
   <section id="saludo-pantalla" aria-live="polite">
-    <p id="saludo-cabecera"></p>
-    <p id="saludo-frase"></p>
+    <div class="marca-tv"><svg viewBox="-14 0 532 100" role="img" aria-label="Life Music"><path d="M28 31 Q28 22 21 18 Q13 14 12 8 V80 Q12 92 24 92 Q36 92 36 80 V58 Q36 42 49 42 Q62 42 62 58 V90 V58 Q62 42 75 42 Q88 42 88 58 V90" fill="none" stroke="#F2F2EF" stroke-width="9" stroke-linecap="round" stroke-linejoin="round"/><ellipse cx="2.5" cy="85" rx="11.5" ry="8.5" transform="rotate(-22 2.5 85)" fill="#FF6B3D"/><text x="116" y="88" font-family="Geist, sans-serif" font-weight="600" font-size="86" letter-spacing="-4.3" fill="#F2F2EF">Life Music</text></svg><span>TV</span></div>
+    <div class="sp-escena">
+      <div class="sp-quien"><div class="nova-tv" id="nova-saludo"></div><p id="saludo-cabecera"></p></div>
+      <p id="saludo-frase"></p>
+    </div>
   </section>
 
   <!-- TV con navegador: el enlace con codigo y QR (diseno 1.3.2, maqueta aprobada
@@ -218,7 +224,12 @@
 
   <!-- Algunos navegadores no dejan sonar audio hasta que se toca algo. -->
   <section id="activar" class="oculto">
-    <button id="activar-boton" type="button">Presiona OK para activar el sonido</button>
+    <div class="marca-tv"><svg viewBox="-14 0 532 100" role="img" aria-label="Life Music"><path d="M28 31 Q28 22 21 18 Q13 14 12 8 V80 Q12 92 24 92 Q36 92 36 80 V58 Q36 42 49 42 Q62 42 62 58 V90 V58 Q62 42 75 42 Q88 42 88 58 V90" fill="none" stroke="#F2F2EF" stroke-width="9" stroke-linecap="round" stroke-linejoin="round"/><ellipse cx="2.5" cy="85" rx="11.5" ry="8.5" transform="rotate(-22 2.5 85)" fill="#FF6B3D"/><text x="116" y="88" font-family="Geist, sans-serif" font-weight="600" font-size="86" letter-spacing="-4.3" fill="#F2F2EF">Life Music</text></svg><span>TV</span></div>
+    <div class="act-escena">
+      <div class="nova-tv" id="nova-activar"></div>
+      <button id="activar-boton" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M11 5 6 9H3v6h3l5 4z"/><path d="M15.5 8.5a5 5 0 0 1 0 7M18.5 5.5a9 9 0 0 1 0 13"/></svg>Presiona OK para activar el sonido</button>
+      <p class="act-nota">Tu TV pide un toque antes de sonar.</p>
+    </div>
   </section>
 
   <!-- Mandos del TV con navegador: iconos que aparecen al tocar una tecla del
@@ -245,6 +256,6 @@
   <script>
     if (window.MODO_TV) document.write('<script src="qrcode.js?v=20261007b"><\/script><script src="tv.js?v=20261022a"><\/script>');
   </script>
-  <script src="receptor.js?v=20261009a"></script>
+  <script src="receptor.js?v=20261022a"></script>
 </body>
 </html>

@@ -41,34 +41,26 @@ cast-media-player { display: none; }
 .marca img { width: 2.8vmin; height: 2.8vmin; margin-right: 0.8vmin; border-radius: 0.7vmin; }
 
 /* ── Bienvenida (sin cancion) ─────────────────────────────────────────── */
+/* Identidad Pulso (maqueta aprobada por CG el 22-10-2026): carbon, Geist, Nova grande que espera contigo,
+   el saludo por hora y «Listo para sonar» a 128 px; el estado abajo a la izquierda, con palabras. */
 #bienvenida {
   position: absolute; top: 0; right: 0; bottom: 0; left: 0;
-  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1.2vmin;
-  text-align: center;
+  display: -webkit-flex; display: flex; -webkit-flex-direction: column; flex-direction: column;
+  padding: 5vmin 8.9vmin;
+  font-family: "Geist", "Segoe UI", Roboto, sans-serif; color: #F2F2EF; background: #0E0E0E;
   transition: opacity 700ms var(--suave), transform 700ms var(--suave), visibility 0s linear 700ms;
 }
 #escena.con-cancion #bienvenida { opacity: 0; transform: scale(1.06); visibility: hidden; }
 #escena.vacia #bienvenida { opacity: 1; transform: none; visibility: visible; transition-delay: 0s; }
-
-/* El logo llega primero, con un halo que respira; el texto sube detras. */
-.logo-halo { position: relative; width: 14vmin; height: 14vmin; margin-bottom: 1.6vmin; animation: aparece 900ms var(--suave) both; }
-.logo-halo::before {
-  content: ""; position: absolute; top: -3vmin; right: -3vmin; bottom: -3vmin; left: -3vmin; border-radius: 50%;
-  background: radial-gradient(circle, rgba(52, 211, 153, 0.35) 0%, rgba(52, 211, 153, 0) 70%);
-  animation: respira 3200ms ease-in-out infinite;
-}
-.logo-halo img { position: relative; width: 100%; height: 100%; border-radius: 3vmin; box-shadow: 0 2vmin 6vmin rgba(0,0,0,0.6); }
-#bienvenida .saludo { font-size: 2.4vmin; font-weight: 600; letter-spacing: 0.16em; text-transform: uppercase; color: var(--verde); animation: sube 700ms var(--suave) 250ms both; }
-#bienvenida h1 { font-size: 5.6vmin; font-weight: 700; letter-spacing: -0.02em; animation: sube 700ms var(--suave) 380ms both; }
-#bienvenida .saludo-estado {
-  margin-top: 1.4vmin; padding: 1vmin 2.4vmin; border-radius: 10vmin;
-  font-size: 2.3vmin; color: var(--texto-2);
-  background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1);
-  animation: sube 700ms var(--suave) 520ms both;
-  transition: color 400ms, border-color 400ms, background 400ms;
-}
-#bienvenida .saludo-estado.listo { color: var(--texto); border-color: rgba(52, 211, 153, 0.45); background: rgba(52, 211, 153, 0.12); }
-#bienvenida .estado { position: absolute; bottom: 0; left: 0; right: 0; font-size: 1.6vmin; color: var(--texto-3); font-family: monospace; word-break: break-word; }
+#escena.vacia > .marca { visibility: hidden; }
+.bv-escena { -webkit-flex: 1 1 auto; flex: 1 1 auto; display: -webkit-flex; display: flex; -webkit-align-items: center; align-items: center; padding-bottom: 3.7vmin; }
+.bv-escena .nova-tv { -webkit-flex: none; flex: none; width: 35.2vmin; height: 35.2vmin; margin: 0 5.9vmin 0 -2.8vmin; -webkit-animation: aparece 900ms var(--suave) both; animation: aparece 900ms var(--suave) both; }
+#bienvenida .saludo { font-size: 4.26vmin; font-weight: 500; letter-spacing: -0.015em; animation: sube 700ms var(--suave) 250ms both; }
+#bienvenida h1 { margin-top: 0.55vmin; font-size: 11.85vmin; line-height: 1; font-weight: 600; letter-spacing: -0.045em; animation: sube 700ms var(--suave) 380ms both; }
+#bienvenida .saludo-estado { font-size: 2.96vmin; color: #A1A19D; transition: color 400ms; }
+#bienvenida .saludo-estado.listo { color: #F2F2EF; }
+/* Estado del arranque de Cast: para leerlo mirando el TV si algo falla; chico y tenue, abajo a la derecha. */
+#bienvenida .estado { position: absolute; right: 8.9vmin; bottom: 5vmin; max-width: 50vw; text-align: right; font-size: 1.4vmin; color: #6E6E6A; word-break: break-word; }
 
 @keyframes aparece { from { opacity: 0; transform: scale(0.6); } to { opacity: 1; transform: none; } }
 @keyframes sube { from { opacity: 0; transform: translateY(2.4vmin); } to { opacity: 1; transform: none; } }
@@ -150,22 +142,26 @@ cast-media-player { display: none; }
 }
 
 /* ── Saludo de entrada (el de la app, al conectar el telefono) ─────────── */
+/* Identidad Pulso (22-10): Nova habla con sus anillos junto al saludo por hora, y la frase del telefono en grande. */
 #saludo-pantalla {
   position: fixed; top: 0; right: 0; bottom: 0; left: 0; z-index: 5;
-  display: flex; flex-direction: column; align-items: center; justify-content: center;
-  text-align: center; padding: 0 12vmin;
-  background: radial-gradient(ellipse at 50% 42%, rgba(52, 211, 153, 0.18) 0%, rgba(52, 211, 153, 0) 60%), rgba(3, 5, 4, 0.9);
+  display: -webkit-flex; display: flex; -webkit-flex-direction: column; flex-direction: column;
+  padding: 5vmin 8.9vmin;
+  font-family: "Geist", "Segoe UI", Roboto, sans-serif; color: #F2F2EF; background: #0E0E0E;
   opacity: 0; visibility: hidden;
   transition: opacity 500ms var(--suave), visibility 0s linear 500ms;
 }
 #saludo-pantalla.visible { opacity: 1; visibility: visible; transition-delay: 0s; }
+.sp-escena { -webkit-flex: 1 1 auto; flex: 1 1 auto; display: -webkit-flex; display: flex; -webkit-flex-direction: column; flex-direction: column; -webkit-justify-content: center; justify-content: center; padding-bottom: 5.6vmin; }
+.sp-quien { display: -webkit-flex; display: flex; -webkit-align-items: center; align-items: center; margin-left: -2vmin; }
+.sp-quien .nova-tv { -webkit-flex: none; flex: none; width: 17.6vmin; height: 17.6vmin; margin-right: 2.6vmin; }
 #saludo-cabecera {
-  font-size: 2.5vmin; font-weight: 600; letter-spacing: 0.14em; color: var(--verde);
-  margin-bottom: 2.6vmin; transform: translateY(1.6vmin); transition: transform 520ms var(--suave);
+  font-size: 4.07vmin; font-weight: 500; letter-spacing: -0.01em; color: #A1A19D;
+  transform: translateY(1.6vmin); transition: transform 520ms var(--suave);
 }
 #saludo-frase {
-  font-size: 6.2vmin; font-style: italic; font-weight: 400; line-height: 1.25; letter-spacing: -0.01em;
-  max-width: 82vw; transform: translateY(1.6vmin); transition: transform 640ms var(--suave);
+  margin-top: 2.6vmin; max-width: 144vmin; font-size: 12.6vmin; font-weight: 600; line-height: 1.02; letter-spacing: -0.045em;
+  transform: translateY(1.6vmin); transition: transform 640ms var(--suave);
 }
 #saludo-pantalla.visible #saludo-cabecera, #saludo-pantalla.visible #saludo-frase { transform: none; }
 
@@ -604,17 +600,26 @@ body.tema-tocadiscos #td-ui { display: block; }
 @keyframes nova-voz { 50% { transform: scale(1.06); opacity: 0.6; } }
 body.ligero .nova-tv .nova-cuerpo, body.ligero .nova-tv .nova-anillos { -webkit-animation: none; animation: none; }
 
+/* Activar (Pulso, 22-10): Nova mira el boton; un solo boton con el foco puesto y la razon debajo. */
 #activar {
   position: fixed; top: 0; left: 0; right: 0; bottom: 0; z-index: 40;
-  display: -webkit-flex; display: flex; -webkit-align-items: center; align-items: center; -webkit-justify-content: center; justify-content: center;
-  background: rgba(0, 0, 0, 0.74);
+  display: -webkit-flex; display: flex; -webkit-flex-direction: column; flex-direction: column;
+  padding: 5vmin 8.9vmin;
+  font-family: "Geist", "Segoe UI", Roboto, sans-serif; color: #F2F2EF; background: #0E0E0E;
 }
 #activar.oculto { display: none; }
+.act-escena { -webkit-flex: 1 1 auto; flex: 1 1 auto; display: -webkit-flex; display: flex; -webkit-flex-direction: column; flex-direction: column; -webkit-align-items: center; align-items: center; -webkit-justify-content: center; justify-content: center; padding-bottom: 5.2vmin; }
+.act-escena .nova-tv { width: 27.8vmin; height: 27.8vmin; }
 #activar-boton {
-  padding: 2.8vmin 6.4vmin; border: 0; border-radius: 10vmin; cursor: pointer;
-  font: inherit; font-size: 3.8vmin; font-weight: 700; color: #062016; background: #34D399;
-  box-shadow: 0 2vmin 6vmin rgba(52, 211, 153, 0.35);
+  display: -webkit-inline-flex; display: inline-flex; -webkit-align-items: center; align-items: center;
+  margin-top: 3.7vmin; min-height: 10vmin; padding: 0 5.6vmin; border: 0; border-radius: 5vmin; cursor: pointer;
+  font: inherit; font-size: 3.9vmin; font-weight: 600; letter-spacing: -0.01em;
+  color: #F2F2EF; background: transparent; box-shadow: inset 0 0 0 2px rgba(242, 242, 239, 0.32);
 }
+#activar-boton svg { width: 4.07vmin; height: 4.07vmin; margin-right: 1.7vmin; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+/* El foco del control: relleno hueso, letra carbon y un aro hueso separado (se ve desde el sofa). */
+#activar-boton:focus { outline: none; color: #111111; background: #F5F5F3; box-shadow: 0 0 0 0.55vmin #0E0E0E, 0 0 0 0.93vmin #F5F5F3; }
+.act-nota { margin-top: 3.7vmin; font-size: 2.78vmin; color: #A1A19D; }
 
 /* Mandos con icono: el nombre aparece en una etiqueta solo con el foco. */
 #mandos-tv { display: none; }
@@ -634,7 +639,6 @@ body.modo-tv #escena.vacia ~ #mandos-tv, body.modo-tv.mandos #mandos-tv, body.mo
   opacity: 0; pointer-events: none; transition: opacity 200ms ease;
 }
 .boton-ico:focus .etiqueta, .boton-ico:hover .etiqueta { opacity: 1; }
-#activar-boton:focus { outline: 0.5vmin solid #34D399; outline-offset: 0.4vmin; }
 
 /* Aviso corto abajo al centro (1.3.3): p. ej., si el navegador no deja pantalla completa. */
 .tv-aviso {
