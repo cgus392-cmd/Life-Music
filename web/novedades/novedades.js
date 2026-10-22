@@ -151,5 +151,7 @@
       li.appendChild(a);
       li.append(".");
       lista.appendChild(li);
-    });
+    })
+    // Sin aria-live en la lista: un lector de pantalla leeria todas las notas de golpe. Solo se avisa que ya cargo.
+    .finally(() => lista.setAttribute("aria-busy", "false"));
 })();
