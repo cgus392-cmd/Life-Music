@@ -25,7 +25,7 @@
      relativo (temas, cristal.js, imagenes) se busca siempre en /cast/. -->
 <base href="/cast/">
 <link rel="icon" type="image/png" href="../img/lifemusic.png">
-<link rel="stylesheet" href="receptor.css?v=20261009a">
+<link rel="stylesheet" href="receptor.css?v=20261022a">
 <script>
   // En un Chromecast se carga el SDK de Cast como siempre (bloqueante, antes del
   // body). En /tv no hace falta: alli enlaza tv.js por el relevo.
@@ -184,33 +184,34 @@
 
   <!-- TV con navegador: el enlace con codigo y QR (diseno 1.3.2, maqueta aprobada
        por CG: docs/versiones/1.3.2/maqueta-enlace.html). -->
+  <!-- Enlazar (identidad Pulso, 22-10-2026): Nova recibe y mira el codigo; el codigo grande y el QR. -->
   <section id="enlace" class="oculto" aria-live="polite">
-    <div class="enl-aurora" aria-hidden="true"><i></i><i></i><i></i></div>
     <header class="enl-cabecera">
-      <div class="enl-marca"><img src="../img/lifemusic.png" alt="" width="40" height="40"><span>Life Music<small>TV</small></span></div>
-      <span id="enl-servidor" class="enl-chip"><span class="enl-punto"></span><span id="enl-servidor-texto">Conectando con el servidor…</span></span>
+      <div class="marca-tv"><svg viewBox="-14 0 532 100" role="img" aria-label="Life Music"><path d="M28 31 Q28 22 21 18 Q13 14 12 8 V80 Q12 92 24 92 Q36 92 36 80 V58 Q36 42 49 42 Q62 42 62 58 V90 V58 Q62 42 75 42 Q88 42 88 58 V90" fill="none" stroke="#F2F2EF" stroke-width="9" stroke-linecap="round" stroke-linejoin="round"/><ellipse cx="2.5" cy="85" rx="11.5" ry="8.5" transform="rotate(-22 2.5 85)" fill="#FF6B3D"/><text x="116" y="88" font-family="Geist, sans-serif" font-weight="600" font-size="86" letter-spacing="-4.3" fill="#F2F2EF">Life Music</text></svg><span>TV</span></div>
+      <p id="enl-servidor" class="enl-servidor"><span id="enl-servidor-texto">Conectando con el servidor…</span></p>
     </header>
     <div class="enl-cuerpo">
       <div class="enlace-texto">
-        <p class="enlace-marca">Enlaza tu teléfono</p>
-        <h1 id="enlace-titulo">Tu música, <i>en grande.</i></h1>
+        <div class="enl-anfitriona">
+          <div class="nova-tv" id="nova-enlace"></div>
+          <p id="enlace-titulo" class="enl-dice"><b>Hola, soy Nova.</b> Enlaza tu teléfono y pongo tu música en grande.</p>
+        </div>
         <ol class="enl-pasos">
-          <li><span class="enl-ico"><svg viewBox="0 0 24 24"><rect x="7" y="2" width="10" height="20" rx="2.5"/><path d="M11 18h2"/></svg></span><span>Abre <b>Life Music</b> en tu teléfono</span></li>
-          <li><span class="enl-ico"><svg viewBox="0 0 24 24"><path d="M2 16a6 6 0 0 1 6 6M2 12a10 10 0 0 1 10 10"/><path d="M2 8V6a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2h-6"/></svg></span><span>Toca transmitir → <b>TV con navegador</b></span></li>
-          <li><span class="enl-ico"><svg viewBox="0 0 24 24"><rect x="2" y="6" width="20" height="12" rx="2"/><path d="M6 10h.01M10 10h.01M14 10h.01M18 10h.01M7 14h10"/></svg></span><span>Escribe este <b>código</b></span></li>
+          <li><span>1</span><div>Abre <b>Life Music</b> en tu teléfono</div></li>
+          <li><span>2</span><div>Toca transmitir y elige <b>TV con navegador</b></div></li>
+          <li><span>3</span><div>Escribe este código</div></li>
         </ol>
-        <div id="enlace-codigo" class="enl-codigo" aria-label="Código"></div>
-        <div id="enl-vigencia" class="enl-vigencia"><span class="enl-barra"><i id="enl-barra"></i></span><span id="enl-vence"></span></div>
+        <div class="enl-clave">
+          <div id="enlace-codigo" class="enl-codigo" aria-label="Código"></div>
+          <div id="enl-vigencia" class="enl-vigencia"><span class="enl-barra"><i id="enl-barra"></i></span><span id="enl-vence"></span></div>
+        </div>
         <p id="enlace-estado" class="enlace-estado"></p>
         <p id="enlace-nota" class="enlace-nota"></p>
       </div>
-      <div class="enlace-qr-marco">
-        <div class="enl-anillo">
-          <svg class="enl-aro" viewBox="0 0 100 100" aria-hidden="true"><circle class="enl-aro-fondo" cx="50" cy="50" r="47"/><circle id="enl-aro" class="enl-aro-vivo" cx="50" cy="50" r="47"/></svg>
-          <canvas id="enlace-qr" width="440" height="440" aria-label="Código QR para enlazar"></canvas>
-        </div>
-        <p>O escanéalo con la cámara del teléfono</p>
-      </div>
+      <figure class="enlace-qr-marco">
+        <div class="enl-qr-caja"><canvas id="enlace-qr" width="440" height="440" aria-label="Código QR para enlazar"></canvas></div>
+        <figcaption>O escanéalo con la cámara del teléfono</figcaption>
+      </figure>
     </div>
     <p id="enlace-compat" class="enlace-compat"></p>
   </section>
@@ -240,8 +241,9 @@
     </div>
   </section>
 
+  <script src="nova-tv.js?v=20261022a"></script>
   <script>
-    if (window.MODO_TV) document.write('<script src="qrcode.js?v=20261007b"><\/script><script src="tv.js?v=20261009a"><\/script>');
+    if (window.MODO_TV) document.write('<script src="qrcode.js?v=20261007b"><\/script><script src="tv.js?v=20261022a"><\/script>');
   </script>
   <script src="receptor.js?v=20261009a"></script>
 </body>

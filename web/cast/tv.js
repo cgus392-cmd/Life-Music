@@ -156,6 +156,8 @@
 
   // ── 2. Pantalla del enlace ────────────────────────────────────────────────
   var elEnlace = $("enlace");
+  // Nova recibe en Enlazar y mira el codigo (identidad Pulso, 22-10-2026); sonrie cuando el telefono enlaza.
+  var novaEnlace = window.NovaTV && $("nova-enlace") ? window.NovaTV.crear($("nova-enlace"), { mira: [5, 4] }) : null;
   function mostrarEnlace(si) {
     if (!elEnlace) return;
     if (si) elEnlace.className = elEnlace.className.replace(/\s*oculto/g, "");
@@ -176,25 +178,23 @@
     if (!caja) return;
     while (caja.firstChild) caja.removeChild(caja.firstChild);
     caja.setAttribute("aria-label", "Código " + c.slice(0, 3) + " " + c.slice(3));
-    for (var i = 0; i < c.length; i++) {
-      if (i === 3) { var s = document.createElement("span"); s.className = "enl-separa"; caja.appendChild(s); }
-      var f = document.createElement("span");
-      f.className = "enl-ficha";
-      f.style.animationDelay = (i * 0.05) + "s";
-      f.textContent = c.charAt(i);
-      caja.appendChild(f);
+    // En dos grupos de tres, sin fichas (maqueta Pulso, 22-10-2026).
+    for (var i = 0; i < 2; i++) {
+      var grupo = document.createElement("span");
+      grupo.textContent = c.slice(i * 3, i * 3 + 3);
+      caja.appendChild(grupo);
     }
+    if (novaEnlace) novaEnlace.estado("escucha");
   }
 
   // Cuenta regresiva de la vigencia del codigo: barra, anillo del QR y «4:12».
-  var vigenciaHasta = 0, relojVigencia = null, LARGO_ARO = 295.3;
+  var vigenciaHasta = 0, relojVigencia = null;
   function pintarVigencia() {
     var quedan = Math.max(0, vigenciaHasta - Date.now());
     var s = Math.ceil(quedan / 1000), m = Math.floor(s / 60);
     var fraccion = quedan / VIDA_CODIGO;
-    var barra = $("enl-barra"), aro = $("enl-aro"), vence = $("enl-vence");
+    var barra = $("enl-barra"), vence = $("enl-vence");
     if (barra) barra.style.width = (fraccion * 100) + "%";
-    if (aro) aro.style.strokeDashoffset = String(LARGO_ARO * (1 - fraccion));
     if (vence) {
       while (vence.firstChild) vence.removeChild(vence.firstChild);
       vence.appendChild(document.createTextNode("Vence en "));
@@ -218,10 +218,9 @@
 
   // Estado del servidor (1.3.2): el chip «● Servidor en línea» de la pantalla de enlace.
   function ponerServidor(bien) {
-    var chip = $("enl-servidor");
-    if (!chip) return;
-    alternarClase(chip, "ok", bien);
-    alternarClase(chip, "mal", !bien);
+    var linea = $("enl-servidor");
+    if (!linea) return;
+    alternarClase(linea, "mal", !bien); // dicho con palabras, sin punto de color (Pulso, 22-10)
     ponerTexto("enl-servidor-texto", bien ? "Servidor en línea" : "Servidor sin respuesta · reintentando");
   }
   function revisarServidor() {
@@ -281,13 +280,14 @@
     var qr = window.qrcode(0, "M");
     qr.addData(texto);
     qr.make();
-    var n = qr.getModuleCount(), margen = 2, celda = Math.floor(lienzo.width / (n + margen * 2));
+    // Carbon sobre hueso, dentro del cuadro hueso de la maqueta Pulso (el cuadro ya da el margen).
+    var n = qr.getModuleCount(), margen = 1, celda = Math.floor(lienzo.width / (n + margen * 2));
     var g = lienzo.getContext("2d");
     var ancho = celda * (n + margen * 2);
     var desde = Math.floor((lienzo.width - ancho) / 2);
-    g.fillStyle = "#FFFFFF";
+    g.fillStyle = "#F5F5F3";
     g.fillRect(0, 0, lienzo.width, lienzo.height);
-    g.fillStyle = "#0B0F0D";
+    g.fillStyle = "#111111";
     for (var f = 0; f < n; f++) {
       for (var k = 0; k < n; k++) {
         if (qr.isDark(f, k)) g.fillRect(desde + (k + margen) * celda, desde + (f + margen) * celda, celda, celda);
@@ -352,6 +352,7 @@
           guardar(CLAVE_TOKEN, m.token);
           if (m.nombre) guardar(CLAVE_TELEFONO, m.nombre);
           ponerTexto("enlace-estado", "¡Enlazado con " + (m.nombre || "tu teléfono") + "!");
+          if (novaEnlace) novaEnlace.estado("termino");
           try { wsCodigo.onclose = null; wsCodigo.close(); } catch (e) {}
           wsCodigo = null;
           clearTimeout(temporizadorCodigo);
