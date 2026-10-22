@@ -896,6 +896,7 @@
       <div class="fila-2 ancha">${bloqueConsola()}${bloqueMedidores()}</div>
       ${bloqueCinta()}
       <div class="fila-2">${bloqueBitacoraSala()}${bloqueContratacion()}</div>
+      ${bloqueResenas()}
       <div class="pie-sala"><span>Sin analítica · una sola cookie de sesión · política de datos (Ley 1581)</span>
         <nav><button data-ir="politica">Política de datos</button><button data-accion="codigo-aparato">Enlazar otro aparato</button><button data-accion="salir">Salir</button></nav></div>
     </div></div>`;
@@ -1024,6 +1025,26 @@
               <span class="estado ${i.gravedad === "alta" ? "mal" : i.gravedad === "media" ? "esp" : "gris"}">${i.gravedad.toUpperCase()}</span></li>`)}</ul>`
             : h`<p class="vacio">Ninguna abierta. Las fallas que marquen los supervisores llegan aquí solas.</p>`}</div>
       </div></section>`;
+  }
+
+  // Las reseñas de lifemusic.app/calificar: salen en la web solo si Camilo las publica aquí.
+  function bloqueResenas() {
+    const r = S.sala.resenas;
+    if (!r) return "";
+    const pend = r.lista.filter((x) => x.estado === "pendiente");
+    const ms = (t) => Date.parse(t.replace(" ", "T") + "Z");
+    const notas = (n) => h`<span class="notas-r" role="img" aria-label="${n} de 5 notas">${[1, 2, 3, 4, 5].map((k) => h`<svg viewBox="0 0 20 16" class="${k <= n ? "llena" : ""}" aria-hidden="true"><ellipse cx="10" cy="8" rx="7.5" ry="5.5" transform="rotate(-22 10 8)"/></svg>`)}</span>`;
+    const boton = (x, a, texto) => h`<button class="boton chico" data-accion="resena" data-id="${x.id}" data-a="${a}">${texto}</button>`;
+    const fila = (x) => h`<li class="${x.estado}"><div class="r-cab"><b>${x.nombre}</b>${notas(x.notas)}<time>${diaMes(ms(x.creada_en))} · ${horaCorta(ms(x.creada_en))}</time></div>
+      <p class="${x.comentario ? "" : "sin"}">${x.comentario || "Sin comentario, solo las notas."}</p>
+      ${x.correo ? h`<small>${x.correo} · solo lo ves tú, nunca se publica</small>` : ""}
+      <div class="r-acciones">${x.estado === "pendiente" ? h`${boton(x, "aprobada", "Publicar")}${boton(x, "oculta", "Ocultar")}`
+        : h`<span class="estado ${x.estado === "aprobada" ? "ok" : "gris"}">${x.estado === "aprobada" ? "PUBLICADA" : "OCULTA"}</span>${boton(x, x.estado === "aprobada" ? "oculta" : "aprobada", x.estado === "aprobada" ? "Ocultar" : "Publicar")}`}</div></li>`;
+    const c = r.cuenta || {};
+    return h`<section class="bloque" aria-label="Reseñas de la web"><div class="bloque-cab"><h2><span class="pz">6</span>Reseñas de la web <small>· lifemusic.app/calificar</small></h2>
+        ${pend.length ? h`<span class="estado esp">${plural(pend.length, "POR REVISAR", "POR REVISAR")}</span>` : h`<span class="estado gris">AL DÍA</span>`}</div>
+      ${r.lista.length ? h`<ul class="resenas">${r.lista.map(fila)}</ul>` : h`<div class="en-blanco"><p>Cuando alguien califique Life Music en la web, llega aquí. Sale en público solo si tú la publicas.</p></div>`}
+      <p class="med-pie resenas-pie">${plural(c.aprobada || 0, "publicada", "publicadas")} · ${plural(c.oculta || 0, "oculta", "ocultas")} · aquí se ven las pendientes y lo que revisaste en la última semana.</p></section>`;
   }
 
   function bloqueContratacion() {
@@ -1443,6 +1464,7 @@
       enviar: (q) => api("POST", "/incidencias", { titulo: q("v-titulo").value, detalle: q("v-detalle").value, gravedad: q("v-grav").value }),
     }),
     "cerrar-incidencia": (b) => hacer(() => api("POST", `/incidencias/${b.dataset.id}/cerrar`)),
+    resena: (b) => hacer(() => api("POST", `/resenas/${b.dataset.id}/estado`, { estado: b.dataset.a })),
     revision: (b) => hacer(() => api("POST", `/revision/${b.dataset.item}`)),
     contrafirmar: (b) => contrafirmar(b.dataset.id),
     "anular-pase": (b) => hacer(() => api("POST", `/invitaciones/${b.dataset.id}/anular`)),

@@ -239,6 +239,20 @@ async function medidores(ctx) {
   return datos;
 }
 
+/** Las reseñas de la web: las pendientes y las revisadas en la ultima semana (para poder deshacer). El correo solo lo ve el dueño. */
+async function resenasDeLaSala(env) {
+  if (!env.COMUNIDAD) return null;
+  try {
+    const lista = await env.COMUNIDAD.prepare(`select id, notas, nombre, correo, comentario, estado, creada_en from resenas
+                                                where estado = 'pendiente' or revisada_en > datetime('now', '-7 day')
+                                                order by estado = 'pendiente' desc, creada_en desc limit 40`).all();
+    const cuenta = await env.COMUNIDAD.prepare("select estado, count(*) as n from resenas group by estado").all();
+    return { lista: lista.results, cuenta: Object.fromEntries(cuenta.results.map((r) => [r.estado, r.n])) };
+  } catch {
+    return null; // la tabla todavia no existe en la base de la comunidad
+  }
+}
+
 /** La toma al aire: la ultima sin cerrar. */
 const tomaActual = (db) => db.prepare("select * from tomas where cerrada_en is null order by numero desc limit 1").first();
 /** Sin toma al aire, la claqueta muestra la ultima publicada (decision de CG, 18-10). */
@@ -770,6 +784,7 @@ async function enrutar(ctx) {
       capas: CAPAS, fases: FASES, versionObjetivo: cfg.version_objetivo || "2.0",
       avances: await all("select id, frente, titulo, detalle, hecho_en from avances order by hecho_en desc limit 20"),
       // Las que abre un supervisor desde su hoja dicen quien, en que telefono y en que punto.
+      resenas: await resenasDeLaSala(env),
       incidencias: await all(`select i.id, i.titulo, i.detalle, i.gravedad, i.creada_en, p.nombre as autor,
                                      r.telefono, pr.orden as punto, t.numero as toma
                                 from incidencias i left join personas p on p.id = i.autor_id
@@ -781,6 +796,17 @@ async function enrutar(ctx) {
   }
   if (m === "GET" && r0 === "medidores") {
     return respuesta(ctx, { ok: true, ...(await medidores(ctx)) });
+  }
+  // Las reseñas de lifemusic.app/calificar: el dueño las publica, las oculta o las devuelve a pendiente.
+  if (m === "POST" && r0 === "resenas" && ID.test(r1 || "") && r2 === "estado") {
+    if (!env.COMUNIDAD) return error(ctx, "sin-comunidad", 503);
+    const c = await leerCuerpo(ctx);
+    if (!c || !["aprobada", "oculta", "pendiente"].includes(c.estado)) return error(ctx, "estado");
+    const r = await env.COMUNIDAD.prepare("update resenas set estado = ?, revisada_en = datetime('now') where id = ?").bind(c.estado, r1).run();
+    if (!r.meta.changes) return error(ctx, "no-existe", 404);
+    const que = { aprobada: "publicó", oculta: "ocultó", pendiente: "devolvió a pendiente" }[c.estado];
+    await anotar(ctx, yo.id, "resena", `Camilo ${que} una reseña de la web.`);
+    return respuesta(ctx, { ok: true });
   }
   // El interruptor «Equipo y contratacion»: vuelve a mostrar pases, acta y jornada.
   if (m === "POST" && r0 === "contratacion") {

@@ -1,0 +1,113 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Califica Life Music</title>
+<meta name="description" content="Califica Life Music de una a cinco notas y cuéntanos qué te parece. Gratis, sin anuncios, un desarrollo de CG LABS.">
+<meta name="theme-color" content="#0E0E0E" media="(prefers-color-scheme: dark)">
+<meta name="theme-color" content="#F5F5F3" media="(prefers-color-scheme: light)">
+<link rel="canonical" href="https://lifemusic.app/calificar/">
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="icon" href="/favicon-32.png" sizes="32x32" type="image/png">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<link rel="manifest" href="/manifest.webmanifest">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Life Music">
+<meta property="og:title" content="Califica Life Music">
+<meta property="og:description" content="De una a cinco notas: dinos qué tal te suena Life Music.">
+<meta property="og:image" content="https://lifemusic.app/img/og.jpg">
+<meta property="og:url" content="https://lifemusic.app/calificar/">
+<meta property="og:locale" content="es_CO">
+<!-- Pagina de calificar (22-10-2026). Las reseñas van al servidor de la comunidad y salen aqui solo si CG
+     las aprueba desde la Sala de control. Sin analitica. -->
+<link rel="preload" href="/fuentes/geist.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="/landing.css?v=4">
+<link rel="stylesheet" href="/paginas.css?v=1">
+</head>
+<body>
+<a class="salto" href="#contenido">Saltar al contenido</a>
+<svg width="0" height="0" class="solo-lector" aria-hidden="true">
+  <defs>
+    <path id="trazo-chico" d="M29 32 Q29 22 21 18 Q13 14 12 8 V80 Q12 92 24 92 Q36 92 36 80 V58 Q36 42 49 42 Q62 42 62 58 V90 V58 Q62 42 75 42 Q88 42 88 58 V90" fill="none" stroke="currentColor" stroke-width="12" stroke-linecap="round" stroke-linejoin="round"/>
+  </defs>
+</svg>
+
+<header class="barra">
+  <div class="ancho">
+    <a class="marca" href="/" aria-label="Life Music, un desarrollo de CG LABS. Ir al inicio">
+      <svg class="logo" viewBox="-14 0 532 100" aria-hidden="true" focusable="false"><path d="M28 31 Q28 22 21 18 Q13 14 12 8 V80 Q12 92 24 92 Q36 92 36 80 V58 Q36 42 49 42 Q62 42 62 58 V90 V58 Q62 42 75 42 Q88 42 88 58 V90" fill="none" stroke="currentColor" stroke-width="9" stroke-linecap="round" stroke-linejoin="round"/><ellipse class="nota" cx="2.5" cy="85" rx="11.5" ry="8.5" transform="rotate(-22 2.5 85)"/><text x="116" y="88" font-weight="600" font-size="86" letter-spacing="-4.3">Life Music</text></svg>
+      <span class="firma" aria-hidden="true"><picture><source srcset="/img/cglabs_avatar_blanco.webp" media="(prefers-color-scheme: dark)"><img src="/img/cglabs_avatar_negro.webp" alt="" width="14" height="14"></picture>Un desarrollo de CG LABS</span>
+    </a>
+    <nav class="nav-paginas" aria-label="Secciones"><a href="/novedades/">Novedades</a><a href="/calificar/" aria-current="page">Califícala</a><a href="/estado/">Estado</a><a href="/privacidad/">Privacidad</a></nav>
+    <a class="boton chico descargar" href="/#coro"><svg class="simbolo" viewBox="-13 1 107 98" aria-hidden="true" focusable="false"><use href="#trazo-chico"/><ellipse class="nota" cx="1.5" cy="84" rx="13.5" ry="10" transform="rotate(-22 1.5 84)"/></svg>Descargar</a>
+  </div>
+</header>
+
+<main class="ancho pagina" id="contenido">
+  <div class="pagina-cab">
+    <h1>¿Qué tal te suena Life Music?</h1>
+    <p>Califícala de una a cinco notas y, si quieres, cuéntanos por qué. CG lee cada reseña; las que aprueba salen aquí con tu nombre.</p>
+  </div>
+
+  <div class="calificar">
+    <div class="tarjeta-form" id="tarjeta-form">
+      <form id="form-resena" novalidate>
+        <fieldset>
+          <legend>Tu calificación</legend>
+          <div class="fila-notas" id="fila-notas">
+            <input type="radio" name="notas" id="n1" value="1"><label for="n1" title="No me gustó"><svg viewBox="0 0 44 36" aria-hidden="true"><ellipse cx="22" cy="18" rx="17" ry="12.5" transform="rotate(-22 22 18)"/></svg><span class="solo-lector">1 nota: no me gustó</span></label>
+            <input type="radio" name="notas" id="n2" value="2"><label for="n2" title="Le falta"><svg viewBox="0 0 44 36" aria-hidden="true"><ellipse cx="22" cy="18" rx="17" ry="12.5" transform="rotate(-22 22 18)"/></svg><span class="solo-lector">2 notas: le falta</span></label>
+            <input type="radio" name="notas" id="n3" value="3"><label for="n3" title="Está bien"><svg viewBox="0 0 44 36" aria-hidden="true"><ellipse cx="22" cy="18" rx="17" ry="12.5" transform="rotate(-22 22 18)"/></svg><span class="solo-lector">3 notas: está bien</span></label>
+            <input type="radio" name="notas" id="n4" value="4"><label for="n4" title="Me gusta"><svg viewBox="0 0 44 36" aria-hidden="true"><ellipse cx="22" cy="18" rx="17" ry="12.5" transform="rotate(-22 22 18)"/></svg><span class="solo-lector">4 notas: me gusta</span></label>
+            <input type="radio" name="notas" id="n5" value="5"><label for="n5" title="Me encanta"><svg viewBox="0 0 44 36" aria-hidden="true"><ellipse cx="22" cy="18" rx="17" ry="12.5" transform="rotate(-22 22 18)"/></svg><span class="solo-lector">5 notas: me encanta</span></label>
+          </div>
+          <p class="notas-dice" id="notas-dice" aria-hidden="true">Elige de una a cinco notas.</p>
+        </fieldset>
+        <label class="campo"><span>Tu nombre</span><input name="nombre" id="nombre" required minlength="2" maxlength="40" autocomplete="name" aria-describedby="nombre-ayuda"><small id="nombre-ayuda">Así sale si se publica. Puede ser solo tu nombre de pila.</small></label>
+        <label class="campo"><span>Tu correo <em>(opcional)</em></span><input name="correo" id="correo" type="email" maxlength="120" autocomplete="email" inputmode="email" aria-describedby="correo-ayuda"><small id="correo-ayuda">Solo para responderte. Nunca se publica.</small></label>
+        <label class="campo"><span>Tu comentario <em>(opcional)</em></span><textarea name="comentario" id="comentario" maxlength="500" rows="4" aria-describedby="comentario-cuenta"></textarea><small id="comentario-cuenta">0 de 500</small></label>
+        <div class="trampa" aria-hidden="true"><label>Tu sitio web<input name="sitio" id="sitio" tabindex="-1" autocomplete="off"></label></div>
+        <p class="aviso-datos">Al enviarla aceptas que tu nombre, tus notas y tu comentario salgan en esta página si CG los aprueba. Tu correo nunca se muestra. Más en <a href="/privacidad/#calificaciones">Privacidad</a>.</p>
+        <button class="boton" type="submit" id="enviar"><svg class="simbolo" viewBox="-13 1 107 98" aria-hidden="true" focusable="false"><use href="#trazo-chico"/><ellipse class="nota" cx="1.5" cy="84" rx="13.5" ry="10" transform="rotate(-22 1.5 84)"/></svg>Enviar mi calificación</button>
+        <p class="resultado" id="resultado" role="status" aria-live="polite"></p>
+      </form>
+    </div>
+
+    <div class="lo-que-dicen">
+      <section aria-labelledby="t-promedio">
+        <h2 id="t-promedio" class="solo-lector">El promedio</h2>
+        <div id="promedio"><p class="sin-promedio">Contando las calificaciones…</p></div>
+      </section>
+      <section class="github-invita" aria-labelledby="t-github">
+        <div><h3 id="t-github">¿Te gusta? Dale una estrella en GitHub</h3><p id="github-texto">El código de Life Music es abierto. Una estrella en GitHub ayuda a que más gente la encuentre.</p></div>
+        <a class="boton chico" href="https://github.com/cgus392-cmd/Life-Music" rel="noopener">Ir a GitHub</a>
+      </section>
+      <section aria-labelledby="t-dicen">
+        <h2 id="t-dicen">Lo que dicen</h2>
+        <ul class="lista-resenas" id="lista-resenas"></ul>
+        <p class="lista-vacia" id="lista-vacia" hidden>Todavía no hay reseñas publicadas. La tuya puede ser la primera.</p>
+      </section>
+    </div>
+  </div>
+</main>
+
+<footer class="pie">
+  <div class="ancho">
+    <div class="pie-arriba">
+      <a class="marca" href="/" aria-label="Life Music, ir al inicio">
+        <svg class="logo" viewBox="-14 0 532 100" aria-hidden="true" focusable="false"><path d="M28 31 Q28 22 21 18 Q13 14 12 8 V80 Q12 92 24 92 Q36 92 36 80 V58 Q36 42 49 42 Q62 42 62 58 V90 V58 Q62 42 75 42 Q88 42 88 58 V90" fill="none" stroke="currentColor" stroke-width="9" stroke-linecap="round" stroke-linejoin="round"/><ellipse class="nota" cx="2.5" cy="85" rx="11.5" ry="8.5" transform="rotate(-22 2.5 85)"/><text x="116" y="88" font-weight="600" font-size="86" letter-spacing="-4.3">Life Music</text></svg>
+      </a>
+      <picture>
+        <source srcset="/img/cglabs_lockup_blanco.webp" media="(prefers-color-scheme: dark)">
+        <img src="/img/cglabs_lockup_negro.webp" alt="Un desarrollo de CG LABS" height="24">
+      </picture>
+    </div>
+    <nav aria-label="Enlaces"><a href="/tv">Life Music TV</a><a href="/novedades/">Novedades</a><a href="/calificar/">Califícala</a><a href="/estado/">Estado del sistema</a><a href="/github">Código en GitHub</a><a href="/privacidad/">Privacidad</a></nav>
+    <p class="legal">Life Music es un proyecto educativo y sin ánimo de lucro de CG LABS, basado en Echo Music, Metrolist e InnerTune. Software libre bajo GPL-3.0: sin telemetría, sin publicidad y sin venta. YouTube y YouTube Music son marcas de Google; ninguno tiene relación con este proyecto. Life Music by CG · CG LABS · © 2026</p>
+  </div>
+</footer>
+
+<script src="/calificar/calificar.js?v=1" defer></script>
+</body>
+</html>

@@ -13,9 +13,14 @@
      POST /calificar                {id, estrellas, comentario, version, idioma}
      GET  /calificaciones/resumen   promedio y total (solo desde MIN_VISIBLE)
      GET  /insignia.svg             la insignia del README
+     POST /resenas                  {notas, nombre, correo, comentario, espera, sitio}
+     GET  /resenas                  las reseñas que CG aprobo y el resumen
 
    Las escrituras solo llegan desde la app: un navegador siempre manda Origin en
-   un POST de otro sitio, y aqui se rechaza. La app no lo manda. */
+   un POST de otro sitio, y aqui se rechaza. La app no lo manda. La unica excepcion
+   es /resenas, que llega de lifemusic.app/calificar (Origin propio) con un freno
+   de 3 por hora por conexion. Las reseñas salen en publico solo si CG las aprueba
+   desde la Sala de control (el Worker del equipo tiene esta base enlazada). */
 
 const ORIGENES = [/^https:\/\/([a-z0-9-]+\.)?lifemusic\.pages\.dev$/, /^https:\/\/(www\.)?lifemusic\.app$/, /^http:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/];
 const MAX_CUERPO = 4096;
@@ -152,9 +157,13 @@ async function calificar(request, env) {
   return json({ ok: true });
 }
 
+// El promedio junta las de la app y las reseñas de la web que CG aprobo.
 async function resumen(env) {
   const { results } = await env.DB.prepare(
-    "select estrellas, count(*) as n from calificaciones group by estrellas",
+    `select estrellas, count(*) as n from (
+       select estrellas from calificaciones
+       union all select notas as estrellas from resenas where estado = 'aprobada'
+     ) group by estrellas`,
   ).all();
   const porEstrella = { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 };
   let total = 0;
@@ -166,6 +175,62 @@ async function resumen(env) {
   }
   if (total < MIN_VISIBLE) return { total, visible: false };
   return { total, visible: true, promedio: Math.round((suma / total) * 10) / 10, porEstrella };
+}
+
+// ─── Reseñas de la web (22-10) ──────────────────────────────────────────────
+
+const POR_HORA = 3;
+
+// La sal cambia cada dia: la huella de una conexion de hoy no se puede cruzar con la de mañana.
+async function salDelDia(env) {
+  const hoy = new Date().toISOString().slice(0, 10);
+  const fila = await env.DB.prepare("select valor from config where clave = 'sal_del_dia'").first();
+  if (fila && fila.valor.startsWith(hoy + ":")) return fila.valor;
+  const sal = hoy + ":" + [...crypto.getRandomValues(new Uint8Array(16))].map((b) => b.toString(16).padStart(2, "0")).join("");
+  await env.DB.prepare("insert or replace into config (clave, valor) values ('sal_del_dia', ?1)").bind(sal).run();
+  return sal;
+}
+
+async function resenar(request, env) {
+  const c = await leerCuerpo(request);
+  if (!c) return json({ ok: false, error: "cuerpo" }, 400);
+  // La trampa para robots: un campo que una persona no ve. Si viene lleno, se responde que si y no se guarda.
+  if (c.sitio) return json({ ok: true });
+  if (!Number.isInteger(c.espera) || c.espera < 2500) return json({ ok: false, error: "rapido" }, 400);
+  const notas = c.notas;
+  if (!Number.isInteger(notas) || notas < 1 || notas > 5) return json({ ok: false, error: "notas" }, 400);
+  const nombre = texto(c.nombre, 40);
+  if (!nombre || nombre.length < 2) return json({ ok: false, error: "nombre" }, 400);
+  let correo = null;
+  if (c.correo) {
+    correo = texto(c.correo, 120)?.toLowerCase();
+    if (!correo || !CORREO.test(correo)) return json({ ok: false, error: "correo" }, 400);
+  }
+  const plano = typeof c.comentario === "string" ? c.comentario.replace(/\s*\r?\n\s*/g, " ") : c.comentario;
+  const comentario = plano == null || plano === "" ? null : texto(plano, 500);
+  if (plano && comentario === null) return json({ ok: false, error: "comentario" }, 400);
+
+  const huella = await sha256((request.headers.get("cf-connecting-ip") || "") + "|" + (await salDelDia(env)));
+  await env.DB.prepare("delete from limites where creada_en < datetime('now', '-1 day')").run();
+  const n = await env.DB.prepare("select count(*) as n from limites where huella = ?1 and creada_en > datetime('now', '-1 hour')").bind(huella).first();
+  if (n && n.n >= POR_HORA) return json({ ok: false, error: "muchas" }, 429);
+  await env.DB.batch([
+    env.DB.prepare("insert into limites (huella) values (?1)").bind(huella),
+    env.DB.prepare("insert into resenas (id, notas, nombre, correo, comentario) values (?1, ?2, ?3, ?4, ?5)")
+      .bind(crypto.randomUUID(), notas, nombre, correo, comentario),
+  ]);
+  return json({ ok: true });
+}
+
+// Lo publico: nombre, notas, comentario y fecha. Nunca el correo.
+async function resenasPublicas(env) {
+  const { results } = await env.DB.prepare(
+    "select nombre, notas, comentario, creada_en from resenas where estado = 'aprobada' order by creada_en desc limit 30",
+  ).all();
+  return {
+    resumen: await resumen(env),
+    resenas: results.map((r) => ({ nombre: r.nombre, notas: r.notas, comentario: r.comentario, fecha: r.creada_en.slice(0, 10) })),
+  };
 }
 
 // La insignia, al estilo de shields.io. Verdana 11 px: unos 7 px por letra.
@@ -197,7 +262,12 @@ export default {
 
     if (request.method === "OPTIONS") {
       return new Response(null, {
-        headers: { "access-control-allow-origin": "*", "access-control-allow-methods": "GET", "access-control-max-age": "86400" },
+        headers: {
+          "access-control-allow-origin": "*",
+          "access-control-allow-methods": ruta === "/resenas" ? "GET, POST" : "GET",
+          "access-control-allow-headers": "content-type",
+          "access-control-max-age": "86400",
+        },
       });
     }
 
@@ -214,6 +284,7 @@ export default {
       }
       if (ruta === "/prerregistro/estado") return json(await estado(env), 200, { "cache-control": "public, max-age=30" });
       if (ruta === "/calificaciones/resumen") return json(await resumen(env), 200, { "cache-control": "public, max-age=300" });
+      if (ruta === "/resenas") return json(await resenasPublicas(env), 200, { "cache-control": "public, max-age=120" });
       if (ruta === "/insignia.svg") {
         return new Response(insignia(await resumen(env)), {
           headers: { "content-type": "image/svg+xml; charset=utf-8", "cache-control": "public, max-age=3600" },
@@ -223,7 +294,9 @@ export default {
     }
 
     if (request.method === "POST") {
-      // Las escrituras, solo desde la app (sin Origin).
+      // Las reseñas llegan desde lifemusic.app (el Origin ya se reviso arriba).
+      if (ruta === "/resenas") return resenar(request, env);
+      // Las demas escrituras, solo desde la app (sin Origin).
       if (origen) return json({ error: "solo-app" }, 403);
       if (ruta === "/prerregistro") return prerregistrar(request, env);
       if (ruta === "/prerregistro/salir") return salir(request, env);

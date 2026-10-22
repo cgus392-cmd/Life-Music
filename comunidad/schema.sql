@@ -29,6 +29,30 @@ create table if not exists calificaciones (
   cambiada_en  text not null default (datetime('now'))
 );
 
+-- Reseñas de lifemusic.app/calificar (22-10). De 1 a 5 notas, con nombre y comentario.
+-- Salen en publico solo cuando CG las aprueba desde la Sala de control. El correo es
+-- opcional y nunca sale de aqui: es solo para que CG pueda responder.
+create table if not exists resenas (
+  id           text primary key,
+  notas        integer not null check (notas between 1 and 5),
+  nombre       text not null,
+  correo       text,
+  comentario   text,
+  estado       text not null default 'pendiente' check (estado in ('pendiente', 'aprobada', 'oculta')),
+  creada_en    text not null default (datetime('now')),
+  revisada_en  text
+);
+create index if not exists resenas_por_estado on resenas (estado, creada_en);
+
+-- Freno contra el abuso del formulario: una huella del dia (sha256 de la IP, la fecha
+-- y una sal al azar que cambia cada dia) y la hora. Se borra sola a las 24 horas y no
+-- se cruza con las reseñas: no se puede saber quien escribio que.
+create table if not exists limites (
+  huella     text not null,
+  creada_en  text not null default (datetime('now'))
+);
+create index if not exists limites_por_huella on limites (huella, creada_en);
+
 -- Ajustes que CG cambia sin sacar version: fechas, meta, premio y video.
 create table if not exists config (
   clave  text primary key,

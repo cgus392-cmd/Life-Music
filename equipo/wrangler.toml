@@ -18,6 +18,13 @@ binding = "DB"
 database_name = "lifemusic-equipo"
 database_id = "3f2ff795-aed7-4863-b2c3-46d25a53d622"
 
+# Las reseñas de lifemusic.app/calificar viven en la base de la comunidad; desde la
+# sala, el dueño solo las aprueba u oculta (22-10).
+[[d1_databases]]
+binding = "COMUNIDAD"
+database_name = "lifemusic-comunidad"
+database_id = "fb87242d-221d-441e-8706-e5cbd194a29f"
+
 # Los APK de las tomas de prueba (2.0): solo los baja quien tiene sesion en la sala.
 # Partidos en pedazos de menos de 25 MB. Plan gratis de KV (1 GB): nunca cobra.
 [[kv_namespaces]]
