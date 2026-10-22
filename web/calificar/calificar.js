@@ -111,9 +111,13 @@
   function pintarPromedio(r) {
     const caja = $("promedio");
     caja.textContent = "";
-    // Decision de CG (22-10): el promedio se muestra desde el primer voto y nunca por debajo de 4,2.
+    // El promedio real desde el primer voto (decision de CG, 22-10). Sin votos, una invitacion.
     r = r || { total: 0 };
-    const prom = Math.max(4.2, r.promedio || 0);
+    if (!r.total || !r.promedio) {
+      caja.appendChild(nodo("p", "sin-promedio", "Todavía no hay calificaciones. La tuya puede ser la primera."));
+      return;
+    }
+    const prom = r.promedio;
     const div = nodo("div", "promedio");
     const grande = nodo("div", "grande", prom.toFixed(1).replace(".", ","));
     const small = nodo("small");

@@ -21,7 +21,7 @@
 <meta property="og:locale" content="es_CO">
 <!-- Politica de privacidad en la web (22-10-2026). La misma de PRIVACY_POLICY.md, mas las calificaciones de la web y lo que hace esta pagina. -->
 <link rel="preload" href="/fuentes/geist.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="/landing.css?v=7">
+<link rel="stylesheet" href="/landing.css?v=8">
 <link rel="stylesheet" href="/paginas.css?v=3">
 </head>
 <body>
@@ -100,8 +100,8 @@
       <section id="comunidad">
         <h2>Calificar en la app y prerregistro</h2>
         <p>Desde la 1.3.1, las dos cosas van a un servidor de CG LABS en Cloudflare (lifemusic-comunidad.cho--usic.workers.dev), y <strong>solo cuando tocas el botón</strong>.</p>
-        <p><strong>Calificar con estrellas en la app.</strong> Se guardan las estrellas, el comentario si escribiste uno, la versión de la app, el idioma y un número al azar creado en tu teléfono, para que cada teléfono cuente una sola vez y pueda cambiar su voto. No se guarda nombre, correo ni dirección IP. En público solo salen el promedio y el total, desde 25 calificaciones. Los comentarios de la app solo los lee CG LABS.</p>
-        <p><strong>Prerregistro del concurso.</strong> Se guardan tu nombre, tu correo, que confirmaste ser mayor de edad, la versión de la app, un número al azar de tu teléfono y la huella (hash) de un secreto que solo conoce tu teléfono. No hay lista pública: solo se muestra cuántas personas van. El nombre y el correo sirven únicamente para avisarte cuando empiece el concurso y para contactar a quien gane; no se venden ni se comparten, y <strong>se borran al terminar el concurso</strong>. Con «Salir del prerregistro» se borran al momento. Prerregistrarte es tu autorización previa, expresa e informada para ese tratamiento (Ley 1581 de 2012, Colombia), limitada a esa finalidad y a ese plazo.</p>
+        <p><strong>Calificar con estrellas en la app.</strong> Se guardan las estrellas, el comentario si escribiste uno, la versión de la app, el idioma y un número al azar creado en tu teléfono, para que cada teléfono cuente una sola vez y pueda cambiar su voto. No se guarda nombre, correo ni dirección IP. En público solo salen el promedio y el total. Los comentarios de la app solo los lee CG LABS.</p>
+        <p><strong>Prerregistro del concurso (cancelado).</strong> Mientras estuvo abierto se guardaron el nombre, el correo, la confirmación de ser mayor de edad, la versión de la app, un número al azar del teléfono y la huella (hash) de un secreto que solo conocía ese teléfono, únicamente para avisar del concurso y contactar a quien ganara. El 22 de octubre de 2026 el concurso se canceló: ya no se reciben prerregistros y <strong>esos nombres y correos se borran del servidor</strong>, como decían las bases. Nunca se vendieron ni se compartieron.</p>
         <p>El reto de la semana del 13 al 19 de septiembre de 2026 ya terminó: su módulo se desactivó y su tabla se eliminó, como decía su inscripción.</p>
       </section>
       <section id="calificaciones">
@@ -116,6 +116,7 @@
       <section id="tv">
         <h2>Life Music TV en el navegador</h2>
         <p>Para enlazar un TV con código, el teléfono y el TV se conectan a un relevo de CG LABS en Cloudflare (lifemusic-enlace.cho--usic.workers.dev) que pasa sus mensajes de uno a otro. El relevo <strong>no guarda nada</strong>: ni canciones ni códigos. El audio va del TV a YouTube directamente, sin pasar por él.</p>
+        <p><strong>Con el botón de Cast de la app</strong>, tu Chromecast o Google TV abre nuestra pantalla de receptor (lifemusic.app/cast), que carga la librería de Google Cast desde los servidores de Google (gstatic.com). Al cargarla, Google ve la dirección IP del TV, como con cualquier receptor de Cast. En lifemusic.app/tv, la del TV con navegador, esa librería no se carga.</p>
       </section>
       <section id="web">
         <h2>Esta página</h2>
@@ -126,7 +127,7 @@
       <section id="permisos">
         <h2>Permisos y menores</h2>
         <p>La app pide lo mínimo: red, notificaciones para el reproductor y almacenamiento cuando descargas música. No pide contactos, ni ubicación, ni cámara, ni micrófono. El <strong>modo karaoke no graba nada</strong>: procesa el audio que ya está sonando, sin encender el micrófono. Activar el ahorro de datos reduce las peticiones a terceros.</p>
-        <p>Life Music no está dirigida a menores de 13 años. Los concursos y su prerregistro son solo para mayores de edad, y lo piden confirmar antes de enviar nada.</p>
+        <p>Life Music no está dirigida a menores de 13 años. Cuando hubo concursos, eran solo para mayores de edad y lo pedían confirmar antes de enviar nada.</p>
       </section>
       <section id="contacto">
         <h2>Cambios y contacto</h2>

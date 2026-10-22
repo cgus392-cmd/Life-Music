@@ -99,23 +99,18 @@ el comentario si escribió uno, la versión de la app, el idioma y un número al
 azar creado en su teléfono. Ese número sirve para que cada teléfono cuente una
 sola vez y pueda cambiar su voto.
 - No se guarda nombre, correo ni dirección IP.
-- En público solo se muestran el promedio y el total, desde 25 calificaciones.
+- En público solo se muestran el promedio y el total.
 - Los comentarios solo los lee CG LABS.
 - El número al azar es distinto del del prerregistro: no se puede saber quién
   puso qué estrellas.
 
-**Prerregistro del nuevo concurso.** Si toca **Prerregistrarme**, se guardan su
-**nombre**, su **correo**, que confirmó ser mayor de edad, la versión de la app,
-un número al azar de su teléfono y la huella (hash) de un secreto que solo
-conoce su teléfono.
-- **No hay ninguna lista pública**: solo se muestra cuántas personas van.
-- El nombre y el correo sirven únicamente para avisarle cuando empiece el
-  concurso y para contactar a quien gane. No se venden ni se comparten.
-- **Se borran al terminar el concurso.**
-- Con **Salir del prerregistro** se borran del servidor al momento.
-- Prerregistrarse constituye su autorización previa, expresa e informada para
-  ese tratamiento (Ley 1581 de 2012, Colombia), limitada a esa finalidad y a
-  ese plazo. Bases completas: <https://lifemusic.pages.dev/concurso/bases>.
+**Prerregistro del concurso (cancelado el 22 de octubre de 2026).** Mientras
+estuvo abierto se guardaron el **nombre**, el **correo**, la confirmación de ser
+mayor de edad, la versión de la app, un número al azar del teléfono y la huella
+(hash) de un secreto que solo conocía ese teléfono, únicamente para avisar del
+concurso y contactar a quien ganara. Nunca se vendieron ni se compartieron.
+- El concurso se canceló: ya no se reciben prerregistros.
+- **Esos nombres y correos se borran del servidor**, como decían las bases.
 
 **Calificar en la web (desde el 22 de octubre de 2026).** Si califica Life Music
 en <https://lifemusic.app/calificar/>, se guardan en el mismo servidor sus
@@ -141,6 +136,12 @@ el TV se conectan a un relevo de CG LABS en Cloudflare
 El relevo **no guarda nada**: ni canciones ni códigos. El audio va del TV a
 YouTube directamente, sin pasar por él.
 
+**Con el botón de Cast de la app**, su Chromecast o Google TV abre nuestra
+pantalla de receptor (`lifemusic.app/cast`), que carga la librería de Google
+Cast desde los servidores de Google (gstatic.com). Al cargarla, Google ve la
+dirección IP del TV, como con cualquier receptor de Cast. En `lifemusic.app/tv`,
+la del TV con navegador, esa librería no se carga.
+
 ## Modo de ahorro de datos
 
 Activarlo reduce las peticiones a terceros: entre otras cosas, deja de
@@ -157,9 +158,8 @@ enciende el micrófono.
 
 ## Menores
 
-El proyecto no está dirigido a menores de 13 años. Los concursos y su
-prerregistro son solo para mayores de edad, y lo piden confirmar antes de enviar
-nada.
+El proyecto no está dirigido a menores de 13 años. Cuando hubo concursos,
+eran solo para mayores de edad y lo pedían confirmar antes de enviar nada.
 
 ## Cambios
 

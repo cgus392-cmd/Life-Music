@@ -19,18 +19,6 @@
     <priority>0.6</priority>
   </url>
   <url>
-    <loc>https://lifemusic.app/concurso/</loc>
-    <lastmod>2026-10-11</lastmod>
-    <changefreq>daily</changefreq>
-    <priority>0.5</priority>
-  </url>
-  <url>
-    <loc>https://lifemusic.app/concurso/bases/</loc>
-    <lastmod>2026-10-11</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.4</priority>
-  </url>
-  <url>
     <loc>https://lifemusic.app/privacidad/</loc>
     <lastmod>2026-10-22</lastmod>
     <changefreq>monthly</changefreq>

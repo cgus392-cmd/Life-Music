@@ -847,10 +847,11 @@
     });
     $("notas-rapido").addEventListener("pointerleave", () => encender(notas));
 
-    // El promedio, arriba y en el bloque. Decision de CG (22-10): nunca se muestra por debajo de 4,2.
-    const PISO = 4.2;
+    // El promedio real, arriba y en el bloque (CG lo decidio el 22-10, en vez de un piso). Sin votos, no se muestra.
     function pintarNota(r) {
-      const prom = Math.max(PISO, (r && r.promedio) || 0), total = (r && r.total) || 0;
+      const total = (r && r.total) || 0, prom = (r && r.promedio) || 0;
+      for (const id of ["nota-arriba-p", "promedio-bloque-p"]) $(id).hidden = !total || !prom;
+      if (!total || !prom) return;
       const texto = prom.toFixed(1).replace(".", ",");
       const votos = total ? " · " + fmtNum(total) + (total === 1 ? " calificación" : " calificaciones") : "";
       let svgs = "";
@@ -861,7 +862,6 @@
         $("notas-" + sufijo).innerHTML = svgs; // svg fijo, sin datos de afuera
       }
     }
-    pintarNota(null);
     fetch(COMUNIDAD + "/calificaciones/resumen").then((r) => (r.ok ? r.json() : null)).then(pintarNota).catch(() => {});
 
     // El enlace para compartir: lifemusic.app/califica (o #califica) abre la pagina directo en las notas.

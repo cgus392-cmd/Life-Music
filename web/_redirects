@@ -6,6 +6,11 @@
 /github      https://github.com/cgus392-cmd/Life-Music                                                302
 # /novedades, /privacidad, /estado y /calificar son paginas propias desde el 22-10 (carpetas con index.html).
 # El enlace para pedir calificaciones: la portada, que al ver /califica baja sola al bloque de las notas.
+# El concurso se cancelo (22-10): las bases y el video ya no existen; la app 1.3.2 abre las bases desde
+# lifemusic.pages.dev/concurso/bases, asi que van al aviso.
+/concurso/bases     /concurso/   301
+/concurso/bases/    /concurso/   301
+/concurso/video.mp4 /concurso/   301
 /califica    /            200
 /califica/   /            200
 # Life Music TV en el navegador: la misma pagina del receptor de Cast (200 = se

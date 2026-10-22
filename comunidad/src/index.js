@@ -98,8 +98,13 @@ export function estadoDelPrerregistro(cfg, n, ahora = Date.now()) {
   };
 }
 
+// Decision de CG (22-10): el concurso se cancela, ya no habra ninguno. Con empezo en falso, la app 1.3.2 esconde
+// sola la copa de Inicio (copaVisible) y el prerregistro responde «cerrado»; salir del prerregistro sigue andando.
+const CONCURSO_CANCELADO = true;
+
 async function estado(env) {
-  return estadoDelPrerregistro(await config(env), await contador(env));
+  const e = estadoDelPrerregistro(await config(env), await contador(env));
+  return CONCURSO_CANCELADO ? { ...e, empezo: false, abierto: false, alargado: false, cancelado: true } : e;
 }
 
 async function prerregistrar(request, env) {

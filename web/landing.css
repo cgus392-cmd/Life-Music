@@ -348,3 +348,4 @@ p{margin:0}
 }
 .califica-rapido .gracias h3{font-size:28px;font-weight:600;letter-spacing:-.03em}
 .califica-rapido .gracias a{font-weight:500}
+.cr-promedio[hidden],.nota-arriba[hidden]{display:none}
