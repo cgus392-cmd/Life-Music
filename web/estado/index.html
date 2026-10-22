@@ -3,104 +3,88 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Estado de Life Music</title>
+<title>Estado del sistema · Life Music</title>
 <meta name="description" content="Estado en vivo de los servicios de Life Music: TV con navegador, comunidad, descargas y web.">
-<meta name="theme-color" content="#0B0F0D">
+<meta name="theme-color" content="#0E0E0E" media="(prefers-color-scheme: dark)">
+<meta name="theme-color" content="#F5F5F3" media="(prefers-color-scheme: light)">
 <link rel="canonical" href="https://lifemusic.app/estado/">
-<link rel="icon" type="image/png" href="/img/lifemusic.png">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;600;700;800&family=JetBrains+Mono:wght@500&display=swap">
-<!--
-  Estado del sistema (1.3.2, ficha docs/versiones/1.3.2/tv-enlace-seguro.md §F).
-  Se consulta en vivo desde este navegador: cada servicio tiene su /salud. Sin
-  monitores de pago ni datos guardados.
--->
-<style>
-  :root{--fondo:#0B0F0D;--superficie:#131A16;--borde:rgba(255,255,255,.08);--texto:#F2F5F3;--texto-2:#A9B4AE;--texto-3:#6F7B75;--verde:#34D399;--rojo:#F87171;--ambar:#FBBF24;color-scheme:dark}
-  @media (prefers-color-scheme:light){:root{--fondo:#F4F8F6;--superficie:#FFFFFF;--borde:rgba(10,30,20,.09);--texto:#0F1512;--texto-2:#4B5751;--texto-3:#7A867F;--verde:#0B8A5F;--rojo:#DC2626;--ambar:#B45309;color-scheme:light}}
-  *{box-sizing:border-box}
-  body{margin:0;min-height:100vh;background:var(--fondo);color:var(--texto);font:16px/1.55 "Plus Jakarta Sans",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
-  main{width:min(720px,100% - 32px);margin:0 auto;padding:32px 0 56px}
-  header{display:flex;align-items:center;gap:12px;margin-bottom:28px}
-  header img{width:40px;height:40px;border-radius:11px}
-  header a{text-decoration:none;color:inherit;font-weight:800;font-size:18px}
-  h1{font-size:clamp(28px,6vw,40px);line-height:1.1;margin:0 0 8px;letter-spacing:-.02em}
-  .resumen{display:flex;align-items:center;gap:10px;font-weight:700;margin:0 0 28px;color:var(--texto-2)}
-  .punto{flex:none;width:12px;height:12px;border-radius:50%;background:var(--texto-3)}
-  .ok .punto{background:var(--verde);box-shadow:0 0 0 4px color-mix(in srgb,var(--verde) 20%,transparent)}
-  .mal .punto{background:var(--rojo)}
-  .lento .punto{background:var(--ambar)}
-  ul{list-style:none;margin:0;padding:0;border-radius:20px;background:var(--superficie);border:1px solid var(--borde);overflow:hidden}
-  li{display:flex;align-items:center;gap:14px;padding:18px 20px;border-bottom:1px solid var(--borde)}
-  li:last-child{border-bottom:0}
-  li>div{flex:1;min-width:0}
-  li b{display:block}
-  li small{color:var(--texto-2)}
-  .ms{font:500 14px "JetBrains Mono",ui-monospace,monospace;color:var(--texto-3);white-space:nowrap}
-  .pie{margin-top:18px;font-size:14px;color:var(--texto-3)}
-  button{font:inherit;font-weight:700;color:var(--texto);background:transparent;border:1px solid var(--borde);border-radius:99px;padding:8px 16px;cursor:pointer}
-</style>
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="icon" href="/favicon-32.png" sizes="32x32" type="image/png">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<link rel="manifest" href="/manifest.webmanifest">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Life Music">
+<meta property="og:title" content="Estado del sistema · Life Music">
+<meta property="og:description" content="Estado en vivo de los servicios de Life Music: TV con navegador, comunidad, descargas y web.">
+<meta property="og:image" content="https://lifemusic.app/img/og.jpg">
+<meta property="og:url" content="https://lifemusic.app/estado/">
+<meta property="og:locale" content="es_CO">
+<!-- Estado del sistema (1.3.2; diseno nuevo 22-10-2026). Se consulta en vivo desde el navegador: cada servicio tiene su /salud. -->
+<link rel="preload" href="/fuentes/geist.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="/landing.css?v=4">
+<link rel="stylesheet" href="/paginas.css?v=2">
 </head>
 <body>
-<main>
-  <header><img src="/img/lifemusic.png" alt=""><a href="/">Life Music</a></header>
-  <h1>Estado del sistema</h1>
-  <p class="resumen" id="resumen"><span class="punto"></span><span id="resumen-texto">Revisando…</span></p>
-  <ul id="lista"></ul>
-  <p class="pie">Se revisa en vivo desde tu navegador. Última revisión: <span id="hora">—</span> · <button id="otra">Revisar otra vez</button></p>
+<a class="salto" href="#contenido">Saltar al contenido</a>
+<svg width="0" height="0" class="solo-lector" aria-hidden="true">
+  <defs>
+    <path id="trazo-chico" d="M29 32 Q29 22 21 18 Q13 14 12 8 V80 Q12 92 24 92 Q36 92 36 80 V58 Q36 42 49 42 Q62 42 62 58 V90 V58 Q62 42 75 42 Q88 42 88 58 V90" fill="none" stroke="currentColor" stroke-width="12" stroke-linecap="round" stroke-linejoin="round"/>
+  </defs>
+</svg>
+
+<header class="barra">
+  <div class="ancho">
+    <a class="marca" href="/" aria-label="Life Music, un desarrollo de CG LABS. Ir al inicio">
+      <svg class="logo" viewBox="-14 0 532 100" aria-hidden="true" focusable="false"><path d="M28 31 Q28 22 21 18 Q13 14 12 8 V80 Q12 92 24 92 Q36 92 36 80 V58 Q36 42 49 42 Q62 42 62 58 V90 V58 Q62 42 75 42 Q88 42 88 58 V90" fill="none" stroke="currentColor" stroke-width="9" stroke-linecap="round" stroke-linejoin="round"/><ellipse class="nota" cx="2.5" cy="85" rx="11.5" ry="8.5" transform="rotate(-22 2.5 85)"/><text x="116" y="88" font-weight="600" font-size="86" letter-spacing="-4.3">Life Music</text></svg>
+      <span class="firma" aria-hidden="true"><picture><source srcset="/img/cglabs_avatar_blanco.webp" media="(prefers-color-scheme: dark)"><img src="/img/cglabs_avatar_negro.webp" alt="" width="14" height="14"></picture>Un desarrollo de CG LABS</span>
+    </a>
+    <nav class="nav-paginas" aria-label="Secciones"><a href="/novedades/">Novedades</a><a href="/calificar/">Califícala</a><a href="/estado/" aria-current="page">Estado</a><a href="/privacidad/">Privacidad</a></nav>
+    <a class="boton chico descargar" href="/#coro"><svg class="simbolo" viewBox="-13 1 107 98" aria-hidden="true" focusable="false"><use href="#trazo-chico"/><ellipse class="nota" cx="1.5" cy="84" rx="13.5" ry="10" transform="rotate(-22 1.5 84)"/></svg>Descargar</a>
+  </div>
+</header>
+
+<main class="ancho pagina" id="contenido">
+  <div class="pagina-cab">
+    <h1>Estado del sistema.</h1>
+    <p>Los servicios de Life Music, revisados en vivo desde tu navegador. La música en tu teléfono no depende de ellos: va directo a YouTube.</p>
+  </div>
+  <section class="veredicto" aria-live="polite">
+    <div class="nova-estado revisando" id="nova-estado" aria-hidden="true">
+      <svg viewBox="0 0 200 200">
+        <defs>
+          <radialGradient id="ne-halo"><stop offset="0" class="ne-halo-0"/><stop offset=".55" class="ne-halo-1"/><stop offset="1" class="ne-halo-2"/></radialGradient>
+          <radialGradient id="ne-orbe" cx=".46" cy=".42" r=".6"><stop offset="0" stop-color="#FFFFFF"/><stop offset=".42" stop-color="#FFF8EE"/><stop offset=".78" class="ne-orbe-2"/><stop offset="1" class="ne-orbe-3"/></radialGradient>
+        </defs>
+        <circle cx="100" cy="100" r="98" fill="url(#ne-halo)"/>
+        <g class="ne-cuerpo">
+          <circle cx="100" cy="100" r="56" fill="url(#ne-orbe)"/>
+          <g class="ne-ojos"><rect x="80.5" y="88" width="10" height="23" rx="5" fill="#14161B"/><rect x="109.5" y="88" width="10" height="23" rx="5" fill="#14161B"/></g>
+          <path class="ne-sonrisa" d="M78.5 103 q7 -11 14 0 M107.5 103 q7 -11 14 0" fill="none" stroke="#14161B" stroke-width="4.8" stroke-linecap="round"/>
+        </g>
+      </svg>
+    </div>
+    <div><h2 id="veredicto">Revisando los servicios…</h2><p id="veredicto-detalle">Tu navegador le pregunta a cada uno si está en línea.</p></div>
+  </section>
+  <ul class="servicios" id="servicios"></ul>
+  <div class="estado-pie"><span>Última revisión: <b id="hora">—</b>. Se repite cada minuto mientras tengas la página abierta.</span><button class="boton chico" type="button" id="otra">Revisar otra vez</button></div>
 </main>
-<script>
-  var SERVICIOS = [
-    { nombre: "TV con navegador", detalle: "El relevo que enlaza el teléfono con el TV", url: "https://lifemusic-enlace.cho--usic.workers.dev/salud", ok: function (j) { return j && j.estado === "ok"; } },
-    { nombre: "Comunidad", detalle: "Calificaciones y prerregistro del concurso", url: "https://lifemusic-comunidad.cho--usic.workers.dev/salud", ok: function (j) { return j && j.estado === "ok"; } },
-    { nombre: "Descargas", detalle: "La última versión en GitHub", url: "https://api.github.com/repos/cgus392-cmd/Life-Music/releases/latest", ok: function (j) { return j && !!j.tag_name; } },
-    { nombre: "Web", detalle: "lifemusic.app y la pantalla del TV", url: "/novedades/1.3.2.json", ok: function (j) { return !!j; } },
-  ];
-  var LENTO_MS = 1500;
-  function fila(s) {
-    var li = document.createElement("li");
-    li.innerHTML = '<span class="punto"></span><div><b></b><small></small></div><span class="ms">…</span>';
-    li.querySelector("b").textContent = s.nombre;
-    li.querySelector("small").textContent = s.detalle;
-    return li;
-  }
-  function revisar() {
-    var lista = document.getElementById("lista");
-    lista.innerHTML = "";
-    var listos = 0, malos = 0, lentos = 0;
-    SERVICIOS.forEach(function (s) {
-      var li = fila(s);
-      lista.appendChild(li);
-      var t0 = performance.now();
-      var control = new AbortController();
-      var limite = setTimeout(function () { control.abort(); }, 8000);
-      fetch(s.url, { cache: "no-store", signal: control.signal })
-        .then(function (r) { return r.ok ? r.json() : null; })
-        .catch(function () { return null; })
-        .then(function (j) {
-          clearTimeout(limite);
-          var ms = Math.round(performance.now() - t0);
-          var bien = s.ok(j);
-          var clase = !bien ? "mal" : ms > LENTO_MS ? "lento" : "ok";
-          li.className = clase;
-          li.querySelector(".ms").textContent = bien ? ms + " ms" : "sin respuesta";
-          if (!bien) malos++; else if (clase === "lento") lentos++;
-          if (++listos === SERVICIOS.length) resumen(malos, lentos);
-        });
-    });
-    document.getElementById("hora").textContent = new Date().toLocaleTimeString("es-CO");
-  }
-  function resumen(malos, lentos) {
-    var r = document.getElementById("resumen");
-    r.className = "resumen " + (malos ? "mal" : lentos ? "lento" : "ok");
-    document.getElementById("resumen-texto").textContent = malos
-      ? (malos === 1 ? "Un servicio no responde" : malos + " servicios no responden")
-      : lentos ? "Todo funciona, algo lento" : "Todo funciona sin problemas";
-  }
-  document.getElementById("otra").onclick = revisar;
-  revisar();
-  setInterval(revisar, 60000);
-</script>
+
+<footer class="pie">
+  <div class="ancho">
+    <div class="pie-arriba">
+      <a class="marca" href="/" aria-label="Life Music, ir al inicio">
+        <svg class="logo" viewBox="-14 0 532 100" aria-hidden="true" focusable="false"><path d="M28 31 Q28 22 21 18 Q13 14 12 8 V80 Q12 92 24 92 Q36 92 36 80 V58 Q36 42 49 42 Q62 42 62 58 V90 V58 Q62 42 75 42 Q88 42 88 58 V90" fill="none" stroke="currentColor" stroke-width="9" stroke-linecap="round" stroke-linejoin="round"/><ellipse class="nota" cx="2.5" cy="85" rx="11.5" ry="8.5" transform="rotate(-22 2.5 85)"/><text x="116" y="88" font-weight="600" font-size="86" letter-spacing="-4.3">Life Music</text></svg>
+      </a>
+      <picture>
+        <source srcset="/img/cglabs_lockup_blanco.webp" media="(prefers-color-scheme: dark)">
+        <img src="/img/cglabs_lockup_negro.webp" alt="Un desarrollo de CG LABS" height="24">
+      </picture>
+    </div>
+    <nav aria-label="Enlaces"><a href="/tv">Life Music TV</a><a href="/novedades/">Novedades</a><a href="/calificar/">Califícala</a><a href="/estado/">Estado del sistema</a><a href="/github">Código en GitHub</a><a href="/privacidad/">Privacidad</a></nav>
+    <p class="legal">Life Music es un proyecto educativo y sin ánimo de lucro de CG LABS, basado en Echo Music, Metrolist e InnerTune. Software libre bajo GPL-3.0: sin telemetría, sin publicidad y sin venta. YouTube y YouTube Music son marcas de Google; ninguno tiene relación con este proyecto. Life Music by CG · CG LABS · © 2026</p>
+  </div>
+</footer>
+
+<script src="/estado/estado.js?v=2" defer></script>
 </body>
 </html>

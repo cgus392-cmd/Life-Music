@@ -117,6 +117,24 @@ conoce su teléfono.
   ese tratamiento (Ley 1581 de 2012, Colombia), limitada a esa finalidad y a
   ese plazo. Bases completas: <https://lifemusic.pages.dev/concurso/bases>.
 
+**Calificar en la web (desde el 22 de octubre de 2026).** Si califica Life Music
+en <https://lifemusic.app/calificar/>, se guardan en el mismo servidor sus
+**notas** (de una a cinco), su **nombre**, su **comentario** si escribió uno y su
+**correo** solo si lo pone.
+- El correo es opcional, sirve únicamente para responderle y **nunca se publica**.
+- El nombre, las notas y el comentario salen en la página **solo si CG los
+  aprueba**. Hasta entonces nadie más los ve.
+- Para frenar el abuso del formulario se guarda por 24 horas una huella de la
+  conexión del día (hash de la IP con una clave al azar que cambia cada día) y
+  la hora. No se guarda junto a la reseña y se borra sola.
+- Para borrar su reseña, escriba al correo de contacto.
+
+**La página lifemusic.app** no tiene analítica, ni píxeles de seguimiento, ni
+cookies (salvo la de la sesión de la Sala de control, solo para el equipo). Para
+mostrar datos en vivo, su navegador consulta la API pública de GitHub, el relevo
+del TV y el servidor de la comunidad; la respuesta de GitHub se guarda 10 minutos
+en su navegador.
+
 **Life Music TV en el navegador.** Para enlazar un TV con código, el teléfono y
 el TV se conectan a un relevo de CG LABS en Cloudflare
 (`lifemusic-enlace.cho--usic.workers.dev`) que pasa sus mensajes de uno a otro.
@@ -154,4 +172,4 @@ Si esta política cambia, quedará reflejado en el
 
 ---
 
-*Última revisión: 7 de octubre de 2026 · Life Music 1.3.1*
+*Última revisión: 22 de octubre de 2026 · también en <https://lifemusic.app/privacidad/>*

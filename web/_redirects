@@ -4,8 +4,7 @@
 /apk-arm64   https://github.com/cgus392-cmd/Life-Music/releases/latest/download/lifemusic-arm64.apk  302
 /descargar   /apk                                                                                     302
 /github      https://github.com/cgus392-cmd/Life-Music                                                302
-/novedades   https://github.com/cgus392-cmd/Life-Music/releases/latest                                302
-/privacidad  https://github.com/cgus392-cmd/Life-Music/blob/main/PRIVACY_POLICY.md                    302
+# /novedades, /privacidad, /estado y /calificar son paginas propias desde el 22-10 (carpetas con index.html).
 # Life Music TV en el navegador: la misma pagina del receptor de Cast (200 = se
 # sirve sin cambiar la direccion; la pagina sabe por la ruta que es /tv).
 /tv          /cast/                                                                                   200

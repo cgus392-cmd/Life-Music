@@ -169,3 +169,32 @@
   .fila-notas svg,.reparto .barra-r i{transition:none}
   .fila-notas label.salta svg{animation:none}
 }
+
+/* La cara de Nova en el estado: el mismo personaje «A · La mirada», quieto, que cambia de gesto. */
+.ne-halo-0{stop-color:var(--pulso);stop-opacity:.4}
+.ne-halo-1{stop-color:var(--pulso);stop-opacity:.15}
+.ne-halo-2{stop-color:var(--pulso);stop-opacity:0}
+.ne-orbe-2{stop-color:#FFC2AC}
+.ne-orbe-3{stop-color:var(--pulso)}
+.nova-estado .ne-ojos{transform-origin:100px 100px;transition:transform .4s cubic-bezier(.3,1.5,.5,1),opacity .3s ease}
+.nova-estado .ne-sonrisa{opacity:0;transition:opacity .3s ease}
+.nova-estado .ne-cuerpo{transform-origin:100px 100px}
+.nova-estado.revisando .ne-ojos{transform:translate(6px,-7px) scaleY(.82)}
+.nova-estado.revisando .ne-cuerpo{animation:respira 1.6s ease-in-out infinite}
+.nova-estado.ok .ne-ojos{opacity:0}
+.nova-estado.ok .ne-sonrisa{opacity:1}
+.nova-estado.mal .ne-ojos{transform:translateY(5px) scaleY(.4)}
+.nova-estado.mal .ne-orbe-3,.nova-estado.mal .ne-halo-0,.nova-estado.mal .ne-halo-1{stop-color:#8A8F96}
+.nova-estado.mal .ne-orbe-2{stop-color:#C9CDD2}
+@keyframes respira{50%{transform:scale(1.04)}}
+@media (prefers-reduced-motion: reduce){ .nova-estado.revisando .ne-cuerpo{animation:none} }
+
+/* Las listas de texto llevan guion, nunca la viñeta redonda (regla de CG: nada de punticos delante del texto). */
+.pagina ul:not([class]){list-style:"–  "}
+.pagina ul:not([class]) li::marker{color:var(--tenue)}
+.version .arreglos summary{gap:10px}
+.version .arreglos summary::-webkit-details-marker{display:none}
+.version .arreglos summary{list-style:none}
+.version .arreglos summary::after{content:"";width:9px;height:9px;margin-left:12px;border-right:2px solid var(--gris);border-bottom:2px solid var(--gris);transform:rotate(45deg) translate(-2px,-2px);transition:transform .2s ease}
+.version .arreglos[open] summary::after{transform:rotate(-135deg)}
+.legal-doc ul + p{margin-top:12px}
