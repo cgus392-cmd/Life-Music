@@ -1,20 +1,34 @@
-/* lifemusic.app · la «landing viva» (identidad «03 · Pulso», aprobada por CG el 21-10-2026).
-   Referencia exacta: Brand/maquetas/2026-10-21-landing-viva/landing-viva-escritorio.dc.html.
-   - La pagina es una cancion de 3:58: el scroll es el tiempo y las partes se funden como el Automix.
-   - La esfera de luz (Canvas 2D, 900 puntos en espiral de Fibonacci) sigue el puntero y el nivel del audio.
-   - El sonido se genera en el navegador (Web Audio): sin archivos ni canciones con derechos, y solo al tocar «Escuchar».
-   - Datos en vivo: descargas y version (API publica de GitHub, con cache), el servidor del TV y la hora de Barranquilla.
-   Sin analitica. */
+/* lifemusic.app · la landing viva, segunda version (22-10-2026).
+   Nova («A · La mirada», Brand/maquetas/2026-10-15-nova-personaje-luz.html) es la anfitriona:
+   - al abrir aparece pequena, como la cabeza de la nota del logo, y se expande;
+   - sigue el puntero con la mirada, parpadea cada 4 a 7 s, piensa antes de hablar y sonrie al terminar;
+   - al bajar se queda pequena, abajo, y cuenta cada parte (solo texto: decision de CG);
+   - cuando habla y suena musica, la musica baja (como en la app).
+   La pagina es una cancion de 3:58: el scroll es el tiempo. El sonido se genera en el navegador (Web Audio) y solo
+   suena si la persona lo pide. Datos en vivo de GitHub (con cache) y del servidor del TV. Sin analitica. */
 (() => {
   "use strict";
 
   const DISCOS = [
-    { nombre: "Marea alta", bpm: 98, raiz: 55, menor: false, color: "#FF6B3D" },
-    { nombre: "Luz de neón", bpm: 118, raiz: 41.2, menor: true, color: "#3B6CF6" },
-    { nombre: "Órbita", bpm: 84, raiz: 36.7, menor: true, color: "#8B5CF6" },
-    { nombre: "Selva", bpm: 104, raiz: 49, menor: false, color: "#1F9D6B" },
-    { nombre: "Cobre", bpm: 92, raiz: 65.4, menor: false, color: "#D98A00" },
+    { nombre: "Marea alta", bpm: 98, raiz: 55, menor: false, c1: "#FF6B3D", c2: "#FFB49A" },
+    { nombre: "Luz de neón", bpm: 118, raiz: 41.2, menor: true, c1: "#3B6CF6", c2: "#FF4FA3" },
+    { nombre: "Órbita", bpm: 84, raiz: 36.7, menor: true, c1: "#8B5CF6", c2: "#B4A2F6" },
+    { nombre: "Selva", bpm: 104, raiz: 49, menor: false, c1: "#1F9D6B", c2: "#7FD8B2" },
+    { nombre: "Cobre", bpm: 92, raiz: 65.4, menor: false, c1: "#D98A00", c2: "#FBD38D" },
   ];
+  // Lo que dice Nova en cada parte de la cancion (al llegar y al tocarla).
+  const PARTES = {
+    Intro: { dice: "Hola, soy Nova. Te muestro Life Music en un minuto: baja cuando quieras.", toque: "Estamos al comienzo. Elige una carátula y la pongo." },
+    Verso: { dice: "Esta es la app de verdad: la letra va con la canción y nada se corta.", toque: "Pasa por cada función y te la cuento." },
+    Puente: { dice: "¿Tu TV no tiene Cast? Elige un tema y te lo muestro en la pantalla grande.", toque: "En el TV abres lifemusic.app/tv, escaneas el QR y listo." },
+    Coro: { dice: "Un minuto y la tienes. Si el teléfono pregunta, dale permitir: es normal.", toque: "Bájala con el botón de la tarjeta. Es gratis y sin anuncios." },
+    Final: { dice: "Lo nuevo y lo que siempre preguntan. Y sí: con la 2.0 llego yo a la app.", toque: "Si te quedó alguna duda, mira las preguntas." },
+  };
+  const TEMAS_TV = {
+    vinilo: { img: "/img/tv-tema-vinilo.jpg", alt: "Life Music TV con el tema Vinilo: un tocadiscos con la carátula y la letra al lado", dice: "Vinilo: tu carátula girando en un tocadiscos, con la letra al lado." },
+    ambiente: { img: "/img/tv-tema-ambiente.jpg", alt: "Life Music TV con el tema Ambiente: la carátula grande y la letra sobre los colores de la canción", dice: "Ambiente: la sala toma los colores de la carátula." },
+    cristal: { img: "/img/tv-tema-cristal.jpg", alt: "Life Music TV con el tema Cristal líquido: la letra detrás de un panel de vidrio", dice: "Cristal líquido: la letra detrás de un vidrio que se mueve con la música." },
+  };
   const DURACION = 238; // 3:58
   const RELEVO_TV = "https://lifemusic-enlace.cho--usic.workers.dev";
   const RELEASES = "https://api.github.com/repos/cgus392-cmd/Life-Music/releases?per_page=100";
@@ -23,117 +37,196 @@
   const raiz = document.documentElement;
   const reducido = !!(window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches);
   const oscuro = window.matchMedia ? matchMedia("(prefers-color-scheme: dark)") : { matches: false, addEventListener() {} };
+  const ahora = () => performance.now();
+  const limitar = (v, a, b) => Math.max(a, Math.min(b, v));
 
-  // ── El pulso: el unico color de la pagina ──────────────────────────────────
+  // ── Colores ────────────────────────────────────────────────────────────────
   const rgb = (hex) => { const n = parseInt(hex.slice(1), 16); return [(n >> 16) & 255, (n >> 8) & 255, n & 255]; };
-  const mezcla = (a, b, t) => { const x = rgb(a), y = rgb(b); return "#" + x.map((v, i) => Math.round(v + (y[i] - v) * t).toString(16).padStart(2, "0")).join(""); };
+  const aHex = (c) => "#" + c.map((v) => Math.round(limitar(v, 0, 255)).toString(16).padStart(2, "0")).join("");
+  const mezclar = (a, b, t) => a.map((v, i) => v + (b[i] - v) * t);
+  const BLANCO = [255, 255, 255];
   let disco = 0;
-  function pintarPulso() {
-    const d = DISCOS[disco];
-    const base = oscuro.matches ? "#0E0E0E" : "#F5F5F3";
-    const fondo = mezcla(base, d.color, 0.07); // el fondo se tine un 7 % con la caratula
-    raiz.style.setProperty("--pulso", d.color);
-    raiz.style.setProperty("--fondo-vivo", fondo);
-    raiz.style.setProperty("--fondo-barra", fondo + "D9");
-    document.querySelectorAll("[data-disco]").forEach((b) => b.setAttribute("aria-pressed", String(+b.dataset.disco === disco)));
-    $("ahora").textContent = (sonando ? "Sonando · " : "Lista · ") + d.nombre + " · " + d.bpm + " BPM";
-  }
-  oscuro.addEventListener("change", pintarPulso);
 
-  // ── Life Line: arriba en el heroe y fija abajo ─────────────────────────────
-  const temporizadores = [];
-  let ultNarra = 0;
-  const narrar = (texto) => { ultNarra = performance.now(); $("narra").textContent = texto; };
-  function decir(texto, ms = 0) {
-    temporizadores.push(setTimeout(() => { $("linea").textContent = texto; narrar(texto); }, ms));
-  }
-  const horaBogota = () => {
-    try { return +new Intl.DateTimeFormat("es-CO", { hour: "numeric", hourCycle: "h23", timeZone: "America/Bogota" }).format(new Date()); }
-    catch { return new Date().getHours(); }
+  // ══ Nova ═══════════════════════════════════════════════════════════════════
+  const NS = "http://www.w3.org/2000/svg";
+  const TINTA = "#14161B";
+  // Los ojos de cada estado, en la reticula de 200 x 200 de la maqueta.
+  const OJOS = {
+    escucha: { xi: 80.5, xd: 109.5, y: 88, w: 10, h: 23 },
+    piensa: { xi: 86, xd: 114, y: 81, w: 9.5, h: 19 },
+    habla: { xi: 80.5, xd: 109.5, y: 92, w: 10, h: 17 },
   };
-  {
-    const h = horaBogota();
-    const saludo = (h < 12 ? "Buenos días" : h < 19 ? "Buenas tardes" : "Buenas noches") + ". ¿Listo para la sesión de hoy?";
-    $("linea").textContent = saludo;
-    $("narra").textContent = saludo;
+  let cuentaNova = 0;
+  function nodo(tag, attrs, padre) {
+    const e = document.createElementNS(NS, tag);
+    for (const k in attrs) e.setAttribute(k, attrs[k]);
+    if (padre) padre.appendChild(e);
+    return e;
+  }
+  function crearNova(contenedor) {
+    const id = "nova" + ++cuentaNova;
+    const svg = nodo("svg", { viewBox: "0 0 200 200", "aria-hidden": "true", focusable: "false" }, contenedor);
+    const defs = nodo("defs", {}, svg);
+    const halo = nodo("radialGradient", { id: id + "h" }, defs);
+    const h0 = nodo("stop", { offset: "0" }, halo), h1 = nodo("stop", { offset: ".55" }, halo), h2 = nodo("stop", { offset: "1", "stop-opacity": "0" }, halo);
+    const orbe = nodo("radialGradient", { id: id + "o", cx: ".46", cy: ".42", r: ".6" }, defs);
+    nodo("stop", { offset: "0", "stop-color": "#FFFFFF" }, orbe);
+    nodo("stop", { offset: ".42", "stop-color": "#FFF8EE" }, orbe);
+    const o2 = nodo("stop", { offset: ".78" }, orbe), o3 = nodo("stop", { offset: "1" }, orbe);
+    const filtro = nodo("filter", { id: id + "b", x: "-50%", y: "-50%", width: "200%", height: "200%" }, defs);
+    nodo("feGaussianBlur", { stdDeviation: "7" }, filtro);
+    for (const [eje, x2, y2] of [["H", "1", "0"], ["V", "0", "1"]]) {
+      const g = nodo("linearGradient", { id: id + eje, x2, y2 }, defs);
+      nodo("stop", { offset: "0", "stop-color": "#fff", "stop-opacity": "0" }, g);
+      nodo("stop", { offset: ".5", "stop-color": "#fff" }, g);
+      nodo("stop", { offset: "1", "stop-color": "#fff", "stop-opacity": "0" }, g);
+    }
+    nodo("circle", { cx: 100, cy: 100, r: 98, fill: `url(#${id}h)` }, svg);
+    const anillo1 = nodo("circle", { cx: 100, cy: 100, r: 72, fill: "none", "stroke-width": 1.4 }, svg);
+    const anillo2 = nodo("circle", { cx: 100, cy: 100, r: 84, fill: "none", "stroke-width": 1.2 }, svg);
+    const chispa = nodo("g", {}, svg);
+    nodo("path", { d: "M156 66 A66 66 0 0 0 128 40", fill: "none", stroke: "#fff", "stroke-width": 3, "stroke-linecap": "round", opacity: ".75" }, chispa);
+    nodo("circle", { cx: 156, cy: 66, r: 4.5, fill: "#fff" }, chispa);
+    const cuerpo = nodo("g", {}, svg);
+    const brillo = nodo("circle", { cx: 100, cy: 100, r: 60, opacity: ".55", filter: `url(#${id}b)` }, cuerpo);
+    nodo("circle", { cx: 100, cy: 100, r: 56, fill: `url(#${id}o)` }, cuerpo);
+    const ojoI = nodo("rect", { fill: TINTA }, cuerpo), ojoD = nodo("rect", { fill: TINTA }, cuerpo);
+    const sonrisa = nodo("path", { d: "M78.5 103 q7 -11 14 0 M107.5 103 q7 -11 14 0", fill: "none", stroke: TINTA, "stroke-width": 4.8, "stroke-linecap": "round" }, cuerpo);
+    const dormida = nodo("path", { d: "M80 103 h13 M107 103 h13", stroke: TINTA, "stroke-width": 4.5, "stroke-linecap": "round", opacity: ".55" }, cuerpo);
+    // El destello en cruz, el ADN de la estrella de Nova.
+    const destello = nodo("g", { opacity: ".85" }, cuerpo);
+    nodo("rect", { x: 59, y: 71.2, width: 34, height: 1.6, rx: .8, fill: `url(#${id}H)` }, destello);
+    nodo("rect", { x: 75.2, y: 55, width: 1.6, height: 34, rx: .8, fill: `url(#${id}V)` }, destello);
+
+    const nova = {
+      contenedor, estado: "apagada", ojos: { ...OJOS.escucha }, mira: [0, 0], quiereMirar: [0, 0],
+      parpadeo: 0, proxParpadeo: ahora() + 2500, energia: 0, c1: rgb(DISCOS[0].c1), c2: rgb(DISCOS[0].c2), pintado: "",
+      dibujar(t, nivelMusica) {
+        // Colores: se mueven hacia los de la caratula que suena.
+        const d = DISCOS[disco], m1 = rgb(d.c1), m2 = rgb(d.c2);
+        this.c1 = mezclar(this.c1, m1, 0.06); this.c2 = mezclar(this.c2, m2, 0.06);
+        const firma = aHex(this.c1) + aHex(this.c2) + this.estado;
+        if (firma !== this.pintado) {
+          this.pintado = firma;
+          const apagada = this.estado === "apagada";
+          const c1 = apagada ? "#8A8F96" : aHex(this.c1), c2 = apagada ? "#5F6368" : aHex(this.c2);
+          const opHalo = apagada ? 0 : oscuro.matches ? 0.6 : 0.45;
+          h0.setAttribute("stop-color", c1); h0.setAttribute("stop-opacity", opHalo);
+          h1.setAttribute("stop-color", c2); h1.setAttribute("stop-opacity", opHalo * 0.45);
+          h2.setAttribute("stop-color", c2);
+          o2.setAttribute("stop-color", apagada ? "#AEB3B9" : aHex(mezclar(this.c1, BLANCO, 0.45)));
+          o3.setAttribute("stop-color", c1);
+          brillo.setAttribute("fill", c1);
+          brillo.setAttribute("opacity", apagada ? "0" : ".55");
+          anillo1.setAttribute("stroke", c1); anillo2.setAttribute("stroke", c2);
+          destello.setAttribute("opacity", apagada ? "0" : ".85");
+        }
+        // La mirada sigue al puntero, con calma.
+        this.mira[0] += (this.quiereMirar[0] - this.mira[0]) * 0.12;
+        this.mira[1] += (this.quiereMirar[1] - this.mira[1]) * 0.12;
+        const objetivo = OJOS[this.estado] || OJOS.escucha;
+        for (const k of ["xi", "xd", "y", "w", "h"]) this.ojos[k] += (objetivo[k] - this.ojos[k]) * 0.25;
+        // Parpadeo cada 4 a 7 s (nunca dormida ni sonriendo).
+        if (t > this.proxParpadeo && (this.estado === "escucha" || this.estado === "habla")) { this.parpadeo = t; this.proxParpadeo = t + 4000 + Math.random() * 3000; }
+        const fase = (t - this.parpadeo) / 150;
+        const cierre = fase >= 0 && fase < 2 ? 1 - Math.sin((fase / 2) * Math.PI) * 0.88 : 1;
+        const o = this.ojos, alto = o.h * cierre, dy = (o.h - alto) / 2;
+        const mx = this.mira[0], my = this.mira[1];
+        const ver = this.estado === "escucha" || this.estado === "piensa" || this.estado === "habla";
+        for (const [r, x] of [[ojoI, o.xi], [ojoD, o.xd]]) {
+          r.setAttribute("x", (x + mx).toFixed(2)); r.setAttribute("y", (o.y + dy + my).toFixed(2));
+          r.setAttribute("width", o.w.toFixed(2)); r.setAttribute("height", alto.toFixed(2)); r.setAttribute("rx", (o.w / 2).toFixed(2));
+          r.setAttribute("opacity", ver ? "1" : "0");
+        }
+        sonrisa.setAttribute("opacity", this.estado === "termino" ? "1" : "0");
+        sonrisa.setAttribute("transform", `translate(${(mx * 0.6).toFixed(2)} ${(my * 0.6).toFixed(2)})`);
+        dormida.setAttribute("opacity", this.estado === "apagada" ? ".55" : "0");
+        chispa.setAttribute("opacity", this.estado === "piensa" ? "1" : "0");
+        // El cuerpo: respira al escuchar, se mueve con su voz al hablar.
+        if (this.estado === "habla") {
+          const s = t / 1000;
+          this.energia = limitar(0.3 + 0.7 * Math.abs(Math.sin(s * 9.3)) * (0.6 + 0.4 * Math.sin(s * 2.3)), 0, 1);
+        } else this.energia *= 0.85;
+        const respira = reducido ? 0 : Math.sin(t / 700) * 0.012;
+        const escala = 1 + (this.estado === "escucha" ? respira + nivelMusica * 0.07 : 0) + (reducido ? 0 : this.energia * 0.08);
+        cuerpo.setAttribute("transform", `translate(100 100) scale(${escala.toFixed(4)}) translate(-100 -100)`);
+        const e = this.energia;
+        if (this.estado === "habla") {
+          anillo1.setAttribute("r", (70 + 18 * e).toFixed(1)); anillo1.setAttribute("opacity", ".55");
+          anillo2.setAttribute("r", (84 + 22 * e).toFixed(1)); anillo2.setAttribute("opacity", ".32");
+        } else {
+          anillo1.setAttribute("r", (72 + nivelMusica * 10).toFixed(1)); anillo1.setAttribute("opacity", this.estado === "escucha" ? (0.28 + nivelMusica * 0.3).toFixed(2) : "0");
+          anillo2.setAttribute("opacity", "0");
+        }
+      },
+    };
+    return nova;
   }
 
-  // ── La pagina es una cancion: el scroll es el tiempo ──────────────────────
-  const partes = [...document.querySelectorAll("[data-parte]")];
-  const lineaT = $("linea-t");
-  let marcas = partes.map(() => 0);
-  let parteActual = -1;
-  function reloj(s) { const t = Math.max(0, Math.min(DURACION, Math.round(s))); return Math.floor(t / 60) + ":" + String(t % 60).padStart(2, "0"); }
-  function medir() {
-    const alto = Math.max(1, raiz.scrollHeight - innerHeight);
-    marcas = partes.map((el) => Math.min(1, Math.max(0, (el.offsetTop - 80) / alto)));
-    lineaT.querySelectorAll(".marcador").forEach((b, i) => { b.style.left = (marcas[i] * 100).toFixed(2) + "%"; });
-    document.querySelectorAll("[data-marca]").forEach((el) => { el.textContent = reloj(marcas[+el.dataset.marca] * DURACION); });
-  }
-  // Los marcadores Intro, Verso, Puente, Coro y Final: se tocan para saltar.
-  partes.forEach((el, i) => {
-    const b = document.createElement("button");
-    b.type = "button";
-    b.className = "marcador";
-    b.setAttribute("aria-label", "Ir a " + el.dataset.parte);
-    b.innerHTML = "<i></i><span></span>";
-    b.querySelector("span").textContent = el.dataset.parte;
-    b.addEventListener("click", () => {
-      narrar("Saltando al " + el.dataset.parte.toLowerCase() + "…");
-      scrollTo({ top: Math.max(0, el.offsetTop - 70), behavior: reducido ? "auto" : "smooth" });
-    });
-    lineaT.insertBefore(b, $("cabeza"));
-  });
+  const novaGrande = crearNova($("nova-grande"));
+  const novaChica = crearNova($("nova-chica"));
+  const novas = [novaGrande, novaChica];
 
-  let ultY = scrollY, ultT = performance.now(), quieto = null;
-  function recorrer() {
-    const vh = innerHeight, alto = Math.max(1, raiz.scrollHeight - vh), y = scrollY, ahora = performance.now();
-    // Las partes no se cortan: se funden (opacidad, subida y desenfoque), como el Automix.
-    if (!reducido) {
-      partes.forEach((el, i) => {
-        if (i === 0) return;
-        const r = el.getBoundingClientRect();
-        const entra = Math.min(1, Math.max(0, (vh - r.top) / (vh * 0.35)));
-        const sale = Math.min(1, Math.max(0, r.bottom / (vh * 0.3)));
-        const f = Math.min(entra, sale);
-        el.style.opacity = String(0.15 + 0.85 * f);
-        el.style.transform = "translateY(" + ((1 - entra) * 34).toFixed(1) + "px)";
-        el.style.filter = f < 0.98 ? "blur(" + ((1 - f) * 5).toFixed(1) + "px)" : "";
+  // Que mira Nova: el puntero (o, en pantallas tactiles, hacia donde va el scroll).
+  let puntero = null;
+  addEventListener("pointermove", (e) => { if (e.pointerType !== "touch") puntero = [e.clientX, e.clientY]; }, { passive: true });
+  document.addEventListener("pointerleave", () => { puntero = null; });
+  function apuntarMiradas(velScroll) {
+    for (const n of novas) {
+      const r = n.contenedor.getBoundingClientRect();
+      if (!r.width) continue;
+      if (puntero) {
+        const cx = r.left + r.width / 2, cy = r.top + r.height / 2;
+        const dx = (puntero[0] - cx) / Math.max(200, r.width), dy = (puntero[1] - cy) / Math.max(200, r.height);
+        n.quiereMirar = [limitar(dx * 9, -6, 6), limitar(dy * 7, -5, 5)];
+      } else {
+        n.quiereMirar = [0, limitar(velScroll * 3, -4, 4)];
+      }
+    }
+  }
+
+  // ── Lo que dice Nova ──────────────────────────────────────────────────────
+  let enEscena = true; // la grande se ve; si no, habla la pequena
+  let tiempos = [], cola = [], yaHablo = false;
+  const voz = $("voz"), dice = $("dice-grande"), globo = $("globo");
+  function limpiar() { tiempos.forEach(clearTimeout); tiempos = []; }
+  function luego(ms, fn) { tiempos.push(setTimeout(fn, ms)); }
+  // decir() corta lo que venia diciendo (y lo que tenia en fila); despues() encadena frases sin cortarse a si misma.
+  function decir(texto, opciones) { cola.forEach(clearTimeout); cola = []; hablar(texto, opciones); }
+  function despues(ms, texto, opciones) { cola.push(setTimeout(() => hablar(texto, opciones), ms)); }
+  function hablar(texto, { pensar = true } = {}) {
+    limpiar();
+    yaHablo = true;
+    const n = enEscena ? novaGrande : novaChica;
+    const otra = enEscena ? novaChica : novaGrande;
+    if (otra.estado !== "apagada") otra.estado = "escucha";
+    voz.textContent = texto; // para lectores de pantalla, una sola vez
+    const mostrar = () => {
+      n.estado = "habla";
+      if (enEscena) { dice.textContent = texto; dice.classList.add("visible"); }
+      else { globo.textContent = texto; globo.classList.add("visible"); }
+      bajarMusica(true);
+      const dur = limitar(texto.length * 52, 1300, 5200);
+      luego(dur, () => {
+        n.estado = "termino";
+        bajarMusica(false);
+        luego(1400, () => { n.estado = "escucha"; });
+        if (!enEscena) luego(5000, () => globo.classList.remove("visible"));
       });
-    }
-    const prog = Math.min(1, Math.max(0, y / alto));
-    $("tiempo").textContent = reloj(prog * DURACION);
-    $("relleno").style.width = (prog * 100).toFixed(2) + "%";
-    $("cabeza").style.left = (prog * 100).toFixed(2) + "%";
-    let parte = 0;
-    partes.forEach((el, i) => { if (el.getBoundingClientRect().top < vh * 0.45) parte = i; });
-    if (parte !== parteActual) {
-      if (parteActual !== -1) narrar(partes[parte].dataset.dice);
-      parteActual = parte;
-      lineaT.querySelectorAll(".marcador").forEach((b, i) => b.classList.toggle("activo", i === parte));
-    }
-    // La velocidad del scroll mueve el filtro, como un DJ.
-    const dt = Math.max(1, ahora - ultT), vel = (y - ultY) / dt;
-    ultY = y; ultT = ahora;
-    if (Math.abs(vel) > 2.2 && ahora - ultNarra > 1400) narrar(vel > 0 ? "Adelantando…" : "Rebobinando…");
-    if (filtroMaestro && ac && ac.state === "running") {
-      const objetivo = Math.abs(vel) > 1.2 ? 450 : 18000;
-      filtroMaestro.frequency.setTargetAtTime(objetivo, ac.currentTime, objetivo < 1000 ? 0.05 : 0.4);
-    }
+    };
+    if (pensar && !reducido) { n.estado = "piensa"; luego(450, mostrar); } else mostrar();
   }
-  let pedido = false;
-  addEventListener("scroll", () => {
-    if (!pedido) { pedido = true; requestAnimationFrame(() => { pedido = false; recorrer(); }); }
-    // Al parar, el filtro vuelve a abrirse.
-    clearTimeout(quieto);
-    quieto = setTimeout(() => { ultT = performance.now(); ultY = scrollY; if (filtroMaestro && ac && ac.state === "running") filtroMaestro.frequency.setTargetAtTime(18000, ac.currentTime, 0.4); }, 180);
-  }, { passive: true });
-  addEventListener("resize", () => { medir(); recorrer(); });
-  if (!reducido) document.body.classList.add("viva");
 
-  // ── El sonido: un ritmo generado en el navegador, sin canciones con derechos ─
-  let ac = null, master = null, filtroMaestro = null, analizador = null, muestras = null, ruido = null, relojAudio = null;
-  let decks = [], sonando = false;
+  // ── La musica: un ritmo generado en el navegador, sin canciones con derechos ─
+  let ac = null, master = null, filtroMaestro = null, analizador = null, muestras = null, ruido = null;
+  let decks = [], sonando = false, nivel = 0;
+  function bajarMusica(baja) {
+    if (!master || !ac || !sonando) return;
+    const t = ac.currentTime;
+    master.gain.cancelScheduledValues(t);
+    master.gain.setValueAtTime(master.gain.value, t);
+    master.gain.linearRampToValueAtTime(baja ? 0.35 : 0.75, t + (baja ? 0.25 : 0.6));
+  }
   function iniciarAudio() {
     const AC = window.AudioContext || window.webkitAudioContext;
     if (!AC) return false;
@@ -146,7 +239,7 @@
     ruido = ac.createBuffer(1, ac.sampleRate, ac.sampleRate);
     const datos = ruido.getChannelData(0);
     for (let i = 0; i < datos.length; i++) datos[i] = Math.random() * 2 - 1;
-    relojAudio = setInterval(() => {
+    setInterval(() => {
       if (!ac || ac.state !== "running") return;
       const limite = ac.currentTime + 0.12;
       decks.forEach((d) => {
@@ -198,38 +291,37 @@
     }
   }
   function ponerBoton() {
-    const b = $("escuchar");
-    b.setAttribute("aria-pressed", String(sonando));
-    $("texto-escuchar").textContent = sonando ? "Pausar" : "Escuchar";
+    $("escuchar").setAttribute("aria-pressed", String(sonando));
+    $("texto-escuchar").textContent = sonando ? "Pausar la música" : "Ponle música";
   }
   function alternar() {
-    if (!ac && !iniciarAudio()) { decir("Tu navegador no puede generar el sonido."); return; }
+    if (!ac && !iniciarAudio()) { decir("Tu navegador no me deja poner música aquí."); return; }
     const D = DISCOS[disco];
     if (sonando) {
       const t = ac.currentTime;
       master.gain.cancelScheduledValues(t); master.gain.setValueAtTime(master.gain.value, t); master.gain.linearRampToValueAtTime(0, t + 0.3);
-      temporizadores.push(setTimeout(() => { if (!sonando) ac.suspend(); }, 350));
+      setTimeout(() => { if (!sonando) ac.suspend(); }, 350);
       sonando = false;
-      ponerBoton(); pintarPulso();
+      ponerBoton();
       decir("En pausa. La mezcla te espera.");
       return;
     }
     ac.resume();
     if (!decks.length) decks.push(crearDeck(disco, 1));
+    sonando = true;
     const t = ac.currentTime;
     master.gain.cancelScheduledValues(t); master.gain.setValueAtTime(master.gain.value, t); master.gain.linearRampToValueAtTime(0.75, t + 0.4);
-    sonando = true;
-    ponerBoton(); pintarPulso(); arrancarEsfera();
-    $("linea").textContent = "Sonando · " + D.nombre;
-    narrar("Sonando · " + D.nombre + ". Baja: la página sigue el ritmo.");
+    ponerBoton();
+    arrancar();
+    decir("Esta es «" + D.nombre + "», a " + D.bpm + " BPM. Elige otra carátula y la mezclo.");
   }
   function elegir(k) {
     if (k === disco) return;
     const D = DISCOS[k];
     disco = k;
-    objetivo = rgb(D.color);
-    pintarPulso(); arrancarEsfera();
-    if (!sonando || !decks.length) { decir(D.nombre + " · " + D.bpm + " BPM. Toca «Escuchar»."); return; }
+    pintarPulso();
+    arrancar();
+    if (!sonando || !decks.length) { decir("«" + D.nombre + "», " + D.bpm + " BPM. Toca «Ponle música» y la pongo."); return; }
     // La mezcla de 3 s: el filtro del deck viejo se cierra hasta 220 Hz mientras entra el nuevo.
     const viejo = decks[decks.length - 1], t = ac.currentTime;
     const nuevo = crearDeck(k, 0.0001, viejo.siguiente, viejo.paso);
@@ -237,89 +329,158 @@
     viejo.filtro.frequency.setValueAtTime(viejo.filtro.frequency.value, t); viejo.filtro.frequency.exponentialRampToValueAtTime(220, t + 3);
     viejo.gain.gain.setValueAtTime(viejo.gain.gain.value, t); viejo.gain.gain.linearRampToValueAtTime(0, t + 3.2);
     decks.push(nuevo);
-    temporizadores.push(setTimeout(() => { decks = decks.filter((x) => x !== viejo); viejo.gain.disconnect(); }, 3400));
-    decir("Cerrando el filtro…");
-    decir("Fundiendo las notas…", 1300);
-    decir("Sonando · " + D.nombre, 3300);
+    setTimeout(() => { decks = decks.filter((x) => x !== viejo); viejo.gain.disconnect(); }, 3400);
+    decir("Cerrando el filtro…", { pensar: false });
+    despues(1300, "Fundiendo las notas…", { pensar: false });
+    despues(3300, "Sonando «" + D.nombre + "».", { pensar: false });
   }
   $("escuchar").addEventListener("click", alternar);
   document.querySelectorAll("[data-disco]").forEach((b) => b.addEventListener("click", () => elegir(+b.dataset.disco)));
 
-  // ── La esfera: el Pulso hecho luz ──────────────────────────────────────────
-  const lienzo = $("esfera"), escena = $("escena");
-  const puntos = [];
-  {
-    const N = 900, oro = Math.PI * (3 - Math.sqrt(5));
-    for (let i = 0; i < N; i++) {
-      const y = 1 - (i / (N - 1)) * 2, r = Math.sqrt(1 - y * y), a = oro * i;
-      puntos.push({ x: Math.cos(a) * r, y, z: Math.sin(a) * r, fase: Math.random() * 6.28 });
-    }
+  // ── El pulso: el unico color de la pagina ─────────────────────────────────
+  function pintarPulso() {
+    const d = DISCOS[disco];
+    const base = rgb(oscuro.matches ? "#0E0E0E" : "#F5F5F3");
+    const fondo = aHex(mezclar(base, rgb(d.c1), 0.07)); // el fondo se tine un 7 % con la caratula
+    raiz.style.setProperty("--pulso", d.c1);
+    raiz.style.setProperty("--fondo-vivo", fondo);
+    raiz.style.setProperty("--fondo-barra", fondo + "D9");
+    document.querySelectorAll("[data-disco]").forEach((b) => b.setAttribute("aria-pressed", String(+b.dataset.disco === disco)));
   }
-  const t0 = performance.now();
-  let color = rgb(DISCOS[0].color), objetivo = color.slice();
-  let mx = 0, my = 0, px = -999, py = -999, nivel = 0;
-  let visible = true, raf = 0;
-  function dibujar(now) {
+  oscuro.addEventListener("change", () => { pintarPulso(); novas.forEach((n) => (n.pintado = "")); });
+
+  // ── La pagina es una cancion: el scroll es el tiempo ──────────────────────
+  const partes = [...document.querySelectorAll("[data-parte]")];
+  const lineaT = $("linea-t");
+  let marcas = partes.map(() => 0), parteActual = 0;
+  const reloj = (s) => { const t = Math.round(limitar(s, 0, DURACION)); return Math.floor(t / 60) + ":" + String(t % 60).padStart(2, "0"); };
+  function medir() {
+    const alto = Math.max(1, raiz.scrollHeight - innerHeight);
+    marcas = partes.map((el) => limitar((el.offsetTop - 80) / alto, 0, 1));
+    lineaT.querySelectorAll(".marcador").forEach((b, i) => { b.style.left = (marcas[i] * 100).toFixed(2) + "%"; });
+    document.querySelectorAll("[data-marca]").forEach((el) => { el.textContent = reloj(marcas[+el.dataset.marca] * DURACION); });
+  }
+  partes.forEach((el) => {
+    const b = document.createElement("button");
+    b.type = "button";
+    b.className = "marcador";
+    b.setAttribute("aria-label", "Ir a " + el.dataset.parte);
+    b.innerHTML = "<i></i><span></span>";
+    b.querySelector("span").textContent = el.dataset.parte;
+    b.addEventListener("click", () => scrollTo({ top: Math.max(0, el.offsetTop - 70), behavior: reducido ? "auto" : "smooth" }));
+    lineaT.insertBefore(b, $("cabezal"));
+  });
+  let ultY = scrollY, ultT = ahora(), velScroll = 0, ultRapido = 0, quieto = null;
+  function recorrer() {
+    const vh = innerHeight, alto = Math.max(1, raiz.scrollHeight - vh), y = scrollY, t = ahora();
+    // Las partes no se cortan: entran subiendo y aclarandose, como una cancion que entra con el Automix.
+    if (!reducido) {
+      partes.forEach((el, i) => {
+        if (i === 0) return;
+        const r = el.getBoundingClientRect();
+        const entra = limitar((vh - r.top) / (vh * 0.35), 0, 1);
+        el.style.opacity = String(0.2 + 0.8 * entra);
+        el.style.transform = "translateY(" + ((1 - entra) * 28).toFixed(1) + "px)";
+      });
+    }
+    const prog = limitar(y / alto, 0, 1);
+    $("tiempo").textContent = reloj(prog * DURACION);
+    $("relleno").style.width = (prog * 100).toFixed(2) + "%";
+    $("cabezal").style.left = (prog * 100).toFixed(2) + "%";
+    let parte = 0;
+    partes.forEach((el, i) => { if (el.getBoundingClientRect().top < vh * 0.45) parte = i; });
+    if (parte !== parteActual) {
+      parteActual = parte;
+      lineaT.querySelectorAll(".marcador").forEach((b, i) => b.classList.toggle("activo", i === parte));
+      if (parte > 0) decir(PARTES[partes[parte].dataset.parte].dice);
+    }
+    // La velocidad del scroll: Nova lo nota y el filtro se cierra, como un DJ.
+    const dt = Math.max(1, t - ultT);
+    velScroll = (y - ultY) / dt;
+    ultY = y; ultT = t;
+    if (Math.abs(velScroll) > 2.4 && t - ultRapido > 3000) { ultRapido = t; decir(velScroll > 0 ? "¡Adelantando!" : "Rebobinando…", { pensar: false }); }
+    if (filtroMaestro && ac && ac.state === "running") {
+      const objetivo = Math.abs(velScroll) > 1.2 ? 450 : 18000;
+      filtroMaestro.frequency.setTargetAtTime(objetivo, ac.currentTime, objetivo < 1000 ? 0.05 : 0.4);
+    }
+    arrancar();
+  }
+  let pedido = false;
+  addEventListener("scroll", () => {
+    if (!pedido) { pedido = true; requestAnimationFrame(() => { pedido = false; recorrer(); }); }
+    clearTimeout(quieto);
+    quieto = setTimeout(() => {
+      velScroll = 0; ultT = ahora(); ultY = scrollY;
+      if (filtroMaestro && ac && ac.state === "running") filtroMaestro.frequency.setTargetAtTime(18000, ac.currentTime, 0.4);
+    }, 180);
+  }, { passive: true });
+  addEventListener("resize", () => { medir(); recorrer(); });
+  if (!reducido) document.body.classList.add("viva");
+
+  // ── Nova en escena y Nova acompanando ─────────────────────────────────────
+  const acompana = $("acompana"), botonChica = $("nova-chica");
+  if ("IntersectionObserver" in window) {
+    new IntersectionObserver((e) => {
+      enEscena = e[0].isIntersecting;
+      acompana.classList.toggle("visible", !enEscena);
+      acompana.setAttribute("aria-hidden", String(enEscena));
+      botonChica.tabIndex = enEscena ? -1 : 0;
+      if (!enEscena && novaChica.estado === "apagada") novaChica.estado = "escucha";
+      if (enEscena) globo.classList.remove("visible");
+      arrancar();
+    }, { threshold: 0.2 }).observe($("escenario"));
+  }
+  botonChica.addEventListener("click", () => decir(PARTES[partes[parteActual].dataset.parte].toque));
+  $("escenario").addEventListener("click", () => {
+    decir(sonando ? "Sonando «" + DISCOS[disco].nombre + "». Elige otra carátula y la mezclo." : "¿Ponemos música? Toca «Ponle música» y yo la mezclo.");
+  });
+  // Mira el boton de descarga (y lo dice una vez).
+  let dijoDescarga = false;
+  document.querySelectorAll(".descargar").forEach((b) => b.addEventListener("pointerenter", (e) => {
+    if (dijoDescarga || e.pointerType === "touch") return;
+    dijoDescarga = true;
+    decir("Ese es. Gratis, sin anuncios y sin cuentas.");
+  }));
+  // Las funciones: al pasar (o tocar), Nova la cuenta.
+  document.querySelectorAll(".funcion[data-nova]").forEach((f) => {
+    let espera = null;
+    f.addEventListener("pointerenter", (e) => { if (e.pointerType !== "touch") espera = setTimeout(() => decir(f.dataset.nova), 500); });
+    f.addEventListener("pointerleave", () => clearTimeout(espera));
+    f.addEventListener("click", () => decir(f.dataset.nova));
+  });
+  // Los temas del TV.
+  document.querySelectorAll("[data-tema]").forEach((b) => b.addEventListener("click", () => {
+    const tema = TEMAS_TV[b.dataset.tema], img = $("tv-img");
+    document.querySelectorAll("[data-tema]").forEach((x) => x.setAttribute("aria-pressed", String(x === b)));
+    img.style.opacity = "0";
+    setTimeout(() => { img.src = tema.img; img.alt = tema.alt; img.onload = () => { img.style.opacity = "1"; }; }, reducido ? 0 : 200);
+    decir(tema.dice);
+  }));
+  Object.values(TEMAS_TV).forEach((t) => { const i = new Image(); i.src = t.img; });
+
+  // Un solo bucle de animacion, que se detiene si no hay nada que mover.
+  let raf = 0, quietoDesde = 0;
+  function cuadro(t) {
     raf = 0;
-    const W = lienzo.clientWidth, H = lienzo.clientHeight;
-    if (!W || !H) return;
-    const dpr = Math.min(2, window.devicePixelRatio || 1);
-    if (lienzo.width !== Math.round(W * dpr) || lienzo.height !== Math.round(H * dpr)) { lienzo.width = Math.round(W * dpr); lienzo.height = Math.round(H * dpr); }
-    const g = lienzo.getContext("2d");
-    g.setTransform(dpr, 0, 0, dpr, 0, 0);
-    g.clearRect(0, 0, W, H);
-    const t = (now - t0) / 1000;
     if (analizador && ac && ac.state === "running") {
       analizador.getFloatTimeDomainData(muestras);
       let suma = 0;
       for (let i = 0; i < muestras.length; i++) suma += muestras[i] * muestras[i];
       nivel = nivel * 0.8 + Math.min(1, Math.sqrt(suma / muestras.length) * 3.2) * 0.2;
-    } else {
-      nivel *= 0.94;
-    }
-    for (let i = 0; i < 3; i++) color[i] += (objetivo[i] - color[i]) * 0.05;
-    const [r, gg, b] = color.map(Math.round);
-    const cx = W / 2, cy = H / 2 - 10, base = Math.min(W, H) * 0.32;
-    const R = base * (1 + (reducido ? 0 : Math.sin(t * 1.6) * 0.03) + nivel * 0.34);
-    const halo = g.createRadialGradient(cx, cy, R * 0.1, cx, cy, R * 1.7);
-    halo.addColorStop(0, "rgba(" + r + "," + gg + "," + b + "," + (0.16 + 0.3 * nivel) + ")");
-    halo.addColorStop(1, "rgba(" + r + "," + gg + "," + b + ",0)");
-    g.fillStyle = halo;
-    g.fillRect(0, 0, W, H);
-    const ry = (reducido ? 0 : t * 0.22) + mx * 0.7, rx = 0.35 + my * 0.45;
-    const cY = Math.cos(ry), sY = Math.sin(ry), cX = Math.cos(rx), sX = Math.sin(rx);
-    for (let i = 0; i < puntos.length; i++) {
-      const p = puntos[i];
-      const w = 1 + nivel * 0.22 * Math.sin(p.fase * 3 + t * 5);
-      const x1 = p.x * cY + p.z * sY, z1 = -p.x * sY + p.z * cY;
-      const y1 = p.y * cX - z1 * sX, z2 = p.y * sX + z1 * cX;
-      const f = 2.8 / (2.8 - z2);
-      let sx = cx + x1 * R * w * f, sy = cy + y1 * R * w * f;
-      const dx = sx - px, dy = sy - py, d2 = dx * dx + dy * dy;
-      if (d2 < 7000) { const k = (1 - d2 / 7000) * 20, d = Math.sqrt(d2) || 1; sx += (dx / d) * k; sy += (dy / d) * k; } // se aparta del puntero
-      const prof = (z2 + 1) / 2, tam = 0.7 + 2.3 * prof;
-      g.fillStyle = "rgba(" + r + "," + gg + "," + b + "," + (0.12 + 0.88 * prof) + ")";
-      g.beginPath(); g.arc(sx, sy, tam, 0, 6.2832); g.fill();
-    }
-    // Con movimiento reducido, la esfera se queda quieta: un solo cuadro (o los que pida el color o el sonido).
-    const asentado = Math.abs(objetivo[0] - color[0]) + Math.abs(objetivo[1] - color[1]) + Math.abs(objetivo[2] - color[2]) < 1.5;
-    if (!reducido || !asentado || sonando || nivel > 0.01) arrancarEsfera();
+    } else nivel *= 0.9;
+    apuntarMiradas(velScroll);
+    const visibles = [];
+    if (enEscena || novaGrande.estado !== "escucha") visibles.push(novaGrande);
+    if (!enEscena) visibles.push(novaChica);
+    for (const n of visibles) n.dibujar(t, nivel);
+    // Con la pestana oculta, nada; si todo esta quieto y no hay musica, se duerme hasta el proximo evento.
+    const movido = sonando || novas.some((n) => n.estado !== "escucha") || puntero;
+    if (movido) quietoDesde = t;
+    if (!document.hidden && (t - quietoDesde < 8000 || !reducido)) raf = requestAnimationFrame(cuadro);
   }
-  function arrancarEsfera() {
-    if (!raf && visible && !document.hidden) raf = requestAnimationFrame(dibujar);
-  }
-  // Fuera de pantalla o con la pestana oculta, la esfera no gasta bateria.
-  if ("IntersectionObserver" in window) {
-    new IntersectionObserver((e) => { visible = e[0].isIntersecting; if (visible) arrancarEsfera(); }).observe(escena);
-  }
-  document.addEventListener("visibilitychange", () => { if (!document.hidden) arrancarEsfera(); });
-  escena.addEventListener("pointermove", (e) => {
-    const rc = escena.getBoundingClientRect();
-    mx = ((e.clientX - rc.left) / rc.width - 0.5) * 2; my = ((e.clientY - rc.top) / rc.height - 0.5) * 2;
-    px = e.clientX - rc.left; py = e.clientY - rc.top;
-    if (reducido) arrancarEsfera();
-  });
-  escena.addEventListener("pointerleave", () => { px = -999; py = -999; if (reducido) arrancarEsfera(); });
+  function arrancar() { if (!raf && !document.hidden) raf = requestAnimationFrame(cuadro); }
+  document.addEventListener("visibilitychange", arrancar);
+  addEventListener("pointermove", arrancar, { passive: true });
 
   // ── Datos en vivo ──────────────────────────────────────────────────────────
   const fmtNum = (n) => n.toLocaleString("es-CO");
@@ -330,37 +491,24 @@
   }
   ponerHora();
   setInterval(ponerHora, 20000);
-
-  // El servidor del TV, como en la landing anterior.
   fetch(RELEVO_TV + "/salud", { cache: "no-store" })
     .then((r) => (r.ok ? r.json() : null))
     .then((j) => !!j && j.estado === "ok")
     .catch(() => false)
-    .then((ok) => {
-      const texto = ok ? "Servidor del TV en línea" : "Servidor del TV sin respuesta";
-      $("vivo-tv").textContent = texto;
-      $("estado-tv").textContent = texto;
-      $("punto-tv").classList.toggle("apagado", !ok);
-    });
+    .then((ok) => { $("estado-tv").textContent = ok ? "El servidor del TV está en línea ahora mismo." : "El servidor del TV no responde en este momento. Prueba en un rato."; });
 
-  // Descargas y version, de la API publica de GitHub (60 consultas por hora sin clave): se guardan 30 minutos.
+  // Descargas, version y pesos, de la API publica de GitHub (60 consultas por hora sin clave): se guardan 30 min.
   function leerCache() {
     try { const c = JSON.parse(localStorage.getItem("lm-github") || "null"); return c && Date.now() - c.hora < 1800000 ? c.datos : null; } catch { return null; }
   }
   function guardarCache(datos) { try { localStorage.setItem("lm-github", JSON.stringify({ hora: Date.now(), datos })); } catch {} }
   function ponerGitHub(d) {
-    if (!d) return;
-    if (d.version) {
-      $("vivo-version").textContent = "Versión " + d.version;
-    }
-    if (d.total) {
-      $("vivo-descargas").textContent = fmtNum(d.total) + " descargas";
-      $("vivo-descargas").hidden = false;
-      $("num-descargas").textContent = fmtNum(d.total);
-      $("detalle-descargas").textContent = (d.ultima ? fmtNum(d.ultima) + " de la " + d.version + ". " : "") + "Se cuenta solo, desde GitHub.";
-    }
-    if (d.peso) $("peso-apk").textContent = "APK " + megas(d.peso);
-    if (d.pesoLigera) $("enlace-ligera").textContent = "versión ligera arm64, " + megas(d.pesoLigera);
+    if (!d || !d.version) return;
+    const peso = d.peso ? ", " + megas(d.peso) : "";
+    $("hechos").textContent = "Gratis y sin anuncios. Versión " + d.version + " para Android 8 o superior" + peso + "." + (d.total ? " La han bajado " + fmtNum(d.total) + " veces." : "");
+    $("titulo-version").textContent = "Life Music " + d.version;
+    $("detalle-version").textContent = "Para Android 8 o superior" + peso + ". Gratis, sin anuncios.";
+    if (d.pesoLigera) $("enlace-ligera").textContent = "¿Teléfono con poco espacio? Versión ligera para arm64, " + megas(d.pesoLigera);
   }
   const enCache = leerCache();
   if (enCache) ponerGitHub(enCache);
@@ -370,14 +518,13 @@
       .then((lista) => {
         if (!Array.isArray(lista)) return;
         const total = lista.reduce((s, r) => s + (r.assets || []).reduce((a, x) => a + (x.download_count || 0), 0), 0);
-        // La «oficial» es la ultima publicada que no es prueba ni del carro.
+        // La oficial: la ultima publicada que no es prueba ni del carro.
         const oficial = lista.filter((r) => !r.draft && !r.prerelease && /^v\d/.test(r.tag_name))
           .sort((a, b) => Date.parse(b.published_at) - Date.parse(a.published_at))[0];
         const asset = (nombre) => oficial && (oficial.assets || []).find((x) => x.name === nombre);
         const datos = {
           total,
           version: oficial ? oficial.tag_name.replace(/^v/, "") : null,
-          ultima: oficial ? (oficial.assets || []).reduce((a, x) => a + (x.download_count || 0), 0) : 0,
           peso: asset("lifemusic.apk") ? asset("lifemusic.apk").size : 0,
           pesoLigera: asset("lifemusic-arm64.apk") ? asset("lifemusic-arm64.apk").size : 0,
         };
@@ -387,12 +534,26 @@
       .catch(() => {});
   }
 
-  // ── Arranque ───────────────────────────────────────────────────────────────
+  // ── Arranque: Nova aparece pequena y se expande ──────────────────────────
   pintarPulso();
   medir();
   recorrer();
-  arrancarEsfera();
-  // Las letras y las imagenes cambian la altura de la pagina: se vuelve a medir cuando terminan de cargar.
+  const grande = $("nova-grande");
+  // El saludo solo si la persona no ha hecho nada todavia (si recargo a mitad de pagina, Nova ya conto esa parte).
+  const saludar = (opciones) => { if (!yaHablo) decir(PARTES.Intro.dice, opciones); };
+  if (reducido) {
+    grande.classList.add("lista");
+    novaGrande.estado = "escucha";
+    setTimeout(() => saludar({ pensar: false }), 400);
+  } else {
+    requestAnimationFrame(() => {
+      grande.classList.add("llega");
+      requestAnimationFrame(() => grande.classList.add("lista"));
+    });
+    setTimeout(() => { if (novaGrande.estado === "apagada") novaGrande.estado = "escucha"; }, 350);
+    setTimeout(() => saludar(), 1300);
+  }
+  arrancar();
   addEventListener("load", () => { medir(); recorrer(); });
   if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => { medir(); recorrer(); });
 })();

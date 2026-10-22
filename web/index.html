@@ -53,133 +53,196 @@
 </script>
 
 <!--
-  La «landing viva» con la identidad «03 · Pulso» (aprobada por CG el 21-10-2026).
-  Maqueta: Brand/maquetas/2026-10-21-landing-viva/. La pagina es una cancion de 3:58: el scroll es el tiempo.
+  La landing viva, segunda version (22-10-2026). Identidad «03 · Pulso», logo «la nota es el pulso» y Nova
+  («A · La mirada») como anfitriona. La pagina es una cancion de 3:58: el scroll es el tiempo.
+  Regla de CG: nada de recursos tipicos de IA (sin punticos delante de los textos, sin puntos que titilan).
   Sin analitica, sin letras de afuera: Geist y Geist Mono (OFL) se sirven desde /fuentes.
 -->
 <link rel="preload" href="/fuentes/geist.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="/landing.css?v=2">
+<link rel="stylesheet" href="/landing.css?v=3">
 </head>
 <body>
 <a class="salto" href="#verso">Saltar al contenido</a>
+<svg width="0" height="0" class="solo-lector" aria-hidden="true">
+  <defs>
+    <path id="trazo-chico" d="M29 32 Q29 22 21 18 Q13 14 12 8 V80 Q12 92 24 92 Q36 92 36 80 V58 Q36 42 49 42 Q62 42 62 58 V90 V58 Q62 42 75 42 Q88 42 88 58 V90" fill="none" stroke="currentColor" stroke-width="12" stroke-linecap="round" stroke-linejoin="round"/>
+    <path id="trazo" d="M28 31 Q28 22 21 18 Q13 14 12 8 V80 Q12 92 24 92 Q36 92 36 80 V58 Q36 42 49 42 Q62 42 62 58 V90 V58 Q62 42 75 42 Q88 42 88 58 V90" fill="none" stroke="currentColor" stroke-width="9" stroke-linecap="round" stroke-linejoin="round"/>
+  </defs>
+</svg>
 
 <header class="barra">
   <div class="ancho">
-    <a class="marca" href="#intro" aria-label="Life Music, al comienzo"><svg class="logo en-barra" viewBox="-14 0 532 100" aria-hidden="true" focusable="false"><path d="M28 31 Q28 22 21 18 Q13 14 12 8 V80 Q12 92 24 92 Q36 92 36 80 V58 Q36 42 49 42 Q62 42 62 58 V90 V58 Q62 42 75 42 Q88 42 88 58 V90" fill="none" stroke="currentColor" stroke-width="9" stroke-linecap="round" stroke-linejoin="round"/><ellipse class="nota" cx="2.5" cy="85" rx="11.5" ry="8.5" transform="rotate(-22 2.5 85)"/><text x="116" y="88" font-weight="600" font-size="86" letter-spacing="-4.3">Life Music</text></svg></a>
+    <a class="marca" href="#intro" aria-label="Life Music, al comienzo">
+      <svg class="logo" viewBox="-14 0 532 100" aria-hidden="true" focusable="false"><path d="M28 31 Q28 22 21 18 Q13 14 12 8 V80 Q12 92 24 92 Q36 92 36 80 V58 Q36 42 49 42 Q62 42 62 58 V90 V58 Q62 42 75 42 Q88 42 88 58 V90" fill="none" stroke="currentColor" stroke-width="9" stroke-linecap="round" stroke-linejoin="round"/><ellipse class="nota" cx="2.5" cy="85" rx="11.5" ry="8.5" transform="rotate(-22 2.5 85)"/><text x="116" y="88" font-weight="600" font-size="86" letter-spacing="-4.3">Life Music</text></svg>
+    </a>
     <div class="tiempo" aria-label="La página como una canción">
-      <span class="mono" id="tiempo">0:00</span>
-      <div class="linea-t" id="linea-t">
-        <span class="base"></span>
-        <span class="relleno" id="relleno"></span>
-        <span class="cabeza" id="cabeza"></span>
-      </div>
-      <span class="mono gris">3:58</span>
+      <span id="tiempo">0:00</span>
+      <div class="linea-t" id="linea-t"><span class="base"></span><span class="relleno" id="relleno"></span><span class="cabezal" id="cabezal"></span></div>
+      <span>3:58</span>
     </div>
-    <a class="boton chico" href="#coro"><span class="punto"></span>Descargar</a>
+    <a class="boton chico descargar" href="#coro"><svg class="simbolo" viewBox="-13 1 107 98" aria-hidden="true" focusable="false"><use href="#trazo-chico"/><ellipse class="nota" cx="1.5" cy="84" rx="13.5" ry="10" transform="rotate(-22 1.5 84)"/></svg>Descargar</a>
   </div>
 </header>
 
 <main class="ancho">
-  <section class="heroe" id="intro" data-parte="Intro" data-dice="Intro. Toca una carátula o dale a «Escuchar».">
+  <section class="heroe" id="intro" data-parte="Intro">
     <div>
-      <div class="vivo-fila mono gris"><span class="punto"></span><b>En vivo</b><span id="vivo-version">Versión 1.3.2</span><span id="vivo-descargas" hidden></span><span id="vivo-tv">Revisando el servidor del TV…</span></div>
-      <h1>La música que te habla, sin cortes<span class="punto"></span></h1>
-      <p class="lifeline"><span class="punto"></span><span id="linea">¿Listo para la sesión de hoy?</span></p>
-      <p class="sub gris">Encadena tus canciones como un DJ, te cuenta lo que está haciendo y se viste con los colores de tu música. Todo el catálogo de YouTube Music, sin anuncios y sin rastrearte.</p>
+      <h1>La música que te habla, sin cortes.</h1>
+      <p class="sub">Encadena tus canciones como un DJ, te cuenta lo que está haciendo y se viste con los colores de tu música. Todo el catálogo de YouTube Music, sin anuncios y sin rastrearte.</p>
       <div class="acciones">
-        <a class="boton" href="#coro"><span class="punto"></span>Descargar Life Music</a>
-        <button class="fantasma" type="button" id="escuchar" aria-pressed="false">
-          <svg class="play" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5v14l11-7z"></path></svg>
-          <svg class="pausa" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"></path></svg>
-          <span id="texto-escuchar">Escuchar</span>
+        <a class="boton descargar" href="#coro"><svg class="simbolo" viewBox="-13 1 107 98" aria-hidden="true" focusable="false"><use href="#trazo-chico"/><ellipse class="nota" cx="1.5" cy="84" rx="13.5" ry="10" transform="rotate(-22 1.5 84)"/></svg>Descargar Life Music</a>
+        <button class="enlace-accion" type="button" id="escuchar" aria-pressed="false">
+          <svg class="play" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg>
+          <svg class="pausa" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>
+          <span id="texto-escuchar">Ponle música</span>
         </button>
       </div>
+      <p class="hechos" id="hechos">Gratis y sin anuncios. Versión 1.3.2 para Android 8 o superior.</p>
     </div>
-    <div class="escena" id="escena">
-      <canvas class="esfera" id="esfera" role="img" aria-label="Esfera de luz que se mueve con la música"></canvas>
-      <div class="ahora mono gris" id="ahora">Lista · Marea alta · 98 BPM</div>
+    <div class="escenario" id="escenario">
+      <div class="nova-grande" id="nova-grande" aria-hidden="true"></div>
+      <p class="dice" id="dice-grande" aria-hidden="true"></p>
     </div>
   </section>
 
   <section class="discos" aria-labelledby="t-discos">
-    <div class="discos-cab mono gris"><span id="t-discos">Toca una carátula: la página toma sus colores</span><span>Canciones de ejemplo</span></div>
+    <div class="discos-cab"><h2 id="t-discos">Elige una carátula y Nova la pone</h2><p>Canciones de ejemplo, hechas para esta página. La página toma sus colores.</p></div>
     <div class="fila-discos">
-      <button class="disco d1" type="button" data-disco="0" aria-pressed="true"><span class="caratula"></span><b>Marea alta</b><span class="mono gris">98 BPM</span></button>
-      <button class="disco d2" type="button" data-disco="1" aria-pressed="false"><span class="caratula"></span><b>Luz de neón</b><span class="mono gris">118 BPM</span></button>
-      <button class="disco d3" type="button" data-disco="2" aria-pressed="false"><span class="caratula"></span><b>Órbita</b><span class="mono gris">84 BPM</span></button>
-      <button class="disco d4" type="button" data-disco="3" aria-pressed="false"><span class="caratula"></span><b>Selva</b><span class="mono gris">104 BPM</span></button>
-      <button class="disco d5" type="button" data-disco="4" aria-pressed="false"><span class="caratula"></span><b>Cobre</b><span class="mono gris">92 BPM</span></button>
+      <button class="disco d1" type="button" data-disco="0" aria-pressed="true"><span class="caratula"></span><b>Marea alta</b><span>98 BPM</span></button>
+      <button class="disco d2" type="button" data-disco="1" aria-pressed="false"><span class="caratula"></span><b>Luz de neón</b><span>118 BPM</span></button>
+      <button class="disco d3" type="button" data-disco="2" aria-pressed="false"><span class="caratula"></span><b>Órbita</b><span>84 BPM</span></button>
+      <button class="disco d4" type="button" data-disco="3" aria-pressed="false"><span class="caratula"></span><b>Selva</b><span>104 BPM</span></button>
+      <button class="disco d5" type="button" data-disco="4" aria-pressed="false"><span class="caratula"></span><b>Cobre</b><span>92 BPM</span></button>
     </div>
   </section>
 
-  <section class="parte" id="verso" aria-labelledby="t-verso" data-parte="Verso" data-dice="Cambiando de pista · Verso: lo que hace la app.">
-    <div class="parte-cab"><span class="etq mono gris"><b>Verso</b><span><span data-marca="1">0:00</span> · Funciones</span></span><h2 id="t-verso">Hecha para que la música no se corte.</h2></div>
-    <ol class="funciones">
-      <li class="funcion"><span class="mono gris">01</span><b>Automix</b><p class="gris">Un DJ algorítmico: analiza ritmo y tonalidad, sabe dónde empieza y acaba la música de verdad y mezcla con filtro. Lo acabas de oír arriba.</p></li>
-      <li class="funcion"><span class="mono gris">02</span><b>Life Line</b><p class="gris">La línea de abajo, la que te narra esta página. En la app te cuenta qué está haciendo mientras suena.</p></li>
-      <li class="funcion"><span class="mono gris">03</span><b>Letras</b><p class="gris">Sincronizadas palabra por palabra, con traducción opcional y modo karaoke.</p></li>
-      <li class="funcion"><span class="mono gris">04</span><b>Sin conexión</b><p class="gris">Descarga y escucha donde no hay señal. Tu biblioteca y tu historial viven en tu teléfono.</p></li>
-      <li class="funcion"><span class="mono gris">05</span><b>A tu gusto</b><p class="gris">Se viste con los colores de lo que suena, como esta página cuando tocas una carátula.</p></li>
-      <li class="funcion"><span class="mono gris">06</span><b>Sin rastreo</b><p class="gris">Sin analítica, sin publicidad y sin cuentas con nosotros. Código abierto bajo GPL-3.0.</p></li>
-    </ol>
+  <section class="parte" id="verso" aria-labelledby="t-verso" data-parte="Verso">
+    <div class="parte-cab">
+      <p class="cuando"><span class="tc" data-marca="1">1:00</span><span class="nombre">Verso · La app</span></p>
+      <div><h2 id="t-verso">Así se ve. Así suena.</h2><p>Este es el reproductor de verdad: la letra va con la canción, Life Line te cuenta lo que pasa y cada canción entra sin cortar a la anterior.</p></div>
+    </div>
+    <div class="recorrido">
+      <figure class="telefono">
+        <div class="marco-tel"><img src="/img/reproductor.webp" alt="El reproductor de Life Music: la carátula, el título, la letra que avanza y los controles" width="720" height="1494" loading="lazy"></div>
+        <figcaption>Life Music 1.3.2 en un teléfono Android.</figcaption>
+      </figure>
+      <dl class="funciones" id="funciones">
+        <div class="funcion" data-nova="El Automix mezcla con filtro, como lo hago yo con las carátulas de arriba."><dt>Automix</dt><dd>Un DJ algorítmico: lee el ritmo y la tonalidad, sabe dónde empieza y dónde acaba la música de verdad y mezcla con filtro.</dd></div>
+        <div class="funcion" data-nova="Life Line soy yo en la app: la línea que te cuenta lo que está pasando."><dt>Life Line</dt><dd>Una línea que te cuenta qué está haciendo la app mientras suena: «Fundiendo las notas…», «Cerrando el filtro…».</dd></div>
+        <div class="funcion" data-nova="La letra va palabra por palabra, al ritmo de quien canta."><dt>Letras</dt><dd>Sincronizadas palabra por palabra, con traducción opcional y modo karaoke.</dd></div>
+        <div class="funcion" data-nova="Descarga y escucha donde no hay señal."><dt>Sin conexión</dt><dd>Descarga y escucha donde no hay señal. Tu biblioteca y tu historial viven en tu teléfono.</dd></div>
+        <div class="funcion" data-nova="Toca una carátula arriba: así se viste la app con tu música."><dt>A tu gusto</dt><dd>Se viste con los colores de lo que suena, como esta página cuando eliges una carátula.</dd></div>
+        <div class="funcion" data-nova="Nada de analítica ni publicidad. El código está abierto en GitHub."><dt>Sin rastreo</dt><dd>Sin analítica, sin publicidad y sin cuentas con nosotros. Código abierto bajo GPL-3.0.</dd></div>
+      </dl>
+    </div>
   </section>
 
-  <section class="parte" id="puente" aria-labelledby="t-puente" data-parte="Puente" data-dice="Mandando la señal al TV…">
-    <div class="tv">
-      <span class="etq mono gris"><b>Puente</b><span><span data-marca="2">0:00</span> · Life Music TV</span></span>
-      <div>
-        <h2 id="t-puente">¿Tu TV no tiene Cast? Tiene navegador.</h2>
-        <div class="url">lifemusic.app/tv</div>
-        <p class="gris">Ábrelo en el navegador del TV, escanea el QR o escribe el código en la app, y tu música sale en la pantalla grande, con letra. El TV se acuerda de tu teléfono para la próxima vez.</p>
-        <div class="fila"><a class="fantasma" href="/tv">Abrir el receptor</a><span class="estado mono gris"><span class="punto" id="punto-tv"></span><span id="estado-tv">Revisando el servidor del TV…</span></span></div>
+  <section class="parte" id="puente" aria-labelledby="t-puente" data-parte="Puente">
+    <div class="parte-cab">
+      <p class="cuando"><span class="tc" data-marca="2">2:00</span><span class="nombre">Puente · Life Music TV</span></p>
+      <div><h2 id="t-puente">¿Tu TV no tiene Cast? Tiene navegador.</h2></div>
+    </div>
+    <div class="tv-demo">
+      <figure class="pantalla-tv">
+        <div class="marco-tv"><img id="tv-img" src="/img/tv-tema-vinilo.jpg" alt="Life Music TV con el tema Vinilo: un tocadiscos con la carátula y la letra al lado" width="1280" height="720" loading="lazy"></div>
+        <div class="pata" aria-hidden="true"></div>
+        <div class="temas" role="group" aria-label="Temas del TV">
+          <button type="button" data-tema="vinilo" aria-pressed="true">Vinilo</button>
+          <button type="button" data-tema="ambiente" aria-pressed="false">Ambiente</button>
+          <button type="button" data-tema="cristal" aria-pressed="false">Cristal líquido</button>
+        </div>
+      </figure>
+      <div class="tv-texto">
+        <p>Ábrelo en el navegador del TV:</p>
+        <span class="url">lifemusic.app/tv</span>
+        <p>Escanea el QR o escribe el código en la app, y tu música sale en la pantalla grande, con letra y con el tema que elijas. El TV se acuerda de tu teléfono para la próxima vez.</p>
+        <a class="boton" href="/tv">Abrir el receptor</a>
+        <p class="estado-tv" id="estado-tv" aria-live="polite">Revisando el servidor del TV…</p>
       </div>
     </div>
   </section>
 
-  <section class="parte" id="coro" aria-labelledby="t-coro" data-parte="Coro" data-dice="El coro: un minuto y la tienes.">
-    <div class="parte-cab"><span class="etq mono gris"><b>Coro</b><span><span data-marca="3">0:00</span> · Instalar</span></span><h2 id="t-coro">Un minuto, de verdad.</h2></div>
-    <ol class="pasos">
-      <li class="paso"><span class="mono gris">01</span><b>Descarga</b><p class="gris">Toca «Descargar Life Music». El archivo baja a tu carpeta de descargas.</p></li>
-      <li class="paso"><span class="mono gris">02</span><b>Ábrelo</b><p class="gris">Desde la notificación de la descarga o desde la app Archivos.</p></li>
-      <li class="paso"><span class="mono gris">03</span><b>Permite instalar</b><p class="gris">Si el teléfono pregunta, activa «Permitir instalar apps de esta fuente». Es normal: no viene de Play Store.</p></li>
-      <li class="paso"><span class="mono gris">04</span><b>Dale play</b><p class="gris">Las próximas versiones te llegan dentro de la app.</p></li>
-    </ol>
-    <div class="coro">
-      <a class="boton" href="/apk"><span class="punto"></span>Descargar Life Music</a>
-      <span class="mono gris"><span id="peso-apk">APK</span> · Android 8 o superior · <a href="/apk-arm64" id="enlace-ligera">versión ligera arm64</a></span>
+  <section class="parte" id="coro" aria-labelledby="t-coro" data-parte="Coro">
+    <div class="parte-cab">
+      <p class="cuando"><span class="tc" data-marca="3">3:00</span><span class="nombre">Coro · Instalar</span></p>
+      <div><h2 id="t-coro">Un minuto, de verdad.</h2></div>
+    </div>
+    <div class="instalar">
+      <div class="tarjeta-descarga">
+        <svg class="grande" viewBox="-10 3 103 94" aria-hidden="true" focusable="false"><use href="#trazo"/><ellipse class="nota" cx="2.5" cy="85" rx="11.5" ry="8.5" transform="rotate(-22 2.5 85)"/></svg>
+        <h3 id="titulo-version">Life Music 1.3.2</h3>
+        <p id="detalle-version">Para Android 8 o superior. Gratis, sin anuncios.</p>
+        <a class="boton descargar" href="/apk"><svg class="simbolo" viewBox="-13 1 107 98" aria-hidden="true" focusable="false"><use href="#trazo-chico"/><ellipse class="nota" cx="1.5" cy="84" rx="13.5" ry="10" transform="rotate(-22 1.5 84)"/></svg>Descargar Life Music</a>
+        <a class="ligera" href="/apk-arm64" id="enlace-ligera">¿Teléfono con poco espacio? Versión ligera para arm64</a>
+      </div>
+      <ol class="pasos">
+        <li class="paso"><div><b>Descárgala</b><p>Toca «Descargar Life Music». El archivo baja a tu carpeta de descargas.</p></div></li>
+        <li class="paso"><div><b>Ábrela</b><p>Desde la notificación de la descarga o desde la app Archivos.</p></div></li>
+        <li class="paso"><div><b>Permite instalar</b><p>Si el teléfono pregunta, activa «Permitir instalar apps de esta fuente». Es normal: no viene de Play Store.</p></div></li>
+        <li class="paso"><div><b>Dale play</b><p>Las versiones nuevas te llegan dentro de la app.</p></div></li>
+      </ol>
+    </div>
+    <div class="carro">
+      <h3>¿Y en el carro?</h3>
+      <p>Life Music for Car se está probando en radios Android: la canción y Life Line en la pantalla del carro, con los controles del volante. Se avisa aquí cuando esté lista.</p>
     </div>
   </section>
 
-  <section class="parte" id="final" aria-labelledby="t-final" data-parte="Final" data-dice="Cerrando la sesión. Vuelve cuando quieras.">
-    <h2 class="salto-visual" id="t-final" hidden>En vivo</h2>
+  <section class="parte" id="final" aria-labelledby="t-final" data-parte="Final">
+    <div class="parte-cab">
+      <p class="cuando"><span class="tc" data-marca="4">3:40</span><span class="nombre">Final</span></p>
+      <div><h2 id="t-final">Lo nuevo, y lo que siempre preguntan.</h2></div>
+    </div>
     <div class="final-grid">
-      <span class="etq mono gris"><b>Final</b><span><span data-marca="4">0:00</span> · En vivo</span></span>
-      <div class="dato"><span class="mono gris">Descargas en GitHub</span><span class="num" id="num-descargas">—</span><p class="gris" id="detalle-descargas">Se cuenta solo, desde GitHub.</p></div>
-      <div class="dato"><span class="mono gris">En Barranquilla</span><span class="num" id="hora">—</span><p class="gris">Donde se hace Life Music, en CG LABS.</p></div>
+      <div>
+        <h3>Lo nuevo en la 1.3.2</h3>
+        <ul class="novedades">
+          <li><b>Temas PRO del TV</b><span>Atardecer, que cambia con la hora del día, y Tocadiscos, con tu carátula girando en un disco de verdad.</span></li>
+          <li><b>Life Music TV en el navegador</b><span>Para los TV sin Cast: abre lifemusic.app/tv, enlaza con el código y listo.</span></li>
+          <li><b>Actualizador renovado</b><span>Cada versión con su imagen, descargas más livianas y progreso con tiempo restante.</span></li>
+          <li><b>Cambios sin cortes</b><span>Si eliges otra canción, la que suena baja suave y la nueva entra subiendo.</span></li>
+        </ul>
+        <a class="todas" href="/novedades">Todas las novedades</a>
+      </div>
+      <div class="preguntas">
+        <h3>Preguntas</h3>
+        <details><summary>¿Es segura?</summary><p>Sí. El código es abierto (GPL-3.0) y cualquiera puede revisarlo en GitHub. La app no tiene analítica ni publicidad, y cada versión se publica firmada en GitHub.</p></details>
+        <details><summary>¿Por qué no está en Play Store?</summary><p>Porque reproduce el catálogo de YouTube Music, y ese tipo de aplicación no cumple las normas de Play Store. Por eso se instala desde aquí.</p></details>
+        <details><summary>¿Cómo se actualiza?</summary><p>Desde la misma app: cuando sale una versión nueva, te avisa y la instala con tu permiso.</p></details>
+        <details><summary>¿Es gratis?</summary><p>Sí, y sin anuncios. Life Music es un proyecto educativo y sin ánimo de lucro de CG LABS.</p></details>
+        <details><summary>¿Funciona en iPhone?</summary><p>Todavía no. Es para teléfonos Android 8 o superior.</p></details>
+      </div>
     </div>
     <div class="avisos">
-      <div class="aviso"><span class="mono gris"><span class="punto"></span>2.0 · En pruebas privadas</span><p>La próxima gran versión ya se está probando. Se anuncia aquí y en Telegram @cglabsti.</p></div>
-      <div class="aviso"><span class="mono gris"><span class="punto apagado"></span>Concurso JBL · En pausa</span><p>Quienes se prerregistraron conservan su lugar.</p></div>
+      <div class="aviso"><h3>La 2.0 se está probando</h3><p>Nova, la que te acompaña en esta página, llega a la app con la 2.0. Se anuncia aquí y en Telegram @cglabsti.</p></div>
+      <div class="aviso"><h3>Concurso JBL en pausa</h3><p>Quienes se prerregistraron conservan su lugar.</p></div>
     </div>
+    <p class="hecho-en">Life Music se hace en Barranquilla, donde ahora son las <b id="hora">—</b>.</p>
   </section>
 </main>
 
 <footer class="pie">
   <div class="ancho">
     <div class="pie-arriba">
-      <a class="marca" href="#intro" aria-label="Life Music, al comienzo"><svg class="logo en-pie" viewBox="-14 0 532 100" aria-hidden="true" focusable="false"><path d="M28 31 Q28 22 21 18 Q13 14 12 8 V80 Q12 92 24 92 Q36 92 36 80 V58 Q36 42 49 42 Q62 42 62 58 V90 V58 Q62 42 75 42 Q88 42 88 58 V90" fill="none" stroke="currentColor" stroke-width="9" stroke-linecap="round" stroke-linejoin="round"/><ellipse class="nota" cx="2.5" cy="85" rx="11.5" ry="8.5" transform="rotate(-22 2.5 85)"/><text x="116" y="88" font-weight="600" font-size="86" letter-spacing="-4.3">Life Music</text></svg></a>
+      <a class="marca" href="#intro" aria-label="Life Music, al comienzo">
+        <svg class="logo" viewBox="-14 0 532 100" aria-hidden="true" focusable="false"><path d="M28 31 Q28 22 21 18 Q13 14 12 8 V80 Q12 92 24 92 Q36 92 36 80 V58 Q36 42 49 42 Q62 42 62 58 V90 V58 Q62 42 75 42 Q88 42 88 58 V90" fill="none" stroke="currentColor" stroke-width="9" stroke-linecap="round" stroke-linejoin="round"/><ellipse class="nota" cx="2.5" cy="85" rx="11.5" ry="8.5" transform="rotate(-22 2.5 85)"/><text x="116" y="88" font-weight="600" font-size="86" letter-spacing="-4.3">Life Music</text></svg>
+      </a>
       <picture>
         <source srcset="/img/cglabs_lockup_blanco.webp" media="(prefers-color-scheme: dark)">
         <img src="/img/cglabs_lockup_negro.webp" alt="Un desarrollo de CG LABS" height="24">
       </picture>
     </div>
-    <nav aria-label="Enlaces" class="gris"><a href="/tv">Life Music TV</a><a href="/estado/">Estado del sistema</a><a href="/novedades">Novedades</a><a href="/github">Código en GitHub</a><a href="/privacidad">Privacidad</a></nav>
-    <p class="legal gris">Life Music es un proyecto educativo y sin ánimo de lucro de CG LABS, basado en Echo Music, Metrolist e InnerTune. Software libre bajo GPL-3.0: sin telemetría, sin publicidad y sin venta. Reproduce el catálogo de YouTube Music; no está en Play Store porque ese tipo de aplicación no cumple sus normas. YouTube y YouTube Music son marcas de Google; JBL es marca de Harman; ninguno tiene relación con este proyecto. Life Music by CG · CG LABS · © 2026</p>
+    <nav aria-label="Enlaces"><a href="/tv">Life Music TV</a><a href="/estado/">Estado del sistema</a><a href="/novedades">Novedades</a><a href="/github">Código en GitHub</a><a href="/privacidad">Privacidad</a></nav>
+    <p class="legal">Life Music es un proyecto educativo y sin ánimo de lucro de CG LABS, basado en Echo Music, Metrolist e InnerTune. Software libre bajo GPL-3.0: sin telemetría, sin publicidad y sin venta. Reproduce el catálogo de YouTube Music; no está en Play Store porque ese tipo de aplicación no cumple sus normas. YouTube y YouTube Music son marcas de Google; JBL es marca de Harman; ninguno tiene relación con este proyecto. Life Music by CG · CG LABS · © 2026</p>
   </div>
 </footer>
 
-<div class="narra" aria-live="polite"><span class="punto"></span><span class="mono" id="narra">¿Listo para la sesión de hoy?</span></div>
+<aside class="acompana" id="acompana" aria-label="Nova te acompaña">
+  <button class="nova-chica" id="nova-chica" type="button" aria-label="Nova: tócala y te cuenta dónde estás" tabindex="-1"></button>
+  <p class="globo" id="globo" aria-hidden="true"></p>
+</aside>
+<p class="solo-lector" id="voz" aria-live="polite"></p>
 
-<script src="/landing.js?v=1" defer></script>
+<script src="/landing.js?v=3" defer></script>
 </body>
 </html>
