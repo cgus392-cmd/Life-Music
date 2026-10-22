@@ -358,8 +358,9 @@
 .sala .resenas small{font-size:12px;color:var(--texto-3);overflow-wrap:anywhere}
 .sala .resenas .r-acciones{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin-top:2px}
 .sala .notas-r{display:inline-flex;gap:2px}
-.sala .notas-r svg{width:16px;height:13px;fill:none;stroke:var(--texto-3);stroke-width:1.6}
-.sala .notas-r svg.llena{fill:var(--aire);stroke:var(--aire)}
+.sala .notas-r svg{width:13px;height:16px;fill:none;stroke:var(--texto-3);stroke-width:1.6;stroke-linecap:round}
+.sala .notas-r svg.llena{stroke:var(--aire)}
+.sala .notas-r svg.llena ellipse{fill:var(--aire)}
 .sala .resenas-pie{padding:0 18px 16px}
 @media (max-width: 760px){
   .sala .resenas{grid-template-columns:minmax(0,1fr)}

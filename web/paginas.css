@@ -25,9 +25,12 @@
 .fila-notas{display:flex;gap:6px;margin-top:18px}
 .fila-notas input{position:absolute;opacity:0;width:1px;height:1px}
 .fila-notas label{display:grid;place-items:center;width:60px;height:60px;border-radius:14px;cursor:pointer}
-.fila-notas svg{width:44px;height:36px;overflow:visible;transition:transform .25s cubic-bezier(.3,1.7,.5,1)}
+.fila-notas svg{width:34px;height:42px;overflow:visible;transition:transform .25s cubic-bezier(.3,1.7,.5,1)}
+/* Cada nota es una corchea: cabeza, plica y banderita (el ovalo solo parecia una hoja, dijo CG el 22-10). */
 .fila-notas ellipse{fill:transparent;stroke:var(--tenue);stroke-width:2.4;transition:fill .2s ease,stroke .2s ease}
+.fila-notas path{fill:none;stroke:var(--tenue);stroke-width:2.6;stroke-linecap:round;stroke-linejoin:round;transition:stroke .2s ease}
 .fila-notas label.encendida ellipse{fill:var(--pulso);stroke:var(--pulso)}
+.fila-notas label.encendida path{stroke:var(--pulso)}
 .fila-notas label.encendida svg{transform:translateY(-3px) rotate(-4deg)}
 .fila-notas input:focus-visible + label{outline:2px solid var(--texto);outline-offset:2px}
 .fila-notas label.salta svg{animation:salta .45s cubic-bezier(.3,1.7,.5,1)}
@@ -64,9 +67,11 @@
 .sin-promedio{font-size:22px;font-weight:300;letter-spacing:-.02em}
 .sin-promedio b{font-weight:600}
 .notas-chicas{display:inline-flex;gap:3px;vertical-align:middle}
-.notas-chicas svg{width:17px;height:14px;overflow:visible}
-.notas-chicas ellipse{fill:transparent;stroke:var(--tenue);stroke-width:1.8}
+.notas-chicas svg{width:14px;height:17px;overflow:visible}
+.notas-chicas ellipse{fill:transparent;stroke:var(--tenue);stroke-width:1.6}
+.notas-chicas path{fill:none;stroke:var(--tenue);stroke-width:1.7;stroke-linecap:round}
 .notas-chicas .llena ellipse{fill:var(--pulso);stroke:var(--pulso)}
+.notas-chicas .llena path{stroke:var(--pulso)}
 .github-invita{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:16px 24px;align-items:center;padding:28px 0;border-top:1px solid var(--linea);border-bottom:1px solid var(--linea)}
 .github-invita p{margin-top:6px;color:var(--gris)}
 .github-invita .boton,.gracias .boton{justify-self:start}
@@ -152,7 +157,7 @@
   .tarjeta-form{padding:24px}
   .fila-notas{gap:2px}
   .fila-notas label{flex:1 1 0;width:auto;max-width:52px;min-width:44px;height:56px}
-  .fila-notas svg{width:38px;height:31px}
+  .fila-notas svg{width:30px;height:37px}
   .promedio .grande{font-size:64px}
   .github-invita{grid-template-columns:minmax(0,1fr)}
   .version,.legal-doc{grid-template-columns:minmax(0,1fr);gap:20px}

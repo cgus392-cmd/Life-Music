@@ -103,8 +103,8 @@
     s.setAttribute("role", "img");
     s.setAttribute("aria-label", n + " de 5 notas");
     for (let k = 1; k <= 5; k++) {
-      s.insertAdjacentHTML("beforeend", '<svg viewBox="0 0 20 16" aria-hidden="true"' + (k <= Math.round(n) ? ' class="llena"' : "") +
-        '><ellipse cx="10" cy="8" rx="7.5" ry="5.5" transform="rotate(-22 10 8)"/></svg>');
+      s.insertAdjacentHTML("beforeend", '<svg viewBox="0 0 18 22" aria-hidden="true"' + (k <= Math.round(n) ? ' class="llena"' : "") +
+        '><ellipse cx="6" cy="17" rx="4.8" ry="3.5" transform="rotate(-22 6 17)"/><path d="M10.2 16 V2.5 C10.5 5.3 15 5.8 14.3 9.8"/></svg>');
     }
     return s;
   }

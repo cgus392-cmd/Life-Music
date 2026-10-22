@@ -1033,7 +1033,7 @@
     if (!r) return "";
     const pend = r.lista.filter((x) => x.estado === "pendiente");
     const ms = (t) => Date.parse(t.replace(" ", "T") + "Z");
-    const notas = (n) => h`<span class="notas-r" role="img" aria-label="${n} de 5 notas">${[1, 2, 3, 4, 5].map((k) => h`<svg viewBox="0 0 20 16" class="${k <= n ? "llena" : ""}" aria-hidden="true"><ellipse cx="10" cy="8" rx="7.5" ry="5.5" transform="rotate(-22 10 8)"/></svg>`)}</span>`;
+    const notas = (n) => h`<span class="notas-r" role="img" aria-label="${n} de 5 notas">${[1, 2, 3, 4, 5].map((k) => h`<svg viewBox="0 0 18 22" class="${k <= n ? "llena" : ""}" aria-hidden="true"><ellipse cx="6" cy="17" rx="4.8" ry="3.5" transform="rotate(-22 6 17)"/><path d="M10.2 16 V2.5 C10.5 5.3 15 5.8 14.3 9.8"/></svg>`)}</span>`;
     const boton = (x, a, texto) => h`<button class="boton chico" data-accion="resena" data-id="${x.id}" data-a="${a}">${texto}</button>`;
     const fila = (x) => h`<li class="${x.estado}"><div class="r-cab"><b>${x.nombre}</b>${notas(x.notas)}<time>${diaMes(ms(x.creada_en))} · ${horaCorta(ms(x.creada_en))}</time></div>
       <p class="${x.comentario ? "" : "sin"}">${x.comentario || "Sin comentario, solo las notas."}</p>

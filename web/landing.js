@@ -501,7 +501,8 @@
     const g = L.g;
     g.setTransform(DPR, 0, 0, DPR, 0, 0);
     g.clearRect(0, 0, w, h);
-    g.fillStyle = aHex(L.nova.c1);
+    g.fillStyle = g.strokeStyle = aHex(L.nova.c1);
+    g.lineCap = "round";
     L.notas = L.notas.filter((n) => (n.vida += dt) < n.dura);
     for (const n of L.notas) {
       n.x += (n.vx + Math.sin(n.vida * 2.2 + n.fase) * 10) * dt;
@@ -511,10 +512,17 @@
       g.globalAlpha = Math.max(0, entra * sale) * 0.9;
       g.save();
       g.translate(n.x, n.y);
-      g.rotate((-22 + Math.sin(n.vida * 3 + n.fase) * 10) * Math.PI / 180);
+      g.rotate(Math.sin(n.vida * 3 + n.fase) * 10 * Math.PI / 180);
+      // Una corchea entera (cabeza, plica y banderita): la cabeza sola parecia una hoja.
       g.beginPath();
-      g.ellipse(0, 0, n.s, n.s * 0.74, 0, 0, Math.PI * 2);
+      g.ellipse(0, 0, n.s, n.s * 0.74, -22 * Math.PI / 180, 0, Math.PI * 2);
       g.fill();
+      g.lineWidth = Math.max(1.2, n.s * 0.26);
+      g.beginPath();
+      g.moveTo(n.s * 0.9, -n.s * 0.2);
+      g.lineTo(n.s * 0.9, -n.s * 2.9);
+      g.bezierCurveTo(n.s * 0.95, -n.s * 2.3, n.s * 2, -n.s * 2.2, n.s * 1.85, -n.s * 1.3);
+      g.stroke();
       g.restore();
     }
     g.globalAlpha = 1;
@@ -855,7 +863,7 @@
       const texto = prom.toFixed(1).replace(".", ",");
       const votos = total ? " · " + fmtNum(total) + (total === 1 ? " calificación" : " calificaciones") : "";
       let svgs = "";
-      for (let k = 1; k <= 5; k++) svgs += '<svg viewBox="0 0 20 16"' + (k <= Math.round(prom) ? ' class="llena"' : "") + '><ellipse cx="10" cy="8" rx="7.5" ry="5.5" transform="rotate(-22 10 8)"/></svg>';
+      for (let k = 1; k <= 5; k++) svgs += '<svg viewBox="0 0 18 22"' + (k <= Math.round(prom) ? ' class="llena"' : "") + '><ellipse cx="6" cy="17" rx="4.8" ry="3.5" transform="rotate(-22 6 17)"/><path d="M10.2 16 V2.5 C10.5 5.3 15 5.8 14.3 9.8"/></svg>';
       for (const sufijo of ["arriba", "bloque"]) {
         $("promedio-" + sufijo).textContent = texto;
         $("votos-" + sufijo).textContent = votos;
