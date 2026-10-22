@@ -25,7 +25,7 @@
      relativo (temas, cristal.js, imagenes) se busca siempre en /cast/. -->
 <base href="/cast/">
 <link rel="icon" type="image/png" href="../img/lifemusic.png">
-<link rel="stylesheet" href="receptor.css?v=20261022a">
+<link rel="stylesheet" href="receptor.css?v=20261022b">
 <script>
   // En un Chromecast se carga el SDK de Cast como siempre (bloqueante, antes del
   // body). En /tv no hace falta: alli enlaza tv.js por el relevo.
@@ -71,9 +71,9 @@
   </div>
 
   <main id="escena" class="vacia">
+    <!-- El logo «la nota es el pulso» dentro de los temas (identidad Pulso, 22-10): toma el color del tema. -->
     <header class="marca">
-      <img src="../img/lifemusic.png" alt="" width="28" height="28">
-      <span>Life Music</span>
+      <svg viewBox="-14 0 532 100" role="img" aria-label="Life Music"><path d="M28 31 Q28 22 21 18 Q13 14 12 8 V80 Q12 92 24 92 Q36 92 36 80 V58 Q36 42 49 42 Q62 42 62 58 V90 V58 Q62 42 75 42 Q88 42 88 58 V90" fill="none" stroke="currentColor" stroke-width="9" stroke-linecap="round" stroke-linejoin="round"/><ellipse cx="2.5" cy="85" rx="11.5" ry="8.5" transform="rotate(-22 2.5 85)" fill="#FF6B3D"/><text x="116" y="88" font-family="Geist, sans-serif" font-weight="600" font-size="86" letter-spacing="-4.3" fill="currentColor">Life Music</text></svg>
     </header>
 
     <!-- Sin cancion: la bienvenida. -->
@@ -246,15 +246,15 @@
       <h2 id="tv-dialogo-titulo"></h2>
       <p id="tv-dialogo-texto"></p>
       <div class="tv-dialogo-acciones">
+        <button id="tv-dialogo-si" type="button"></button>
         <button id="tv-dialogo-no" type="button"></button>
-        <button id="tv-dialogo-si" type="button" class="primario"></button>
       </div>
     </div>
   </section>
 
-  <script src="nova-tv.js?v=20261022a"></script>
+  <script src="nova-tv.js?v=20261022b"></script>
   <script>
-    if (window.MODO_TV) document.write('<script src="qrcode.js?v=20261007b"><\/script><script src="tv.js?v=20261022a"><\/script>');
+    if (window.MODO_TV) document.write('<script src="qrcode.js?v=20261007b"><\/script><script src="tv.js?v=20261022b"><\/script>');
   </script>
   <script src="receptor.js?v=20261022a"></script>
 </body>

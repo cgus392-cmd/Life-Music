@@ -38,7 +38,7 @@ cast-media-player { display: none; }
   display: flex; align-items: center;
   font-size: 2.1vmin; font-weight: 600; letter-spacing: 0.02em; color: var(--texto-2);
 }
-.marca img { width: 2.8vmin; height: 2.8vmin; margin-right: 0.8vmin; border-radius: 0.7vmin; }
+.marca svg { height: 2.96vmin; width: 15.75vmin; overflow: visible; }
 
 /* ── Bienvenida (sin cancion) ─────────────────────────────────────────── */
 /* Identidad Pulso (maqueta aprobada por CG el 22-10-2026): carbon, Geist, Nova grande que espera contigo,
@@ -621,31 +621,28 @@ body.ligero .nova-tv .nova-cuerpo, body.ligero .nova-tv .nova-anillos { -webkit-
 #activar-boton:focus { outline: none; color: #111111; background: #F5F5F3; box-shadow: 0 0 0 0.55vmin #0E0E0E, 0 0 0 0.93vmin #F5F5F3; }
 .act-nota { margin-top: 3.7vmin; font-size: 2.78vmin; color: #A1A19D; }
 
-/* Mandos con icono: el nombre aparece en una etiqueta solo con el foco. */
+/* Mandos del control (Pulso, 22-10): circulos de 88 px en carbon al 78 %, abajo a la derecha. El que tiene el
+   foco se abre en pastilla hueso con su nombre y un aro hueso separado. Fondo solido, sin desenfoque. */
 #mandos-tv { display: none; }
-body.modo-tv #mandos-tv { display: -webkit-flex; display: flex; position: fixed; right: 5vmin; bottom: 4vmin; z-index: 35; opacity: 0; transition: opacity 400ms ease; }
+body.modo-tv #mandos-tv { display: -webkit-flex; display: flex; -webkit-align-items: center; align-items: center; position: fixed; right: 8.9vmin; bottom: 5vmin; z-index: 35; opacity: 0; transition: opacity 400ms ease; }
 body.modo-tv #escena.vacia ~ #mandos-tv, body.modo-tv.mandos #mandos-tv, body.modo-tv.enlazando #mandos-tv { opacity: 1; }
 .boton-ico {
-  position: relative; width: 7vmin; height: 7vmin; margin-left: 1.8vmin; border-radius: 50%; cursor: pointer; padding: 0;
+  position: relative; height: 8.15vmin; min-width: 8.15vmin; margin-left: 1.85vmin; padding: 0; border: 0; border-radius: 4.07vmin; cursor: pointer;
   display: -webkit-flex; display: flex; -webkit-align-items: center; align-items: center; -webkit-justify-content: center; justify-content: center;
-  color: #F2F5F3; background: rgba(255, 255, 255, 0.08); border: 1px solid rgba(255, 255, 255, 0.16);
-  transition: transform 200ms ease, background 200ms ease;
+  font-family: "Geist", "Segoe UI", Roboto, sans-serif; font-size: 3.15vmin; font-weight: 600; letter-spacing: -0.01em;
+  color: #F2F2EF; background: rgba(14, 14, 14, 0.78);
 }
-.boton-ico svg { width: 2.7vmin; height: 2.7vmin; fill: none; stroke: #F2F5F3; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
-.boton-ico:focus, .boton-ico:hover { outline: none; -webkit-transform: scale(1.1); transform: scale(1.1); background: rgba(52, 211, 153, 0.2); box-shadow: 0 0 0 0.5vmin #34D399; }
-.boton-ico .etiqueta {
-  position: absolute; bottom: 125%; right: 0; white-space: nowrap; padding: 0.9vmin 1.8vmin; border-radius: 1.2vmin;
-  font-size: 1.9vmin; font-weight: 600; color: #F2F5F3; background: #0F1512; border: 1px solid rgba(255, 255, 255, 0.14);
-  opacity: 0; pointer-events: none; transition: opacity 200ms ease;
-}
-.boton-ico:focus .etiqueta, .boton-ico:hover .etiqueta { opacity: 1; }
+.boton-ico svg { width: 3.5vmin; height: 3.5vmin; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.boton-ico .etiqueta { display: none; margin-left: 1.5vmin; white-space: nowrap; }
+.boton-ico:focus, .boton-ico:hover { outline: none; padding: 0 4.07vmin; color: #111111; background: #F5F5F3; box-shadow: 0 0 0 0.55vmin rgba(14, 14, 14, 0.78), 0 0 0 0.93vmin #F5F5F3; }
+.boton-ico:focus .etiqueta, .boton-ico:hover .etiqueta { display: inline; }
 
 /* Aviso corto abajo al centro (1.3.3): p. ej., si el navegador no deja pantalla completa. */
 .tv-aviso {
   position: fixed; left: 50%; bottom: 7vmin; z-index: 50; max-width: 80vw;
   -webkit-transform: translateX(-50%); transform: translateX(-50%);
   padding: 1.6vmin 3vmin; border-radius: 10vmin; text-align: center;
-  font-size: 2.2vmin; font-weight: 600; color: #F2F5F3; background: #0F1512; border: 1px solid rgba(255, 255, 255, 0.16);
+  font-family: "Geist", "Segoe UI", Roboto, sans-serif; font-size: 2.4vmin; font-weight: 500; color: #F2F2EF; background: #171717; border: 1px solid rgba(242, 242, 239, 0.14);
   box-shadow: 0 2vmin 5vmin rgba(0, 0, 0, 0.5);
   opacity: 0; transition: opacity 300ms ease; pointer-events: none;
 }
@@ -658,38 +655,33 @@ body.modo-tv #escena.vacia ~ #mandos-tv, body.modo-tv.mandos #mandos-tv, body.mo
   background: rgba(0, 0, 0, 0.9); border: 1px solid rgba(52, 211, 153, 0.5);
 }
 
-/* Dialogos del TV (1.3.2) */
+/* Dialogos del TV (1.3.2; Pulso, 22-10): la musica se oscurece con una capa solida (sin desenfoque) y la
+   pregunta va en una tarjeta carbon de 920 px. El foco arranca en la opcion que no rompe nada (tv.js). */
 .tv-capa {
   position: fixed; top: 0; left: 0; right: 0; bottom: 0; z-index: 45;
   display: -webkit-flex; display: flex; -webkit-align-items: center; align-items: center; -webkit-justify-content: center; justify-content: center;
-  background: rgba(4, 6, 5, 0.8);
+  background: rgba(10, 10, 10, 0.8);
 }
 .tv-capa.oculto { display: none; }
 .tv-dialogo {
-  width: 78vmin; padding: 5.4vmin; border-radius: 4vmin; text-align: center;
-  background: #111814; background: linear-gradient(180deg, #141C17, #0D1310);
-  border: 1px solid rgba(255, 255, 255, 0.12); box-shadow: 0 6vmin 14vmin rgba(0, 0, 0, 0.6);
+  width: 85.2vmin; padding: 5.9vmin 6.7vmin 5.6vmin; border-radius: 3vmin; text-align: left;
+  font-family: "Geist", "Segoe UI", Roboto, sans-serif; color: #F2F2EF;
+  background: #171717; box-shadow: inset 0 0 0 1px rgba(242, 242, 239, 0.08);
   -webkit-animation: enl-entra 0.35s both; animation: enl-entra 0.35s both;
 }
-.tv-dialogo-ico {
-  width: 9vmin; height: 9vmin; margin: 0 auto 2.6vmin; border-radius: 2.6vmin;
-  display: -webkit-flex; display: flex; -webkit-align-items: center; align-items: center; -webkit-justify-content: center; justify-content: center;
-  background: rgba(52, 211, 153, 0.14);
-}
-.tv-dialogo-ico svg { width: 4.6vmin; height: 4.6vmin; fill: none; stroke: #34D399; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
-.tv-dialogo.alerta .tv-dialogo-ico { background: rgba(248, 113, 113, 0.14); }
-.tv-dialogo.alerta .tv-dialogo-ico svg { stroke: #F87171; }
-.tv-dialogo h2 { margin: 0 0 1.6vmin; font-size: 4vmin; line-height: 1.15; letter-spacing: -0.02em; color: #F2F5F3; }
-.tv-dialogo p { margin: 0 0 4vmin; font-size: 2.3vmin; line-height: 1.5; color: rgba(242, 245, 243, 0.72); }
-.tv-dialogo p b { color: #F2F5F3; }
-.tv-dialogo-acciones { display: -webkit-flex; display: flex; -webkit-justify-content: center; justify-content: center; }
+.tv-dialogo-ico { width: 6.7vmin; height: 6.7vmin; }
+.tv-dialogo-ico svg { width: 100%; height: 100%; fill: none; stroke: #F2F2EF; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
+.tv-dialogo.alerta .tv-dialogo-ico svg { stroke: #FF6B3D; }
+.tv-dialogo h2 { margin: 2.6vmin 0 0; font-size: 5.37vmin; line-height: 1.05; font-weight: 600; letter-spacing: -0.035em; color: #F2F2EF; }
+.tv-dialogo p { margin: 2vmin 0 0; font-size: 3.06vmin; line-height: 1.4; color: #A1A19D; }
+.tv-dialogo p b { font-weight: 600; color: #F2F2EF; }
+.tv-dialogo-acciones { display: -webkit-flex; display: flex; margin-top: 4.8vmin; }
 .tv-dialogo-acciones button {
-  margin: 0 1vmin; padding: 1.8vmin 4vmin; border-radius: 10vmin; cursor: pointer;
-  font: inherit; font-size: 2.2vmin; font-weight: 700; color: #F2F5F3;
-  background: rgba(255, 255, 255, 0.06); border: 1px solid rgba(255, 255, 255, 0.14);
+  min-height: 8.15vmin; margin: 0 2.6vmin 0 0; padding: 0 4.07vmin; border: 0; border-radius: 4.07vmin; cursor: pointer;
+  font: inherit; font-size: 3.15vmin; font-weight: 600; letter-spacing: -0.01em; color: #F2F2EF;
+  background: transparent; box-shadow: inset 0 0 0 2px rgba(242, 242, 239, 0.32);
 }
-.tv-dialogo-acciones button.primario { color: #062016; background: #34D399; border-color: #34D399; }
-.tv-dialogo-acciones button:focus { outline: none; box-shadow: 0 0 0 0.5vmin #34D399; }
+.tv-dialogo-acciones button:focus { outline: none; color: #111111; background: #F5F5F3; box-shadow: 0 0 0 0.55vmin #171717, 0 0 0 0.93vmin #F5F5F3; }
 .tv-dialogo-acciones button[hidden] { display: none; }
 
 /* Sin video H.264: el Atardecer se queda con un cielo pintado, quieto. */

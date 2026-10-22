@@ -266,7 +266,8 @@
     if (o.no) { no.hidden = false; no.textContent = o.no; no.onclick = function () { cerrarDialogo(); if (o.alNo) o.alNo(); }; }
     else no.hidden = true;
     alternarClase(capa, "oculto", false);
-    try { si.focus(); } catch (e) {}
+    // El foco arranca en la opcion que no rompe nada («Volver»), no en la que corta la musica (Pulso, 22-10).
+    try { (o.no ? no : si).focus(); } catch (e) {}
   }
   function cerrarDialogo(tipo) {
     if (tipo && dialogoActual !== tipo) return;
@@ -700,7 +701,7 @@
   // cursor que algunos navegadores mueven con las flechas).
   function botonesVisibles() {
     var capa = $("tv-dialogo"), act = $("activar");
-    var ids = capa && !/oculto/.test(capa.className) ? ["tv-dialogo-no", "tv-dialogo-si"]
+    var ids = capa && !/oculto/.test(capa.className) ? ["tv-dialogo-si", "tv-dialogo-no"]
       : act && !/oculto/.test(act.className) ? ["activar-boton"]
       : ["btn-pantalla", "btn-codigo"];
     var r = [];
@@ -711,6 +712,8 @@
     return r;
   }
   function enfocarPrimero() {
+    var no = $("tv-dialogo-no");
+    if (dialogoActual && no && !no.hidden) { try { no.focus(); } catch (e) {} return; }
     var b = botonesVisibles();
     if (b.length) { try { b[0].focus(); } catch (e) {} }
   }
