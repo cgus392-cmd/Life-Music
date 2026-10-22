@@ -27,7 +27,8 @@ const MAX_CUERPO = 4096;
 const MIN_VISIBLE = 25; // menos calificaciones que esto no se muestran en publico
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
 const CORREO = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
-const CONTROL = /[\u0000-\u001f\u007f]/;
+// Caracteres de control y marcas invisibles de direccion (sirven para disfrazar un nombre en la Sala).
+const CONTROL = /[\u0000-\u001f\u007f\u200e\u200f\u202a-\u202e\u2066-\u2069]/;
 
 function json(cuerpo, estado = 200, extra = {}) {
   return new Response(JSON.stringify(cuerpo), {
