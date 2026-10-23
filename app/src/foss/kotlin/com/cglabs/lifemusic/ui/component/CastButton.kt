@@ -172,7 +172,8 @@ private fun HojaDeCast(handler: CastConnectionHandler, onCerrar: () -> Unit) {
                     Row(horizontalArrangement = Arrangement.spacedBy(10.dp), modifier = Modifier.fillMaxWidth()) {
                         TarjetaDeTema(CastConnectionHandler.TEMA_ATARDECER, R.string.cast_tema_atardecer, temaActual, Modifier.weight(1f), handler::ponerTema, pro = true)
                         TarjetaDeTema(CastConnectionHandler.TEMA_TOCADISCOS, R.string.cast_tema_tocadiscos, temaActual, Modifier.weight(1f), handler::ponerTema, pro = true)
-                        Spacer(Modifier.weight(1f))
+                        // Liviano (22-10): para TV sencillos que se traban con los temas de luces y vidrio.
+                        TarjetaDeTema(CastConnectionHandler.TEMA_LIVIANO, R.string.cast_tema_liviano, temaActual, Modifier.weight(1f), handler::ponerTema)
                     }
                     if (temaActual == CastConnectionHandler.TEMA_TOCADISCOS) {
                         // Mini menu: cual de las dos fotos del tocadiscos.
@@ -597,6 +598,16 @@ private fun androidx.compose.ui.graphics.drawscope.DrawScope.vistaPrevia(tema: S
             drawLine(Color(0xFFD9D4CC), start = androidx.compose.ui.geometry.Offset(0.50f * w, 0.12f * h), end = androidx.compose.ui.geometry.Offset(0.42f * w, 0.70f * h), strokeWidth = 1.4.dp.toPx())
             renglon(0.60f, 0.40f, 0.32f, 0.95f, 0.09f)
             renglon(0.60f, 0.58f, 0.24f, 0.4f, 0.06f)
+        }
+        "liviano" -> {
+            // Un color plano (sin luces), la caratula con su barra y la letra: nada pesado.
+            drawRect(Color(0xFF3A2706))
+            caja(0.08f, 0.20f, 0.30f, 0.52f, caratula, 0.08f)
+            caja(0.08f, 0.80f, 0.30f, 0.03f, Color.White.copy(alpha = 0.3f), 0.015f)
+            caja(0.08f, 0.80f, 0.10f, 0.03f, Color.White.copy(alpha = 0.9f), 0.015f)
+            renglon(0.48f, 0.30f, 0.42f, 1f)
+            renglon(0.48f, 0.46f, 0.36f, 0.45f)
+            renglon(0.48f, 0.62f, 0.40f, 0.3f)
         }
         "nocturno" -> {
             // Negro, la hora grande y la linea que suena.

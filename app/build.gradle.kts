@@ -38,8 +38,8 @@ android {
         // dia: Android no permite instalar un versionCode menor que el ya
         // instalado, asi que un 152 publicado como primera version dejaria sin
         // camino a cualquier version posterior que empezara a contar desde 1.
-        versionCode = 17
-        versionName = "2.0-prueba.1"
+        versionCode = 18
+        versionName = "2.0-prueba.2"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables.useSupportLibrary = true

@@ -894,7 +894,8 @@ class CastConnectionHandler(
                 .put("canvas", canvas)
             val conTempo = beat != null && beat.bpm > 40f && beat.confidence >= 0.4f
             if (conTempo) {
-                cancion.put("bpm", beat!!.bpm.toDouble()).put("primerBeatMs", beat.firstBeatOffsetMs)
+                // La confianza dice que tan marcado es el ritmo: el TV late fuerte solo si lo es (22-10, pedido de CG).
+                cancion.put("bpm", beat!!.bpm.toDouble()).put("primerBeatMs", beat.firstBeatOffsetMs).put("confianza", beat.confidence.toDouble())
             }
             enviar(cancion)
             if (!conTempo) {
@@ -904,7 +905,7 @@ class CastConnectionHandler(
                 scope.launch(Dispatchers.IO) {
                     val t = runCatching { musicService.tempoDe(metadata.id) }.getOrNull()
                     if (t != null && vigente()) {
-                        enviar(JSONObject().put("tipo", "tempo").put("id", metadata.id).put("bpm", t.bpm.toDouble()).put("primerBeatMs", t.firstBeatOffsetMs))
+                        enviar(JSONObject().put("tipo", "tempo").put("id", metadata.id).put("bpm", t.bpm.toDouble()).put("primerBeatMs", t.firstBeatOffsetMs).put("confianza", t.confidence.toDouble()))
                         com.cglabs.lifemusic.cast.DiagnosticoCast.log("tempo analizado y enviado: ${t.bpm}")
                     } else com.cglabs.lifemusic.cast.DiagnosticoCast.log("tempo: sin resultado para ${metadata.id}")
                 }
@@ -1053,6 +1054,8 @@ class CastConnectionHandler(
         // Temas pro: fondo real (video o foto en web/cast/temas/), sin limites de uso por ahora.
         const val TEMA_ATARDECER = "atardecer"
         const val TEMA_TOCADISCOS = "tocadiscos"
+        // Para TV sencillos (22-10): sin luces, video, mascaras ni sombras (web/cast, body.tema-liviano).
+        const val TEMA_LIVIANO = "liviano"
     }
 }
 
