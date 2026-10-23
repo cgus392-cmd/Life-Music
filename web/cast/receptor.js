@@ -258,7 +258,7 @@
     hlsCargando.push(cb);
   }
   function ponerCanvas(url) {
-    if (!ajustes.canvas || !url) { if (canvasUrl) quitarCanvas(); return; }
+    if (!ajustes.canvas || !url || tema === "liviano") { if (canvasUrl) quitarCanvas(); return; }
     if (canvasUrl === url) return;
     quitarCanvas();
     canvasUrl = url;
@@ -435,15 +435,26 @@
     return min + (max - min) * ((v + 1) * 0.5);
   }
 
-  // Latido con el tempo: golpe seco en cada beat y caida rapida, como el bombo
-  // medido en el telefono. Sin tempo, una respiracion lenta y discreta.
+  // Latido con el tempo, a la medida de cada cancion (pedido de CG, 22-10-2026: antes era un metronomo fijo que
+  // latia igual en una balada). La «fuerza» (0 a 1) dice que tan marcado es el ritmo: sale de la confianza del
+  // analisis del telefono cuando la manda; si no, se supone media, y baja si el tempo llego tarde (ese camino no
+  // filtra las canciones sin ritmo claro). El primer tiempo de cada compas pesa mas que los otros tres.
+  // Con poco ritmo, en vez de golpe, una respiracion lenta y discreta.
+  function fuerzaDe(c) {
+    if (!c || !(c.bpm > 40)) return 0;
+    if (typeof c.confianza === "number") return Math.max(0, Math.min(1, (c.confianza - 0.4) / 0.4));
+    return c.tempoTardio ? 0.25 : 0.5;
+  }
   function pulso(ms) {
     if (!ajustes.latido || !sonando) return 0;
-    if (cancion && cancion.bpm > 40) {
+    var f = fuerzaDe(cancion);
+    if (f >= 0.15) {
       var periodo = 60000 / cancion.bpm;
-      var fase = ((ms - (cancion.primerBeatMs || 0)) % periodo) / periodo;
-      if (fase < 0) fase += 1;
-      return Math.exp(-fase * 4);
+      var desde = ms - (cancion.primerBeatMs || 0);
+      var n = Math.floor(desde / periodo);
+      var fase = (desde - n * periodo) / periodo;
+      var acento = ((n % 4) + 4) % 4 === 0 ? 1 : 0.6;
+      return Math.exp(-fase * 4) * acento * f;
     }
     return 0.12 + 0.12 * Math.sin(ms / 2200);
   }
@@ -451,7 +462,7 @@
 
   var ultimoFotograma = 0;
   function dibujarFondo(ahora) {
-    if (tema === "galeria" || tema === "nocturno" || tema === "atardecer" || tema === "tocadiscos") return false;
+    if (tema === "galeria" || tema === "nocturno" || tema === "atardecer" || tema === "tocadiscos" || tema === "liviano") return false;
     // En pausa o en la bienvenida no hay latido que seguir: menos fotogramas.
     var fps = cancion ? (sonando ? FPS_FONDO : 12) : Math.min(FPS_FONDO, 15);
     if (ahora - ultimoFotograma < 1000 / fps) return false;
@@ -496,7 +507,9 @@
   // «ambiente» (el de siempre), «cristal» (paneles de cristal liquido, la
   // receta de la app) y «escenario» (una linea enorme al centro, para fiestas).
   // Llega del telefono en «ajustes»; la escena se funde a negro y vuelve.
-  var TEMAS = ["ambiente", "cristal", "escenario", "vinilo", "galeria", "nocturno", "atardecer", "tocadiscos"];
+  // «liviano» (22-10, pedido de CG): para TV sencillos. El diseño de Ambiente sin nada pesado: sin fondo que se
+  // redibuja, sin video, sin mascaras ni sombras; un color plano tomado de la caratula, la letra y el mini reproductor.
+  var TEMAS = ["ambiente", "cristal", "escenario", "vinilo", "galeria", "nocturno", "atardecer", "tocadiscos", "liviano"];
   var tema = "ambiente";
   var cambioTema = null;
   function ponerTema(nuevo) {
@@ -517,6 +530,8 @@
       ultimoGolpe = -1;
       if (elDestello) elDestello.style.opacity = "0";
       medirVidrios();
+      // El Liviano no carga el video de fondo; al salir de el, vuelve.
+      if (cancion) ponerCanvas(cancion.canvas);
       diag("tema: " + tema);
     };
     clearTimeout(cambioTema);
@@ -694,10 +709,11 @@
       }
     }
   }
-  // El golpe del escenario: la linea late un poco y la sala se ilumina en cada beat.
+  // El golpe del escenario: la linea late un poco y la sala se ilumina en cada beat, solo si la cancion tiene un
+  // ritmo marcado y con la fuerza de ese ritmo (una cancion suave deja la letra quieta).
   var ultimoGolpe = -1;
   function golpeEscenario() {
-    var v = (sonando && cancion && cancion.bpm > 40) ? Math.round(latido * 100) / 100 : 0;
+    var v = (sonando && fuerzaDe(cancion) >= 0.15) ? Math.round(latido * 100) / 100 : 0;
     if (v === ultimoGolpe) return;
     ultimoGolpe = v;
     elEscLetra.style.transform = "scale(" + (1 + v * 0.035).toFixed(4) + ")";
@@ -712,6 +728,9 @@
       if (p > puntos) { puntos = p; mejor = c; }
     }
     if (mejor) document.body.style.setProperty("--acento", Math.round(mejor[0]) + ", " + Math.round(mejor[1]) + ", " + Math.round(mejor[2]));
+    // El fondo plano del tema Liviano: el color principal de la caratula, muy oscurecido para que la letra se lea.
+    var base = paleta[0];
+    if (base) document.body.style.setProperty("--fondo-liviano", Math.round(base[0] * 0.22 + 4) + ", " + Math.round(base[1] * 0.22 + 4) + ", " + Math.round(base[2] * 0.22 + 4));
   }
 
   // ── Cristal en la GPU ─────────────────────────────────────────────────────
@@ -1229,7 +1248,7 @@
     }
     if (cancion) {
       var ms = posicion();
-      if (tema === "ambiente" || tema === "cristal" || tema === "vinilo") actualizarLetra(ms);
+      if (tema === "ambiente" || tema === "cristal" || tema === "vinilo" || tema === "liviano") actualizarLetra(ms);
       // La barra avanza 4 veces por segundo (su transicion CSS la suaviza).
       if (cancion.duracionMs > 0 && ahora - ultimaBarra > 250) {
         ultimaBarra = ahora;
@@ -1259,7 +1278,11 @@
         break;
       case "tempo":
         // Llega despues, cuando el telefono termino de analizar la cancion.
-        if (cancion && d.id === cancion.id && d.bpm > 40) { cancion.bpm = d.bpm; cancion.primerBeatMs = d.primerBeatMs || 0; }
+        if (cancion && d.id === cancion.id && d.bpm > 40) {
+          cancion.bpm = d.bpm; cancion.primerBeatMs = d.primerBeatMs || 0;
+          cancion.tempoTardio = true;
+          if (typeof d.confianza === "number") cancion.confianza = d.confianza;
+        }
         break;
       case "ajustes":
         if (d.cristal) ponerCristal(d.cristal);
@@ -1396,6 +1419,8 @@
       { id: "demo2", titulo: "Segunda cancion, titulo bastante largo", artista: "Otro Artista · Demo", caratula: caratulaFalsa("#0EA5E9", "#22C55E", "#0F172A", "CG"),
         colores: ["#0EA5E9", "#22C55E", "#0F172A", "#38BDF8", "#16A34A", "#1E3A8A"], bpm: 128, primerBeatMs: 0, duracionMs: largo, canvas: null },
     ];
+    // ?confianza=0.2 prueba como late una cancion suave; ?confianza=0.9, una con el bombo marcado.
+    if (params.confianza) canciones.forEach(function (c) { c.confianza = +params.confianza; });
     // Letra de relleno, no es de ninguna cancion.
     function letraFalsa(texto) {
       var ls = [];

@@ -446,6 +446,31 @@ body.tema-atardecer #atardecer { display: flex; }
 #atd-barra { width: 0%; height: 100%; border-radius: inherit; background: rgba(255, 250, 244, 0.94); transition: width 260ms linear; }
 #escena.pausa #atd-fila { opacity: 0.55; }
 
+/* ── Liviano (22-10-2026, pedido de CG) ─────────────────────────────────
+   Para TV sencillos: el diseño de Ambiente sin nada pesado. Sin el lienzo de luces (no se redibuja), sin
+   video de fondo, sin mascara de degradado en la letra, sin sombras ni escalas: un color plano tomado de
+   la caratula, la caratula, el titulo, la barra y la letra. Solo transiciones de opacidad y un desplazamiento. */
+body.tema-liviano { background: #0E0E0E; background: rgb(var(--fondo-liviano, 14, 14, 14)); transition: background-color 1.2s linear; }
+body.tema-liviano #fondo, body.tema-liviano #destello, body.tema-liviano #canvas { display: none; }
+body.tema-liviano #ambiente { transition: opacity 400ms linear, visibility 0s linear 400ms; }
+body.tema-liviano #escena.vacia #ambiente { transform: none; }
+body.tema-liviano #caratula-marco { width: 40vmin; height: 40vmin; box-shadow: none; transition: none; }
+body.tema-liviano #escena.pausa #caratula-marco { transform: none; }
+body.tema-liviano #caratula-marco .caratula { transition: opacity 400ms linear; }
+body.tema-liviano #caratula-marco .caratula.entra { transform: none; }
+body.tema-liviano #titulo, body.tema-liviano #artista { max-width: 40vmin; transition: opacity 240ms linear; }
+body.tema-liviano #titulo.sale, body.tema-liviano #artista.sale, body.tema-liviano #titulo.entra, body.tema-liviano #artista.entra { transform: none; }
+body.tema-liviano #progreso { width: 40vmin; max-width: 40vmin; height: 0.6vmin; }
+body.tema-liviano #progreso-barra { transition: none; }
+body.tema-liviano #derecha { height: 64vh; }
+body.tema-liviano #letra-ventana { -webkit-mask-image: none; mask-image: none; }
+body.tema-liviano #letra { top: 30%; transition: transform 300ms ease-out; will-change: auto; }
+/* Sin mascara, la letra no se corta a medias: se ve la linea que suena y las tres que vienen; las cantadas se van. */
+body.tema-liviano #letra .linea { transition: opacity 200ms linear; transform: none; text-shadow: none; }
+body.tema-liviano #letra .linea.pasada, body.tema-liviano #letra .linea.viva ~ .linea ~ .linea ~ .linea ~ .linea { opacity: 0; }
+body.tema-liviano #letra .linea.viva { transform: none; }
+body.tema-liviano #letra .linea .p { transition: none; }
+
 /* ── Tocadiscos (pro) ────────────────────────────────────────────────────
    La foto manda; la escena va en pixeles de la foto y #td-marco la escala
    para cubrir la pantalla (receptor.js). La caratula es un circulo que gira
