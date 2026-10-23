@@ -721,7 +721,10 @@
     if (ms < g[0]) return 0;
     while (bajo < alto) { var medio = (bajo + alto + 1) >> 1; if (g[medio] <= ms) bajo = medio; else alto = medio - 1; }
     var desde = ms - g[bajo];
-    return desde > 400 ? 0 : Math.exp(-desde / 90);
+    if (desde > 400) return 0;
+    // La fuerza de cada golpe (1 a 9, del telefono): un bombo fuerte salta mas que una nota suave del bajo.
+    var f = cancion.fuerzas && cancion.fuerzas[bajo] ? cancion.fuerzas[bajo] / 9 : 1;
+    return Math.exp(-desde / 90) * (0.3 + 0.7 * f);
   }
   var ultimoGolpe = -1;
   function golpeEscenario() {
@@ -1295,6 +1298,10 @@
           cancion.tempoTardio = true;
           if (typeof d.confianza === "number") cancion.confianza = d.confianza;
         }
+        break;
+      case "golpes":
+        // Los golpes reales de la cancion (22-10): llegan aparte, cuando el telefono termino de medirlos.
+        if (cancion && d.id === cancion.id && d.golpes && d.golpes.length) { cancion.golpes = d.golpes; cancion.fuerzas = d.fuerzas || null; diag("golpes: " + d.golpes.length); }
         break;
       case "ajustes":
         if (d.cristal) ponerCristal(d.cristal);

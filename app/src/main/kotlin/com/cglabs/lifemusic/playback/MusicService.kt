@@ -188,6 +188,7 @@ import com.cglabs.lifemusic.models.PersistQueue
 import com.cglabs.lifemusic.models.toMediaMetadata
 import com.cglabs.lifemusic.db.entities.BeatInfoEntity
 import com.cglabs.lifemusic.playback.audio.BeatAnalyzer
+import com.cglabs.lifemusic.playback.audio.DetectorDeGolpes
 import com.cglabs.lifemusic.playback.audio.SilenceDetectorAudioProcessor
 import com.cglabs.lifemusic.playback.queues.EmptyQueue
 import com.cglabs.lifemusic.playback.queues.Queue
@@ -4702,6 +4703,28 @@ class MusicService :
         maybeAnalyzeBeat(mediaId, BeatAnalysisPriority.IMMEDIATE)
         synchronized(beatAnalysisJobs) { beatAnalysisJobs[mediaId]?.job }?.join()
         return withContext(Dispatchers.IO) { guardado() }
+    }
+
+    /**
+     * Golpes reales de una cancion (22-10, pedido de CG): el tema Escenario del TV solo salta con ellos. Se
+     * miden una vez por cancion y quedan en memoria (las 30 ultimas); de a una para no bajar dos canciones a la vez.
+     * Null si no se pudo medir en 45 s.
+     */
+    private val golpesMedidos = object : LinkedHashMap<String, DetectorDeGolpes.Golpes>(16, 0.75f, true) {
+        override fun removeEldestEntry(eldest: MutableMap.MutableEntry<String, DetectorDeGolpes.Golpes>?) = size > 30
+    }
+    private val golpesMutex = kotlinx.coroutines.sync.Mutex()
+    suspend fun golpesDe(mediaId: String): DetectorDeGolpes.Golpes? = golpesMutex.withLock {
+        synchronized(golpesMedidos) { golpesMedidos[mediaId] }?.let { return@withLock it }
+        val inicio = android.os.SystemClock.elapsedRealtime()
+        val vencido = { android.os.SystemClock.elapsedRealtime() - inicio > 45_000 }
+        val golpes = withContext(Dispatchers.IO) {
+            if (mediaId.isLocalMediaId()) DetectorDeGolpes.deUri(this@MusicService, android.net.Uri.parse(mediaId), vencido)
+            else DetectorDeGolpes.deStream(analysisDataSourceFactory, mediaId, cacheDir, playbackSeedUri(mediaId).toUri(), vencido)
+        }
+        Timber.tag(TAG).d("Golpes de %s: %s en %d ms", mediaId, golpes?.ms?.size ?: "sin resultado", android.os.SystemClock.elapsedRealtime() - inicio)
+        if (golpes != null) synchronized(golpesMedidos) { golpesMedidos[mediaId] = golpes }
+        golpes
     }
 
     /**

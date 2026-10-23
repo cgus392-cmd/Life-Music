@@ -652,6 +652,8 @@ class CastConnectionHandler(
         }
         cliente?.let { enviarAjustes(it) }
         sesionWeb?.let { s -> ajustesJson()?.let { s.enviar(it) } }
+        // Si se cambia a Escenario con una cancion sonando, sus golpes reales (los demas temas no los usan).
+        if (nuevo == TEMA_ESCENARIO) ultimoAmbiente?.let { (enviar, vigente, metadata) -> if (vigente()) enviarGolpes(enviar, vigente, metadata) }
     }
 
     /** Elige la foto del Tocadiscos (V1/V2): se guarda y, si se transmite, el TV cambia al momento. */
@@ -873,6 +875,25 @@ class CastConnectionHandler(
      * lo hay) y la letra sincronizada (de la base; si no esta, se pide como
      * hace el reproductor y se guarda).
      */
+    /**
+     * Los golpes reales de la cancion (22-10, pedido de CG): el tema Escenario del TV solo salta con ellos, nunca a
+     * un ritmo fijo. Solo se miden con Escenario puesto (bajan la cancion entera); si se cambia a Escenario con una
+     * cancion sonando, se mandan para esa ([ponerTema]).
+     */
+    private var ultimoAmbiente: Triple<(JSONObject) -> Unit, () -> Boolean, MediaMetadata>? = null
+    private fun enviarGolpes(enviar: (JSONObject) -> Unit, vigente: () -> Boolean, metadata: MediaMetadata) {
+        scope.launch(Dispatchers.IO) {
+            val g = runCatching { musicService.golpesDe(metadata.id) }.getOrNull()
+            if (g != null && vigente()) {
+                enviar(
+                    JSONObject().put("tipo", "golpes").put("id", metadata.id)
+                        .put("golpes", JSONArray(g.ms.toList())).put("fuerzas", JSONArray(g.fuerza.toList()))
+                )
+                com.cglabs.lifemusic.cast.DiagnosticoCast.log("golpes enviados: ${g.ms.size}")
+            } else com.cglabs.lifemusic.cast.DiagnosticoCast.log("golpes: sin resultado para ${metadata.id}")
+        }
+    }
+
     private suspend fun enviarAmbiente(enviar: (JSONObject) -> Unit, vigente: () -> Boolean, metadata: MediaMetadata) {
         runCatching {
             val colores = RenderizadorDeClip.coloresDeCaratula(context, metadata.thumbnailUrl)
@@ -910,6 +931,8 @@ class CastConnectionHandler(
                     } else com.cglabs.lifemusic.cast.DiagnosticoCast.log("tempo: sin resultado para ${metadata.id}")
                 }
             }
+            ultimoAmbiente = Triple(enviar, vigente, metadata)
+            if (_tema.value == TEMA_ESCENARIO) enviarGolpes(enviar, vigente, metadata)
 
             var texto = musicService.database.lyrics(metadata.id).first()?.lyrics
             if (texto == null) {
