@@ -17,6 +17,12 @@
             android:name="com.cglabs.lifemusic.karaoke.KaraokeSpikeInitializer"
             android:authorities="${applicationId}.karaokespike"
             android:exported="false" />
+
+        <!-- El spike corre en primer plano: si no, Android congela la app al quedar atras. -->
+        <service
+            android:name="com.cglabs.lifemusic.karaoke.KaraokeSpikeService"
+            android:exported="false"
+            android:foregroundServiceType="dataSync" />
     </application>
 
 </manifest>

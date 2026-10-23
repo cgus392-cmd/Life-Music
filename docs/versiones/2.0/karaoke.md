@@ -117,3 +117,33 @@ Dura **1 o 2 días** y se hace primero en el PC, donde es más rápido probar:
 - **Mejora del mismo día:** ahora compara también por cómo suena cada palabra (`AlineadorDeLetras.sonido`: b/v,
   seseo, yeísmo, h muda, qu/k, g/j, letras dobles y la s o la d del final). Si se vuelve a preparar una canción, se
   rehace desde su letra original.
+
+## 10. «De oído»: la letra sin proveedor (prueba técnica, 2026-10-23, en el S25)
+
+**La idea (CG, 22-10):** si ningún proveedor tiene la letra, que el teléfono la escriba solo con lo que oye. Nombre
+elegido por CG: «De oído». Se probó en `KaraokeSpike` (solo en la versión de pruebas), con el mismo reconocedor
+NeMo FastConformer CTC en español y el separador UVR MDX-Net KARA. La canción se corta en tramos de unos 20 s por
+el punto más callado; las líneas se parten por pausas y por los puntos que pone el modelo. Para medir, se comparó
+con la letra real de LRCLIB (distancia de edición por palabras, por cómo suena cada una); esa letra nunca se le pasa
+al reconocedor.
+
+| Canción | Estilo | Mezcla tal cual | Voz separada | Tiempo con voz separada |
+|---|---|---|---|---|
+| Hecha Pa' Mí | regional | 43 % | **66 %** | 2 min 28 s (canción de 3:23) |
+| Que Vuelvas | regional | 30 % | **54 %** | 2 min 05 s (2:50) |
+| Hazme Olvidarla | salsa | 21 % | **46 %** | 4 min 04 s (5:37) |
+| Escarcha | salsa | 15 % | **41 %** | 4 min 42 s (6:33) |
+| Tití Me Preguntó (versión del video) | reggaetón | 38 % | **41 %** | 4 min 03 s (4:50) |
+| Urge el Amor (sin letra en ningún proveedor) | — | 72 palabras | 194 palabras | 3 min 33 s (5:21) |
+
+- **El porcentaje es de palabras de la letra real que escribió bien.** Casi no inventa (0 a 16 palabras de más);
+  lo que pierde son palabras que no oye (coros, soneos, orquesta encima).
+- **Lo lento es separar la voz** (0,7× el tiempo de la canción); escuchar toma 6 a 11 s. La mezcla sola tarda 3 a 8 s,
+  pero acierta poco.
+- **Android congela la app si queda atrás sin un aviso**: el primer intento se quedó quieto a la mitad. Con un
+  servicio en primer plano (`KaraokeSpikeService`) corrió entero. La versión real ya lo tiene (`KaraokeService`).
+- **Conclusión:** con este modelo, «De oído» da un **borrador** (la mitad de las palabras bien, más en regional que en
+  salsa o reggaetón), útil para corregirlo a mano, no una letra lista. Para pasar de ahí haría falta un modelo que
+  entienda mejor el canto. Va en «Estudio», con aviso de que usa la potencia del teléfono.
+- **Prueba de oído de CG:** «Urge el Amor - De oido.txt» quedó en la carpeta Lifemusic_songs del teléfono para pegarla
+  con «Editar letra».
