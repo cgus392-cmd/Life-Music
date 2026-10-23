@@ -475,7 +475,8 @@
 
     // Suavizado corto (70 ms el golpe, 160 ms la energia) para que el latido se
     // vea como latido y no como parpadeo.
-    var p = pulso(posicion());
+    // En Escenario no hay metronomo: solo los golpes reales (golpeReal); sin ellos, la sala no late.
+    var p = tema === "escenario" ? golpeReal(posicion()) : pulso(posicion());
     latido += (p - latido) * Math.min(1, dt / 70);
     var energiaObjetivo = sonando ? 0.35 + 0.4 * p : 0;
     viveza += (energiaObjetivo - viveza) * Math.min(1, dt / 160);
@@ -709,11 +710,22 @@
       }
     }
   }
-  // El golpe del escenario: la linea late un poco y la sala se ilumina en cada beat, solo si la cancion tiene un
-  // ritmo marcado y con la fuerza de ese ritmo (una cancion suave deja la letra quieta).
+  // Escenario (CG, 22-10, segunda vuelta): la letra se queda QUIETA. Solo salta con un golpe real (un bombo o un
+  // bajo fuerte), nunca a un ritmo fijo. El TV no puede escuchar el audio (viene de YouTube y el navegador no deja
+  // medirlo), asi que los golpes tienen que llegar del telefono: cancion.golpes, los ms de cada golpe, ordenados.
+  // Mientras el telefono no los mande, no hay salto.
+  function golpeReal(ms) {
+    var g = cancion && cancion.golpes;
+    if (!sonando || !g || !g.length) return 0;
+    var bajo = 0, alto = g.length - 1;
+    if (ms < g[0]) return 0;
+    while (bajo < alto) { var medio = (bajo + alto + 1) >> 1; if (g[medio] <= ms) bajo = medio; else alto = medio - 1; }
+    var desde = ms - g[bajo];
+    return desde > 400 ? 0 : Math.exp(-desde / 90);
+  }
   var ultimoGolpe = -1;
   function golpeEscenario() {
-    var v = (sonando && fuerzaDe(cancion) >= 0.15) ? Math.round(latido * 100) / 100 : 0;
+    var v = Math.round(latido * 100) / 100;
     if (v === ultimoGolpe) return;
     ultimoGolpe = v;
     elEscLetra.style.transform = "scale(" + (1 + v * 0.035).toFixed(4) + ")";
@@ -1421,6 +1433,13 @@
     ];
     // ?confianza=0.2 prueba como late una cancion suave; ?confianza=0.9, una con el bombo marcado.
     if (params.confianza) canciones.forEach(function (c) { c.confianza = +params.confianza; });
+    // ?golpes=1 simula los golpes reales que mandaria el telefono: bombo solo del segundo 12 al 30 y del 45 al 60
+    // (como un coro), y nada en el resto (como una estrofa suave).
+    if (params.golpes) canciones.forEach(function (c) {
+      var g = [], paso = 60000 / c.bpm;
+      for (var t = c.primerBeatMs; t < largo; t += paso) if ((t > 12000 && t < 30000) || (t > 45000 && t < 60000)) g.push(Math.round(t));
+      c.golpes = g;
+    });
     // Letra de relleno, no es de ninguna cancion.
     function letraFalsa(texto) {
       var ls = [];
