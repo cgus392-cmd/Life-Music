@@ -66,7 +66,9 @@ cómo lo prueba CG sin iPhone.
 ## 5. Dónde está todo
 
 - **Repositorio Android:** `Echo-Music/`.
-  - El módulo `innertube` no depende de Android y se podría compartir.
+  - El módulo `innertube` **no se puede compartir tal cual**: es una librería Android (`com.android.library`) y usa
+    Ktor con OkHttp, NewPipe y PipePipe, que son solo de la JVM. Para iPhone se portan a Swift solo las llamadas
+    que hagan falta (browse para el visitorData, search, next y player). Corregido el 23-10 por la sesión iPhone.
   - La web archivada está en `webapp/`.
   - Las fichas de cada versión están en `docs/versiones/`.
 - **La página y los servidores:** `Echo-Music/web/` (lifemusic.app en Cloudflare Pages) y los workers `comunidad`
