@@ -1,0 +1,432 @@
+/* Entrar a la app (bienvenida, guía de instalación, instalar) y Biblioteca, Ajustes y Acerca de. */
+
+/* ── Bienvenida, en la primera visita ─────────────────────────────────────── */
+
+.bienvenida {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  overflow-y: auto;
+  background: var(--fondo);
+  padding: calc(var(--arriba) + 40px) 26px calc(120px + env(safe-area-inset-bottom, 0px));
+}
+
+.bienvenida-cuerpo {
+  max-width: 460px;
+  margin: 0 auto;
+}
+
+.bienvenida-marca {
+  height: 64px;
+  width: auto;
+  overflow: visible;
+}
+
+.bienvenida h2 {
+  margin-top: 20px;
+  font-size: 31px;
+  line-height: 1.08;
+  font-weight: 700;
+  letter-spacing: -1px;
+}
+
+.bienvenida-intro {
+  margin-top: 10px;
+  font-size: 17px;
+  line-height: 1.4;
+  color: var(--suave);
+}
+
+.pasos {
+  margin-top: 26px;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.pasos li {
+  display: flex;
+  gap: 16px;
+  align-items: flex-start;
+}
+
+.pasos .ico {
+  width: 26px;
+  height: 26px;
+  margin-top: 1px;
+}
+
+.pasos b {
+  display: block;
+  font-size: 17px;
+  font-weight: 600;
+  line-height: 1.25;
+}
+
+.pasos span span {
+  display: block;
+  margin-top: 3px;
+  font-size: 15px;
+  line-height: 1.38;
+  color: var(--suave);
+}
+
+.legal {
+  margin-top: 24px;
+  padding-top: 16px;
+  box-shadow: inset 0 1px 0 var(--linea);
+  font-size: 13px;
+  line-height: 1.45;
+  color: var(--suave);
+}
+
+.legal p + p {
+  margin-top: 6px;
+}
+
+.boton-grande {
+  position: fixed;
+  left: 20px;
+  right: 20px;
+  bottom: calc(24px + env(safe-area-inset-bottom, 0px));
+  max-width: 460px;
+  margin: 0 auto;
+  height: 54px;
+  border-radius: 27px;
+  background: var(--tinta);
+  color: var(--fondo);
+  font-size: 17px;
+  font-weight: 600;
+}
+
+/* ── Guía «Instálala en tu iPhone» (solo en Safari) ───────────────────────── */
+
+.guia {
+  position: fixed;
+  z-index: 34;
+  left: 0;
+  right: 0;
+  bottom: calc(var(--pestanas-abajo) + 4px);
+  margin: 0 auto;
+}
+
+.guia-cab {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.guia-cab h3 {
+  font-size: 22px;
+  font-weight: 700;
+  letter-spacing: -0.5px;
+}
+
+.guia-cab p {
+  margin-top: 5px;
+  font-size: 15px;
+  line-height: 1.4;
+  color: var(--suave);
+}
+
+.guia-pasos {
+  margin-top: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.guia-pasos li {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.guia-pasos p {
+  font-size: 16px;
+  line-height: 1.38;
+}
+
+.dibujo {
+  width: 60px;
+  height: 60px;
+  border-radius: 18px;
+  background: var(--ficha);
+  display: grid;
+  place-items: center;
+  flex: 0 0 auto;
+  overflow: hidden;
+}
+
+.dibujo-anillo {
+  outline: 2.5px solid var(--coral);
+  outline-offset: -6px;
+  border-radius: 30px;
+}
+
+.dibujo-icono img {
+  width: 100%;
+  height: 100%;
+}
+
+/* ── Instalar la app (computador) ─────────────────────────────────────────── */
+
+.instalar {
+  margin-top: auto;
+  padding: 16px 4px 0;
+}
+
+.instalar-boton {
+  width: 100%;
+  height: 44px;
+  border-radius: 22px;
+  box-shadow: inset 0 0 0 1px var(--linea);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.instalar-boton:hover {
+  background: var(--tocado);
+}
+
+.instalar p {
+  margin-top: 8px;
+  font-size: 12px;
+  line-height: 1.35;
+  text-align: center;
+  color: var(--suave);
+}
+
+.instalar + .lateral-pie {
+  margin-top: 0;
+}
+
+/* ── Biblioteca ───────────────────────────────────────────────────────────── */
+
+.menu-fila {
+  min-height: 52px;
+}
+
+.menu-fila > .ico {
+  width: 24px;
+  height: 24px;
+}
+
+.menu-fila .ico.color {
+  color: var(--acento);
+}
+
+.menu-fila .fila-cuerpo b {
+  font-weight: 500;
+  font-size: 17px;
+}
+
+.grupo-sep {
+  height: 18px;
+}
+
+.subtitulo-pantalla {
+  margin: 4px 20px 12px;
+  font-size: 15px;
+  color: var(--suave);
+}
+
+@media (min-width: 1024px) {
+  .subtitulo-pantalla {
+    margin-left: 0;
+  }
+}
+
+/* ── Ajustes, en grupos de iOS ────────────────────────────────────────────── */
+
+.ajustes .grupo,
+.acerca .grupo {
+  margin: 0 16px;
+}
+
+.grupo-titulo {
+  margin: 22px 34px 8px;
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--suave);
+}
+
+.pie-grupo {
+  margin: 7px 34px 18px;
+  font-size: 13px;
+  line-height: 1.4;
+  color: var(--suave);
+}
+
+.renglon .ico {
+  color: var(--suave);
+}
+
+.renglon.peligro .ico {
+  color: var(--peligro);
+}
+
+.renglon-t em {
+  font-style: normal;
+  color: var(--suave);
+  font-size: 16px;
+}
+
+.segmentos {
+  margin: 0 16px 12px 52px;
+  height: 36px;
+  border-radius: 10px;
+  background: var(--relleno);
+  display: flex;
+  padding: 2px;
+}
+
+.segmentos button {
+  flex: 1;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.segmentos .si {
+  background: var(--fondo);
+  box-shadow: 0 2px 6px rgb(0 0 0 / 0.1);
+  font-weight: 600;
+}
+
+.interruptor {
+  appearance: none;
+  -webkit-appearance: none;
+  width: 51px;
+  height: 31px;
+  border-radius: 16px;
+  background: var(--relleno);
+  position: relative;
+  flex: 0 0 auto;
+  cursor: pointer;
+  transition: background 200ms;
+}
+
+.interruptor::after {
+  content: "";
+  position: absolute;
+  left: 2px;
+  top: 2px;
+  width: 27px;
+  height: 27px;
+  border-radius: 14px;
+  background: #fff;
+  box-shadow: 0 2px 4px rgb(0 0 0 / 0.2);
+  transition: transform 200ms;
+}
+
+.interruptor:checked {
+  background: var(--tinta);
+}
+
+.interruptor:checked::after {
+  transform: translateX(20px);
+}
+
+@media (min-width: 1024px) {
+  .ajustes .grupo,
+  .acerca .grupo {
+    margin: 0;
+    max-width: 560px;
+  }
+
+  .grupo-titulo,
+  .pie-grupo {
+    margin-left: 16px;
+  }
+}
+
+/* ── Acerca de ────────────────────────────────────────────────────────────── */
+
+.acerca {
+  text-align: center;
+}
+
+.acerca-logo {
+  margin-top: 30px;
+  display: flex;
+  justify-content: center;
+}
+
+.acerca-version {
+  margin-top: 10px;
+  font-size: 15px;
+  color: var(--suave);
+}
+
+.acerca-frase {
+  margin: 14px 34px 0;
+  font-size: 16px;
+  line-height: 1.42;
+}
+
+.origen-titulo {
+  margin: 26px 34px 10px;
+  text-align: left;
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--suave);
+}
+
+/* La cadena termina en la nota: la línea gris se vuelve el palo de la marca de Life Music. */
+.cadena {
+  margin: 0 34px 20px;
+  padding-left: 22px;
+  text-align: left;
+  border-left: 2px solid var(--tenue);
+}
+
+.cadena li {
+  height: 30px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 16px;
+}
+
+.cadena li span {
+  font-size: 14px;
+  color: var(--suave);
+}
+
+.cadena-fin {
+  margin-left: -33px;
+  font-weight: 600;
+}
+
+.acerca .grupo {
+  text-align: left;
+}
+
+.firma {
+  margin: 40px 0 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+
+.firma img {
+  height: 19px;
+}
+
+.firma p {
+  font-size: 13px;
+  color: var(--suave);
+}
+
+@media (min-width: 1024px) {
+  .acerca {
+    max-width: 560px;
+  }
+}

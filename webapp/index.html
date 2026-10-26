@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="theme-color" content="#F5F5F3" media="(prefers-color-scheme: light)" />
+    <meta name="theme-color" content="#0E0E0E" media="(prefers-color-scheme: dark)" />
+    <meta name="referrer" content="strict-origin-when-cross-origin" />
+    <meta name="description" content="Life Music Web: un reproductor de música hecho por CG LABS. Gratis, sin cuenta y de código abierto." />
+    <!-- Instalada desde Safari («Agregar a inicio») abre a pantalla completa, como una app. -->
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="Life Music" />
+    <title>Life Music</title>
+    <link rel="manifest" href="/manifest.webmanifest" />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    <style>
+      /* El arranque: una imagen fija mientras abre (antes de que cargue el resto). */
+      #arranque {
+        position: fixed;
+        inset: 0;
+        z-index: 100;
+        display: grid;
+        place-items: center;
+        background: #f5f5f3;
+        color: #111;
+        transition: opacity 300ms;
+      }
+      #arranque img {
+        position: absolute;
+        bottom: calc(58px + env(safe-area-inset-bottom, 0px));
+        left: 50%;
+        transform: translateX(-50%);
+        height: 17px;
+        opacity: 0.5;
+      }
+      @media (prefers-color-scheme: dark) {
+        #arranque {
+          background: #0e0e0e;
+          color: #f2f2ef;
+        }
+        #arranque img {
+          filter: invert(1);
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div id="arranque" aria-hidden="true">
+      <svg viewBox="-14 0 532 100" style="height: 34px; width: auto; overflow: visible">
+        <path d="M28 31 Q28 22 21 18 Q13 14 12 8 V80 Q12 92 24 92 Q36 92 36 80 V58 Q36 42 49 42 Q62 42 62 58 V90 V58 Q62 42 75 42 Q88 42 88 58 V90" fill="none" stroke="currentColor" stroke-width="9" stroke-linecap="round" stroke-linejoin="round" />
+        <ellipse cx="2.5" cy="85" rx="11.5" ry="8.5" transform="rotate(-22 2.5 85)" fill="#FF6B3D" />
+        <text x="116" y="88" font-family="Geist, system-ui, sans-serif" font-weight="600" font-size="86" letter-spacing="-4.3" fill="currentColor">Life Music</text>
+      </svg>
+      <img src="/marca/cglabs_lockup_negro.webp" alt="" />
+    </div>
+    <div id="raiz"></div>
+    <!-- El motor: el reproductor de YouTube vive aquí, fuera de React, para que nunca se recargue. Solo se deja ver
+         como hoja cuando suena un anuncio (o si el interruptor de emergencia lo pide). -->
+    <div id="motor" aria-hidden="true">
+      <p class="motor-aviso">Anuncio de YouTube</p>
+      <p class="motor-sub">Lo pone YouTube, no Life Music. Cuando termine, tu canción sigue sola.</p>
+      <div id="motor-yt"></div>
+      <div id="motor-despues"></div>
+      <p class="motor-pie">La hoja se va sola cuando el anuncio termina.</p>
+    </div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>

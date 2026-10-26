@@ -1,0 +1,819 @@
+/* El armazón: teléfono (pestañas y mini reproductor de vidrio) y computador (columna, centro, «Ahora suena» y la
+   cápsula del reproductor). Medidas de maqueta.css. */
+
+:root {
+  --arriba: env(safe-area-inset-top, 0px);
+  /* La barra de pestañas va 24 pt sobre el borde, por encima de la raya de inicio. */
+  --pestanas-abajo: max(14px, calc(env(safe-area-inset-bottom, 0px) - 10px));
+  --mini-abajo: calc(var(--pestanas-abajo) + 74px);
+}
+
+.app {
+  min-height: 100dvh;
+}
+
+.centro {
+  min-height: 100dvh;
+  padding-bottom: calc(var(--mini-abajo) + 80px);
+}
+
+/* ── Cabecera de cada pantalla en el teléfono ─────────────────────────────── */
+
+.cabecera {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  height: 48px;
+  margin-top: calc(var(--arriba) + 6px);
+  padding: 0 18px 0 20px;
+}
+
+.cabecera-acciones {
+  display: flex;
+  gap: 10px;
+}
+
+.titulo-grande {
+  margin: 6px 20px 0;
+  font-size: 34px;
+  line-height: 1.1;
+  font-weight: 700;
+  letter-spacing: -1px;
+}
+
+.seccion {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin: 26px 20px 12px;
+  font-size: 21px;
+  font-weight: 600;
+  letter-spacing: -0.4px;
+}
+
+.seccion .ico {
+  width: 20px;
+  height: 20px;
+  color: var(--suave);
+}
+
+.boton-texto {
+  font-size: 16px;
+  font-weight: 500;
+  color: var(--acento);
+}
+
+/* ── Barra de pestañas flotante (teléfono) ────────────────────────────────── */
+
+.pestanas {
+  position: fixed;
+  z-index: 20;
+  left: 20px;
+  right: 20px;
+  bottom: var(--pestanas-abajo);
+  height: 64px;
+  border-radius: 32px;
+  display: flex;
+  align-items: center;
+  padding: 0 6px;
+}
+
+.pestanas a {
+  flex: 1;
+  height: 52px;
+  border-radius: 26px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--suave);
+}
+
+.pestanas a.active {
+  color: var(--tinta);
+  font-weight: 600;
+  background: var(--tocado);
+}
+
+.pestanas .ico {
+  width: 25px;
+  height: 25px;
+}
+
+/* ── Mini reproductor (teléfono) ──────────────────────────────────────────── */
+
+.mini {
+  position: fixed;
+  z-index: 20;
+  left: 20px;
+  right: 20px;
+  bottom: var(--mini-abajo);
+  height: 58px;
+  border-radius: 29px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 0 8px 0 8px;
+}
+
+.mini-abrir {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  height: 100%;
+  text-align: left;
+}
+
+.mini .portada {
+  width: 42px;
+  height: 42px;
+  border-radius: 21px;
+}
+
+.mini-textos {
+  flex: 1;
+  min-width: 0;
+}
+
+.mini-textos b,
+.mini-textos span {
+  display: block;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.mini-textos b {
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.mini-textos span {
+  font-size: 13px;
+  color: var(--suave);
+}
+
+.mini-textos .aviso {
+  color: var(--cancion);
+}
+
+.mini .boton-icono .ico {
+  width: 26px;
+  height: 26px;
+}
+
+.mini-hilo {
+  position: absolute;
+  left: 28px;
+  right: 28px;
+  bottom: 5px;
+}
+
+/* ── El tiempo: la línea del logo con la cabeza de la nota ────────────────── */
+
+.tiempo {
+  position: relative;
+  height: 5px;
+}
+
+.tiempo-pista {
+  position: absolute;
+  inset: 0;
+  border-radius: 3px;
+  background: rgb(17 17 17 / 0.14);
+  overflow: hidden;
+}
+
+.tiempo-pista i {
+  display: block;
+  height: 100%;
+  background: var(--tinta);
+}
+
+.tiempo-cabeza {
+  position: absolute;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+}
+
+.tiempo-control {
+  position: absolute;
+  inset: -14px 0;
+  width: 100%;
+  margin: 0;
+  opacity: 0;
+  cursor: pointer;
+}
+
+.tiempo--mini {
+  height: 2px;
+}
+
+.tiempo--mini .tiempo-pista {
+  border-radius: 1px;
+}
+
+.tiempos {
+  display: flex;
+  justify-content: space-between;
+  font-size: 13px;
+  color: var(--suave);
+  font-variant-numeric: tabular-nums;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-tema="claro"]) .tiempo-pista {
+    background: rgb(255 255 255 / 0.16);
+  }
+}
+
+:root[data-tema="oscuro"] .tiempo-pista {
+  background: rgb(255 255 255 / 0.16);
+}
+
+/* ── Filas de lista al estilo iOS ─────────────────────────────────────────── */
+
+.fila {
+  display: flex;
+  align-items: center;
+  gap: 13px;
+  width: 100%;
+  min-height: 60px;
+  padding: 0 20px;
+  text-align: left;
+}
+
+.fila:hover {
+  background: var(--tocado);
+}
+
+.fila-abrir {
+  flex: 0 0 auto;
+}
+
+.fila-cuerpo {
+  text-align: left;
+}
+
+.fila .portada {
+  width: 50px;
+  height: 50px;
+  border-radius: 8px;
+  flex: 0 0 auto;
+}
+
+.fila-textos {
+  flex: 1;
+  min-width: 0;
+  align-self: stretch;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  box-shadow: inset 0 -1px 0 var(--linea);
+}
+
+.fila-cuerpo {
+  flex: 1;
+  min-width: 0;
+  padding: 10px 0;
+}
+
+.fila-cuerpo b,
+.fila-cuerpo span {
+  display: block;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.fila-cuerpo b {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.fila-cuerpo span {
+  margin-top: 2px;
+  font-size: 14px;
+  color: var(--suave);
+}
+
+.fila-fin {
+  font-size: 14px;
+  color: var(--suave);
+  font-variant-numeric: tabular-nums;
+}
+
+.fila[aria-current="true"] .fila-cuerpo b {
+  color: var(--acento);
+}
+
+.fila-explicita {
+  padding: 0 4px;
+  border: 1px solid var(--suave);
+  border-radius: 3px;
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--suave);
+  text-decoration: none;
+}
+
+/* ── El reproductor de YouTube: escondido, salvo en la hoja del anuncio ────── */
+
+#motor {
+  position: fixed;
+  top: 0;
+  left: -10000px;
+  width: 320px;
+}
+
+#motor .motor-aviso {
+  display: none;
+}
+
+/* La hoja del anuncio: flota a 8 pt de los bordes con esquinas de 46 pt, como en iOS 26. No tiene botón para
+   cerrarla: se va sola cuando el anuncio termina. */
+#motor.motor--visible {
+  top: auto;
+  left: 8px;
+  right: 8px;
+  bottom: calc(8px + env(safe-area-inset-bottom, 0px));
+  width: auto;
+  z-index: 40;
+  padding: 22px 20px 26px;
+  border-radius: 46px;
+  background: rgb(28 28 30 / 0.92);
+  color: #f2f2ef;
+  -webkit-backdrop-filter: blur(22px) saturate(1.8);
+  backdrop-filter: blur(22px) saturate(1.8);
+  box-shadow: 0 -10px 40px -10px rgb(0 0 0 / 0.5);
+}
+
+#motor.motor--visible .motor-aviso {
+  display: block;
+  margin: 0 0 16px;
+  font-size: 22px;
+  font-weight: 700;
+  letter-spacing: -0.5px;
+}
+
+#motor.motor--visible #motor-yt {
+  width: 100%;
+  height: auto;
+  aspect-ratio: 16 / 9;
+  border-radius: 18px;
+  overflow: hidden;
+}
+
+#motor .motor-sub,
+#motor .motor-pie,
+#motor #motor-despues {
+  display: none;
+}
+
+#motor.motor--anuncio .motor-aviso {
+  margin-bottom: 5px;
+}
+
+#motor.motor--anuncio .motor-sub {
+  display: block;
+  margin: 0 0 16px;
+  font-size: 15px;
+  line-height: 1.4;
+  color: rgb(255 255 255 / 0.66);
+}
+
+#motor.motor--anuncio #motor-despues {
+  display: block;
+}
+
+#motor.motor--anuncio .motor-pie {
+  display: block;
+  margin: 16px 0 0;
+  font-size: 13px;
+  color: rgb(255 255 255 / 0.55);
+}
+
+.despues {
+  margin-top: 16px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.despues .portada {
+  width: 50px;
+  height: 50px;
+  border-radius: 9px;
+}
+
+.despues small {
+  display: block;
+  font-size: 13px;
+  color: rgb(255 255 255 / 0.6);
+}
+
+.despues b {
+  display: block;
+  margin-top: 1px;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+/* ── Computador: columna, centro, «Ahora suena» y la cápsula ──────────────── */
+
+.lateral,
+.ahora-panel,
+.barra-escritorio {
+  display: none;
+}
+
+@media (min-width: 1024px) {
+  .app {
+    display: grid;
+    height: 100dvh;
+    grid-template-columns: 248px minmax(0, 1fr) 320px;
+  }
+
+  .pestanas,
+  .mini {
+    display: none;
+  }
+
+  .centro {
+    min-height: 0;
+    overflow-y: auto;
+    padding: 20px 34px 130px;
+  }
+
+  .cabecera {
+    margin-top: 0;
+    padding: 0;
+  }
+
+  /* En el computador la marca ya está en la columna izquierda. */
+  .cabecera .titulo-marca {
+    visibility: hidden;
+  }
+
+  .titulo-grande,
+  .seccion {
+    margin-left: 0;
+    margin-right: 0;
+  }
+
+  .fila {
+    padding: 0 10px;
+    border-radius: 10px;
+  }
+
+  .lateral {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    padding: 28px 14px 130px;
+    border-right: 1px solid var(--linea);
+    overflow-y: auto;
+  }
+
+  .lateral-marca {
+    margin: 0 10px 22px;
+  }
+
+  .lateral-enlace {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    height: 42px;
+    padding: 0 12px;
+    border-radius: 12px;
+    font-size: 16px;
+  }
+
+  .lateral-enlace:hover {
+    background: var(--tocado);
+  }
+
+  .lateral-enlace.active {
+    background: var(--tocado);
+    font-weight: 600;
+  }
+
+  .lateral-enlace .ico {
+    width: 21px;
+    height: 21px;
+  }
+
+  .lateral-titulo {
+    margin: 20px 12px 8px;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--suave);
+  }
+
+  .lateral-lista {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    height: 44px;
+    padding: 0 10px;
+    border-radius: 10px;
+    font-size: 15px;
+  }
+
+  .lateral-lista:hover {
+    background: var(--tocado);
+  }
+
+  .lateral-lista .ficha {
+    width: 32px;
+    height: 32px;
+    border-radius: 7px;
+    display: grid;
+    place-items: center;
+    background: var(--ficha);
+    color: var(--acento);
+    flex: 0 0 auto;
+    overflow: hidden;
+  }
+
+  .lateral-lista .ficha .ico {
+    width: 17px;
+    height: 17px;
+  }
+
+  .lateral-pie {
+    margin-top: auto;
+    padding: 16px 10px 0;
+    font-size: 12px;
+    color: var(--suave);
+  }
+
+  .ahora-panel {
+    display: block;
+    padding: 28px 22px 130px;
+    border-left: 1px solid var(--linea);
+    overflow-y: auto;
+  }
+
+  /* La cápsula del reproductor: el mismo vidrio del teléfono, más ancha y con volumen. */
+  .barra-escritorio {
+    position: fixed;
+    z-index: 20;
+    left: 16px;
+    right: 16px;
+    bottom: 16px;
+    height: 80px;
+    border-radius: 40px;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1.3fr) minmax(0, 1fr);
+    align-items: center;
+    gap: 16px;
+    padding: 0 22px 0 12px;
+  }
+
+  #motor.motor--visible {
+    left: auto;
+    right: 24px;
+    bottom: 112px;
+    width: 420px;
+  }
+}
+
+/* ── Cápsula del computador por dentro ────────────────────────────────────── */
+
+.barra-cancion {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+}
+
+.barra-abrir {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+  text-align: left;
+}
+
+.barra-abrir .portada {
+  width: 56px;
+  height: 56px;
+  border-radius: 28px;
+}
+
+.barra-textos {
+  min-width: 0;
+}
+
+.barra-textos b,
+.barra-textos span {
+  display: block;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.barra-textos b {
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.barra-textos span {
+  font-size: 13px;
+  color: var(--suave);
+}
+
+.barra-textos .aviso {
+  color: var(--cancion);
+}
+
+.barra-centro {
+  display: grid;
+  gap: 4px;
+}
+
+.barra-controles {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 6px;
+}
+
+.barra-controles .boton-icono {
+  width: 40px;
+  height: 40px;
+}
+
+.barra-controles .ico {
+  width: 20px;
+  height: 20px;
+}
+
+.barra-controles .principal .ico {
+  width: 30px;
+  height: 30px;
+}
+
+.activo {
+  color: var(--acento);
+}
+
+.barra-tiempo {
+  display: grid;
+  grid-template-columns: 40px minmax(0, 1fr) 40px;
+  align-items: center;
+  gap: 10px;
+  font-size: 12px;
+  color: var(--suave);
+  font-variant-numeric: tabular-nums;
+}
+
+.barra-tiempo span:first-child {
+  text-align: right;
+}
+
+.barra-tiempo .tiempo {
+  height: 3px;
+}
+
+.barra-extra {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 4px;
+}
+
+.barra-extra .ico {
+  width: 20px;
+  height: 20px;
+}
+
+.volumen {
+  width: 104px;
+  accent-color: var(--tinta);
+}
+
+.barra-anuncio {
+  margin: 0;
+  text-align: center;
+  font-size: 13px;
+  color: var(--suave);
+}
+
+/* En pantallas táctiles (iPhone) no hay volumen: se usan los botones del teléfono. */
+@media (pointer: coarse) {
+  .volumen,
+  .boton-volumen {
+    display: none;
+  }
+}
+
+/* ── «Ahora suena» en la columna derecha del computador ───────────────────── */
+
+.panel-titulo {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--suave);
+  margin-bottom: 18px;
+}
+
+.panel-portada {
+  width: 100%;
+  aspect-ratio: 1;
+  border-radius: 14px;
+  box-shadow: 0 22px 44px -18px rgb(0 0 0 / 0.45);
+}
+
+.panel-cancion {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 18px;
+}
+
+.panel-cancion h2 {
+  font-size: 22px;
+  font-weight: 700;
+  letter-spacing: -0.5px;
+}
+
+.panel-cancion p {
+  margin-top: 2px;
+  font-size: 16px;
+  color: var(--suave);
+}
+
+.panel-cancion .aviso {
+  color: var(--cancion);
+  font-size: 14px;
+}
+
+.panel-seccion {
+  margin: 26px 0 8px;
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--suave);
+}
+
+.panel-cabecera {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+}
+
+.panel-cabecera h2 {
+  font-size: 21px;
+  font-weight: 600;
+}
+
+.panel-cabecera div {
+  display: flex;
+  gap: 8px;
+}
+
+.panel-sonando {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px;
+  border-radius: 14px;
+  background: var(--tocado);
+}
+
+.panel-sonando .portada {
+  width: 50px;
+  height: 50px;
+  border-radius: 8px;
+}
+
+.panel-origen {
+  margin: 16px 0 6px;
+  font-size: 13px;
+  color: var(--suave);
+}
+
+.ahora-panel .fila {
+  padding: 0 4px;
+}
+
+.ahora-panel .fila .portada {
+  width: 44px;
+  height: 44px;
+}
+
+.vacio-panel {
+  color: var(--suave);
+}

@@ -1,0 +1,726 @@
+/* Buscar por tipo, Inicio, estados, álbum, lista, artista y las hojas que flotan. Medidas de maqueta.css. */
+
+/* ── Buscar: cancelar, limpiar, alcances y mejor resultado ────────────────── */
+
+.buscador {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.buscador label {
+  flex: 1;
+  min-width: 0;
+}
+
+.limpiar {
+  width: 22px;
+  height: 22px;
+  border-radius: 11px;
+  background: var(--tenue);
+  color: var(--fondo);
+  display: grid;
+  place-items: center;
+  flex: 0 0 auto;
+}
+
+.limpiar .ico {
+  width: 12px;
+  height: 12px;
+  stroke-width: 3;
+}
+
+.cancelar {
+  font-size: 17px;
+  color: var(--acento);
+}
+
+.alcances {
+  display: flex;
+  gap: 8px;
+  padding: 0 16px;
+  margin-top: 16px;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.alcances::-webkit-scrollbar {
+  display: none;
+}
+
+.alcances button {
+  flex: 0 0 auto;
+  height: 36px;
+  padding: 0 15px;
+  border-radius: 18px;
+  background: var(--relleno);
+  font-size: 15px;
+  font-weight: 500;
+}
+
+.alcances .si {
+  background: var(--tinta);
+  color: var(--fondo);
+  font-weight: 600;
+}
+
+.mejor {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 0 20px;
+}
+
+.mejor-abrir {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  text-align: left;
+}
+
+.mejor .portada {
+  width: 92px;
+  height: 92px;
+  border-radius: 12px;
+  flex: 0 0 auto;
+}
+
+.mejor-t {
+  min-width: 0;
+}
+
+.mejor-t b {
+  display: block;
+  font-size: 20px;
+  font-weight: 700;
+  letter-spacing: -0.4px;
+}
+
+.mejor-t span {
+  display: block;
+  margin-top: 3px;
+  font-size: 15px;
+  color: var(--suave);
+}
+
+.mejor-play {
+  width: 48px;
+  height: 48px;
+  border-radius: 24px;
+}
+
+.ficha-ico {
+  width: 50px;
+  height: 50px;
+  border-radius: 12px;
+  display: grid;
+  place-items: center;
+  background: var(--ficha);
+  flex: 0 0 auto;
+}
+
+.momento {
+  min-height: 54px;
+}
+
+.momento .ficha-ico {
+  width: 44px;
+  height: 44px;
+  border-radius: 11px;
+}
+
+.momento .ficha-ico .ico {
+  width: 22px;
+  height: 22px;
+}
+
+.fila-flecha {
+  color: var(--tenue);
+}
+
+.redonda {
+  border-radius: 50% !important;
+}
+
+@media (min-width: 1024px) {
+  .alcances,
+  .mejor {
+    padding-left: 0;
+    padding-right: 0;
+  }
+
+  .buscar .seccion {
+    margin-left: 0;
+  }
+}
+
+/* ── Filas: número de pista, duración y menú ──────────────────────────────── */
+
+.fila-numero {
+  width: 22px;
+  flex: 0 0 auto;
+  display: flex;
+  justify-content: center;
+  font-size: 15px;
+  color: var(--suave);
+  font-variant-numeric: tabular-nums;
+}
+
+.fila--pista {
+  min-height: 50px;
+}
+
+.fila--pista .fila-cuerpo b {
+  font-weight: 400;
+}
+
+.fila--pista[aria-current="true"] .fila-cuerpo b {
+  font-weight: 600;
+}
+
+.fila-fin-grupo {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.fila-mas {
+  width: 36px;
+  height: 36px;
+  color: var(--suave);
+}
+
+/* ── Inicio: carruseles y listas ──────────────────────────────────────────── */
+
+.inicio .seccion,
+.fila-inicio .seccion {
+  margin: 22px 20px 10px;
+}
+
+.carrusel {
+  display: flex;
+  gap: 14px;
+  padding: 0 20px 4px;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  scroll-padding: 0 20px;
+  scrollbar-width: none;
+}
+
+.carrusel::-webkit-scrollbar {
+  display: none;
+}
+
+.tarjeta {
+  flex: 0 0 auto;
+  width: 150px;
+  scroll-snap-align: start;
+  text-align: left;
+}
+
+.tarjeta .portada {
+  width: 150px;
+  height: 150px;
+  border-radius: 12px;
+}
+
+.tarjeta--artista {
+  text-align: center;
+}
+
+.tarjeta-titulo,
+.tarjeta-sub {
+  display: block;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.tarjeta-titulo {
+  margin-top: 8px;
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.tarjeta-sub {
+  margin-top: 2px;
+  font-size: 13px;
+  color: var(--suave);
+}
+
+@media (min-width: 1024px) {
+  .carrusel {
+    padding: 0 0 4px;
+    scroll-padding: 0;
+  }
+
+  .inicio .seccion,
+  .fila-inicio .seccion {
+    margin-left: 0;
+    margin-right: 0;
+  }
+
+  .tarjeta,
+  .tarjeta .portada {
+    width: 168px;
+  }
+
+  .tarjeta .portada {
+    height: 168px;
+  }
+
+  .lista-inicio .lista {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    column-gap: 24px;
+  }
+}
+
+/* ── Estados: cargando, sin conexión y sin resultados ─────────────────────── */
+
+.cargando {
+  padding: 8px 20px;
+}
+
+.sombra {
+  border-radius: 8px;
+  background: var(--relleno);
+  animation: respirar 1.4s ease-in-out infinite alternate;
+}
+
+@keyframes respirar {
+  from {
+    opacity: 0.55;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.sombra-titulo {
+  width: 46%;
+  height: 22px;
+  margin: 18px 0 12px;
+}
+
+.sombra-carrusel {
+  display: flex;
+  gap: 14px;
+  margin-bottom: 18px;
+  overflow: hidden;
+}
+
+.sombra-tarjeta {
+  flex: 0 0 auto;
+  width: 150px;
+  height: 150px;
+  border-radius: 12px;
+}
+
+.sombra-portada {
+  width: 236px;
+  height: 236px;
+  margin: 8px auto 20px;
+  border-radius: 12px;
+}
+
+.sombra-fila {
+  display: flex;
+  align-items: center;
+  gap: 13px;
+  height: 60px;
+}
+
+.sombra-mini {
+  width: 50px;
+  height: 50px;
+}
+
+.sombra-textos {
+  flex: 1;
+  display: grid;
+  gap: 8px;
+}
+
+.sombra-linea {
+  height: 13px;
+  width: 70%;
+}
+
+.sombra-linea.corta {
+  width: 42%;
+}
+
+.vacio {
+  margin: 56px 32px;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.vacio-dibujo {
+  width: 64px;
+  height: 100px;
+  overflow: visible;
+}
+
+.vacio h3 {
+  margin-top: 22px;
+  font-size: 22px;
+  font-weight: 700;
+  letter-spacing: -0.5px;
+}
+
+.vacio p {
+  margin-top: 8px;
+  font-size: 16px;
+  line-height: 1.45;
+  color: var(--suave);
+}
+
+.accion-texto {
+  margin-top: 18px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 17px;
+  font-weight: 600;
+  color: var(--acento);
+}
+
+/* ── Álbum y lista ────────────────────────────────────────────────────────── */
+
+.coleccion-cabeza {
+  text-align: center;
+  padding: 4px 20px 18px;
+}
+
+.coleccion-portada {
+  width: 236px;
+  height: 236px;
+  margin: 0 auto;
+  border-radius: 12px;
+  box-shadow: 0 22px 44px -18px rgb(0 0 0 / 0.45);
+}
+
+.coleccion-info h1 {
+  margin-top: 18px;
+  font-size: 24px;
+  font-weight: 700;
+  letter-spacing: -0.6px;
+}
+
+.coleccion-tipo {
+  display: none;
+}
+
+.coleccion-autor {
+  display: inline-block;
+  margin-top: 3px;
+  font-size: 19px;
+  font-weight: 600;
+  color: var(--acento);
+}
+
+.coleccion-meta {
+  margin-top: 5px;
+  font-size: 14px;
+  color: var(--suave);
+}
+
+.pastillas {
+  display: flex;
+  gap: 12px;
+  margin-top: 16px;
+}
+
+.pastilla {
+  flex: 1;
+  height: 48px;
+  border-radius: 24px;
+  background: var(--relleno);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  font-size: 17px;
+  font-weight: 600;
+  color: var(--acento);
+}
+
+.pastilla .ico {
+  width: 20px;
+  height: 20px;
+}
+
+/* Al bajar, la cabecera se encoge en una barra de vidrio con el título. */
+.barra-encogida {
+  position: fixed;
+  z-index: 12;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: calc(var(--arriba) + 56px);
+  padding: var(--arriba) 12px 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-radius: 0;
+  box-shadow: inset 0 -1px 0 var(--linea);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 200ms;
+}
+
+.barra-encogida.visible {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.titulo-bar {
+  position: absolute;
+  left: 70px;
+  right: 70px;
+  bottom: 18px;
+  text-align: center;
+  font-size: 17px;
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+@media (min-width: 1024px) {
+  .coleccion-cabeza {
+    display: flex;
+    align-items: flex-end;
+    gap: 28px;
+    text-align: left;
+    padding: 4px 0 24px;
+  }
+
+  .coleccion-portada {
+    margin: 0;
+    width: 214px;
+    height: 214px;
+  }
+
+  .coleccion-tipo {
+    display: block;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--suave);
+  }
+
+  .coleccion-info h1 {
+    margin-top: 4px;
+    font-size: 48px;
+    line-height: 1.05;
+    letter-spacing: -1.6px;
+  }
+
+  .pastillas {
+    max-width: 340px;
+  }
+
+  .barra-encogida {
+    left: 248px;
+    right: 320px;
+  }
+}
+
+/* ── Artista: la foto arriba, como un álbum ───────────────────────────────── */
+
+.artista-foto {
+  position: relative;
+  height: 360px;
+  overflow: hidden;
+  background: var(--ficha);
+  color: #fff;
+}
+
+.artista-foto img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.artista-velo {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to bottom, rgb(0 0 0 / 0.18) 0, rgb(0 0 0 / 0) 30%, rgb(0 0 0 / 0) 55%, rgb(0 0 0 / 0.55) 100%);
+}
+
+.artista-barra {
+  position: absolute;
+  top: calc(var(--arriba) + 10px);
+  left: 18px;
+}
+
+.artista-barra .boton-vidrio {
+  color: #fff;
+  background: rgb(36 36 38 / 0.5);
+}
+
+.artista-nombre {
+  position: absolute;
+  left: 20px;
+  right: 20px;
+  bottom: 18px;
+}
+
+.artista-nombre p {
+  font-size: 14px;
+  font-weight: 500;
+  color: rgb(255 255 255 / 0.82);
+}
+
+.artista-nombre h1 {
+  margin-top: 4px;
+  font-size: 36px;
+  line-height: 1.02;
+  font-weight: 700;
+  letter-spacing: -1.2px;
+}
+
+.artista-pastillas {
+  margin: 16px 20px 0;
+}
+
+@media (min-width: 1024px) {
+  .artista {
+    margin: -20px -34px 0;
+  }
+
+  .artista-foto {
+    height: 340px;
+    border-radius: 0 0 18px 18px;
+  }
+
+  .artista-nombre {
+    left: 34px;
+  }
+
+  .artista-nombre h1 {
+    font-size: 56px;
+  }
+
+  .artista-pastillas {
+    margin: 18px 34px 0;
+    max-width: 340px;
+  }
+
+  .artista .seccion,
+  .artista .lista,
+  .artista .carrusel {
+    margin-left: 34px;
+    margin-right: 34px;
+  }
+}
+
+/* ── Hojas que flotan, como en iOS 26 (menú de canción) ───────────────────── */
+
+.hoja-capa {
+  position: fixed;
+  inset: 0;
+  z-index: 35;
+  background: rgb(0 0 0 / 0.3);
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+}
+
+.hoja-flotante {
+  width: calc(100% - 16px);
+  max-width: 480px;
+  margin: 0 8px calc(8px + env(safe-area-inset-bottom, 0px));
+  border-radius: 46px;
+  padding: 22px 20px 26px;
+}
+
+.menu-cab {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.menu-cab .portada {
+  width: 58px;
+  height: 58px;
+  border-radius: 10px;
+}
+
+.menu-cab > span {
+  flex: 1;
+  min-width: 0;
+}
+
+.menu-cab b {
+  display: block;
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.menu-cab span span {
+  display: block;
+  margin-top: 2px;
+  font-size: 15px;
+  color: var(--suave);
+}
+
+.menu-hecho {
+  margin: 22px 4px 4px;
+  font-size: 17px;
+  font-weight: 600;
+}
+
+.grupo {
+  margin-top: 12px;
+  border-radius: 16px;
+  background: var(--grupo);
+  overflow: hidden;
+}
+
+.renglon {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  width: 100%;
+  min-height: 50px;
+  padding: 0 16px;
+  text-align: left;
+}
+
+.renglon .ico {
+  width: 22px;
+  height: 22px;
+}
+
+.renglon-t {
+  flex: 1;
+  align-self: stretch;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  box-shadow: inset 0 -1px 0 var(--linea);
+  font-size: 17px;
+}
+
+.renglon:last-child .renglon-t {
+  box-shadow: none;
+}
+
+.renglon:hover {
+  background: var(--tocado);
+}
+
+.peligro,
+.peligro .ico {
+  color: var(--peligro);
+}

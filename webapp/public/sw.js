@@ -1,31 +1,43 @@
-/* Guarda la carcasa de Life Music Web para que abra al instante y sin red.
-   Las respuestas de /api y todo lo de YouTube van siempre a la red. */
-const CAJA = "lm-web-1";
-const CARCASA = ["/", "/app.css", "/app.js", "/manifest.webmanifest", "/img/favicon.png", "/img/apple-touch-icon.png", "/img/icono-192.png"];
+// Service worker de Life Music Web: guarda el armazón de la app para que abra rápido y pueda mostrar
+// «Sin conexión». Nunca guarda /api (lo que dice YouTube Music cambia) ni nada de YouTube.
+const CACHE = "lifemusic-v1";
+const ARMAZON = ["/", "/manifest.webmanifest", "/icono-192.png", "/icono-512.png", "/favicon.svg", "/marca/cglabs_lockup_negro.webp"];
 
 self.addEventListener("install", (e) => {
-  e.waitUntil(caches.open(CAJA).then((c) => c.addAll(CARCASA)).then(() => self.skipWaiting()));
+  e.waitUntil(caches.open(CACHE).then((c) => c.addAll(ARMAZON)).then(() => self.skipWaiting()));
 });
 
 self.addEventListener("activate", (e) => {
   e.waitUntil(
-    caches.keys().then((ks) => Promise.all(ks.filter((k) => k !== CAJA).map((k) => caches.delete(k)))).then(() => self.clients.claim()),
+    caches
+      .keys()
+      .then((ks) => Promise.all(ks.filter((k) => k !== CACHE).map((k) => caches.delete(k))))
+      .then(() => self.clients.claim()),
   );
 });
 
-// Primero la red (para estrenar cambios enseguida); si no hay, lo guardado.
 self.addEventListener("fetch", (e) => {
   const url = new URL(e.request.url);
   if (e.request.method !== "GET" || url.origin !== location.origin || url.pathname.startsWith("/api/")) return;
-  e.respondWith(
-    fetch(e.request)
-      .then((r) => {
-        if (r.ok) {
-          const copia = r.clone();
-          caches.open(CAJA).then((c) => c.put(e.request.mode === "navigate" ? "/" : e.request, copia));
-        }
-        return r;
-      })
-      .catch(() => caches.match(e.request.mode === "navigate" ? "/" : e.request)),
-  );
+
+  // Las páginas: primero la red; sin red, el armazón guardado.
+  if (e.request.mode === "navigate") {
+    e.respondWith(fetch(e.request).catch(() => caches.match("/")));
+    return;
+  }
+
+  // Los archivos de la app (llevan su huella en el nombre): primero lo guardado.
+  if (url.pathname.startsWith("/assets/") || ARMAZON.includes(url.pathname)) {
+    e.respondWith(
+      caches.match(e.request).then(
+        (guardado) =>
+          guardado ||
+          fetch(e.request).then((r) => {
+            const copia = r.clone();
+            caches.open(CACHE).then((c) => c.put(e.request, copia));
+            return r;
+          }),
+      ),
+    );
+  }
 });

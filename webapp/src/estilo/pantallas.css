@@ -1,0 +1,102 @@
+/* Las pantallas: Inicio, Buscar, Álbum, Artista, Lista, Biblioteca, Ajustes y Acerca de. */
+
+/* ── El campo de búsqueda (17 px para que Safari no haga zoom) ────────────── */
+
+.buscador {
+  position: relative;
+  margin: 14px 20px 0;
+}
+
+.buscador label {
+  height: 46px;
+  border-radius: 14px;
+  background: var(--relleno);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 12px;
+  color: var(--suave);
+}
+
+.buscador .ico {
+  width: 20px;
+  height: 20px;
+}
+
+.buscador input {
+  flex: 1;
+  min-width: 0;
+  height: 100%;
+  border: 0;
+  outline: 0;
+  background: none;
+  font-size: 17px;
+  color: var(--tinta);
+}
+
+.buscador input::placeholder {
+  color: var(--suave);
+}
+
+.buscador input::-webkit-search-cancel-button {
+  display: none;
+}
+
+.sugerencias {
+  margin-top: 8px;
+}
+
+.sugerencia {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  width: 100%;
+  min-height: 48px;
+  padding: 0 20px;
+  text-align: left;
+}
+
+.sugerencia .ico {
+  width: 20px;
+  height: 20px;
+  color: var(--suave);
+}
+
+.sugerencia span {
+  flex: 1;
+  align-self: stretch;
+  display: flex;
+  align-items: center;
+  box-shadow: inset 0 -1px 0 var(--linea);
+  font-size: 17px;
+}
+
+.sugerencia:hover {
+  background: var(--tocado);
+}
+
+.pantalla-aviso {
+  margin: 16px 20px;
+  color: var(--suave);
+}
+
+.mas-resultados {
+  margin: 12px 20px;
+  font-weight: 600;
+  color: var(--acento);
+}
+
+@media (min-width: 1024px) {
+  .buscador {
+    margin: 0;
+    max-width: 380px;
+  }
+
+  .sugerencia,
+  .pantalla-aviso,
+  .mas-resultados {
+    margin-left: 0;
+    margin-right: 0;
+    padding-left: 10px;
+  }
+}

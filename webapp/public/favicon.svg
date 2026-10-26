@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="-13 1 107 98">
+  <style>.t{stroke:#111111}@media (prefers-color-scheme: dark){.t{stroke:#F5F5F3}}</style>
+  <path class="t" d="M29 32 Q29 22 21 18 Q13 14 12 8 V80 Q12 92 24 92 Q36 92 36 80 V58 Q36 42 49 42 Q62 42 62 58 V90 V58 Q62 42 75 42 Q88 42 88 58 V90" fill="none" stroke-width="12" stroke-linecap="round" stroke-linejoin="round"/>
+  <ellipse cx="1.5" cy="84" rx="13.5" ry="10" transform="rotate(-22 1.5 84)" fill="#FF6B3D"/>
+</svg>

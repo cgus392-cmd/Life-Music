@@ -1,0 +1,264 @@
+/* Life Music Web · «El trazo» (identidad Pulso). Medidas y vidrio de la maqueta aprobada:
+   Brand/maquetas/2026-10-24-web-app/maqueta/ (LEEME.md y maqueta.css). */
+
+:root {
+  --hueso: #f5f5f3;
+  --carbon: #111111;
+  --humo: #696966;
+  --coral: #ff6b3d;
+  /* El color de la canción que suena; lo pone el reproductor. */
+  --cancion: var(--coral);
+
+  --fondo: var(--hueso);
+  --tinta: var(--carbon);
+  --suave: var(--humo);
+  --tenue: #b4b4b0;
+  --linea: rgb(17 17 17 / 0.09);
+  --tocado: rgb(17 17 17 / 0.06);
+  --relleno: rgb(118 118 128 / 0.12);
+  --grupo: rgb(255 255 255 / 0.75);
+  --ficha: #eae9e4;
+  /* Texto coral: en claro va un tono más hondo para cumplir WCAG AA (el #FF6B3D da 2,6:1 sobre hueso). */
+  --acento: #c8410f;
+  --peligro: #c8321a;
+  --vidrio: rgb(250 250 249 / 0.58);
+  --vidrio-luz: inset 0 1px 0 rgb(255 255 255 / 0.9), inset 0 0 0 1px rgb(255 255 255 / 0.45),
+    inset 0 -1px 0 rgb(0 0 0 / 0.04), 0 14px 34px -14px rgb(0 0 0 / 0.3);
+
+  color-scheme: light dark;
+  font-family: "Geist Variable", Geist, system-ui, sans-serif;
+  font-size: 16px;
+  line-height: 1.4;
+  -webkit-font-smoothing: antialiased;
+  -webkit-tap-highlight-color: transparent;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-tema="claro"]) {
+    --fondo: #0e0e0e;
+    --tinta: #f2f2ef;
+    --suave: #a1a19d;
+    --tenue: #6e6e6a;
+    --linea: rgb(255 255 255 / 0.08);
+    --tocado: rgb(255 255 255 / 0.1);
+    --relleno: rgb(118 118 128 / 0.24);
+    --grupo: #1b1b1c;
+    --ficha: #232325;
+    --acento: var(--coral);
+    --peligro: #ff6a52;
+    --vidrio: rgb(36 36 38 / 0.5);
+    --vidrio-luz: inset 0 1px 0 rgb(255 255 255 / 0.16), inset 0 0 0 1px rgb(255 255 255 / 0.07),
+      0 14px 34px -14px rgb(0 0 0 / 0.6);
+  }
+}
+
+:root[data-tema="oscuro"] {
+  --fondo: #0e0e0e;
+  --tinta: #f2f2ef;
+  --suave: #a1a19d;
+  --tenue: #6e6e6a;
+  --linea: rgb(255 255 255 / 0.08);
+  --tocado: rgb(255 255 255 / 0.1);
+  --relleno: rgb(118 118 128 / 0.24);
+  --grupo: #1b1b1c;
+  --ficha: #232325;
+  --acento: var(--coral);
+  --peligro: #ff6a52;
+  --vidrio: rgb(36 36 38 / 0.5);
+  --vidrio-luz: inset 0 1px 0 rgb(255 255 255 / 0.16), inset 0 0 0 1px rgb(255 255 255 / 0.07),
+    0 14px 34px -14px rgb(0 0 0 / 0.6);
+  color-scheme: dark;
+}
+
+:root[data-tema="claro"] {
+  color-scheme: light;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  background: var(--fondo);
+  color: var(--tinta);
+  overscroll-behavior: none;
+}
+
+p,
+h1,
+h2,
+h3,
+figure,
+ol,
+ul {
+  margin: 0;
+  padding: 0;
+}
+
+ol,
+ul {
+  list-style: none;
+}
+
+button,
+input {
+  font: inherit;
+  color: inherit;
+}
+
+button {
+  cursor: pointer;
+  border: 0;
+  background: none;
+  padding: 0;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+img {
+  display: block;
+}
+
+:focus-visible {
+  outline: 2px solid var(--tinta);
+  outline-offset: 2px;
+}
+
+.solo-oscuro {
+  display: none;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-tema="claro"]) .solo-claro {
+    display: none;
+  }
+  :root:not([data-tema="claro"]) .solo-oscuro {
+    display: block;
+  }
+}
+
+:root[data-tema="oscuro"] .solo-claro {
+  display: none;
+}
+
+:root[data-tema="oscuro"] .solo-oscuro {
+  display: block;
+}
+
+.oculto {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+/* ── Íconos: trazo de 2, puntas redondas ──────────────────────────────────── */
+
+.ico {
+  width: 24px;
+  height: 24px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  flex: 0 0 auto;
+}
+
+.ico .lleno {
+  fill: currentColor;
+  stroke: none;
+}
+
+/* ── Vidrio esmerilado (Liquid Glass sin lente). Nunca va encima del reproductor de YouTube. ── */
+
+.vidrio {
+  background: var(--vidrio);
+  -webkit-backdrop-filter: blur(22px) saturate(1.8);
+  backdrop-filter: blur(22px) saturate(1.8);
+  box-shadow: var(--vidrio-luz);
+}
+
+/* Sobre una imagen (Ahora suena) el vidrio siempre es oscuro. */
+.sobre-imagen .vidrio {
+  background: rgb(36 36 38 / 0.5);
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.16), inset 0 0 0 1px rgb(255 255 255 / 0.07),
+    0 14px 34px -14px rgb(0 0 0 / 0.6);
+}
+
+.boton-vidrio {
+  width: 40px;
+  height: 40px;
+  border-radius: 20px;
+  display: grid;
+  place-items: center;
+  flex: 0 0 auto;
+}
+
+.boton-vidrio .ico {
+  width: 20px;
+  height: 20px;
+}
+
+.boton-icono {
+  width: 44px;
+  height: 44px;
+  border-radius: 22px;
+  display: grid;
+  place-items: center;
+  flex: 0 0 auto;
+}
+
+.boton-icono:hover {
+  background: var(--tocado);
+}
+
+/* ── El título de marca (Life Music ↔ CG LABS) ───────────────────────────── */
+
+.titulo-marca {
+  position: relative;
+  display: inline-grid;
+  align-items: center;
+}
+
+.titulo-marca-capa {
+  grid-area: 1 / 1;
+  display: flex;
+  align-items: center;
+  opacity: 0;
+  transition: opacity 900ms ease-in-out;
+}
+
+.titulo-marca-capa.visible {
+  opacity: 1;
+  transition: opacity 1100ms ease-in-out 900ms;
+}
+
+/* ── La portada ───────────────────────────────────────────────────────────── */
+
+.portada {
+  display: block;
+  object-fit: cover;
+  background: var(--ficha);
+  outline: 1px solid rgb(17 17 17 / 0.07);
+  outline-offset: -1px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
