@@ -30,6 +30,7 @@ import com.k2fsa.sherpa.onnx.OfflineModelConfig
 import com.k2fsa.sherpa.onnx.OfflineNemoEncDecCtcModelConfig
 import com.k2fsa.sherpa.onnx.OfflineRecognizer
 import com.k2fsa.sherpa.onnx.OfflineRecognizerConfig
+import com.k2fsa.sherpa.onnx.OfflineWhisperModelConfig
 import java.io.File
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
@@ -132,6 +133,16 @@ object KaraokeSpike {
                     carpetas.forEach { carpeta ->
                         runCatching { deOido(carpeta, reconocedor, separador) }.onFailure { Log.e(TAG, "fallo de oido ${carpeta.name}", it) }
                     }
+                    // Bloque C del 27-10: el mismo camino con Whisper turbo, si esta puesto.
+                    whisper(base)?.let { w ->
+                        try {
+                            carpetas.forEach { carpeta ->
+                                runCatching { deOido(carpeta, w, separador, "-whisper") }.onFailure { Log.e(TAG, "fallo whisper ${carpeta.name}", it) }
+                            }
+                        } finally {
+                            w.release()
+                        }
+                    }
                 }
                 Log.i(TAG, "fin de oido")
                 return
@@ -226,17 +237,18 @@ object KaraokeSpike {
      * [separador] escucha la voz separada; sin el, la mezcla tal cual.
      * Deja deoido-<variante>.lrc (palabra por palabra) y resultado-deoido-<variante>.txt.
      */
-    private fun deOido(carpeta: File, reconocedor: OfflineRecognizer, separador: KaraokeSeparador?) {
-        val variante = if (separador == null) "mezcla" else "voz-separada"
+    private fun deOido(carpeta: File, reconocedor: OfflineRecognizer, separador: KaraokeSeparador?, modelo: String = "") {
+        val variante = (if (separador == null) "mezcla" else "voz-separada") + modelo
         val resultado = File(carpeta, "resultado-deoido-$variante.txt")
         if (resultado.exists()) return
         val audio = carpeta.listFiles()?.firstOrNull { it.name.startsWith("audio.") } ?: return
         val t0 = SystemClock.elapsedRealtime()
-        val voz16 = File(carpeta, "deoido16k.f32")
+        // La voz separada se guarda (voz16k.f32): separar tarda minutos y la usan varios modelos.
+        val voz16 = File(carpeta, if (separador == null) "deoido16k.f32" else "voz16k.f32")
         var separarMs = 0L
         if (separador == null) {
             if (!ffmpeg("-y -i \"${audio.absolutePath}\" -ac 1 -ar $HZ -f f32le \"${voz16.absolutePath}\"")) return
-        } else {
+        } else if (!voz16.exists()) {
             val estereo = File(carpeta, "estereo44k.f32")
             val voz44 = File(carpeta, "voz44k.f32")
             try {
@@ -250,7 +262,7 @@ object KaraokeSpike {
             }
         }
         val muestras = leerFloats(voz16)
-        voz16.delete()
+        if (separador == null) voz16.delete()
         val prepararMs = SystemClock.elapsedRealtime() - t0
 
         val t1 = SystemClock.elapsedRealtime()
@@ -268,7 +280,11 @@ object KaraokeSpike {
             reconocedor.decode(stream)
             val r = reconocedor.getResult(stream)
             stream.release()
-            palabras += palabrasConFin(r.tokens, r.timestamps, tramo.first.toDouble() / HZ)
+            val desde = tramo.first.toDouble() / HZ
+            val conTiempo = palabrasConFin(r.tokens, r.timestamps, desde)
+            // Whisper puede no dar tiempos por token: entonces se reparten parejo en el tramo
+            // (para medir el acierto basta el texto; los tiempos finos los daria el alineador).
+            palabras += if (conTiempo.isNotEmpty() || r.text.isBlank()) conTiempo else repartir(r.text, desde, pedazo.size.toDouble() / HZ)
         }
         val reconocerMs = SystemClock.elapsedRealtime() - t1
 
@@ -322,6 +338,50 @@ object KaraokeSpike {
         var s = 0.0
         for (v in x) s += v * v
         return if (x.isEmpty()) 0.0 else kotlin.math.sqrt(s / x.size)
+    }
+
+    /** Las palabras de [texto] repartidas parejo en un tramo de [segundos] que empieza en [desde]. */
+    private fun repartir(texto: String, desde: Double, segundos: Double): List<Oida> {
+        val sueltas = texto.split(Regex("\\s+")).filter { AlineadorDeLetras.normalizar(it).isNotEmpty() }
+        if (sueltas.isEmpty()) return emptyList()
+        val paso = segundos / sueltas.size
+        return sueltas.mapIndexed { i, p -> Oida(p, desde + i * paso, desde + (i + 1) * paso - 0.05) }
+    }
+
+    /**
+     * Whisper turbo (bloque C del 27-10), si esta en files/spike/karaoke/whisper/:
+     * *encoder*.onnx, *decoder*.onnx y *tokens.txt; prefiere los int8. Null si falta algo.
+     */
+    private fun whisper(base: File): OfflineRecognizer? {
+        val archivos = File(base, "whisper").listFiles()?.toList() ?: return null
+        fun buscar(parte: String) = archivos.filter { it.name.contains(parte) && it.name.endsWith(".onnx") }
+            .let { lista -> lista.firstOrNull { it.name.contains("int8") } ?: lista.firstOrNull() }
+        val encoder = buscar("encoder") ?: return null
+        val decoder = buscar("decoder") ?: return null
+        val tokens = archivos.firstOrNull { it.name.endsWith("tokens.txt") } ?: return null
+        val carga = SystemClock.elapsedRealtime()
+        return runCatching {
+            OfflineRecognizer(
+                config = OfflineRecognizerConfig(
+                    featConfig = FeatureConfig(sampleRate = HZ, featureDim = 80),
+                    modelConfig = OfflineModelConfig(
+                        whisper = OfflineWhisperModelConfig(
+                            encoder = encoder.absolutePath,
+                            decoder = decoder.absolutePath,
+                            language = "es",
+                            task = "transcribe",
+                            enableTokenTimestamps = true,
+                        ),
+                        tokens = tokens.absolutePath,
+                        numThreads = 4,
+                        debug = false,
+                        provider = "cpu",
+                    ),
+                ),
+            )
+        }.onSuccess { Log.i(TAG, "whisper ${encoder.name} cargado en ${SystemClock.elapsedRealtime() - carga} ms") }
+            .onFailure { Log.e(TAG, "no cargo whisper", it) }
+            .getOrNull()
     }
 
     /** Como [AlineadorDeLetras.palabrasReconocidas], pero guarda tambien cuando termina cada palabra. */

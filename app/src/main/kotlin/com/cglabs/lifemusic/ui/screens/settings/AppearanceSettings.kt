@@ -265,6 +265,8 @@ highlightKey: String? = null) {
         rememberPreference(GreetingEnabledKey, defaultValue = true)
     val (auroraActiva, onAuroraActivaChange) =
         rememberPreference(com.cglabs.lifemusic.constants.AuroraActivaKey, defaultValue = false)
+    val (estudioActivo, onEstudioActivoChange) =
+        rememberPreference(com.cglabs.lifemusic.constants.EstudioActivoKey, defaultValue = false)
     val (lifeLineEnabled, onLifeLineEnabledChange) =
         rememberPreference(LifeLineEnabledKey, defaultValue = true)
     val (lifeLineHighlight, onLifeLineHighlightChange) =
@@ -1341,6 +1343,31 @@ highlightKey: String? = null) {
                             )
                         },
                         onClick = { onAuroraActivaChange(!auroraActiva) }
+                    )
+                )
+                // 2.0 · Estudio en vista previa: la fila en el menu de la foto y su pantalla.
+                add(
+                    Material3SettingsItem(
+                        isHighlighted = (highlightKey == stringResource(R.string.estudio_activo)),
+                        icon = painterResource(R.drawable.estudio_deslizadores),
+                        title = { Text(stringResource(R.string.estudio_activo)) },
+                        description = { Text(stringResource(R.string.estudio_activo_desc)) },
+                        trailingContent = {
+                            Switch(
+                                checked = estudioActivo,
+                                onCheckedChange = onEstudioActivoChange,
+                                thumbContent = {
+                                    Icon(
+                                        painter = painterResource(
+                                            id = if (estudioActivo) R.drawable.check else R.drawable.close
+                                        ),
+                                        contentDescription = null,
+                                        modifier = Modifier.size(SwitchDefaults.IconSize)
+                                    )
+                                }
+                            )
+                        },
+                        onClick = { onEstudioActivoChange(!estudioActivo) }
                     )
                 )
             }

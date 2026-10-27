@@ -37,6 +37,9 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.BlendMode
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.luminance
+import androidx.compose.foundation.layout.Row
+import androidx.compose.ui.unit.sp
 import androidx.compose.ui.graphics.CompositingStrategy
 import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.graphics.drawscope.DrawScope
@@ -277,6 +280,8 @@ fun MenuDeLaFoto(
     alEstadisticas: () -> Unit,
     alJuntos: () -> Unit,
     alAjustes: () -> Unit,
+    mostrarEstudio: Boolean = false,
+    alEstudio: () -> Unit = {},
 ) {
     val colores = Aurora.colores
     var actividadAbierta by remember(abierto) { mutableStateOf(false) }
@@ -305,6 +310,15 @@ fun MenuDeLaFoto(
                 titulo = stringResource(R.string.menu_foto_juntos),
                 detalle = stringResource(R.string.menu_foto_juntos_desc),
             ) { alCerrar(); alJuntos() }
+        }
+        // 2.0 · Estudio (maqueta del 27-10): entre Escuchar juntos y Ajustes, con su «Nuevo».
+        if (mostrarEstudio) {
+            OpcionDelMenu(
+                icono = R.drawable.estudio_deslizadores, color = Color(0xFFFFB45E),
+                titulo = stringResource(R.string.estudio_titulo),
+                detalle = stringResource(R.string.estudio_menu_desc),
+                etiqueta = stringResource(R.string.estudio_nuevo),
+            ) { alCerrar(); alEstudio() }
         }
         OpcionDelMenu(
             icono = R.drawable.settings, color = colores.c3,
@@ -339,12 +353,24 @@ private fun OpcionDelMenu(
     titulo: String,
     detalle: String?,
     giro: Float = 0f,
+    etiqueta: String? = null,
     alTocar: () -> Unit,
 ) {
     DropdownMenuItem(
         text = {
             Column(Modifier.padding(start = 2.dp)) {
-                Text(titulo, style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.SemiBold))
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text(titulo, style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.SemiBold))
+                    if (etiqueta != null) {
+                        Text(
+                            etiqueta,
+                            color = if (MaterialTheme.colorScheme.background.luminance() < 0.5f) Color(0xFFFF8A5C) else Color(0xFFC8410F),
+                            fontSize = 11.5.sp,
+                            fontWeight = FontWeight.SemiBold,
+                            modifier = Modifier.padding(start = 6.dp),
+                        )
+                    }
+                }
                 if (detalle != null) {
                     Text(
                         detalle,

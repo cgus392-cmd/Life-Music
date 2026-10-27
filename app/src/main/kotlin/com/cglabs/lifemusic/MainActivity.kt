@@ -1111,6 +1111,7 @@ class MainActivity : ComponentActivity() {
                                 // 2.0 · Aurora: en el Inicio la barra no tiene fondo propio. Deja
                                 // ver el degradado y, al bajar, se vuelve vidrio (VidrioDeBarra).
                                 val auroraActiva by rememberPreference(com.cglabs.lifemusic.constants.AuroraActivaKey, defaultValue = false)
+                                val estudioActivo by rememberPreference(com.cglabs.lifemusic.constants.EstudioActivoKey, defaultValue = false)
                                 val enInicio = auroraActiva && navBackStackEntry?.destination?.route == Screens.Home.route
                                 val recogido = if (enInicio) com.cglabs.lifemusic.ui.component.Aurora.fraccion else 1f
                                 Box {
@@ -1269,6 +1270,8 @@ class MainActivity : ComponentActivity() {
                                                     alEstadisticas = { navController.navigate("stats") },
                                                     alJuntos = { navController.navigate("listen_together_from_topbar") },
                                                     alAjustes = { showSettingDialoge = true },
+                                                    mostrarEstudio = estudioActivo,
+                                                    alEstudio = { navController.navigate("estudio") },
                                                 )
                                             }
                                           }

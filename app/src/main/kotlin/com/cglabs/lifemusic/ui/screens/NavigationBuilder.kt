@@ -129,6 +129,11 @@ fun NavGraphBuilder.navigationBuilder(
         StatsScreen(navController)
     }
 
+    // 2.0 · Estudio: se entra desde el menu de la foto (detras de EstudioActivoKey).
+    composable("estudio") {
+        com.cglabs.lifemusic.ui.screens.estudio.EstudioScreen(navController)
+    }
+
     composable("concurso") {
         com.cglabs.lifemusic.concurso.ConcursoScreen(navController, scrollBehavior)
     }

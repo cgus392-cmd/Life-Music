@@ -1084,6 +1084,18 @@ val NovaCalidadKey = stringPreferencesKey("novaCalidad")
 val NovaRitmoKey = stringPreferencesKey("novaRitmo")
 
 /**
+ * 2.0 · Estudio (ficha docs/versiones/2.0/estudio.md): la fila en el menu de la
+ * foto y su pantalla. Apagado de fabrica hasta que CG lo apruebe en el telefono.
+ */
+val EstudioActivoKey = booleanPreferencesKey("estudioActivo")
+
+/**
+ * 2.0 · Golpes reales para el TV (tema Escenario): el telefono analiza la cancion
+ * entera y le manda los golpes al receptor. Prendido de fabrica; se apaga en Estudio.
+ */
+val GolpesTvKey = booleanPreferencesKey("golpesTv")
+
+/**
  * Instante del ultimo arranque en frio, en milisegundos. Sirve para que el saludo
  * sepa cuanto hace que no abres —una semana sin entrar merece otra frase— sin
  * necesitar cuenta ni nombre.

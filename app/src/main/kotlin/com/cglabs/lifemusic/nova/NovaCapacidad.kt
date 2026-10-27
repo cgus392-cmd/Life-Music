@@ -55,6 +55,23 @@ object NovaCapacidad {
     }
 
     /**
+     * 2.0 · Estudio: hasta donde llega este telefono en el medidor de «la prueba
+     * de sonido» (0 = nada, 1 = todo), con las mismas gamas que [prevision]. Las
+     * funciones se ubican en esa misma escala: ligera ~0,4, media ~0,6, pesada ~0,88.
+     */
+    fun aguante(t: Telefono): Float {
+        if (t.memoriaBaja) return 0.25f
+        val gamaAlta = t.claseRendimiento >= Build.VERSION_CODES.S || (t.memoriaGb >= 7.5f && t.nucleos >= 8)
+        val gamaMedia = t.claseRendimiento >= Build.VERSION_CODES.R || (t.memoriaGb >= 3.5f && t.nucleos >= 8)
+        return when {
+            gamaAlta && t.memoriaGb >= 5.5f -> 0.78f
+            gamaAlta -> 0.66f
+            gamaMedia -> 0.52f
+            else -> 0.32f
+        }
+    }
+
+    /**
      * La prevision para una voz segun el telefono. Generosa a proposito: la que
      * decide es la prueba real despues de bajar; esto solo evita bajar algo que
      * seguro no va a andar.

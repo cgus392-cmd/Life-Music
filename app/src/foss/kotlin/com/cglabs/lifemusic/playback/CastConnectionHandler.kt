@@ -883,6 +883,8 @@ class CastConnectionHandler(
     private var ultimoAmbiente: Triple<(JSONObject) -> Unit, () -> Boolean, MediaMetadata>? = null
     private fun enviarGolpes(enviar: (JSONObject) -> Unit, vigente: () -> Boolean, metadata: MediaMetadata) {
         scope.launch(Dispatchers.IO) {
+            // Apagados en Estudio: el Escenario se queda quieto, sin analizar nada.
+            if (!context.dataStore.get(com.cglabs.lifemusic.constants.GolpesTvKey, true)) return@launch
             val g = runCatching { musicService.golpesDe(metadata.id) }.getOrNull()
             if (g != null && vigente()) {
                 enviar(
