@@ -252,8 +252,8 @@ class NovaLocutor(
      * Prepara el anuncio de encender o cambiar de onda ANTES de que arranque la
      * cancion (pedido de CG, 15-10: en telefonos lentos el anuncio sonaba cuando
      * la cancion ya iba avanzada). Mientras tanto Nova piensa, y la que sonaba
-     * sigue sonando. Null si no hay voz o tarda mas de [ESPERA_MAXIMA_ARRANQUE_MS]:
-     * entonces la musica arranca igual y esa vez Nova no habla.
+     * sigue sonando. Si la voz tarda mas de [ESPERA_MAXIMA_ARRANQUE_MS], la musica
+     * arranca igual y el anuncio sale solo escrito (archivo null).
      */
     suspend fun prepararAnuncio(alEncender: Boolean, primera: MediaMetadata): Anuncio? {
         if (!activa) return null
@@ -281,8 +281,11 @@ class NovaLocutor(
             val ok = sintetizarConTope(texto, archivo, esperaMaxima())
             val falta = PENSAR_MINIMO_MS - (SystemClock.elapsedRealtime() - inicio)
             if (falta > 0) delay(falta)
-            android.util.Log.i(ETIQUETA, "anuncio ${if (ok) "listo" else "no alcanzo"} en ${SystemClock.elapsedRealtime() - inicio} ms; recien ahora arranca la musica")
-            return if (ok) Anuncio(primera.id, texto, archivo) else null
+            android.util.Log.i(ETIQUETA, "anuncio ${if (ok) "listo" else "no alcanzo: va en subtitulos"} en ${SystemClock.elapsedRealtime() - inicio} ms; recien ahora arranca la musica")
+            // Si la voz no alcanzo (CG, 27-10: cambio de onda y de voz seguidos, «duro un
+            // microsegundo y no hizo mas nada»), Nova no se queda muda: lo dice escrito en
+            // Life Line sobre el arranque, como en «solo subtitulos». Nunca suena tarde.
+            return Anuncio(primera.id, texto, if (ok) archivo else null)
         } finally {
             NovaSesion.pensar(false)
         }
@@ -335,7 +338,8 @@ class NovaLocutor(
     private fun alcanza(texto: String): Boolean {
         val (voz, calidad) = elegidaHD ?: return true
         val porSegundo = NovaCapacidad.medido(contexto, voz.clave(calidad)) ?: return true
-        val segundosDeVoz = texto.length / 14f
+        // Mas pausada, mas segundos de voz por el mismo texto (y mas tiempo para sintetizarlos).
+        val segundosDeVoz = texto.length / (14f * ritmo.vozHD)
         val estimadoMs = segundosDeVoz * porSegundo * 1000f * 1.35f
         return estimadoMs <= esperaMaxima() * 0.85f
     }

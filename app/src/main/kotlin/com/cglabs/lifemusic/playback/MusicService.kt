@@ -2166,7 +2166,9 @@ class MusicService :
         player.addMediaItems(items)
         player.currentMediaItem?.mediaId?.let { sinSenalNova += it }
         player.seekToNextMediaItem()
-        if (anuncio != null) nova?.decirAnuncio(anuncio) else volverDeSintonizar()
+        anuncio?.let { nova?.decirAnuncio(it) }
+        // Sin voz (solo subtitulos, o la voz no alcanzo) nadie mas sube la musica: se sube aqui.
+        if (anuncio?.archivo == null) volverDeSintonizar()
     }
 
     /**
