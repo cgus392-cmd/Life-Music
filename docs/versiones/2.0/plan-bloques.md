@@ -134,8 +134,27 @@ del aparato y la persona elige cuáles quiere: un menú con todas ellas y el con
      - limpiar los créditos de QQ Music.
 
      Ver `webapp/src/datos/letras.ts`. Toca `YouLyPlus.kt`.
-  4. **Escuchar juntos** al estilo JAM: una sala con código o QR que reusa el relevo del TV.
-  5. **Rachas diarias y resumen del mes**, al estilo Wrapped, con el historial de escucha.
+  4. **Escuchar juntos (JAM)**, corregida el 27-10 con el informe de la sesión iPhone. Es una idea de CG para Android,
+     **para más adelante**.
+     - **La app ya lo tiene, heredado de Metrolist** (`listentogether/`): sala con código, el anfitrión aprueba y pasa
+       el mando, se sincronizan play, el salto, la canción y la cola, espera a que todos carguen, y trae chat y
+       sugerencias.
+     - **El problema es el servidor:** se conecta al de Metrolist en Polonia (`app/server.json`, verificado el 27-10).
+       No es nuestro, y por ahí pasan los nombres y lo que suena.
+     - **Propuesta:**
+       - una sala propia en el relevo `lifemusic-enlace` (Durable Object, gratis) que hable el mismo protocolo de
+         `Protocol.kt`, con modo de varias personas, un tope de unas 8 y nada guardado;
+       - entrar con QR o con el enlace `lifemusic.app/jam/CODIGO` (App Link);
+       - el diseño en Pulso.
+     - **Lo decide CG:** si va servidor propio, el tope por sala y si Nova anuncia a quien entra.
+  5. **Rachas y resumen del mes**, para más adelante. Sale de la tabla `event` y de `StatsViewModel`, que ya existen.
+     - **Racha:** días seguidos con un mínimo de escucha, que se propone en 10 min. Se muestra en Inicio o en
+       Estadísticas, con comodín opcional y un aviso nocturno apagado de fábrica.
+     - **Resumen del mes:** unas 5 láminas tipo historia (minutos, top 5, artista, hora pico y racha más larga), para
+       compartir en 1080×1920 con Pulso.
+     - **Reglas:** el premio, si lo hay, es un tema o una insignia, nunca dinero. Nada de telemetría, ni llamitas
+       genéricas.
+     - **Lo decide CG:** el mínimo de minutos, el comodín, si Nova presenta el resumen y dónde se ve la racha.
   6. **Apoyo voluntario por Ko-fi**, con un premio dentro de la app (un tema o color exclusivo).
   7. **«Tu música»:** en Android ya existe, porque la app reproduce archivos locales. No aplica.
 - **Lo que ya estaba en la 2.0 y sigue pendiente:**
