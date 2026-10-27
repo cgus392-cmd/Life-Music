@@ -40,6 +40,14 @@ Estado: **CG aprobó el orden A → C → B → D (27-10)** y, para «De oído»
 **Cómo se prueba:** CG escucha 4 o 5 intervenciones con música (inicio, cambio de onda y entre canciones) y dice si
 se entiende.
 
+**Arreglo en la 2.0-prueba.5 (27-10):** CG cambió de voz y de onda seguido. Nova se quedó muda porque la frase no
+alcanzó el tope de 6 s. Se arregló así:
+- `alcanza()` ahora cuenta el ritmo;
+- si aun así no alcanza, el anuncio sale escrito en Life Line;
+- la música vuelve a su volumen.
+
+**CERRADO por CG el 27-10:** «va funcionando bien».
+
 ---
 
 ## Bloque B · «Estudio»: el módulo de funciones avanzadas
@@ -76,6 +84,9 @@ del aparato y la persona elige cuáles quiere: un menú con todas ellas y el con
    - el avance en la notificación, con botón para cancelar;
    - borrar los modelos descargados para recuperar espacio.
 5. **Todo pasa en el teléfono y nada sale a servidores,** igual que hoy.
+6. **El centro de control de los modelos (CG, 27-10):** Estudio reúne todo lo avanzado y es el único lugar donde se
+   descargan, se ven y se borran los modelos, con cuánto pesa cada uno y cuánto espacio queda. Se mudan aquí las
+   voces HD de Nova, el modelo del karaoke, el separador y el que quede de «De oído».
 6. **Los interruptores que hoy están regados por Ajustes se mudan a Estudio,** con el mismo ajuste guardado: nadie
    pierde lo que ya tenía.
 
