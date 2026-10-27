@@ -98,9 +98,10 @@ class NovaVoz(context: Context) {
      * Escribe [texto] como voz en [archivo] (WAV). Devuelve falso si el motor no
      * esta, no tiene espanol o tarda demasiado: en ese caso Nova no habla esa vez.
      */
-    suspend fun sintetizar(texto: String, archivo: File): Boolean {
+    suspend fun sintetizar(texto: String, archivo: File, velocidad: Float = 1.0f): Boolean {
         val motor = tts ?: return false
         if (withTimeoutOrNull(ESPERA_MOTOR_MS) { lista.await() } != true) return false
+        motor.setSpeechRate(velocidad)
         val id = "nova-${System.nanoTime()}"
         val hecho = CompletableDeferred<Boolean>()
         pendientes[id] = hecho

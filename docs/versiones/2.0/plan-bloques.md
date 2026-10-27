@@ -4,7 +4,8 @@ Este plan sale de las pruebas de CG entre el 23 y el 27-10. Sigue la regla del 2
 después **un bloque a la vez**. Cada punto pasa por cuatro pasos: propuesta corta, tandas instalables, prueba de CG y
 CG lo cierra. Lo que llegue en medio va a «Después». **Nada de la 2.0 se publica:** son versiones de prueba por USB.
 
-Estado: **esperando el sí de CG al orden y a la decisión de «De oído».**
+Estado: **CG aprobó el orden A → C → B → D (27-10)** y, para «De oído», la opción 1: probar un modelo más fuerte,
+**con su permiso antes de descargar nada**. El bloque A está en marcha con la 2.0-prueba.4.
 
 ---
 
@@ -25,6 +26,16 @@ Estado: **esperando el sí de CG al orden y a la decisión de «De oído».**
 3. **Un ajuste nuevo en Personalizar, «Ritmo de Nova»,** con tres opciones: Pausado (0,8), Normal (0,88) y Ágil (1,0).
 4. **Subtítulos:** salen al ritmo de la voz nueva. En «solo subtítulos» suben a unos 450 ms por palabra.
 5. **Revisar las frases largas** de `NovaFrases.kt`: partirlas en dos cuando pasen de unas 18 palabras.
+   *(27-10: las frases ya se arman con piezas cortas y Life Line las parte. Este punto se hace solo si, con el ritmo
+   nuevo, CG todavía las oye largas.)*
+
+**Hecho en la 2.0-prueba.4 (27-10):**
+- `nova/NovaRitmo.kt`, con Pausado 0,8, Normal 0,88 y Ágil 1,0 en la voz HD. En la voz del teléfono son 0,82, 0,9
+  y 1,0. En «solo subtítulos» son 520, 450 y 380 ms por palabra.
+- `NovaVozHD`: la velocidad sale del ritmo, y `silenceScale` sube a 0,35 (sherpa trae 0,2).
+- `NovaVoz`: aplica `setSpeechRate`.
+- La preferencia `NovaRitmoKey` llega al locutor desde `MusicService`.
+- En Personalizar aparece «Su ritmo», con su muestra al tocar.
 
 **Cómo se prueba:** CG escucha 4 o 5 intervenciones con música (inicio, cambio de onda y entre canciones) y dice si
 se entiende.
@@ -98,7 +109,24 @@ del aparato y la persona elige cuáles quiere: un menú con todas ellas y el con
 ## Bloque D · Ideas de la 2.0 (por recibir)
 
 - Las ideas nuevas que CG va a contar.
-- **Las que trae la sesión iPhone para Android** (se le pidieron el 27-10).
+- **Las que trajo la sesión iPhone el 27-10.** Para Android son ideas sueltas; ninguna está aprobada:
+  1. **Puntos en las pausas instrumentales de la letra**, como Apple Music: tres puntos que respiran cuando la pausa
+     dura 4 s o más. En la web ya está.
+  2. **Énfasis y créditos en la letra:**
+     - las palabras largas brillan al cantarse;
+     - al final va «Escrita por…», con los compositores que trae YouLyPlus.
+  3. **Arreglo, no función:** YouLyPlus elige letras equivocadas, como la versión china de «Despacito» o la versión
+     en vivo cuando el video tiene intro. Como en la web:
+     - preferir binimum;
+     - descartar las versiones Live, Remix y Acústico;
+     - no sincronizar si la duración difiere en más de 8 s;
+     - limpiar los créditos de QQ Music.
+
+     Ver `webapp/src/datos/letras.ts`. Toca `YouLyPlus.kt`.
+  4. **Escuchar juntos** al estilo JAM: una sala con código o QR que reusa el relevo del TV.
+  5. **Rachas diarias y resumen del mes**, al estilo Wrapped, con el historial de escucha.
+  6. **Apoyo voluntario por Ko-fi**, con un premio dentro de la app (un tema o color exclusivo).
+  7. **«Tu música»:** en Android ya existe, porque la app reproduce archivos locales. No aplica.
 - **Lo que ya estaba en la 2.0 y sigue pendiente:**
   - la maqueta v2 «Receptor hi-fi» (barra e Inicio), sin aprobar;
   - la Automix fase B;

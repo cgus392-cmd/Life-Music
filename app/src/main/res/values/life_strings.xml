@@ -1640,6 +1640,11 @@
     <string name="nova_estilo_calida_desc">Close and with soul: «one of those that hit the soul», «I know you like this one».</string>
     <string name="nova_estilo_energica_desc">Radio energy: «turn it up!», «one of your favorites!».</string>
     <string name="nova_estilo_breve_desc">Just the essentials: «Now: song, by artist».</string>
+    <string name="nova_su_ritmo">Her pace</string>
+    <string name="nova_ritmo_pausado">Relaxed</string>
+    <string name="nova_ritmo_normal">Normal</string>
+    <string name="nova_ritmo_agil">Quick</string>
+    <string name="nova_ritmo_desc">How fast she speaks. Tap one to hear it.</string>
     <string name="nova_estilo_curiosa_desc">Real numbers: «you\'ve heard it 12 times», «first time on your phone».</string>
     <string name="nova_cada_una">Every song</string>
     <string name="nova_activa_desc">Talks between songs with the phone\'s voice. The music dips while she talks</string>

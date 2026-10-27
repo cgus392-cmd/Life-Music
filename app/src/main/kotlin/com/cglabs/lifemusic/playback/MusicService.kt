@@ -976,6 +976,12 @@ class MusicService :
         }
         novaScope.launch {
             dataStore.data
+                .map { com.cglabs.lifemusic.nova.RitmoNova.de(it[com.cglabs.lifemusic.constants.NovaRitmoKey]) }
+                .distinctUntilChanged()
+                .collect { nova?.ritmo = it }
+        }
+        novaScope.launch {
+            dataStore.data
                 .map { it[com.cglabs.lifemusic.constants.NovaRegionKey] ?: "latam" }
                 .distinctUntilChanged()
                 .collect { nova?.region(it) }
@@ -2047,11 +2053,12 @@ class MusicService :
     private val sinSenalNova: MutableSet<String> = java.util.concurrent.ConcurrentHashMap.newKeySet()
 
     /** 2.0 · Personalizar: una muestra de la voz con el nombre y el acento elegidos. */
-    fun probarVozNova(region: String? = null, vozHD: String? = null, estilo: String? = null) {
+    fun probarVozNova(region: String? = null, vozHD: String? = null, estilo: String? = null, ritmo: String? = null) {
         // Lo recien tocado se aplica ya: la preferencia tarda un instante en llegar.
         region?.let { nova?.region(it) }
         vozHD?.let { nova?.elegirVoz(it) }
         estilo?.let { nova?.estilo = com.cglabs.lifemusic.nova.NovaFrases.estilo(it) }
+        ritmo?.let { nova?.ritmo = com.cglabs.lifemusic.nova.RitmoNova.de(it) }
         nova?.probarVoz()
     }
 

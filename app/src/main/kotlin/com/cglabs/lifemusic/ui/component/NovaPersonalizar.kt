@@ -47,6 +47,7 @@ import com.cglabs.lifemusic.constants.NovaRegionKey
 import com.cglabs.lifemusic.constants.NovaSoloSubtitulosKey
 import com.cglabs.lifemusic.nova.NovaFrases
 import com.cglabs.lifemusic.nova.NovaSesion
+import com.cglabs.lifemusic.nova.RitmoNova
 import com.cglabs.lifemusic.utils.rememberPreference
 import java.util.Locale
 import kotlin.math.roundToInt
@@ -74,6 +75,8 @@ fun NovaPersonalizar(alVolver: () -> Unit) {
     val estilo = NovaFrases.estilo(estiloGuardado)
     val (soloSubtitulos, alCambiarSoloSubtitulos) = rememberPreference(NovaSoloSubtitulosKey, defaultValue = false)
     val (vozHD, alCambiarVozHD) = rememberPreference(com.cglabs.lifemusic.constants.NovaVozHDKey, defaultValue = "")
+    val (ritmoGuardado, alCambiarRitmo) = rememberPreference(com.cglabs.lifemusic.constants.NovaRitmoKey, defaultValue = RitmoNova.NORMAL.clave)
+    val ritmo = RitmoNova.de(ritmoGuardado)
 
     Column(
         modifier = Modifier
@@ -217,6 +220,33 @@ fun NovaPersonalizar(alVolver: () -> Unit) {
                     NovaFrases.Estilo.CURIOSA -> R.string.nova_estilo_curiosa_desc
                 },
             ),
+            style = MaterialTheme.typography.bodySmall,
+            color = esquema.onSurfaceVariant,
+            modifier = Modifier.padding(top = 4.dp, start = 4.dp),
+        )
+
+        // Su ritmo (bloque A del 27-10): CG la oia atropellada. Tocar uno lo deja elegido
+        // y Nova dice la muestra a ese ritmo.
+        Spacer(Modifier.height(18.dp))
+        Rotulo(stringResource(R.string.nova_su_ritmo))
+        Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.fillMaxWidth()) {
+            listOf(
+                RitmoNova.PAUSADO to R.string.nova_ritmo_pausado,
+                RitmoNova.NORMAL to R.string.nova_ritmo_normal,
+                RitmoNova.AGIL to R.string.nova_ritmo_agil,
+            ).forEach { (r, rotulo) ->
+                FilterChip(
+                    selected = r == ritmo,
+                    onClick = {
+                        alCambiarRitmo(r.clave)
+                        conexion?.service?.probarVozNova(ritmo = r.clave)
+                    },
+                    label = { Text(stringResource(rotulo)) },
+                )
+            }
+        }
+        Text(
+            stringResource(R.string.nova_ritmo_desc),
             style = MaterialTheme.typography.bodySmall,
             color = esquema.onSurfaceVariant,
             modifier = Modifier.padding(top = 4.dp, start = 4.dp),

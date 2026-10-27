@@ -1080,6 +1080,9 @@ val NovaVozHDKey = stringPreferencesKey("novaVozHD")
 /** La calidad con la que se bajan las voces HD: «liviana» (de fabrica), «media» o «completa». */
 val NovaCalidadKey = stringPreferencesKey("novaCalidad")
 
+/** A que ritmo habla Nova: «pausado», «normal» (de fabrica) o «agil». Ver RitmoNova. */
+val NovaRitmoKey = stringPreferencesKey("novaRitmo")
+
 /**
  * Instante del ultimo arranque en frio, en milisegundos. Sirve para que el saludo
  * sepa cuanto hace que no abres —una semana sin entrar merece otra frase— sin

@@ -38,13 +38,13 @@ class NovaVozHD(context: Context) {
      * Escribe [texto] como voz en [archivo]. Falso si la voz no esta en el
      * telefono o el motor fallo: entonces Nova usa la voz del telefono esa vez.
      */
-    suspend fun sintetizar(texto: String, archivo: File, voz: VozHD, calidad: CalidadVoz): Boolean =
+    suspend fun sintetizar(texto: String, archivo: File, voz: VozHD, calidad: CalidadVoz, velocidad: Float = 1.0f): Boolean =
         withContext(Dispatchers.Default) {
             cerrojo.withLock {
                 val m = cargar(voz, calidad) ?: return@withLock false
                 val inicio = android.os.SystemClock.elapsedRealtime()
                 val hablante = voz.hablante.coerceIn(0, (m.numSpeakers() - 1).coerceAtLeast(0))
-                val audio = m.generate(texto, hablante, 1.0f)
+                val audio = m.generate(texto, hablante, velocidad)
                 if (audio.samples.isEmpty()) return@withLock false
                 archivo.parentFile?.mkdirs()
                 // Las voces neuronales salen bajas: se nivelan al volumen de una voz de radio.
@@ -93,6 +93,12 @@ class NovaVozHD(context: Context) {
         /** 4 nucleos: las voces exigentes (Daniela, Kokoro) los aprovechan; los telefonos de hoy tienen 8. */
         private fun nucleos() = Runtime.getRuntime().availableProcessors().coerceIn(1, 4)
 
+        /**
+         * El respiro entre oraciones (sherpa-onnx trae 0,2). Con 0,35 Nova toma aire
+         * entre frase y frase en vez de encadenarlas (bloque A del 27-10).
+         */
+        private const val SILENCIO_ENTRE_FRASES = 0.35f
+
         /** La configuracion del motor para una voz, Piper o Kokoro. La usan la voz y la prueba. */
         fun configuracion(voz: VozHD, archivos: ArchivosDeVoz): OfflineTtsConfig = when (voz.motor) {
             MotorVoz.PIPER -> OfflineTtsConfig(
@@ -107,6 +113,7 @@ class NovaVozHD(context: Context) {
                     provider = "cpu",
                 ),
                 maxNumSentences = 2,
+                silenceScale = SILENCIO_ENTRE_FRASES,
             )
             // Kokoro en español: sin lexicon propio, la pronunciacion sale de espeak-ng
             // con lang = «es» (el paquete solo trae diccionarios de ingles y chino).
@@ -124,6 +131,7 @@ class NovaVozHD(context: Context) {
                     provider = "cpu",
                 ),
                 maxNumSentences = 2,
+                silenceScale = SILENCIO_ENTRE_FRASES,
             )
         }
     }

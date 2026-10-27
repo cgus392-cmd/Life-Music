@@ -149,6 +149,9 @@ class NovaLocutor(
     /** Solo subtitulos: no habla ni baja la musica; lo que diria sale escrito en Life Line. */
     var soloSubtitulos: Boolean = false
 
+    /** A que ritmo habla, elegido en Personalizar («Ritmo de Nova»). Vale para la frase siguiente. */
+    var ritmo: RitmoNova = RitmoNova.NORMAL
+
     /** El acento de la voz del telefono: «latam» o «espana». */
     fun region(region: String) = voz.cambiarRegion(region)
 
@@ -176,7 +179,7 @@ class NovaLocutor(
         if (hd != null) {
             // Si se cancela (la persona cambio de onda otra vez), no es un fallo: se sigue cancelando.
             val ok = try {
-                vozHD.sintetizar(texto, archivo, hd.first, hd.second)
+                vozHD.sintetizar(texto, archivo, hd.first, hd.second, ritmo.vozHD)
             } catch (e: kotlinx.coroutines.CancellationException) {
                 throw e
             } catch (e: Exception) {
@@ -186,7 +189,7 @@ class NovaLocutor(
             if (ok) return true
             android.util.Log.w(ETIQUETA, "la voz HD fallo; esta vez uso la del telefono")
         }
-        return voz.sintetizar(texto, archivo)
+        return voz.sintetizar(texto, archivo, ritmo.telefono)
     }
 
     fun activar(prendida: Boolean) {
@@ -613,7 +616,7 @@ class NovaLocutor(
             delay(100)
         }
         val palabras = texto.split(' ').count { it.isNotBlank() }
-        val duracion = (palabras * MS_POR_PALABRA).coerceIn(2_500L, 12_000L)
+        val duracion = (palabras * ritmo.msPorPalabra).coerceIn(2_500L, 14_000L)
         val habla = NovaSesion.Habla(texto, SystemClock.elapsedRealtime(), duracion, FloatArray(0))
         NovaSesion.empiezaAHablar(habla)
         try {
@@ -831,9 +834,6 @@ class NovaLocutor(
 
         /** Termina de hablar este rato antes de que acabe la cancion. */
         const val MARGEN_FINAL_MS = 1_800L
-
-        /** Solo subtitulos: cuanto se queda cada palabra en pantalla (lo que tardaria en decirla). */
-        const val MS_POR_PALABRA = 380L
 
         /** La musica mientras Nova habla: 30 % del volumen de la persona. */
         const val NIVEL_MUSICA = 0.3f

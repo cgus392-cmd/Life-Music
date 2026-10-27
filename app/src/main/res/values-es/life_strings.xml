@@ -1260,6 +1260,11 @@
     <string name="nova_estilo_calida_desc">Cercana y con alma: «una de esas que pegan con el alma», «esta te gusta, lo sé».</string>
     <string name="nova_estilo_energica_desc">Con energía de radio: «¡sube el volumen!», «¡de tus favoritas!».</string>
     <string name="nova_estilo_breve_desc">Lo justo: «Ahora: canción, de artista».</string>
+    <string name="nova_su_ritmo">Su ritmo</string>
+    <string name="nova_ritmo_pausado">Pausado</string>
+    <string name="nova_ritmo_normal">Normal</string>
+    <string name="nova_ritmo_agil">Ágil</string>
+    <string name="nova_ritmo_desc">Qué tan rápido habla. Toca uno para oírla.</string>
     <string name="nova_estilo_curiosa_desc">Con datos reales: «la has escuchado 12 veces», «primera vez que suena en tu teléfono».</string>
     <string name="nova_cada_una">Cada canción</string>
     <string name="nova_activa_desc">Habla entre canciones con la voz del teléfono. La música baja mientras habla</string>
