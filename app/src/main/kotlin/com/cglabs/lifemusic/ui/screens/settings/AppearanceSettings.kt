@@ -166,8 +166,10 @@ fun AppearanceSettings(
     scrollBehavior: TopAppBarScrollBehavior,
     activity: Activity,
     snackbarHostState: SnackbarHostState,
-highlightKey: String? = null) {
+highlightKey: String? = null, seccion: String? = null) {
     val scrollState = androidx.compose.foundation.rememberScrollState()
+    // Con la busqueda (highlightKey) se ve todo, asi el resaltado siempre encuentra su opcion.
+    val ver: (String) -> Boolean = { highlightKey != null || seccion == it }
 
     val (dynamicTheme, onDynamicThemeChange) = rememberPreference(
         DynamicThemeKey,
@@ -266,7 +268,7 @@ highlightKey: String? = null) {
     val (auroraActiva, onAuroraActivaChange) =
         rememberPreference(com.cglabs.lifemusic.constants.AuroraActivaKey, defaultValue = false)
     val (estudioActivo, onEstudioActivoChange) =
-        rememberPreference(com.cglabs.lifemusic.constants.EstudioActivoKey, defaultValue = false)
+        rememberPreference(com.cglabs.lifemusic.constants.EstudioActivoKey, defaultValue = true)
     val (lifeLineEnabled, onLifeLineEnabledChange) =
         rememberPreference(LifeLineEnabledKey, defaultValue = true)
     val (lifeLineHighlight, onLifeLineHighlightChange) =
@@ -1147,6 +1149,11 @@ highlightKey: String? = null) {
 
         Spacer(modifier = Modifier.height(16.dp))
 
+        // Plan del 27-10: sin seccion, la categoria muestra sus subcategorias.
+        if (seccion == null && highlightKey == null) {
+            IndiceDeAjustes(scrollState, SECCIONES_APARIENCIA) { navController.navigate("settings/appearance?seccion=$it") }
+        }
+        if (ver("tema")) {
         Material3SettingsGroup(scrollState = scrollState, 
             title = stringResource(R.string.theme),
             items = buildList {
@@ -1205,15 +1212,7 @@ highlightKey: String? = null) {
                         onClick = { navController.navigate("settings/appearance/theme") }
                     )
                 )
-                add(
-                    Material3SettingsItem(
-                        icon = painterResource(R.drawable.water_drop),
-                        title = { Text(stringResource(R.string.liquid_glass)) },
-                        description = { Text(stringResource(R.string.liquid_glass_settings)) },
-                        onClick = { navController.navigate("settings/appearance/liquidglass") }
-                    )
-                )
-                add(
+                                add(
                     Material3SettingsItem(
     isHighlighted = (highlightKey == stringResource(R.string.enable_high_refresh_rate)),
                         icon = painterResource(R.drawable.speed),
@@ -1372,11 +1371,13 @@ highlightKey: String? = null) {
                 )
             }
         )
+        }
 
         
 
         Spacer(modifier = Modifier.height(16.dp))
 
+        if (ver("mini")) {
         Material3SettingsGroup(scrollState = scrollState, 
             title = stringResource(id = R.string.mini_player),
             items = buildList {
@@ -1403,6 +1404,7 @@ highlightKey: String? = null) {
                 )
             }
         )
+        }
 
         Spacer(modifier = Modifier.height(16.dp))
 
@@ -1416,6 +1418,7 @@ highlightKey: String? = null) {
 
         Spacer(modifier = Modifier.height(16.dp))
 
+        if (ver("reproductor")) {
         Material3SettingsGroup(scrollState = scrollState, 
             title = stringResource(R.string.player),
             items = listOfNotNull(
@@ -1606,28 +1609,7 @@ highlightKey: String? = null) {
                     },
                     onClick = { onSwipeThumbnailChange(!swipeThumbnail) }
                 ),
-                Material3SettingsItem(
-    isHighlighted = (highlightKey == stringResource(R.string.echomusic_canvas)),
-                    icon = painterResource(R.drawable.ic_canvas),
-                    title = { Text(stringResource(R.string.echomusic_canvas)) },
-                    description = { Text(stringResource(R.string.echomusic_canvas_desc)) },
-                    trailingContent = {
-                        Switch(
-                            checked = canvasThumbnailAnimation,
-                            onCheckedChange = onCanvasThumbnailAnimationChange,
-                            thumbContent = {
-                                Icon(
-                                    painter = painterResource(
-                                        id = if (canvasThumbnailAnimation) R.drawable.check else R.drawable.close
-                                    ),
-                                    contentDescription = null,
-                                    modifier = Modifier.size(SwitchDefaults.IconSize)
-                                )
-                            }
-                        )
-                    },
-                    onClick = { onCanvasThumbnailAnimationChange(!canvasThumbnailAnimation) }
-                ),
+                
                 Material3SettingsItem(
     isHighlighted = (highlightKey == stringResource(R.string.rotating_thumbnail)),
                     icon = painterResource(R.drawable.image),
@@ -1710,6 +1692,7 @@ highlightKey: String? = null) {
                 ) else null
             )
         )
+        }
 
         if (showSensitivityDialog) {
             var tempSensitivity by remember { mutableFloatStateOf(swipeSensitivity) }
@@ -1793,6 +1776,7 @@ highlightKey: String? = null) {
 
         Spacer(modifier = Modifier.height(16.dp))
 
+        if (ver("letras")) {
         Material3SettingsGroup(scrollState = scrollState, 
             title = stringResource(R.string.lyrics),
             items = listOfNotNull(
@@ -2027,11 +2011,13 @@ highlightKey: String? = null) {
                 )
             )
         )
+        }
 
         
 
         Spacer(modifier = Modifier.height(16.dp))
 
+        if (ver("letras")) {
         Material3SettingsGroup(
             scrollState = scrollState,
             title = stringResource(R.string.life_line),
@@ -2121,11 +2107,13 @@ highlightKey: String? = null) {
                 ) else null,
             )
         )
+        }
 
         Spacer(modifier = Modifier.height(16.dp))
 
         // Modo ambiente: tres decisiones de CG (18-09-2026), cada una con su
         // interruptor. Apagadas, la pantalla vuelve a ser la heredada.
+        if (ver("ambiente")) {
         Material3SettingsGroup(
             scrollState = scrollState,
             title = stringResource(R.string.ambient_mode),
@@ -2227,28 +2215,7 @@ highlightKey: String? = null) {
                         }
                     }
                 ) else null,
-                Material3SettingsItem(
-                    isHighlighted = (highlightKey == stringResource(R.string.ambient_reactive)),
-                    icon = painterResource(R.drawable.envolvente),
-                    title = { Text(stringResource(R.string.ambient_reactive)) },
-                    description = { Text(stringResource(R.string.ambient_reactive_desc)) },
-                    trailingContent = {
-                        Switch(
-                            checked = ambienteFondoReactivo,
-                            onCheckedChange = onAmbienteFondoReactivoChange,
-                            thumbContent = {
-                                Icon(
-                                    painter = painterResource(
-                                        id = if (ambienteFondoReactivo) R.drawable.check else R.drawable.close
-                                    ),
-                                    contentDescription = null,
-                                    modifier = Modifier.size(SwitchDefaults.IconSize)
-                                )
-                            }
-                        )
-                    },
-                    onClick = { onAmbienteFondoReactivoChange(!ambienteFondoReactivo) }
-                ),
+                
                 Material3SettingsItem(
                     isHighlighted = (highlightKey == stringResource(R.string.ambient_rest)),
                     icon = painterResource(R.drawable.timer),
@@ -2333,9 +2300,11 @@ highlightKey: String? = null) {
                 ) else null,
             )
         )
+        }
 
         Spacer(modifier = Modifier.height(16.dp))
 
+        if (ver("inicio")) {
         Material3SettingsGroup(scrollState = scrollState,
             title = stringResource(R.string.misc),
             items = listOf(
@@ -2485,11 +2454,13 @@ highlightKey: String? = null) {
                 )
             )
         )
+        }
 
         
 
         Spacer(modifier = Modifier.height(16.dp))
 
+        if (ver("listas")) {
         Material3SettingsGroup(scrollState = scrollState, 
             title = stringResource(R.string.auto_playlists),
             items = listOf(
@@ -2605,13 +2576,14 @@ highlightKey: String? = null) {
                 )
             )
         )
+        }
         Spacer(modifier = Modifier.height(16.dp))
     
         Spacer(Modifier.windowInsetsPadding(LocalPlayerAwareWindowInsets.current.only(WindowInsetsSides.Bottom)))
     }
 
     TopAppBar(
-        title = { Text(stringResource(R.string.appearance)) },
+        title = { Text(SECCIONES_APARIENCIA.firstOrNull { it.clave == seccion }?.let { stringResource(it.titulo) } ?: stringResource(R.string.appearance)) },
         navigationIcon = {
             IconButton(
                 onClick = navController::navigateUp,

@@ -96,7 +96,7 @@ fun EstudioScreen(navController: NavController) {
     val (vozHD, alVozHD) = rememberPreference(NovaVozHDKey, defaultValue = "")
     val (golpes, alGolpes) = rememberPreference(GolpesTvKey, defaultValue = true)
     val (vidrio, alVidrio) = rememberPreference(LiquidGlassGlobalEnabledKey, defaultValue = false)
-    val (canvas, alCanvas) = rememberPreference(CanvasThumbnailAnimationKey, defaultValue = false)
+    val (canvas, alCanvas) = rememberPreference(CanvasThumbnailAnimationKey, defaultValue = true)
     val (reactivo, alReactivo) = rememberPreference(AmbienteFondoReactivoKey, defaultValue = true)
     val sinVoz = stringResource(R.string.estudio_voces_sin_elegir)
 
@@ -129,6 +129,7 @@ fun EstudioScreen(navController: NavController) {
             exige = 0.60f,
             ligera = R.string.estudio_vidrio_ligero to R.string.estudio_vidrio_ligero_que,
             encendida = vidrio, alCambiar = alVidrio,
+            alAjustar = { navController.navigate("settings/appearance/liquidglass") },
         ) else null,
         Funcion(
             R.string.estudio_canvas, R.string.estudio_canvas_que,
@@ -276,6 +277,8 @@ private class Funcion(
     val ligera: Pair<Int, Int>? = null,
     val encendida: Boolean,
     val alCambiar: (Boolean) -> Unit,
+    /** Si tiene pantalla de detalles (Liquid Glass): «Ajustar» lleva ahi. */
+    val alAjustar: (() -> Unit)? = null,
 )
 
 @Composable
@@ -309,6 +312,11 @@ private fun FilaDeFuncion(f: Funcion, estado: Estado, aguante: Float, t: TonoEst
                     ),
                     color = colorEstado, fontSize = 13.sp, fontWeight = FontWeight.SemiBold,
                 )
+            }
+            f.alAjustar?.let { ajustar ->
+                TextButton(onClick = ajustar, modifier = Modifier.padding(top = 2.dp)) {
+                    Text(stringResource(R.string.estudio_ajustar), color = t.acentoTxt, fontSize = 13.sp, fontWeight = FontWeight.SemiBold)
+                }
             }
             if (estado == Estado.TARDA && f.detalleTarda != null) {
                 Text(stringResource(f.detalleTarda), color = t.sec, fontSize = 13.sp, modifier = Modifier.padding(start = 63.dp, top = 1.dp))

@@ -363,10 +363,13 @@ fun NavGraphBuilder.navigationBuilder(
     }
 
     composable(
-        route = "settings/appearance?highlightKey={highlightKey}",
-        arguments = listOf(navArgument("highlightKey") { type = NavType.StringType; nullable = true })
+        route = "settings/appearance?highlightKey={highlightKey}&seccion={seccion}",
+        arguments = listOf(
+            navArgument("highlightKey") { type = NavType.StringType; nullable = true },
+            navArgument("seccion") { type = NavType.StringType; nullable = true },
+        )
     ) { backStackEntry ->
-        AppearanceSettings(navController, scrollBehavior, activity, snackbarHostState, highlightKey = backStackEntry.arguments?.getString("highlightKey"))
+        AppearanceSettings(navController, scrollBehavior, activity, snackbarHostState, highlightKey = backStackEntry.arguments?.getString("highlightKey"), seccion = backStackEntry.arguments?.getString("seccion"))
     }
 
     composable("settings/appearance/theme") {
@@ -401,10 +404,13 @@ fun NavGraphBuilder.navigationBuilder(
     
 
     composable(
-        route = "settings/player?highlightKey={highlightKey}",
-        arguments = listOf(navArgument("highlightKey") { type = NavType.StringType; nullable = true })
+        route = "settings/player?highlightKey={highlightKey}&seccion={seccion}",
+        arguments = listOf(
+            navArgument("highlightKey") { type = NavType.StringType; nullable = true },
+            navArgument("seccion") { type = NavType.StringType; nullable = true },
+        )
     ) { backStackEntry ->
-        PlayerSettings(navController, scrollBehavior, highlightKey = backStackEntry.arguments?.getString("highlightKey"))
+        PlayerSettings(navController, scrollBehavior, highlightKey = backStackEntry.arguments?.getString("highlightKey"), seccion = backStackEntry.arguments?.getString("seccion"))
     }
 
     composable(

@@ -1430,4 +1430,30 @@
     <string name="karaoke_sin_audio">La canción no está completa en el teléfono. Descárgala y vuelve a intentar.</string>
     <string name="karaoke_necesita_wifi">La primera vez necesita Wi‑Fi para bajar el modelo (103 MB).</string>
     <string name="karaoke_error">Algo falló al prepararla. La letra queda como estaba.</string>
+    <!-- 2.0 · Ajustes por subcategorias (27-10) -->
+    <string name="ajustes_tema">Tema y colores</string>
+    <string name="ajustes_tema_desc">Tema, color dinámico, la marca, el saludo y Estudio</string>
+    <string name="ajustes_inicio">Inicio y navegación</string>
+    <string name="ajustes_inicio_desc">Pestaña de inicio, biblioteca, cuadrícula y gestos</string>
+    <string name="ajustes_reproductor">Reproductor</string>
+    <string name="ajustes_reproductor_desc">Fondo, botones, barra de tiempo y carátula</string>
+    <string name="ajustes_mini">Mini reproductor</string>
+    <string name="ajustes_mini_desc">Su fondo</string>
+    <string name="ajustes_letras">Letras y Life Line</string>
+    <string name="ajustes_letras_desc">Cómo se ve y se mueve la letra</string>
+    <string name="ajustes_ambiente">Modo ambiente</string>
+    <string name="ajustes_ambiente_desc">La pantalla completa con tu música</string>
+    <string name="ajustes_listas">Listas automáticas</string>
+    <string name="ajustes_listas_desc">Me gusta, descargadas, lo más escuchado y más</string>
+    <string name="ajustes_calidad">Calidad</string>
+    <string name="ajustes_calidad_desc">Reproducción, descargas, precarga y ahorro de datos</string>
+    <string name="ajustes_transiciones">Transiciones y DJ</string>
+    <string name="ajustes_transiciones_desc">Nova, fundidos, crossfade y Automix</string>
+    <string name="ajustes_sonido">Sonido</string>
+    <string name="ajustes_sonido_desc">Ecualizador, Envolvente, normalización y silencios</string>
+    <string name="ajustes_cola">Cola</string>
+    <string name="ajustes_cola_desc">Cómo se arma y se recuerda la cola</string>
+    <string name="ajustes_otros">Conexiones y otros</string>
+    <string name="ajustes_otros_desc">Cast, Bluetooth, historial y más</string>
+    <string name="estudio_ajustar">Ajustar</string>
 </resources>

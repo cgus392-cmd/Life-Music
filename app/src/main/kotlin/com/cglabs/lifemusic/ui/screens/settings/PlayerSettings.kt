@@ -111,8 +111,10 @@ import android.net.Uri
 fun PlayerSettings(
     navController: NavController,
     scrollBehavior: TopAppBarScrollBehavior,
-highlightKey: String? = null) {
+highlightKey: String? = null, seccion: String? = null) {
     val scrollState = androidx.compose.foundation.rememberScrollState()
+    // Con la busqueda (highlightKey) se ve todo, asi el resaltado siempre encuentra su opcion.
+    val ver: (String) -> Boolean = { highlightKey != null || seccion == it }
 
     val (audioQuality, onAudioQualityChange) = rememberEnumPreference(
         AudioQualityKey,
@@ -501,6 +503,11 @@ highlightKey: String? = null) {
 
         Spacer(modifier = Modifier.height(16.dp))
 
+        // Plan del 27-10: sin seccion, la categoria muestra sus subcategorias.
+        if (seccion == null && highlightKey == null) {
+            IndiceDeAjustes(scrollState, SECCIONES_REPRODUCTOR) { navController.navigate("settings/player?seccion=$it") }
+        }
+        if (ver("calidad")) {
         Material3SettingsGroup(
             scrollState = scrollState,
             title = "Data Saver",
@@ -529,13 +536,15 @@ highlightKey: String? = null) {
                 ))
             }
         )
+        }
 
         Spacer(modifier = Modifier.height(16.dp))
 
+        if (ver("calidad") || ver("transiciones") || ver("sonido") || ver("otros")) {
         Material3SettingsGroup(scrollState = scrollState, 
-            title = stringResource(R.string.player),
+            title = SECCIONES_REPRODUCTOR.firstOrNull { it.clave == seccion }?.let { stringResource(it.titulo) } ?: stringResource(R.string.player),
             items = buildList {
-                add(Material3SettingsItem(
+                if (ver("calidad")) add(Material3SettingsItem(
     isHighlighted = (highlightKey == stringResource(R.string.audio_quality)),
                     icon = painterResource(R.drawable.graphic_eq),
                     title = { Text(stringResource(R.string.audio_quality)) },
@@ -543,7 +552,7 @@ highlightKey: String? = null) {
                     onClick = { showAudioQualityDialog = true }
                 ))
                 
-                add(Material3SettingsItem(
+                if (ver("calidad")) add(Material3SettingsItem(
     isHighlighted = (highlightKey == stringResource(R.string.download_quality_title)),
                     icon = painterResource(R.drawable.download),
                     title = { Text(stringResource(R.string.download_quality_title)) },
@@ -558,7 +567,7 @@ highlightKey: String? = null) {
                     onClick = { showDownloadQualityDialog = true }
                 ))
 
-                add(Material3SettingsItem(
+                if (ver("calidad")) add(Material3SettingsItem(
     isHighlighted = false,
                     icon = painterResource(R.drawable.tune),
                     title = { Text("Playback Engine") },
@@ -575,7 +584,7 @@ highlightKey: String? = null) {
                 ))
 
                 // 1.3.1: al elegir otra cancion, bajar, cambiar, subir (encendido de fabrica).
-                add(Material3SettingsItem(
+                if (ver("transiciones")) add(Material3SettingsItem(
                     isHighlighted = (highlightKey == stringResource(R.string.fundido_al_elegir)),
                     icon = painterResource(R.drawable.graphic_eq),
                     title = { Text(stringResource(R.string.fundido_al_elegir)) },
@@ -599,7 +608,7 @@ highlightKey: String? = null) {
                 ))
 
                 // 2.0 · Nova, el DJ con voz, en vista previa (apagada de fabrica).
-                add(Material3SettingsItem(
+                if (ver("transiciones")) add(Material3SettingsItem(
                     isHighlighted = (highlightKey == stringResource(R.string.nova_activa)),
                     icon = painterResource(R.drawable.radio),
                     title = { Text(stringResource(R.string.nova_activa)) },
@@ -623,30 +632,7 @@ highlightKey: String? = null) {
                 ))
 
                 // 2.x · Karaoke propio (beta): palabra por palabra en letras por linea.
-                add(Material3SettingsItem(
-                    isHighlighted = (highlightKey == stringResource(R.string.karaoke_propio)),
-                    icon = painterResource(R.drawable.mic),
-                    title = { Text(stringResource(R.string.karaoke_propio)) },
-                    description = { Text(stringResource(R.string.karaoke_propio_desc)) },
-                    trailingContent = {
-                        Switch(
-                            checked = karaokePropio,
-                            onCheckedChange = onKaraokePropioChange,
-                            thumbContent = {
-                                Icon(
-                                    painter = painterResource(
-                                        id = if (karaokePropio) R.drawable.check else R.drawable.close
-                                    ),
-                                    contentDescription = null,
-                                    modifier = Modifier.size(SwitchDefaults.IconSize)
-                                )
-                            }
-                        )
-                    },
-                    onClick = { onKaraokePropioChange(!karaokePropio) }
-                ))
-
-                add(Material3SettingsItem(
+                                add(Material3SettingsItem(
     isHighlighted = (highlightKey == stringResource(R.string.crossfade)),
                     icon = painterResource(R.drawable.linear_scale),
                     title = { Text(stringResource(R.string.crossfade)) },
@@ -683,7 +669,7 @@ highlightKey: String? = null) {
                         }
                     }
                 ))
-                if (crossfadeEnabled) {
+                if (crossfadeEnabled && ver("transiciones")) {
                     add(Material3SettingsItem(
     isHighlighted = (highlightKey == stringResource(R.string.crossfade_duration)),
                         icon = painterResource(R.drawable.timer),
@@ -802,7 +788,7 @@ highlightKey: String? = null) {
                         ))
                     }
                 }
-                add(Material3SettingsItem(
+                if (ver("otros")) add(Material3SettingsItem(
     isHighlighted = (highlightKey == stringResource(R.string.history_duration)),
                     icon = painterResource(R.drawable.history),
                     title = { Text(stringResource(R.string.history_duration)) },
@@ -818,7 +804,7 @@ highlightKey: String? = null) {
                         Text(text = historyDuration.roundToInt().toString())
                     }
                 ))
-                add(Material3SettingsItem(
+                if (ver("sonido")) add(Material3SettingsItem(
     isHighlighted = (highlightKey == stringResource(R.string.skip_silence)),
                     icon = painterResource(R.drawable.fast_forward),
                     title = { Text(stringResource(R.string.skip_silence)) },
@@ -840,7 +826,7 @@ highlightKey: String? = null) {
                     },
                     onClick = { onSkipSilenceChange(!skipSilence) }
                 ))
-                add(Material3SettingsItem(
+                if (ver("sonido")) add(Material3SettingsItem(
     isHighlighted = (highlightKey == stringResource(R.string.skip_silence_instant)),
                     icon = painterResource(R.drawable.skip_next),
                     title = { Text(stringResource(R.string.skip_silence_instant)) },
@@ -863,7 +849,7 @@ highlightKey: String? = null) {
                     },
                     onClick = { if (skipSilence) onSkipSilenceInstantChange(!skipSilenceInstant) }
                 ))
-                add(Material3SettingsItem(
+                if (ver("sonido")) add(Material3SettingsItem(
     isHighlighted = (highlightKey == stringResource(R.string.audio_normalization)),
                     icon = painterResource(R.drawable.volume_up),
                     title = { Text(stringResource(R.string.audio_normalization)) },
@@ -885,7 +871,7 @@ highlightKey: String? = null) {
                     },
                     onClick = { onAudioNormalizationChange(!audioNormalization) }
                 ))
-                add(Material3SettingsItem(
+                if (ver("sonido")) add(Material3SettingsItem(
     isHighlighted = (highlightKey == stringResource(R.string.audio_offload)),
                     icon = painterResource(R.drawable.graphic_eq),
                     title = { Text(stringResource(R.string.audio_offload)) },
@@ -915,7 +901,7 @@ highlightKey: String? = null) {
                 ))
                 
 
-                add(Material3SettingsItem(
+                if (ver("calidad")) add(Material3SettingsItem(
     isHighlighted = (highlightKey == "Preload Next Song"),
                     icon = painterResource(R.drawable.skip_next),
                     title = { Text("Preload Next Song") },
@@ -938,7 +924,7 @@ highlightKey: String? = null) {
                     onClick = { onPreloadNextSongEnabledChange(!preloadNextSongEnabled) }
                 ))
 
-                if (preloadNextSongEnabled) {
+                if (preloadNextSongEnabled && ver("calidad")) {
                     add(Material3SettingsItem(
     isHighlighted = (highlightKey == "Preload Limit"),
                         icon = painterResource(R.drawable.library_music),
@@ -980,7 +966,7 @@ highlightKey: String? = null) {
                     ))
                 }
                 
-                if (BuildConfig.CAST_AVAILABLE) {
+                if (BuildConfig.CAST_AVAILABLE && ver("otros")) {
                     add(Material3SettingsItem(
     isHighlighted = (highlightKey == stringResource(R.string.google_cast)),
                         icon = painterResource(R.drawable.cast),
@@ -1004,7 +990,7 @@ highlightKey: String? = null) {
                         onClick = { onEnableGoogleCastChange(!enableGoogleCast) }
                     ))
                 }
-                add(Material3SettingsItem(
+                if (ver("otros")) add(Material3SettingsItem(
     isHighlighted = (highlightKey == stringResource(R.string.seek_seconds_addup)),
                     icon = painterResource(R.drawable.arrow_forward),
                     title = { Text(stringResource(R.string.seek_seconds_addup)) },
@@ -1026,7 +1012,7 @@ highlightKey: String? = null) {
                     },
                     onClick = { onSeekExtraSeconds(!seekExtraSeconds) }
                 ))
-                add(Material3SettingsItem(
+                if (ver("sonido")) add(Material3SettingsItem(
     isHighlighted = (highlightKey == stringResource(R.string.life_equalizer)),
                     icon = painterResource(R.drawable.life_equalizer),
                     title = { Text(stringResource(R.string.life_equalizer)) },
@@ -1035,6 +1021,7 @@ highlightKey: String? = null) {
                 ))
             }
         )
+        }
 
 
 
@@ -1042,6 +1029,7 @@ highlightKey: String? = null) {
         // presets escriben las cuatro cifras; mover un deslizador lo pasa a
         // Personalizado. La ultima fila abre el panel de efectos del telefono
         // (en Samsung es el Dolby Atmos de verdad), solo si el sistema lo tiene.
+        if (ver("sonido")) {
         Material3SettingsGroup(
             scrollState = scrollState,
             title = stringResource(R.string.envolvente),
@@ -1146,10 +1134,12 @@ highlightKey: String? = null) {
                 ) else null,
             )
         )
+        }
 
         Spacer(modifier = Modifier.height(16.dp))
         Spacer(modifier = Modifier.height(16.dp))
 
+        if (ver("cola")) {
         Material3SettingsGroup(scrollState = scrollState, 
             title = stringResource(R.string.queue),
             items = listOf(
@@ -1375,11 +1365,13 @@ highlightKey: String? = null) {
                 )
             )
         )
+        }
 
         
 
         Spacer(modifier = Modifier.height(16.dp))
 
+        if (ver("otros")) {
         Material3SettingsGroup(scrollState = scrollState, 
             title = stringResource(R.string.misc),
             items = listOf(
@@ -1495,13 +1487,14 @@ highlightKey: String? = null) {
                 ),
             )
         )
+        }
         Spacer(modifier = Modifier.height(16.dp))
     
         Spacer(Modifier.windowInsetsPadding(LocalPlayerAwareWindowInsets.current.only(WindowInsetsSides.Bottom)))
     }
 
     TopAppBar(
-        title = { Text(stringResource(R.string.player_and_audio)) },
+        title = { Text(SECCIONES_REPRODUCTOR.firstOrNull { it.clave == seccion }?.let { stringResource(it.titulo) } ?: stringResource(R.string.player_and_audio)) },
         navigationIcon = {
             IconButton(
                 onClick = navController::navigateUp,

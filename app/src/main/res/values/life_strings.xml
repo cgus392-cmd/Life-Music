@@ -1810,4 +1810,30 @@
     <string name="karaoke_sin_audio">The song is not fully on the phone. Download it and try again.</string>
     <string name="karaoke_necesita_wifi">The first time it needs Wi-Fi to get the model (103 MB).</string>
     <string name="karaoke_error">Something went wrong while preparing it. The lyrics stay as they were.</string>
+    <!-- 2.0 · Ajustes por subcategorias (27-10) -->
+    <string name="ajustes_tema">Theme and colors</string>
+    <string name="ajustes_tema_desc">Theme, dynamic color, branding, greeting and Studio</string>
+    <string name="ajustes_inicio">Home and navigation</string>
+    <string name="ajustes_inicio_desc">Start tab, library, grid and gestures</string>
+    <string name="ajustes_reproductor">Player</string>
+    <string name="ajustes_reproductor_desc">Background, buttons, seek bar and artwork</string>
+    <string name="ajustes_mini">Mini player</string>
+    <string name="ajustes_mini_desc">Its background</string>
+    <string name="ajustes_letras">Lyrics and Life Line</string>
+    <string name="ajustes_letras_desc">How lyrics look and move</string>
+    <string name="ajustes_ambiente">Ambient mode</string>
+    <string name="ajustes_ambiente_desc">Full screen with your music</string>
+    <string name="ajustes_listas">Auto playlists</string>
+    <string name="ajustes_listas_desc">Liked, downloaded, most played and more</string>
+    <string name="ajustes_calidad">Quality</string>
+    <string name="ajustes_calidad_desc">Playback, downloads, preload and data saver</string>
+    <string name="ajustes_transiciones">Transitions and DJ</string>
+    <string name="ajustes_transiciones_desc">Nova, fades, crossfade and Automix</string>
+    <string name="ajustes_sonido">Sound</string>
+    <string name="ajustes_sonido_desc">Equalizer, Surround, normalization and silences</string>
+    <string name="ajustes_cola">Queue</string>
+    <string name="ajustes_cola_desc">How the queue is built and remembered</string>
+    <string name="ajustes_otros">Connections and more</string>
+    <string name="ajustes_otros_desc">Cast, Bluetooth, history and more</string>
+    <string name="estudio_ajustar">Adjust</string>
 </resources>
