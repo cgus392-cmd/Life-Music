@@ -23,6 +23,19 @@
   position: absolute;
   inset: 0;
   overflow: hidden;
+  /* Al cambiar de canción, el fondo se funde en 1,2 s (Android). */
+  --fundido: 1200ms;
+}
+
+.ahora-fondo .portada-suave {
+  position: absolute;
+  outline: 0;
+  background: none;
+}
+
+/* Como Apple Music: la carátula nítida cambia rápido, al paso del título; lo que tarda es el fondo difuminado. */
+.ahora-fondo .ahora-nitida {
+  --fundido: 450ms;
 }
 
 .ahora-fondo img {
@@ -41,15 +54,95 @@
   transform: scale(1.25);
 }
 
+/* Hasta dónde va opaca la carátula a sangre; se anima para que en pausa quede entera. */
+@property --opaca {
+  syntax: "<percentage>";
+  inherits: false;
+  initial-value: 75%;
+}
+
+/* Como en Android: cubre el ancho y el 65 % de alto (un cuadrado recortado a los lados), opaca hasta el 75 %, al
+   40 % en el 92 % y transparente abajo. */
 .ahora-nitida {
-  --lado: clamp(560px, 100vw, 70vh);
+  --lado: max(100vw, 65vh);
+  --opaca: 75%;
   left: 50%;
   top: 0;
   width: var(--lado);
   height: var(--lado);
   transform: translateX(-50%);
-  -webkit-mask-image: linear-gradient(to bottom, #000 58%, transparent 100%);
-  mask-image: linear-gradient(to bottom, #000 58%, transparent 100%);
+  -webkit-mask-image: linear-gradient(to bottom, #000 var(--opaca), rgb(0 0 0 / 0.4) calc(var(--opaca) + 17%), transparent calc(var(--opaca) + 25%));
+  mask-image: linear-gradient(to bottom, #000 var(--opaca), rgb(0 0 0 / 0.4) calc(var(--opaca) + 17%), transparent calc(var(--opaca) + 25%));
+}
+
+/* En pausa, como Apple Music en iOS 26: la carátula a sangre se recoge en una tarjeta cuadrada con sombra, arriba y
+   centrada; al sonar vuelve a sangre con un rebote suave. Solo en el teléfono (en el computador ya es tarjeta). */
+@media (max-width: 1023px) {
+  .fondo-apple .ahora-nitida {
+    transition:
+      width 460ms cubic-bezier(0.34, 1.3, 0.64, 1),
+      height 460ms cubic-bezier(0.34, 1.3, 0.64, 1),
+      top 460ms cubic-bezier(0.34, 1.3, 0.64, 1),
+      left 460ms var(--curva-ios),
+      border-radius 460ms,
+      box-shadow 460ms,
+      --opaca 300ms;
+  }
+
+  .ahora--pausa .fondo-apple .ahora-nitida {
+    --lado: min(calc(100vw - 64px), 42vh);
+    --opaca: 100%;
+    top: calc(var(--arriba) + 56px);
+    border-radius: 12px;
+    box-shadow: 0 10px 24px rgb(0 0 0 / 0.3);
+    transition:
+      width 360ms var(--curva-ios),
+      height 360ms var(--curva-ios),
+      top 360ms var(--curva-ios),
+      left 360ms var(--curva-ios),
+      border-radius 360ms,
+      box-shadow 360ms,
+      --opaca 200ms;
+  }
+
+  /* Con «A continuación» abierta, la carátula se recoge en la miniatura de arriba, junto al título (como Apple
+     Music). Va después de la pausa para ganarle si las dos coinciden. */
+  .ahora--cola .fondo-apple .ahora-nitida {
+    --lado: 68px;
+    --opaca: 100%;
+    top: calc(var(--arriba) + 40px);
+    left: 54px;
+    border-radius: 10px;
+    box-shadow: 0 12px 24px -10px rgb(0 0 0 / 0.6);
+    transition:
+      width 450ms var(--curva-ios),
+      height 450ms var(--curva-ios),
+      top 450ms var(--curva-ios),
+      left 450ms var(--curva-ios),
+      border-radius 450ms,
+      box-shadow 450ms,
+      --opaca 200ms;
+  }
+
+  /* Esa miniatura ya la hace la carátula del fondo: la propia de la cola se esconde para no verse doble. */
+  .fondo-apple ~ .cola-capa .cola-compacto .portada {
+    visibility: hidden;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .fondo-apple .ahora-nitida,
+  .ahora--pausa .fondo-apple .ahora-nitida,
+  .ahora--cola .fondo-apple .ahora-nitida,
+  .ahora-info,
+  .cola-compacto,
+  .cola-hoja {
+    transition: none !important;
+  }
+
+  .cola-hoja li {
+    animation: none !important;
+  }
 }
 
 .ahora-velo {
@@ -81,8 +174,15 @@
   animation: mesh-a 80s linear infinite;
 }
 
-.fondo-mesh .capa-mesh:nth-child(2) {
+.fondo-mesh .capa-mesh:nth-child(2) .portada-capa {
   object-position: top left;
+}
+
+.fondo-mesh .capa-mesh:nth-child(3) .portada-capa {
+  object-position: bottom right;
+}
+
+.fondo-mesh .capa-mesh:nth-child(2) {
   opacity: 0.6;
   animation: mesh-b 40s linear infinite;
 }
@@ -115,7 +215,7 @@
   background: linear-gradient(rgb(0 0 0 / 0.2), rgb(0 0 0 / 0.45));
 }
 
-/* ── Lo de arriba: el agarre y compartir ──────────────────────────────────── */
+/* ── Lo de arriba: el agarre ──────────────────────────────────────────────── */
 
 .agarre-boton {
   position: absolute;
@@ -129,61 +229,289 @@
   place-items: center;
 }
 
+/* Con sombra, para que se vea encima de cualquier carátula: en el iPhone se perdía sobre los textos claros. */
 .agarre {
   display: block;
   width: 38px;
   height: 5px;
   border-radius: 3px;
-  background: rgb(255 255 255 / 0.6);
+  background: rgb(255 255 255 / 0.72);
+  box-shadow: 0 0 0 0.5px rgb(0 0 0 / 0.18), 0 1px 6px rgb(0 0 0 / 0.45);
 }
 
-.ahora-compartir {
-  position: absolute;
-  z-index: 5;
-  top: calc(var(--arriba) + 12px);
-  right: 18px;
-  color: #fff;
-}
-
-/* ── La información y los controles, abajo ────────────────────────────────── */
+/* ── Lo de abajo, en el orden del reproductor Apple Music de Android (Player.kt y Queue.kt) ───────────────────
+   Título con ··· y Me gusta, la barra fina con los tiempos, los controles sin fondo, el volumen y la fila de abajo
+   (cola, grupo de botones, compartir). Medidas de Android en px. */
 
 .ahora-info {
   position: absolute;
   z-index: 4;
-  left: 28px;
-  right: 28px;
-  bottom: calc(40px + env(safe-area-inset-bottom, 0px));
+  left: 32px;
+  right: 32px;
+  bottom: env(safe-area-inset-bottom, 0px);
   max-width: 560px;
   margin: 0 auto;
+  color: #fff;
 }
 
 .ahora-titulo {
   display: flex;
-  justify-content: space-between;
-  align-items: flex-end;
-  gap: 16px;
-  margin-bottom: 24px;
+  align-items: center;
+  gap: 12px;
 }
 
+.ahora-textos {
+  flex: 1;
+  min-width: 0;
+}
+
+/* Proporciones de Apple Music (plan 0.4, punto 1.3): título de 20 en seminegrita y artista de 18, más tenue. */
 .ahora-titulo h2 {
-  font-size: 25px;
+  font-size: 20px;
+  line-height: 1.25;
   font-weight: 600;
-  letter-spacing: -0.5px;
+  letter-spacing: -0.3px;
 }
 
 .ahora-titulo p {
-  margin-top: 4px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 2px;
   font-size: 18px;
-  color: rgb(255 255 255 / 0.72);
+  color: rgb(255 255 255 / 0.6);
+}
+
+.ahora-titulo p .desliza,
+.ahora-titulo p .ahora-enlace {
+  flex: 1;
+}
+
+/* El título y el artista se tocan para ir al álbum y al artista: se ven como texto y se aclaran al tocarlos. */
+.ahora-enlace {
+  display: block;
+  width: 100%;
+  min-width: 0;
+  text-align: left;
+  font: inherit;
+  color: inherit;
+  transition: opacity 160ms;
+}
+
+.ahora-enlace:active {
+  opacity: 0.5;
+}
+
+.ahora-titulo .fila-explicita {
+  flex: 0 0 auto;
+  border-color: currentColor;
+  color: inherit;
 }
 
 .ahora-titulo .aviso {
-  font-size: 15px;
+  font-size: 14px;
   color: var(--cancion);
 }
 
-.ahora-titulo .boton-icono {
+/* Los botones redondos junto al título, discretos como en Apple Music: 30 px con el blanco al 15 %. */
+.ahora-redondo {
+  flex: 0 0 auto;
+  width: 30px;
+  height: 30px;
+  border-radius: 15px;
+  display: grid;
+  place-items: center;
   color: #fff;
+  background: rgb(255 255 255 / 0.15);
+}
+
+.ahora-redondo .ico {
+  width: 16px;
+  height: 16px;
+}
+
+/* Se ven de 30 px pero se tocan como de 44, que es el mínimo cómodo para un dedo. */
+.ahora-redondo {
+  position: relative;
+}
+
+.ahora-redondo::before {
+  content: "";
+  position: absolute;
+  inset: -7px;
+}
+
+/* El texto que no cabe se desliza una vez (Desliza). */
+.desliza {
+  display: block;
+  min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+.desliza-texto {
+  display: inline-block;
+}
+
+.desliza-texto.moviendo {
+  animation: desliza var(--dura) linear 3s 1 both;
+}
+
+@keyframes desliza {
+  0%,
+  12% {
+    transform: none;
+  }
+  45%,
+  55% {
+    transform: translateX(calc(-1 * var(--sobra)));
+  }
+  88%,
+  100% {
+    transform: none;
+  }
+}
+
+/* La barra fina de Apple Music: 7 px y 12 px al tocarla, con un área de toque más alta que la barra. */
+.ahora-tiempo {
+  margin-top: 24px;
+}
+
+.deslizador {
+  position: relative;
+  height: 31px;
+  margin: -12px 0;
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  touch-action: none;
+}
+
+.deslizador-pista {
+  width: 100%;
+  height: 7px;
+  border-radius: 3.5px;
+  overflow: hidden;
+  background: rgb(255 255 255 / 0.22);
+  transition: height 260ms var(--curva-toque), border-radius 260ms var(--curva-toque);
+}
+
+.deslizador.tocando .deslizador-pista {
+  height: 12px;
+  border-radius: 6px;
+}
+
+.deslizador-pista i {
+  display: block;
+  height: 100%;
+  background: rgb(255 255 255 / 0.75);
+}
+
+.deslizador:focus-visible {
+  outline: 2px solid rgb(255 255 255 / 0.6);
+  outline-offset: 2px;
+  border-radius: 8px;
+}
+
+.ahora .tiempos {
+  position: relative;
+  align-items: center;
+  margin-top: 8px;
+  font-size: 12px;
+  font-weight: 600;
+  color: rgb(255 255 255 / 0.55);
+}
+
+/* El recuadro del medio (en Android: calidad, «Cargando», Automix). */
+.ahora-estado {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 2px 6px;
+  border-radius: 4px;
+  border: 0.5px solid rgb(255 255 255 / 0.12);
+  background: rgb(255 255 255 / 0.08);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  color: rgb(255 255 255 / 0.8);
+}
+
+.ahora-anuncio {
+  margin-top: 20px;
+  font-size: 15px;
+  color: rgb(255 255 255 / 0.72);
+}
+
+/* Anterior y siguiente de 42 px repartidos a los lados; el play de 80 px, el protagonista, en una caja de 88. Sin
+   fondo. La caja deja unos 24 px de aire arriba y abajo del play. */
+.ahora-controles {
+  display: grid;
+  grid-template-columns: 1fr 100px 1fr;
+  gap: 8px;
+  align-items: center;
+}
+
+.ahora-controles button {
+  height: 88px;
+  display: grid;
+  place-items: center;
+  color: #fff;
+}
+
+.ahora-volumen {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  color: rgb(255 255 255 / 0.6);
+}
+
+/* Al tocar la barra del volumen, los altavoces crecen a 1,15 (Android, resorte 0,7 / 600). */
+.ahora-volumen .ico {
+  transition: transform 260ms var(--curva-toque);
+}
+
+.ahora-volumen:has(.tocando) .ico {
+  transform: scale(1.15);
+}
+
+.ahora-volumen .deslizador {
+  flex: 1;
+}
+
+.ahora-volumen .deslizador-pista {
+  background: rgb(255 255 255 / 0.15);
+}
+
+.ahora-volumen .deslizador-pista i {
+  background: rgb(255 255 255 / 0.7);
+}
+
+/* La fila de abajo, como Apple Music: íconos de unos 22 px, sin fondo, en blanco al 70 %, en las puntas. El toque
+   sigue siendo de 44 px aunque el ícono sea chico. */
+.ahora-abajo {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin: 0 -11px;
+  padding: 14px 0 10px;
+}
+
+.ahora-abajo-icono {
+  width: 44px;
+  height: 44px;
+  display: grid;
+  place-items: center;
+  color: rgb(255 255 255 / 0.7);
+}
+
+.ahora-abajo-icono .ico {
+  width: 22px;
+  height: 22px;
+}
+
+.ahora .activo {
+  color: var(--cancion);
 }
 
 .ahora .tiempo-pista {
@@ -194,60 +522,70 @@
   background: #fff;
 }
 
-.ahora .tiempos {
-  margin-top: 11px;
-  color: rgb(255 255 255 / 0.66);
+/* ── «A continuación»: sube como hoja de iOS ──────────────────────────────── */
+
+/* La información se aparta hacia abajo mientras la hoja sube. */
+.ahora-info {
+  transition: opacity 220ms, transform 420ms var(--curva-ios);
 }
 
-.ahora-anuncio {
-  font-size: 15px;
-  color: rgb(255 255 255 / 0.72);
+.ahora--cola .ahora-info {
+  opacity: 0;
+  transform: translateY(28px);
+  pointer-events: none;
 }
 
-.ahora-controles {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 20px 34px 0;
-}
-
-.ahora-controles .boton-icono {
-  width: 64px;
-  height: 64px;
-  border-radius: 32px;
-  color: #fff;
-}
-
-.ahora-controles .grande {
-  width: 80px;
-  height: 80px;
-  border-radius: 40px;
-}
-
-.ahora .boton-icono:hover {
-  background: rgb(255 255 255 / 0.1);
-}
-
-.ahora-extras {
-  margin-top: 24px;
-  height: 50px;
-  border-radius: 25px;
-  display: flex;
-  justify-content: space-around;
-  align-items: center;
-  color: rgb(255 255 255 / 0.85);
-}
-
-.ahora .activo {
-  color: var(--cancion);
-}
-
-/* ── La cola, que sube desde abajo ────────────────────────────────────────── */
-
+/* Siempre montada; cerrada no se ve ni se toca. */
 .cola-capa {
   position: absolute;
   inset: 0;
   z-index: 4;
+  pointer-events: none;
+}
+
+.cola-capa.abierta {
+  pointer-events: auto;
+}
+
+.cola-compacto {
+  opacity: 0;
+  transform: translateY(6px);
+  transition: opacity 180ms, transform 420ms var(--curva-ios);
+}
+
+.cola-capa.abierta .cola-compacto {
+  opacity: 1;
+  transform: none;
+  transition: opacity 300ms 150ms, transform 450ms var(--curva-ios);
+}
+
+.cola-hoja {
+  transform: translateY(100%);
+  transition: transform 420ms var(--curva-ios);
+}
+
+.cola-capa.abierta .cola-hoja {
+  transform: none;
+  transition: transform 480ms var(--curva-ios);
+}
+
+/* La cabecera de la hoja se arrastra hacia abajo para cerrarla. */
+.cola-tirador {
+  touch-action: none;
+  cursor: grab;
+}
+
+/* Las primeras filas entran escalonadas, con un fundido corto. */
+.cola-capa.abierta .cola-hoja li {
+  animation: fila-entra 360ms var(--curva-ios) backwards;
+  animation-delay: calc(140ms + var(--i) * 22ms);
+}
+
+@keyframes fila-entra {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
 }
 
 .cola-compacto {
@@ -346,7 +684,7 @@
   height: 46px;
 }
 
-.cola-hoja .fila-cuerpo span {
+.cola-hoja .fila-cuerpo > span {
   color: rgb(255 255 255 / 0.62);
 }
 
@@ -372,6 +710,8 @@
 @media (min-width: 1024px) {
   .fondo-apple .ahora-nitida {
     --lado: min(68vh, 42vw);
+    width: var(--lado);
+    height: var(--lado);
     left: 7vw;
     top: 50%;
     transform: translateY(-50%);

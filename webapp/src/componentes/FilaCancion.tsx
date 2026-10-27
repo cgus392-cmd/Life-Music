@@ -2,6 +2,7 @@ import type { ReactNode } from "react";
 import type { Cancion } from "../datos/api";
 import { Caratula } from "./Caratula";
 import { Nota } from "./Marca";
+import { useMantener } from "./MenuCancion";
 
 type Props = {
   cancion: Cancion;
@@ -17,10 +18,16 @@ type Props = {
   sinPortada?: boolean;
 };
 
-/** Una canción en una lista. Si es la que suena, lleva la marca completa de la nota, nunca un punto. */
+/** Una canción en una lista. Si es la que suena, lleva la marca completa de la nota, nunca un punto. Mantenerla
+    presionada (o el clic derecho) abre su menú. */
 export function FilaCancion({ cancion: c, alTocar, actual = false, detalle, fin, numero, sinPortada = false }: Props) {
+  const mantener = useMantener(c);
   return (
-    <div className={`fila${sinPortada ? " fila--pista" : ""}`} aria-current={actual ? "true" : undefined}>
+    <div
+      className={`fila${sinPortada ? " fila--pista" : ""}${mantener.manteniendo ? " manteniendo" : ""}`}
+      aria-current={actual ? "true" : undefined}
+      {...mantener.props}
+    >
       {numero !== undefined && <span className="fila-numero">{actual ? <Nota alto={15} /> : numero}</span>}
       {!sinPortada && (
         <button type="button" className="fila-abrir" onClick={alTocar} aria-label={`Reproducir «${c.titulo}»`}>

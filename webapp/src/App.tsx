@@ -9,6 +9,7 @@ import { AhoraSuena } from "./componentes/AhoraSuena";
 import { MenuCancion } from "./componentes/MenuCancion";
 import { AnuncioDespues } from "./componentes/AnuncioDespues";
 import { Bienvenida, GuiaInstalar } from "./componentes/Entrada";
+import { GestoAtras } from "./componentes/GestoAtras";
 import { Inicio } from "./pantallas/Inicio";
 import { Buscar } from "./pantallas/Buscar";
 import { Coleccion } from "./pantallas/Coleccion";
@@ -16,9 +17,10 @@ import { Artista } from "./pantallas/Artista";
 import { Biblioteca, ListaGuardada, ListaPropia, MisListas } from "./pantallas/Biblioteca";
 import { Acerca, Ajustes } from "./pantallas/Ajustes";
 import { aplicarTema, usarAjustes } from "./datos/ajustes";
+import { demo } from "./demo";
 
 export default function App() {
-  const [ahoraAbierta, setAhoraAbierta] = useState(false);
+  const [ahoraAbierta, setAhoraAbierta] = useState(demo === "ahora");
   const [panel, setPanel] = useState<"ahora" | "cola">("ahora");
   const tema = usarAjustes((s) => s.tema);
   const { pathname } = useLocation();
@@ -30,6 +32,15 @@ export default function App() {
     document.querySelector(".centro")?.scrollTo(0, 0);
     scrollTo(0, 0);
   }, [pathname]);
+
+  // Con la página desplazada aparece el desvanecido debajo del reloj (shell.css, .app::before).
+  useEffect(() => {
+    const raiz = document.documentElement;
+    const mirar = () => raiz.classList.toggle("desplazado", scrollY > 4);
+    mirar();
+    addEventListener("scroll", mirar, { passive: true });
+    return () => removeEventListener("scroll", mirar);
+  }, []);
 
   return (
     <div className="app">
@@ -64,6 +75,7 @@ export default function App() {
       <AnuncioDespues />
       <GuiaInstalar />
       <Bienvenida />
+      <GestoAtras />
     </div>
   );
 }

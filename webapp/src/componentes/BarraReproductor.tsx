@@ -2,7 +2,7 @@ import { usarReproductor } from "../reproductor/tienda";
 import { reloj } from "../datos/api";
 import { esMeGusta, usarBiblioteca } from "../datos/biblioteca";
 import { BarraTiempo } from "./BarraTiempo";
-import { Caratula } from "./Caratula";
+import { CaratulaSuave } from "./Caratula";
 import { Icono } from "./Iconos";
 
 type Props = { alAbrir: () => void; alCola: () => void; colaAbierta: boolean };
@@ -19,7 +19,7 @@ export function BarraReproductor({ alAbrir, alCola, colaAbierta }: Props) {
     <footer className="barra-escritorio vidrio" aria-label="Reproductor">
       <div className="barra-cancion">
         <button type="button" className="barra-abrir" onClick={alAbrir} aria-label={`Abrir «${c.titulo}»`}>
-          <Caratula cancion={c} />
+          <CaratulaSuave cancion={c} />
           <span className="barra-textos">
             <b>{c.titulo}</b>
             {r.aviso ? <span className="aviso">{r.aviso}</span> : <span>{c.artista}</span>}

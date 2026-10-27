@@ -1,5 +1,6 @@
 /* La biblioteca: Me gusta, Mis listas, Historial, y la entrada a Ajustes y Acerca de. Todo vive en este teléfono. */
-import { Link, useNavigate, useParams } from "react-router";
+import { useParams } from "react-router";
+import { Enlace, useIr } from "../componentes/Transicion";
 import { usarBiblioteca } from "../datos/biblioteca";
 import { Cabecera } from "../componentes/Cabecera";
 import { ListaCanciones } from "../componentes/Elementos";
@@ -8,7 +9,7 @@ import { Icono, type NombreIcono } from "../componentes/Iconos";
 
 function Entrada({ a, icono, texto, color = false }: { a: string; icono: NombreIcono; texto: string; color?: boolean }) {
   return (
-    <Link to={a} className="fila menu-fila">
+    <Enlace to={a} className="fila menu-fila">
       <Icono nombre={icono} className={color ? "color" : ""} />
       <span className="fila-textos">
         <span className="fila-cuerpo">
@@ -16,7 +17,7 @@ function Entrada({ a, icono, texto, color = false }: { a: string; icono: NombreI
         </span>
         <Icono nombre="derecha" tam={18} className="fila-flecha" />
       </span>
-    </Link>
+    </Enlace>
   );
 }
 
@@ -30,9 +31,9 @@ function Vacia() {
       </svg>
       <h3>Empieza tu biblioteca</h3>
       <p>Toca el corazón de una canción y aparece aquí. Se guarda en este teléfono, sin cuenta.</p>
-      <Link to="/buscar" className="accion-texto">
+      <Enlace to="/buscar" className="accion-texto">
         Buscar música
-      </Link>
+      </Enlace>
     </div>
   );
 }
@@ -90,10 +91,10 @@ export function ListaPropia({ cual }: { cual: "megusta" | "historial" }) {
 /** Mis listas: las que la persona creó en este teléfono. */
 export function MisListas() {
   const { listas, crearLista } = usarBiblioteca();
-  const ir = useNavigate();
+  const ir = useIr();
   const nueva = () => {
     const nombre = prompt("Nombre de la lista");
-    if (nombre?.trim()) ir(`/biblioteca/lista/${crearLista(nombre.trim())}`);
+    if (nombre?.trim()) ir.a(`/biblioteca/lista/${crearLista(nombre.trim())}`);
   };
   return (
     <section aria-labelledby="titulo-listas">
@@ -116,7 +117,7 @@ export function MisListas() {
         </li>
         {listas.map((l) => (
           <li key={l.id}>
-            <Link to={`/biblioteca/lista/${l.id}`} className="fila">
+            <Enlace to={`/biblioteca/lista/${l.id}`} className="fila">
               {l.canciones[0] ? (
                 <Caratula cancion={l.canciones[0]} />
               ) : (
@@ -131,7 +132,7 @@ export function MisListas() {
                 </span>
                 <Icono nombre="derecha" tam={18} className="fila-flecha" />
               </span>
-            </Link>
+            </Enlace>
           </li>
         ))}
       </ul>
@@ -142,7 +143,7 @@ export function MisListas() {
 /** Una lista propia: se reproduce, se renombra y se borra. */
 export function ListaGuardada() {
   const { id = "" } = useParams();
-  const ir = useNavigate();
+  const ir = useIr();
   const { listas, renombrarLista, borrarLista } = usarBiblioteca();
   const l = listas.find((x) => x.id === id);
   if (!l) return <Vacia />;
@@ -170,7 +171,7 @@ export function ListaGuardada() {
               onClick={() => {
                 if (confirm(`¿Borrar «${l.nombre}»? Las canciones no se borran de Me gusta.`)) {
                   borrarLista(l.id);
-                  ir("/biblioteca/listas");
+                  ir.a("/biblioteca/listas", "atras");
                 }
               }}
             >

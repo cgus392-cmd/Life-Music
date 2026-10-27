@@ -1,9 +1,10 @@
 /* Piezas para mostrar lo que trae YouTube Music: tarjetas de carrusel, filas de álbum/artista/lista y la lista de
    canciones de una fila. */
-import { Link } from "react-router";
+import type { ReactNode } from "react";
+import { Enlace } from "./Transicion";
 import { rutaDe, type Cancion, type Elemento } from "../datos/api";
 import { usarReproductor } from "../reproductor/tienda";
-import { usarMenu } from "./MenuCancion";
+import { useMantener, usarMenu } from "./MenuCancion";
 import { FilaCancion } from "./FilaCancion";
 import { Icono } from "./Iconos";
 
@@ -21,9 +22,24 @@ function Portada({ e, className = "" }: { e: Elemento; className?: string }) {
   );
 }
 
+/** Una tarjeta de carrusel de canción: suena al tocarla y, mantenida (o con clic derecho), abre su menú. */
+function TarjetaCancion({ c, cuerpo, lista, origen }: { c: Cancion; cuerpo: ReactNode; lista?: Cancion[]; origen?: string }) {
+  const tocar = usarReproductor((s) => s.tocar);
+  const mantener = useMantener(c);
+  return (
+    <button
+      type="button"
+      className={`tarjeta${mantener.manteniendo ? " manteniendo" : ""}`}
+      onClick={() => tocar(c, lista, origen)}
+      {...mantener.props}
+    >
+      {cuerpo}
+    </button>
+  );
+}
+
 /** Una tarjeta de carrusel. Las canciones suenan al tocarlas; lo demás abre su página. */
 export function Tarjeta({ e, lista, origen }: { e: Elemento; lista?: Cancion[]; origen?: string }) {
-  const tocar = usarReproductor((s) => s.tocar);
   const cuerpo = (
     <>
       <Portada e={e} />
@@ -31,18 +47,11 @@ export function Tarjeta({ e, lista, origen }: { e: Elemento; lista?: Cancion[]; 
       <span className="tarjeta-sub">{e.subtitulo}</span>
     </>
   );
-  if (e.tipo === "cancion" && e.cancion) {
-    const c = e.cancion;
-    return (
-      <button type="button" className="tarjeta" onClick={() => tocar(c, lista, origen)}>
-        {cuerpo}
-      </button>
-    );
-  }
+  if (e.tipo === "cancion" && e.cancion) return <TarjetaCancion c={e.cancion} cuerpo={cuerpo} lista={lista} origen={origen} />;
   return (
-    <Link to={rutaDe(e)} className={`tarjeta${e.tipo === "artista" ? " tarjeta--artista" : ""}`}>
+    <Enlace to={rutaDe(e)} className={`tarjeta${e.tipo === "artista" ? " tarjeta--artista" : ""}`}>
       {cuerpo}
-    </Link>
+    </Enlace>
   );
 }
 
@@ -64,7 +73,7 @@ export function Carrusel({ titulo, elementos, origen }: { titulo: string; elemen
 /** Una fila de álbum, artista o lista que abre su página. */
 export function FilaElemento({ e }: { e: Elemento }) {
   return (
-    <Link to={rutaDe(e)} className="fila">
+    <Enlace to={rutaDe(e)} className="fila">
       <Portada e={e} />
       <span className="fila-textos">
         <span className="fila-cuerpo">
@@ -73,7 +82,7 @@ export function FilaElemento({ e }: { e: Elemento }) {
         </span>
         <Icono nombre="derecha" tam={18} className="fila-flecha" />
       </span>
-    </Link>
+    </Enlace>
   );
 }
 

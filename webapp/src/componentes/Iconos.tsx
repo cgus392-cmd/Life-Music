@@ -13,11 +13,15 @@ const trazos = {
   repetirUna:
     '<path d="M4 11V9.5A3.5 3.5 0 0 1 7.5 6H20l-3-3M20 13v1.5a3.5 3.5 0 0 1-3.5 3.5H4l3 3"/><path d="M11 10.5l1.5-1v5"/>',
   cola: '<path d="M4 6h13M4 11h13M4 16h8M18 13v8M14 17h8"/>',
-  anterior: '<path class="lleno" d="M6 5.5h2.2v13H6zM20 5.5v13l-10.5-6.5z"/>',
-  siguiente: '<path class="lleno" d="M15.8 5.5H18v13h-2.2zM4 5.5v13l10.5-6.5z"/>',
+  // Los controles del reproductor, como los de iOS: triángulos llenos con las puntas redondas. Siguiente y anterior
+  // son dos triángulos (adelantar/retroceder), como en Apple Music, no la barra de «saltar al final».
+  anterior:
+    '<path class="lleno redondo" d="M11.2 6.4v11.2c0 .8-.9 1.3-1.6.8L2.9 13a1.2 1.2 0 0 1 0-2l6.7-5.4c.7-.5 1.6 0 1.6.8zM21.4 6.4v11.2c0 .8-.9 1.3-1.6.8L13.1 13a1.2 1.2 0 0 1 0-2l6.7-5.4c.7-.5 1.6 0 1.6.8z"/>',
+  siguiente:
+    '<path class="lleno redondo" d="M12.8 6.4v11.2c0 .8.9 1.3 1.6.8l6.7-5.4a1.2 1.2 0 0 0 0-2l-6.7-5.4c-.7-.5-1.6 0-1.6.8zM2.6 6.4v11.2c0 .8.9 1.3 1.6.8l6.7-5.4a1.2 1.2 0 0 0 0-2L4.2 5.6c-.7-.5-1.6 0-1.6.8z"/>',
   pausa:
-    '<rect class="lleno" x="6" y="4.5" width="4.2" height="15" rx="1.2"/><rect class="lleno" x="13.8" y="4.5" width="4.2" height="15" rx="1.2"/>',
-  play: '<path class="lleno" d="M7.5 4.8v14.4a.9.9 0 0 0 1.4.8l11-7.2a.9.9 0 0 0 0-1.6l-11-7.2a.9.9 0 0 0-1.4.8z"/>',
+    '<rect class="lleno" x="5.6" y="4.2" width="4.6" height="15.6" rx="1.4"/><rect class="lleno" x="13.8" y="4.2" width="4.6" height="15.6" rx="1.4"/>',
+  play: '<path class="lleno redondo" d="M7 5.3v13.4c0 1 1.1 1.6 1.9 1.1l10.4-6.7a1.3 1.3 0 0 0 0-2.2L8.9 4.2C8.1 3.7 7 4.3 7 5.3z"/>',
   atras: '<path d="m15 5-7 7 7 7"/>',
   derecha: '<path d="m9 5 7 7-7 7"/>',
   compartir: '<path d="M12 3.5v11M8 7.5l4-4 4 4M6 11v8a1.5 1.5 0 0 0 1.5 1.5h9A1.5 1.5 0 0 0 18 19v-8"/>',
@@ -31,6 +35,7 @@ const trazos = {
   luna: '<path d="M19 14.5A7.5 7.5 0 0 1 9.5 5a7.5 7.5 0 1 0 9.5 9.5z"/>',
   rayo: '<path d="M13 3 5 13.5h6L10 21l8-10.5h-6z"/>',
   hoja: '<path d="M5 19c0-8 6-14 15-14 0 9-6 15-14 15M5 19l7-7"/>',
+  ola: '<path d="M3 12c2-2 4-2 6 0s4 2 6 0 4-2 6 0M3 17c2-2 4-2 6 0s4 2 6 0 4-2 6 0"/>',
   aContinuacion: '<path d="M4 6.5h11M4 11.5h11M4 16.5h6M15 14v6.5l5-3.25z"/>',
   mas: '<rect x="3.5" y="3.5" width="17" height="17" rx="4.5"/><path d="M12 8v8M8 12h8"/>',
   disco: '<circle cx="12" cy="12" r="8.5"/><circle cx="12" cy="12" r="2.6"/>',
@@ -57,6 +62,38 @@ const trazos = {
   lista: '<rect x="3.5" y="3.5" width="17" height="17" rx="4"/><path d="M8 9h8M8 12.5h8M8 16h5"/>',
   maximizar: '<path d="M14 4h6v6M10 20H4v-6M20 4l-6.5 6.5M4 20l6.5-6.5"/>',
 } as const;
+
+/* Los íconos del reproductor estilo Apple Music de la app Android, copiados de sus vectores (res/drawable:
+   apple_skip_previous, apple_skip_next, play_applemusic, pause_applemusic, apple_queue, volume_mute y
+   volume_up), en su cuadrícula de 960. Van llenos; los de saltar llevan además el trazo grueso de redondeo. */
+const apple = {
+  anterior:
+    '<path class="grueso" d="M872.74,732.51L503.18,480L872.74,227.49L872.74,732.51ZM456.82,732.51L87.26,480L456.82,227.49L456.82,732.51Z"/>',
+  siguiente:
+    '<path class="grueso" d="M85.93,732.51L85.93,227.49L455.49,480L85.93,732.51ZM505.18,732.51L505.18,227.49L874.74,480L505.18,732.51Z"/>',
+  play: '<path d="M320,687L320,273Q320,256 332,244.5Q344,233 360,233Q365,233 370.5,234.5Q376,236 381,239L707,446Q716,452 720.5,461Q725,470 725,480Q725,490 720.5,499Q716,508 707,514L381,721Q376,724 370.5,725.5Q365,727 360,727Q344,727 332,715.5Q320,704 320,687Z"/>',
+  pausa:
+    '<path d="M595,720Q562,720 538.5,696.5Q515,673 515,640L515,320Q515,287 538.5,263.5Q562,240 595,240L595,240Q628,240 651.5,263.5Q675,287 675,320L675,640Q675,673 651.5,696.5Q628,720 595,720ZM365,720Q332,720 308.5,696.5Q285,673 285,640L285,320Q285,287 308.5,263.5Q332,240 365,240L365,240Q398,240 421.5,263.5Q445,287 445,320L445,640Q445,673 421.5,696.5Q398,720 365,720Z"/>',
+  cola: '<path d="M360,760L360,680L840,680L840,760L360,760ZM360,520L360,440L840,440L840,520L360,520ZM360,280L360,200L840,200L840,280L360,280ZM200,800Q167,800 143.5,776.5Q120,753 120,720Q120,687 143.5,663.5Q167,640 200,640Q233,640 256.5,663.5Q280,687 280,720Q280,753 256.5,776.5Q233,800 200,800ZM200,560Q167,560 143.5,536.5Q120,513 120,480Q120,447 143.5,423.5Q167,400 200,400Q233,400 256.5,423.5Q280,447 280,480Q280,513 256.5,536.5Q233,560 200,560ZM143.5,296.5Q120,273 120,240Q120,207 143.5,183.5Q167,160 200,160Q233,160 256.5,183.5Q280,207 280,240Q280,273 256.5,296.5Q233,320 200,320Q167,320 143.5,296.5Z"/>',
+  volumenBajo: '<path d="M280,600v-240h160l200,-200v640L440,600L280,600ZM560,354l-86,86L360,440v80h114l86,86v-252ZM460,480Z"/>',
+  volumenAlto:
+    '<path d="M560,829v-82q90,-26 145,-100t55,-168q0,-94 -55,-168T560,211v-82q124,28 202,125.5T840,479q0,127 -78,224.5T560,829ZM120,600v-240h160l200,-200v640L280,600L120,600ZM560,640v-322q47,22 73.5,66t26.5,96q0,51 -26.5,94.5T560,640ZM400,354l-86,86L200,440v80h114l86,86v-252ZM300,480Z"/>',
+} as const;
+
+export type NombreApple = keyof typeof apple;
+
+export function IconoApple({ nombre, tam }: { nombre: NombreApple; tam: number }) {
+  return (
+    <svg
+      className="ico ico-apple"
+      viewBox="0 0 960 960"
+      style={{ width: tam, height: tam }}
+      aria-hidden="true"
+      focusable="false"
+      dangerouslySetInnerHTML={{ __html: apple[nombre] }}
+    />
+  );
+}
 
 export type NombreIcono = keyof typeof trazos;
 

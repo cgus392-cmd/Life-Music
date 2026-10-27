@@ -4,6 +4,8 @@ import { usarBiblioteca } from "../datos/biblioteca";
 import { Cabecera } from "../componentes/Cabecera";
 import { Icono } from "../componentes/Iconos";
 import { Logo, Nota } from "../componentes/Marca";
+import { esIphone, instalada } from "../componentes/Entrada";
+import { puedeMezclar } from "../datos/dispositivo";
 
 function Segmentos<T extends string>({ valor, opciones, alCambiar, etiqueta }: {
   valor: T;
@@ -70,6 +72,18 @@ export function Ajustes() {
         </div>
       </div>
 
+      {esIphone() && !instalada() && (
+        <>
+          <h2 className="grupo-titulo">iPhone</h2>
+          <div className="grupo">
+            <button type="button" className="renglon" onClick={() => a.fijar({ guiaCerrada: false })}>
+              <Icono nombre="instalar" />
+              <span className="renglon-t">Cómo instalarla como app</span>
+            </button>
+          </div>
+        </>
+      )}
+
       <h2 className="grupo-titulo">Reproducción</h2>
       <div className="grupo">
         <label className="renglon">
@@ -85,8 +99,27 @@ export function Ajustes() {
             />
           </span>
         </label>
+        <label className={`renglon${puedeMezclar() ? "" : " apagado"}`}>
+          <Icono nombre="ola" />
+          <span className="renglon-t">
+            Automix
+            <input
+              type="checkbox"
+              role="switch"
+              className="interruptor"
+              checked={puedeMezclar() && a.automix}
+              disabled={!puedeMezclar()}
+              onChange={(e) => a.fijar({ automix: e.target.checked })}
+            />
+          </span>
+        </label>
       </div>
-      <p className="pie-grupo">Mientras suena, el iPhone no se bloquea y la música no se pausa.</p>
+      <p className="pie-grupo">
+        Pantalla siempre encendida: mientras suena, el iPhone no se bloquea y la música no se pausa.{" "}
+        {puedeMezclar()
+          ? "Automix: los últimos segundos de cada canción se funden con los primeros de la siguiente, como un DJ."
+          : "Automix: en el iPhone no se puede, porque Safari no deja que una página cambie el volumen. Funciona en el computador."}
+      </p>
 
       <div className="grupo">
         <button
@@ -124,7 +157,7 @@ export function Acerca() {
       <div className="acerca-logo">
         <Logo alto={34} />
       </div>
-      <p className="acerca-version">Life Music Web · versión {__VERSION__}</p>
+      <p className="acerca-version">Life Music Web · versión {__VERSION__} · beta</p>
       <p className="acerca-frase">Un reproductor para aprender, hecho por CG LABS. Gratis, sin cuenta y de código abierto.</p>
 
       <h2 className="origen-titulo">De dónde viene · todo bajo GPL-3.0</h2>

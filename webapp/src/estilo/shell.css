@@ -42,13 +42,14 @@
   letter-spacing: -1px;
 }
 
+/* Proporciones de Apple Music (plan 0.4, punto 2.4): títulos de sección de 22 en negrita. */
 .seccion {
   display: flex;
   align-items: center;
   justify-content: space-between;
   margin: 26px 20px 12px;
-  font-size: 21px;
-  font-weight: 600;
+  font-size: 22px;
+  font-weight: 700;
   letter-spacing: -0.4px;
 }
 
@@ -102,6 +103,50 @@
 .pestanas .ico {
   width: 25px;
   height: 25px;
+}
+
+/* Debajo del reloj: al bajar por la página, lo que pasa bajo la hora y la batería se desvanece y se desenfoca, como
+   en iOS 26 (plan 0.4, punto 2.1). Solo aparece con la página desplazada (App.tsx pone .desplazado), para no tapar
+   la foto del artista ni nada de lo que va arriba, y se aparta cuando sale la barra de vidrio del álbum o del
+   artista. Sin zona segura (Safari con sus barras) no ocupa nada. */
+.app::before {
+  content: "";
+  position: fixed;
+  z-index: 19;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: calc(var(--arriba) + min(var(--arriba), 28px));
+  background: linear-gradient(to bottom, var(--fondo), color-mix(in srgb, var(--fondo) 65%, transparent) 60%, transparent);
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
+  -webkit-mask-image: linear-gradient(to bottom, #000 55%, transparent);
+  mask-image: linear-gradient(to bottom, #000 55%, transparent);
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 220ms ease;
+}
+
+.desplazado .app::before {
+  opacity: 1;
+}
+
+:root:has(.barra-encogida.visible) .app::before {
+  opacity: 0;
+}
+
+/* La orilla de abajo: lo que pasa por debajo de las pestañas se desvanece, como en iOS 26. Sin esto se veían
+   carátulas enteras y nítidas entre la barra y el borde de la pantalla. */
+.app::after {
+  content: "";
+  position: fixed;
+  z-index: 19;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: calc(var(--pestanas-abajo) + 96px);
+  background: linear-gradient(to bottom, transparent, color-mix(in srgb, var(--fondo) 72%, transparent) 55%, var(--fondo));
+  pointer-events: none;
 }
 
 /* ── Mini reproductor (teléfono) ──────────────────────────────────────────── */
@@ -240,18 +285,21 @@
 
 /* ── Filas de lista al estilo iOS ─────────────────────────────────────────── */
 
+/* Filas como las de Apple Music (plan 0.4, punto 2.4): 56 px de alto, carátula de 48 y título sin negrita. */
 .fila {
   display: flex;
   align-items: center;
   gap: 13px;
   width: 100%;
-  min-height: 60px;
+  min-height: 56px;
   padding: 0 20px;
   text-align: left;
 }
 
-.fila:hover {
-  background: var(--tocado);
+@media (hover: hover) {
+  .fila:hover {
+    background: var(--tocado);
+  }
 }
 
 .fila-abrir {
@@ -263,9 +311,9 @@
 }
 
 .fila .portada {
-  width: 50px;
-  height: 50px;
-  border-radius: 8px;
+  width: 48px;
+  height: 48px;
+  border-radius: 6px;
   flex: 0 0 auto;
 }
 
@@ -286,7 +334,8 @@
 }
 
 .fila-cuerpo b,
-.fila-cuerpo span {
+.fila-cuerpo > span,
+.fila-titulo {
   display: block;
   white-space: nowrap;
   overflow: hidden;
@@ -298,12 +347,18 @@
   align-items: center;
   gap: 7px;
   font-size: 16px;
-  font-weight: 600;
+  font-weight: 400;
 }
 
-.fila-cuerpo span {
+.fila-titulo {
+  min-width: 0;
+}
+
+/* Solo el renglón de abajo (artista · álbum). Antes decía «.fila-cuerpo span» y también agarraba el título, que
+   va en un span dentro del <b>: por eso los títulos salían grises y chicos. */
+.fila-cuerpo > span {
   margin-top: 2px;
-  font-size: 14px;
+  font-size: 13px;
   color: var(--suave);
 }
 
@@ -366,12 +421,22 @@
   letter-spacing: -0.5px;
 }
 
-#motor.motor--visible #motor-yt {
+#motor.motor--visible .motor-pantalla iframe {
+  display: block;
   width: 100%;
   height: auto;
   aspect-ratio: 16 / 9;
   border-radius: 18px;
   overflow: hidden;
+}
+
+/* El relevo del Automix nunca se ve, ni siquiera en la hoja del anuncio. */
+#motor .motor-pantalla iframe.relevo {
+  position: fixed;
+  left: -10000px;
+  top: 0;
+  width: 320px;
+  height: 180px;
 }
 
 #motor .motor-sub,
@@ -445,7 +510,9 @@
   }
 
   .pestanas,
-  .mini {
+  .mini,
+  .app::before,
+  .app::after {
     display: none;
   }
 

@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
-import { Link, useSearchParams } from "react-router";
+import { useSearchParams } from "react-router";
+import { Enlace } from "../componentes/Transicion";
 import {
   buscar,
   buscarMas,
@@ -62,9 +63,9 @@ function Mejor({ e }: { e: Elemento }) {
           {cuerpo}
         </button>
       ) : (
-        <Link to={rutaDe(e)} className="mejor-abrir">
+        <Enlace to={rutaDe(e)} className="mejor-abrir">
           {cuerpo}
-        </Link>
+        </Enlace>
       )}
       {e.cancion && (
         <button type="button" className="boton-vidrio vidrio mejor-play" onClick={() => tocar(e.cancion!)} aria-label={`Reproducir «${e.titulo}»`}>

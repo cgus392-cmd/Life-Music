@@ -1,6 +1,7 @@
 /* El artista: la foto arriba, como un álbum, Reproducir y Aleatorio, sus canciones populares y sus filas. */
 import { useEffect, useState } from "react";
-import { useNavigate, useParams } from "react-router";
+import { useParams } from "react-router";
+import { useIr } from "../componentes/Transicion";
 import { artista, type Artista as Datos } from "../datos/api";
 import { usarReproductor } from "../reproductor/tienda";
 import { Carrusel, ListaCanciones } from "../componentes/Elementos";
@@ -9,7 +10,7 @@ import { Icono } from "../componentes/Iconos";
 
 export function Artista() {
   const { id = "" } = useParams();
-  const ir = useNavigate();
+  const ir = useIr();
   const [datos, setDatos] = useState<Datos | null>(null);
   const [error, setError] = useState(false);
   const r = usarReproductor();
@@ -34,7 +35,7 @@ export function Artista() {
         {datos?.foto && <img src={datos.foto} alt="" referrerPolicy="no-referrer" />}
         <div className="artista-velo" />
         <div className="artista-barra">
-          <button type="button" className="boton-vidrio vidrio" onClick={() => ir(-1)} aria-label="Atrás">
+          <button type="button" className="boton-vidrio vidrio" onClick={ir.atras} aria-label="Atrás">
             <Icono nombre="atras" />
           </button>
         </div>

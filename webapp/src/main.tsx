@@ -8,12 +8,16 @@ import "./estilo/ahora.css";
 import "./estilo/pantallas.css";
 import "./estilo/vistas.css";
 import "./estilo/entrada.css";
+import "./estilo/movimiento.css";
 import App from "./App";
 import { arrancar } from "./reproductor/tienda";
 import { activarPantallaEncendida } from "./reproductor/pantalla";
+import { prepararDemo } from "./prepararDemo";
+import { demo } from "./demo";
 
 arrancar();
 activarPantallaEncendida();
+if (demo) prepararDemo(demo);
 
 createRoot(document.getElementById("raiz")!).render(
   <StrictMode>
@@ -26,7 +30,7 @@ createRoot(document.getElementById("raiz")!).render(
 // Se quita la imagen de arranque cuando la app ya pintó.
 requestAnimationFrame(() => {
   const arranque = document.getElementById("arranque");
-  if (!arranque) return;
+  if (!arranque || demo === "arranque") return;
   arranque.style.opacity = "0";
   setTimeout(() => arranque.remove(), 300);
 });

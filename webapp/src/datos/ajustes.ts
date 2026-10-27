@@ -9,6 +9,8 @@ type Ajustes = {
   tema: Tema;
   fondo: FondoAhora;
   pantallaEncendida: boolean;
+  /** Fundir el final de cada canción con el principio de la siguiente (solo donde el navegador deja). */
+  automix: boolean;
   bienvenidaVista: boolean;
   guiaCerrada: boolean;
   fijar: (cambios: Partial<Omit<Ajustes, "fijar">>) => void;
@@ -20,6 +22,7 @@ export const usarAjustes = create<Ajustes>()(
       tema: "auto",
       fondo: "apple",
       pantallaEncendida: false,
+      automix: true,
       bienvenidaVista: false,
       guiaCerrada: false,
       fijar: (cambios) => set(cambios),

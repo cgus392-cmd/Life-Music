@@ -1,0 +1,575 @@
+/* Movimiento y vidrio, para que se sienta como una app de iPhone (0.3): transiciones entre pantallas, respuesta al
+   tocar, el Liquid Glass más notable, el tiempo en el borde del mini reproductor y la bienvenida por pasos. Todo se
+   queda quieto si el teléfono pide «reducir movimiento» (base.css). */
+
+:root {
+  /* La curva de las hojas y empujes de iOS. */
+  --curva-ios: cubic-bezier(0.32, 0.72, 0, 1);
+  /* Un rebote corto para la respuesta al tocar. */
+  --curva-toque: cubic-bezier(0.3, 0.7, 0.4, 1.5);
+}
+
+/* ── Controles con las puntas redondas, como los de iOS ───────────────────── */
+
+.ico .lleno.redondo {
+  stroke: currentColor;
+  stroke-width: 1.4;
+  stroke-linejoin: round;
+}
+
+/* ── Respuesta al tocar: se hunde un poco y vuelve con un rebote ──────────── */
+
+.boton-icono,
+.boton-vidrio,
+.pastilla,
+.boton-grande,
+.mejor-play,
+.alcances button,
+.segmentos button,
+.instalar-boton {
+  transition: transform 220ms var(--curva-toque), background-color 160ms;
+  -webkit-touch-callout: none;
+}
+
+.boton-icono:active,
+.boton-vidrio:active,
+.mejor-play:active {
+  transform: scale(0.86);
+}
+
+.pastilla:active,
+.boton-grande:active,
+.alcances button:active,
+.instalar-boton:active {
+  transform: scale(0.96);
+}
+
+.tarjeta,
+.mini-abrir,
+.mejor-abrir {
+  transition: transform 220ms var(--curva-toque);
+}
+
+.tarjeta:active {
+  transform: scale(0.95);
+}
+
+.mini-abrir:active,
+.mejor-abrir:active {
+  transform: scale(0.98);
+}
+
+.fila:active {
+  background: var(--tocado);
+}
+
+/* ── Transiciones entre pantallas (View Transitions) ──────────────────────── */
+
+/* Lo fijo no se mueve con la pantalla: pestañas, mini reproductor, columnas y la cápsula del computador. */
+.pestanas {
+  view-transition-name: pestanas;
+}
+
+.mini {
+  view-transition-name: mini;
+}
+
+.lateral {
+  view-transition-name: lateral;
+}
+
+.ahora-panel {
+  view-transition-name: panel;
+}
+
+.barra-escritorio {
+  view-transition-name: barra;
+}
+
+::view-transition-group(pestanas),
+::view-transition-group(mini),
+::view-transition-group(lateral),
+::view-transition-group(panel),
+::view-transition-group(barra) {
+  animation: none;
+  z-index: 10;
+}
+
+::view-transition-old(pestanas),
+::view-transition-old(mini),
+::view-transition-old(lateral),
+::view-transition-old(panel),
+::view-transition-old(barra) {
+  display: none;
+}
+
+::view-transition-new(pestanas),
+::view-transition-new(mini),
+::view-transition-new(lateral),
+::view-transition-new(panel),
+::view-transition-new(barra) {
+  animation: none;
+}
+
+/* Entrar a una pantalla: la nueva llega desde la derecha y la vieja se corre un poco y se apaga. */
+:root[data-dir="adelante"]::view-transition-old(root) {
+  animation: 420ms var(--curva-ios) both vt-salir-izquierda;
+}
+
+:root[data-dir="adelante"]::view-transition-new(root) {
+  animation: 420ms var(--curva-ios) both vt-entrar-derecha;
+  box-shadow: -12px 0 32px rgb(0 0 0 / 0.18);
+}
+
+/* Volver: al revés, la de arriba se va por la derecha. */
+:root[data-dir="atras"]::view-transition-old(root) {
+  z-index: 2;
+  animation: 380ms var(--curva-ios) both vt-salir-derecha;
+  box-shadow: -12px 0 32px rgb(0 0 0 / 0.18);
+}
+
+:root[data-dir="atras"]::view-transition-new(root) {
+  animation: 380ms var(--curva-ios) both vt-entrar-izquierda;
+}
+
+/* Entre pestañas: un fundido corto, como en iOS. */
+:root[data-dir="lado"]::view-transition-old(root),
+:root[data-dir="lado"]::view-transition-new(root) {
+  animation-duration: 180ms;
+}
+
+@keyframes vt-entrar-derecha {
+  from {
+    transform: translateX(100%);
+  }
+}
+
+@keyframes vt-salir-izquierda {
+  to {
+    transform: translateX(-28%);
+    filter: brightness(0.82);
+  }
+}
+
+@keyframes vt-salir-derecha {
+  to {
+    transform: translateX(100%);
+  }
+}
+
+@keyframes vt-entrar-izquierda {
+  from {
+    transform: translateX(-28%);
+    filter: brightness(0.82);
+  }
+}
+
+/* En el computador basta un fundido: la columna y el panel no se mueven. */
+@media (min-width: 1024px) {
+  :root[data-dir]::view-transition-old(root),
+  :root[data-dir]::view-transition-new(root) {
+    animation: 200ms ease both;
+    box-shadow: none;
+  }
+
+  :root[data-dir]::view-transition-old(root) {
+    animation-name: vt-fundir-salida;
+  }
+
+  :root[data-dir]::view-transition-new(root) {
+    animation-name: vt-fundir-entrada;
+  }
+}
+
+@keyframes vt-fundir-salida {
+  to {
+    opacity: 0;
+  }
+}
+
+@keyframes vt-fundir-entrada {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+}
+
+/* ── Liquid Glass más notable ─────────────────────────────────────────────── */
+/* Apple no ofrece su Liquid Glass para la web y Safari no deja refractar lo de atrás (backdrop-filter con url()).
+   Se arma con lo que Safari sí hace: más transparencia y desenfoque, saturación, un borde de luz que cambia de
+   intensidad alrededor y un brillo arriba, como el vidrio de iOS 26. */
+
+/* (La posición relativa del vidrio está en base.css, para que las piezas fijas la puedan pisar.) */
+.vidrio {
+  isolation: isolate;
+  background: var(--vidrio);
+  -webkit-backdrop-filter: blur(26px) saturate(2.1) brightness(1.06);
+  backdrop-filter: blur(26px) saturate(2.1) brightness(1.06);
+}
+
+:root {
+  --vidrio: rgb(255 255 255 / 0.42);
+  --vidrio-luz: inset 0 1px 1px rgb(255 255 255 / 0.85), inset 0 -1px 1px rgb(255 255 255 / 0.25),
+    0 18px 40px -16px rgb(0 0 0 / 0.32), 0 2px 6px -2px rgb(0 0 0 / 0.08);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-tema="claro"]) {
+    --vidrio: rgb(40 40 44 / 0.42);
+    --vidrio-luz: inset 0 1px 1px rgb(255 255 255 / 0.22), inset 0 -1px 1px rgb(255 255 255 / 0.06),
+      0 18px 40px -16px rgb(0 0 0 / 0.7);
+  }
+}
+
+:root[data-tema="oscuro"] {
+  --vidrio: rgb(40 40 44 / 0.42);
+  --vidrio-luz: inset 0 1px 1px rgb(255 255 255 / 0.22), inset 0 -1px 1px rgb(255 255 255 / 0.06),
+    0 18px 40px -16px rgb(0 0 0 / 0.7);
+}
+
+/* El borde de luz: más fuerte arriba a la izquierda y abajo a la derecha, como el canto de un vidrio. */
+.vidrio::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  border-radius: inherit;
+  padding: 1px;
+  pointer-events: none;
+  background: linear-gradient(
+    135deg,
+    rgb(255 255 255 / 0.95),
+    rgb(255 255 255 / 0.2) 30%,
+    rgb(255 255 255 / 0.05) 55%,
+    rgb(255 255 255 / 0.45) 100%
+  );
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+}
+
+/* El brillo de arriba, suave. */
+.vidrio::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  border-radius: inherit;
+  pointer-events: none;
+  background: radial-gradient(120% 70% at 30% -10%, rgb(255 255 255 / 0.32), rgb(255 255 255 / 0) 60%);
+}
+
+/* ── El tiempo en todo el borde de abajo del mini reproductor ─────────────── */
+
+.borde-tiempo {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  overflow: visible;
+}
+
+.borde-pista,
+.borde-avance {
+  fill: none;
+  stroke-linecap: round;
+}
+
+.borde-pista {
+  stroke: rgb(17 17 17 / 0.1);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-tema="claro"]) .borde-pista {
+    stroke: rgb(255 255 255 / 0.12);
+  }
+}
+
+:root[data-tema="oscuro"] .borde-pista {
+  stroke: rgb(255 255 255 / 0.12);
+}
+
+.borde-avance {
+  stroke: var(--cancion);
+  transition: stroke-dashoffset 500ms linear;
+}
+
+.borde-cabeza {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+  transition: left 500ms linear, top 500ms linear;
+}
+
+/* El texto del mini ya no comparte espacio con una línea encima. */
+.mini {
+  overflow: visible;
+}
+
+/* ── «Ahora suena»: sube como hoja y la carátula se encoge en pausa ───────── */
+
+.ahora {
+  transition: transform 460ms var(--curva-ios), visibility 0s 460ms;
+}
+
+.ahora--abierta {
+  transition: transform 460ms var(--curva-ios);
+}
+
+/* ── Mantener presionado abre el menú (useMantener, plan 0.4, punto 2.3) ──── */
+
+/* Mantener presionado no selecciona texto ni saca el menú de Safari para enlaces. */
+.fila,
+.tarjeta {
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-touch-callout: none;
+}
+
+/* Mientras se mantiene, se hunde poco a poco, como Haptic Touch; al abrirse el menú, vuelve con el rebote. */
+.fila.manteniendo,
+.tarjeta.manteniendo {
+  transform: scale(0.96);
+  transition: transform 450ms cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.fila {
+  transition: transform 220ms var(--curva-toque), background-color 160ms;
+}
+
+/* ── Volver deslizando desde el borde (GestoAtras.tsx, plan 0.4, punto 2.2) ── */
+
+/* La página sigue al dedo, con una sombra en su orilla. Va con left y no con transform: un transform haría que la
+   barra de vidrio fija se pegara a la página y saltara; ella se corre aparte, con su propio transform. */
+.arrastrando-atras .centro {
+  position: relative;
+  left: var(--atras-dx, 0px);
+  box-shadow: -10px 0 30px rgb(0 0 0 / 0.14);
+}
+
+.arrastrando-atras .barra-encogida {
+  transform: translateX(var(--atras-dx, 0px));
+}
+
+/* Si no alcanzó para volver, regresa a su sitio con la curva de iOS. */
+.volviendo-atras .centro {
+  transition: left 280ms var(--curva-ios);
+}
+
+.volviendo-atras .barra-encogida {
+  transition: transform 280ms var(--curva-ios), opacity 200ms;
+}
+
+/* ── Cambio de canción: nada salta (plan 0.4, punto 1.5) ──────────────────── */
+
+/* El color de la canción se funde en vez de saltar. Registrado como color para que se pueda animar. */
+@property --cancion {
+  syntax: "<color>";
+  inherits: true;
+  initial-value: #ff6b3d;
+}
+
+:root {
+  transition: --cancion 700ms ease;
+}
+
+/* El título y el artista nuevos entran con un fundido corto (en «Ahora suena» y en el mini). */
+.ahora-textos,
+.mini-textos {
+  animation: textos-entran 450ms ease backwards;
+}
+
+@keyframes textos-entran {
+  from {
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    transition: none;
+  }
+
+  .ahora-textos,
+  .mini-textos {
+    animation: none;
+  }
+}
+
+/* backwards y no both: al terminar suelta la información, para que la transición de la cola la pueda apartar. */
+.ahora--abierta .ahora-info {
+  animation: subir 520ms var(--curva-ios) backwards 60ms;
+}
+
+@keyframes subir {
+  from {
+    opacity: 0;
+    transform: translateY(24px);
+  }
+}
+
+/* En el computador la carátula es una tarjeta y se recoge en pausa. En el teléfono, la de sangre se vuelve tarjeta
+   (ahora.css): antes solo se encogía y dejaba ver una franja del fondo arriba (lo vio el probador en su iPhone). */
+@media (min-width: 1024px) {
+  .fondo-apple .ahora-nitida {
+    transition: transform 520ms var(--curva-toque);
+  }
+
+  .ahora--pausa .fondo-apple .ahora-nitida {
+    transform: translateY(-50%) scale(0.9);
+  }
+}
+
+/* Los botones del reproductor se hunden al tocarlos con el rebote de Android (spring 0.6 / 500 → 0.9). */
+.ahora-controles button .ico,
+.ahora-redondo {
+  transition: transform 260ms var(--curva-toque);
+}
+
+.ahora-controles button:active .ico,
+.ahora-redondo:active {
+  transform: scale(0.9);
+}
+
+/* ── Bienvenida por pasos ─────────────────────────────────────────────────── */
+
+.bienvenida {
+  display: flex;
+  flex-direction: column;
+  padding-bottom: calc(24px + env(safe-area-inset-bottom, 0px));
+}
+
+.bienvenida-cuerpo {
+  flex: 1;
+  width: 100%;
+}
+
+.entra-adelante {
+  animation: 420ms var(--curva-ios) both bienvenida-derecha;
+}
+
+.entra-atras {
+  animation: 420ms var(--curva-ios) both bienvenida-izquierda;
+}
+
+@keyframes bienvenida-derecha {
+  from {
+    opacity: 0;
+    transform: translateX(40px);
+  }
+}
+
+@keyframes bienvenida-izquierda {
+  from {
+    opacity: 0;
+    transform: translateX(-40px);
+  }
+}
+
+.avance {
+  position: relative;
+  width: 100%;
+  max-width: 460px;
+  height: 12px;
+  margin: 0 auto 28px;
+}
+
+.avance-linea {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 50%;
+  height: 3px;
+  margin-top: -1.5px;
+  border-radius: 2px;
+  background: var(--relleno);
+}
+
+.avance-linea i {
+  display: block;
+  height: 100%;
+  border-radius: 2px;
+  background: var(--tinta);
+  transition: width 420ms var(--curva-ios);
+}
+
+.avance-cabeza {
+  position: absolute;
+  top: 50%;
+  width: 16px;
+  height: 12px;
+  transform: translate(-50%, -50%);
+  transition: left 420ms var(--curva-ios);
+}
+
+.avance-cabeza svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+
+.bienvenida-ico img {
+  width: 64px;
+  height: 64px;
+  border-radius: 15px;
+  box-shadow: 0 10px 24px -10px rgb(0 0 0 / 0.4);
+}
+
+.bienvenida-sello {
+  display: inline-block;
+  padding: 6px 12px;
+  border-radius: 14px;
+  background: var(--relleno);
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--acento);
+}
+
+.bienvenida .guia-pasos {
+  margin-top: 24px;
+}
+
+.bienvenida-botones {
+  display: flex;
+  gap: 12px;
+  width: 100%;
+  max-width: 460px;
+  margin: 20px auto 0;
+}
+
+.bienvenida-botones .boton-grande {
+  position: static;
+  flex: 1;
+}
+
+.bienvenida-atras {
+  height: 54px;
+  padding: 0 22px;
+  border-radius: 27px;
+  background: var(--relleno);
+  font-size: 17px;
+  font-weight: 600;
+}
+
+/* Un ajuste que el aparato no permite se ve apagado y no se puede tocar. */
+.renglon.apagado {
+  opacity: 0.5;
+}
+
+/* Modo de demostración (capturas): todo quieto y en su lugar final. */
+.demo *,
+.demo *::before,
+.demo *::after {
+  animation: none !important;
+  transition: none !important;
+}
+
+/* En la captura, el arranque también va en claro (si no, sigue al tema del sistema). */
+.demo #arranque {
+  background: #f5f5f3 !important;
+  color: #111 !important;
+}
+
+.demo #arranque img {
+  filter: none !important;
+}

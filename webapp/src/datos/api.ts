@@ -1,5 +1,6 @@
 /* Lo que la web le pregunta a nuestras funciones de Cloudflare (functions/api).
    Solo viajan textos: el audio nunca pasa por aquí. */
+import { demo, INICIO } from "../demo";
 
 export type Cancion = {
   id: string;
@@ -58,6 +59,8 @@ export type ResultadoTodo = {
 };
 
 async function pedir<T>(ruta: string): Promise<T> {
+  // Modo de demostración (solo en local): el Inicio con canciones de ejemplo.
+  if (demo && ruta.startsWith("/api/inicio")) return INICIO as T;
   const r = await fetch(ruta);
   const datos = await r.json().catch(() => ({}));
   if (!r.ok) throw new Error(datos.error || `El servidor respondió ${r.status}`);

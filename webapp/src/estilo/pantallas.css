@@ -7,14 +7,15 @@
   margin: 14px 20px 0;
 }
 
+/* En forma de píldora, como el campo de búsqueda de iOS 26 (plan 0.4, punto 2.4). */
 .buscador label {
-  height: 46px;
-  border-radius: 14px;
+  height: 44px;
+  border-radius: 22px;
   background: var(--relleno);
   display: flex;
   align-items: center;
   gap: 8px;
-  padding: 0 12px;
+  padding: 0 14px;
   color: var(--suave);
 }
 
@@ -71,8 +72,10 @@
   font-size: 17px;
 }
 
-.sugerencia:hover {
-  background: var(--tocado);
+@media (hover: hover) {
+  .sugerencia:hover {
+    background: var(--tocado);
+  }
 }
 
 .pantalla-aviso {

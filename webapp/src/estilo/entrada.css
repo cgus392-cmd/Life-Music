@@ -108,6 +108,8 @@
   right: 0;
   bottom: calc(var(--pestanas-abajo) + 4px);
   margin: 0 auto;
+  /* Va encima de las pestañas: para esconderse del todo al bajar tiene que bajar más que el menú. */
+  --hoja-bajo: 120px;
 }
 
 .guia-cab {
@@ -190,8 +192,10 @@
   font-weight: 600;
 }
 
-.instalar-boton:hover {
-  background: var(--tocado);
+@media (hover: hover) {
+  .instalar-boton:hover {
+    background: var(--tocado);
+  }
 }
 
 .instalar p {
@@ -221,9 +225,10 @@
   color: var(--acento);
 }
 
+/* Los renglones de la Biblioteca, grandes y sin negrita, como en la Biblioteca de Apple Music (plan 0.4, 2.4). */
 .menu-fila .fila-cuerpo b {
-  font-weight: 500;
-  font-size: 17px;
+  font-weight: 400;
+  font-size: 20px;
 }
 
 .grupo-sep {

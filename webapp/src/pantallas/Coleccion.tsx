@@ -1,7 +1,8 @@
 /* Un álbum o una lista: la carátula, el título, Reproducir y Aleatorio, y las canciones. Al bajar, la cabecera se
    encoge en una barra de vidrio con el título y el play. */
 import { useEffect, useRef, useState } from "react";
-import { Link, useNavigate, useParams } from "react-router";
+import { useParams } from "react-router";
+import { Enlace, useIr } from "../componentes/Transicion";
 import { album, lista, type Coleccion as Datos } from "../datos/api";
 import { usarReproductor } from "../reproductor/tienda";
 import { ListaCanciones } from "../componentes/Elementos";
@@ -10,7 +11,7 @@ import { Icono } from "../componentes/Iconos";
 
 export function Coleccion({ tipo }: { tipo: "album" | "lista" }) {
   const { id = "" } = useParams();
-  const ir = useNavigate();
+  const ir = useIr();
   const [datos, setDatos] = useState<Datos | null>(null);
   const [error, setError] = useState(false);
   const [encogida, setEncogida] = useState(false);
@@ -44,7 +45,7 @@ export function Coleccion({ tipo }: { tipo: "album" | "lista" }) {
   return (
     <section className="coleccion" aria-labelledby="titulo-coleccion">
       <div className={`barra-encogida vidrio${encogida ? " visible" : ""}`} aria-hidden={!encogida}>
-        <button type="button" className="boton-vidrio" onClick={() => ir(-1)} aria-label="Atrás">
+        <button type="button" className="boton-vidrio" onClick={ir.atras} aria-label="Atrás">
           <Icono nombre="atras" />
         </button>
         <span className="titulo-bar">{datos?.titulo}</span>
@@ -53,7 +54,7 @@ export function Coleccion({ tipo }: { tipo: "album" | "lista" }) {
         </button>
       </div>
       <div className="cabecera">
-        <button type="button" className="boton-vidrio vidrio" onClick={() => ir(-1)} aria-label="Atrás">
+        <button type="button" className="boton-vidrio vidrio" onClick={ir.atras} aria-label="Atrás">
           <Icono nombre="atras" />
         </button>
       </div>
@@ -71,9 +72,9 @@ export function Coleccion({ tipo }: { tipo: "album" | "lista" }) {
               </h1>
               {datos.autor &&
                 (datos.autorId ? (
-                  <Link to={`/artista/${datos.autorId}`} className="coleccion-autor">
+                  <Enlace to={`/artista/${datos.autorId}`} className="coleccion-autor">
                     {datos.autor}
-                  </Link>
+                  </Enlace>
                 ) : (
                   <p className="coleccion-autor">{datos.autor}</p>
                 ))}

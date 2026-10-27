@@ -1,6 +1,6 @@
 import { usarReproductor } from "../reproductor/tienda";
 import { esMeGusta, usarBiblioteca } from "../datos/biblioteca";
-import { Caratula } from "./Caratula";
+import { CaratulaSuave } from "./Caratula";
 import { FilaCancion } from "./FilaCancion";
 import { Icono } from "./Iconos";
 
@@ -73,7 +73,7 @@ export function PanelAhora({ modo }: { modo: "ahora" | "cola" }) {
           </div>
         </div>
         <div className="panel-sonando">
-          <Caratula cancion={c} />
+          <CaratulaSuave cancion={c} />
           <span className="barra-textos">
             <b>{c.titulo}</b>
             <span>Sonando · {c.artista}</span>
@@ -91,7 +91,7 @@ export function PanelAhora({ modo }: { modo: "ahora" | "cola" }) {
   return (
     <aside className="ahora-panel" aria-label="Ahora suena">
       <p className="panel-titulo">Ahora suena</p>
-      <Caratula cancion={c} className="panel-portada" />
+      <CaratulaSuave cancion={c} className="panel-portada" />
       <div className="panel-cancion">
         <div>
           <h2>{c.titulo}</h2>

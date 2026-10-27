@@ -1,4 +1,4 @@
-import { NavLink } from "react-router";
+import { Pestana } from "./Transicion";
 import { Icono } from "./Iconos";
 import { TituloMarca } from "./Marca";
 import { usarBiblioteca } from "../datos/biblioteca";
@@ -12,33 +12,33 @@ export function Lateral() {
       <div className="lateral-marca">
         <TituloMarca alto={24} />
       </div>
-      <NavLink to="/" end className="lateral-enlace">
+      <Pestana to="/" end className="lateral-enlace">
         <Icono nombre="casa" />
         <span>Inicio</span>
-      </NavLink>
-      <NavLink to="/buscar" className="lateral-enlace">
+      </Pestana>
+      <Pestana to="/buscar" className="lateral-enlace">
         <Icono nombre="buscar" />
         <span>Buscar</span>
-      </NavLink>
-      <NavLink to="/biblioteca" className="lateral-enlace">
+      </Pestana>
+      <Pestana to="/biblioteca" className="lateral-enlace">
         <Icono nombre="biblioteca" />
         <span>Biblioteca</span>
-      </NavLink>
+      </Pestana>
 
       <p className="lateral-titulo">Tus listas</p>
-      <NavLink to="/biblioteca/megusta" className="lateral-lista">
+      <Pestana to="/biblioteca/megusta" className="lateral-lista">
         <span className="ficha">
           <Icono nombre="corazon" />
         </span>
         <span>Me gusta</span>
-      </NavLink>
+      </Pestana>
       {listas.map((l) => (
-        <NavLink key={l.id} to={`/biblioteca/lista/${l.id}`} className="lateral-lista">
+        <Pestana key={l.id} to={`/biblioteca/lista/${l.id}`} className="lateral-lista">
           <span className="ficha">
             {l.canciones[0]?.caratula ? <img className="portada" src={l.canciones[0].caratula} alt="" /> : <Icono nombre="listas" />}
           </span>
           <span>{l.nombre}</span>
-        </NavLink>
+        </Pestana>
       ))}
 
       <BotonInstalar />

@@ -179,9 +179,22 @@ img {
   stroke: none;
 }
 
+/* Los del reproductor estilo Apple Music (cuadrícula de 960): llenos, y los de saltar con el trazo que los redondea. */
+.ico-apple {
+  fill: currentColor;
+  stroke: none;
+}
+
+.ico-apple .grueso {
+  stroke: currentColor;
+  stroke-width: 60;
+  stroke-linejoin: round;
+}
+
 /* ── Vidrio esmerilado (Liquid Glass sin lente). Nunca va encima del reproductor de YouTube. ── */
 
 .vidrio {
+  position: relative;
   background: var(--vidrio);
   -webkit-backdrop-filter: blur(22px) saturate(1.8);
   backdrop-filter: blur(22px) saturate(1.8);
@@ -218,8 +231,11 @@ img {
   flex: 0 0 auto;
 }
 
-.boton-icono:hover {
-  background: var(--tocado);
+/* Solo con mouse: en el iPhone el :hover se queda pegado después de tocar (salía un círculo en el play). */
+@media (hover: hover) {
+  .boton-icono:hover {
+    background: var(--tocado);
+  }
 }
 
 /* ── El título de marca (Life Music ↔ CG LABS) ───────────────────────────── */
@@ -251,6 +267,26 @@ img {
   background: var(--ficha);
   outline: 1px solid rgb(17 17 17 / 0.07);
   outline-offset: -1px;
+}
+
+/* La carátula de lo que suena (CaratulaSuave): la nueva se funde sobre la anterior. Cada lugar pone su duración. */
+.portada-suave {
+  position: relative;
+  overflow: hidden;
+}
+
+.portada-capa {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  opacity: 0;
+  transition: opacity var(--fundido, 500ms) ease;
+}
+
+.portada-capa.lista {
+  opacity: 1;
 }
 
 @media (prefers-reduced-motion: reduce) {

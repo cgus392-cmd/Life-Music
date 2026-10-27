@@ -201,7 +201,7 @@
 
 .carrusel {
   display: flex;
-  gap: 14px;
+  gap: 12px;
   padding: 0 20px 4px;
   overflow-x: auto;
   scroll-snap-type: x mandatory;
@@ -213,17 +213,18 @@
   display: none;
 }
 
+/* Tarjetas como las de Apple Music (plan 0.4, punto 2.4): 160 px, esquinas finas y título sin negrita. */
 .tarjeta {
   flex: 0 0 auto;
-  width: 150px;
+  width: 160px;
   scroll-snap-align: start;
   text-align: left;
 }
 
 .tarjeta .portada {
-  width: 150px;
-  height: 150px;
-  border-radius: 12px;
+  width: 160px;
+  height: 160px;
+  border-radius: 8px;
 }
 
 .tarjeta--artista {
@@ -240,8 +241,8 @@
 
 .tarjeta-titulo {
   margin-top: 8px;
-  font-size: 15px;
-  font-weight: 600;
+  font-size: 14px;
+  font-weight: 400;
 }
 
 .tarjeta-sub {
@@ -629,10 +630,11 @@
   position: fixed;
   inset: 0;
   z-index: 35;
-  background: rgb(0 0 0 / 0.3);
+  background: rgb(0 0 0 / 0);
   display: flex;
   align-items: flex-end;
   justify-content: center;
+  transition: background-color 280ms ease;
 }
 
 .hoja-flotante {
@@ -641,6 +643,31 @@
   margin: 0 8px calc(8px + env(safe-area-inset-bottom, 0px));
   border-radius: 46px;
   padding: 22px 20px 26px;
+}
+
+/* Sube desde abajo con la curva de iOS y el fondo se oscurece; al cerrarse baja más rápido (Hoja.tsx). Se arrastra
+   hacia abajo para cerrarla, así que el dedo no desplaza la página mientras tanto. */
+.hoja-flotante {
+  transform: translateY(calc(100% + var(--hoja-bajo, 24px)));
+  transition: transform 280ms cubic-bezier(0.4, 0, 1, 1);
+  touch-action: none;
+}
+
+.hoja-flotante.arriba {
+  transform: none;
+  transition: transform 420ms var(--curva-ios);
+}
+
+.hoja-capa.arriba {
+  background: rgb(0 0 0 / 0.3);
+  transition-duration: 320ms;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hoja-capa,
+  .hoja-flotante {
+    transition: none !important;
+  }
 }
 
 .menu-cab {
@@ -716,8 +743,10 @@
   box-shadow: none;
 }
 
-.renglon:hover {
-  background: var(--tocado);
+@media (hover: hover) {
+  .renglon:hover {
+    background: var(--tocado);
+  }
 }
 
 .peligro,
