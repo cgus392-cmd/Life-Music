@@ -232,11 +232,19 @@ fun EstudioScreen(navController: NavController) {
                 Text(veredicto, color = t.txt, fontSize = 14.sp, lineHeight = 19.sp, modifier = Modifier.padding(top = 12.dp, end = 8.dp))
             }
 
-            Text(
-                stringResource(R.string.estudio_funciones),
-                color = t.sec, fontSize = 15.sp, fontWeight = FontWeight.SemiBold,
-                modifier = Modifier.padding(start = 6.dp, top = 22.dp, bottom = 10.dp),
-            )
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.fillMaxWidth().padding(start = 6.dp, top = 12.dp, bottom = 0.dp),
+            ) {
+                Text(
+                    stringResource(R.string.estudio_funciones),
+                    color = t.sec, fontSize = 15.sp, fontWeight = FontWeight.SemiBold,
+                    modifier = Modifier.weight(1f),
+                )
+                TextButton(onClick = { navController.navigate("estudio/modelos") }) {
+                    Text(stringResource(R.string.estudio_centro_de_modelos), color = t.acentoTxt, fontSize = 13.sp, fontWeight = FontWeight.Medium)
+                }
+            }
             Column(Modifier.fillMaxWidth().clip(RoundedCornerShape(28.dp)).background(t.sup)) {
                 funciones.forEachIndexed { i, f ->
                     FilaDeFuncion(f, estadoDe(aguante, f.exige), aguante, t)
@@ -354,7 +362,7 @@ private fun Interruptor(encendido: Boolean, alCambiar: (Boolean) -> Unit, t: Ton
  * pequeño va ademas la marca de lo que exige la funcion, del color de su estado.
  */
 @Composable
-private fun Medidor(
+internal fun Medidor(
     lleno: Float,
     marca: Float?,
     tono: TonoEstudio,
@@ -385,16 +393,16 @@ private fun Medidor(
     }
 }
 
-private val CORAL = Color(0xFFFF6B3D)
+internal val CORAL = Color(0xFFFF6B3D)
 
 /** Los colores de la maqueta: oscuro y claro, con el coral de Pulso de acento. */
-private class TonoEstudio(
+internal class TonoEstudio(
     val fondo: Color, val sup: Color, val sup2: Color, val txt: Color, val sec: Color, val terc: Color,
     val linea: Color, val acento: Color, val acentoTxt: Color, val ok: Color, val tarda: Color, val pista: Color,
 )
 
 @Composable
-private fun tonoDeEstudio(): TonoEstudio {
+internal fun tonoDeEstudio(): TonoEstudio {
     val fondoTema = MaterialTheme.colorScheme.background
     return if (fondoTema.luminance() < 0.5f) {
         TonoEstudio(

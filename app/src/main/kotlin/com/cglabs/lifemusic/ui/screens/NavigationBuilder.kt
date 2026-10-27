@@ -134,6 +134,10 @@ fun NavGraphBuilder.navigationBuilder(
         com.cglabs.lifemusic.ui.screens.estudio.EstudioScreen(navController)
     }
 
+    composable("estudio/modelos") {
+        com.cglabs.lifemusic.ui.screens.estudio.EstudioModelosScreen(navController)
+    }
+
     composable("concurso") {
         com.cglabs.lifemusic.concurso.ConcursoScreen(navController, scrollBehavior)
     }
