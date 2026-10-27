@@ -105,9 +105,10 @@
       --opaca 200ms;
   }
 
-  /* Con «A continuación» abierta, la carátula se recoge en la miniatura de arriba, junto al título (como Apple
-     Music). Va después de la pausa para ganarle si las dos coinciden. */
-  .ahora--cola .fondo-apple .ahora-nitida {
+  /* Con «A continuación» o la letra abiertas, la carátula se recoge en la miniatura de arriba, junto al título (como
+     Apple Music). Va después de la pausa para ganarle si las dos coinciden. */
+  .ahora--cola .fondo-apple .ahora-nitida,
+  .ahora--letra .fondo-apple .ahora-nitida {
     --lado: 68px;
     --opaca: 100%;
     top: calc(var(--arriba) + 40px);
@@ -125,7 +126,8 @@
   }
 
   /* Esa miniatura ya la hace la carátula del fondo: la propia de la cola se esconde para no verse doble. */
-  .fondo-apple ~ .cola-capa .cola-compacto .portada {
+  .fondo-apple ~ .cola-capa .cola-compacto .portada,
+  .fondo-apple ~ .letra-capa .cola-compacto .portada {
     visibility: hidden;
   }
 }
@@ -553,10 +555,256 @@
   transition: opacity 180ms, transform 420ms var(--curva-ios);
 }
 
-.cola-capa.abierta .cola-compacto {
+.cola-capa.abierta .cola-compacto,
+.letra-capa.abierta .cola-compacto {
   opacity: 1;
   transform: none;
   transition: opacity 300ms 150ms, transform 450ms var(--curva-ios);
+}
+
+/* ── La letra sincronizada (Letras.tsx, plan 0.4, punto 4.1) ─────────────── */
+
+/* Con la letra, los controles se quedan abajo pero el título sube a la cabecera, junto a la carátula chica. */
+.ahora--letra .ahora-titulo {
+  display: none;
+}
+
+.letra-capa {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 250ms ease;
+}
+
+.letra-capa.abierta {
+  opacity: 1;
+  transition: opacity 350ms ease 100ms;
+}
+
+.letra-capa > * {
+  pointer-events: auto;
+}
+
+/* Entre la cabecera y los controles (cuyo alto mide Letras.tsx). Se funde arriba y abajo, como en Apple Music. */
+.letra-lineas {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: calc(var(--arriba) + 124px);
+  bottom: calc(var(--alto-info, 320px) + 4px);
+  overflow-y: auto;
+  padding: 0 32px;
+  scrollbar-width: none;
+  -webkit-mask-image: linear-gradient(to bottom, transparent, #000 7%, #000 82%, transparent);
+  mask-image: linear-gradient(to bottom, transparent, #000 7%, #000 82%, transparent);
+}
+
+.letra-lineas::-webkit-scrollbar {
+  display: none;
+}
+
+/* Arriba, lo justo para que la primera línea pueda quedar a un 35 %; abajo, para que las últimas también suban. */
+.letra-espacio {
+  height: 35%;
+}
+
+.letra-espacio--fin {
+  height: 65%;
+}
+
+/* Cada línea (y cada pausa) se mueve en la ola (--ola, --retraso), se achica (--escala) y se desenfoca (--borroso)
+   según su distancia a la que suena. Los valores los pone Letras.tsx. */
+.letra-elemento {
+  transform: translateY(var(--ola, 0px)) scale(var(--escala, 1));
+  transform-origin: left center;
+  filter: blur(var(--borroso, 0px));
+  transition:
+    transform 750ms cubic-bezier(0.25, 1.15, 0.4, 1) var(--retraso, 0ms),
+    filter 500ms ease,
+    opacity 400ms ease;
+}
+
+.letra-linea {
+  display: block;
+  width: 100%;
+  padding: 6px 0;
+  text-align: left;
+  font: inherit;
+  font-size: 28px;
+  line-height: 1.22;
+  font-weight: 700;
+  letter-spacing: -0.4px;
+  color: #fff;
+  opacity: 0.35;
+}
+
+.letra-linea.actual {
+  opacity: 1;
+}
+
+/* Duetos: la segunda voz a la derecha y el grupo al centro, como en Android. */
+.letra-linea.voz-v2 {
+  text-align: right;
+  transform-origin: right center;
+}
+
+.letra-linea.voz-grupo {
+  text-align: center;
+  transform-origin: center;
+}
+
+/* Las palabras no se parten al final del renglón; cada sílaba lleva su barrido. */
+.palabra {
+  display: inline-block;
+  white-space: nowrap;
+}
+
+.silaba {
+  display: inline-block;
+  white-space: pre;
+}
+
+/* El barrido: en la línea que suena, cada sílaba se ilumina de izquierda a derecha con una orilla suave (--p va de 0
+   a 1); lo que falta queda tenue, como las otras líneas. */
+.letra-linea.actual .silaba {
+  -webkit-mask-image: linear-gradient(90deg, #000 calc(var(--p, 0) * 140% - 40%), rgb(0 0 0 / 0.35) calc(var(--p, 0) * 140%));
+  mask-image: linear-gradient(90deg, #000 calc(var(--p, 0) * 140% - 40%), rgb(0 0 0 / 0.35) calc(var(--p, 0) * 140%));
+}
+
+/* El énfasis: las palabras largas y sostenidas brillan y suben un poco mientras se cantan (--brillo). */
+.letra-linea.actual .silaba.enfasis {
+  transform: translateY(calc(var(--brillo, 0) * -3px));
+  text-shadow: 0 0 calc(var(--brillo, 0) * 16px) rgb(255 255 255 / calc(var(--brillo, 0) * 0.6));
+}
+
+/* Los coros: más chicos y tenues, debajo de la línea. */
+.letra-coro {
+  display: block;
+  margin-top: 4px;
+  font-size: 0.62em;
+  font-weight: 600;
+  opacity: 0.75;
+}
+
+/* Las pausas instrumentales: tres puntos que respiran y se van llenando mientras dura (--p). */
+.letra-pausa {
+  height: 40px;
+  display: flex;
+  align-items: center;
+}
+
+.letra-puntos {
+  display: flex;
+  gap: 9px;
+  opacity: 0;
+  transform: scale(0.6);
+  transform-origin: left center;
+  transition: opacity 300ms ease, transform 400ms cubic-bezier(0.3, 1.4, 0.5, 1);
+}
+
+.letra-pausa.actual .letra-puntos {
+  opacity: 1;
+  transform: scale(1);
+  animation: respirar-pausa 2.4s ease-in-out infinite;
+}
+
+@keyframes respirar-pausa {
+  50% {
+    transform: scale(1.12);
+  }
+}
+
+.letra-puntos i {
+  width: 11px;
+  height: 11px;
+  border-radius: 50%;
+  background: #fff;
+  opacity: calc(0.25 + 0.75 * clamp(0, var(--p, 0) * 3 - var(--k), 1));
+}
+
+.letra-puntos i:nth-child(1) {
+  --k: 0;
+}
+
+.letra-puntos i:nth-child(2) {
+  --k: 1;
+}
+
+.letra-puntos i:nth-child(3) {
+  --k: 2;
+}
+
+/* Leyendo con el dedo: todo nítido y a su tamaño, para leer tranquilo. */
+.leyendo .letra-elemento {
+  --borroso: 0px !important;
+  --escala: 1 !important;
+}
+
+/* Sin tiempos (letra plana): todo se lee igual y las líneas no se tocan. */
+.sin-tiempo .letra-linea {
+  opacity: 0.85;
+  font-size: 24px;
+  cursor: default;
+}
+
+.letra-creditos {
+  margin-top: 28px;
+  font-size: 13px;
+  line-height: 1.45;
+  color: rgb(255 255 255 / 0.5);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .letra-elemento,
+  .letra-puntos {
+    transition: none !important;
+    animation: none !important;
+  }
+}
+
+.letra-aviso {
+  position: absolute;
+  top: calc(var(--arriba) + 140px);
+  left: 32px;
+  right: 32px;
+  font-size: 22px;
+  font-weight: 600;
+  color: rgb(255 255 255 / 0.6);
+}
+
+/* El botón de la letra, encendido mientras se ve: un cuadrito blanco detrás del ícono, como en Apple Music. */
+.ahora-abajo-icono {
+  position: relative;
+  isolation: isolate;
+}
+
+.ahora-abajo-icono.activo {
+  color: #111;
+}
+
+.ahora-abajo-icono.activo::before {
+  content: "";
+  position: absolute;
+  inset: 5px;
+  z-index: -1;
+  border-radius: 10px;
+  background: rgb(255 255 255 / 0.92);
+}
+
+@media (min-width: 1024px) {
+  .letra-capa .cola-compacto {
+    display: none;
+  }
+
+  .letra-lineas,
+  .letra-aviso {
+    left: auto;
+    right: 6vw;
+    width: 440px;
+    top: 8vh;
+  }
 }
 
 .cola-hoja {
@@ -601,13 +849,15 @@
 }
 
 .cola-compacto .portada {
+  flex: 0 0 auto;
   width: 68px;
   height: 68px;
   border-radius: 10px;
   box-shadow: 0 12px 24px -10px rgb(0 0 0 / 0.6);
 }
 
-.cola-compacto > span {
+/* Los textos; la carátula (que desde CaratulaSuave también es un span) no se estira. */
+.cola-compacto > span:not(.portada) {
   flex: 1;
   min-width: 0;
 }

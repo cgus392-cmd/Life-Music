@@ -19,6 +19,10 @@ type Oyentes = {
 const jugadores: (YT.Player | null)[] = [null, null];
 let activo = 0;
 let listo: Promise<void> | null = null;
+/** Los reproductores ya respondieron. Antes de eso existen, pero sin sus funciones: tocar una canción en el primer
+    segundo de la app fallaba («loadVideoById is not a function»). Lo que se pida antes queda en espera. */
+let preparados = false;
+let enEspera: string | null = null;
 
 const p = () => jugadores[activo];
 const relevoJugador = () => jugadores[1 - activo];
@@ -42,6 +46,9 @@ export function iniciarMotor(oyentes: Oyentes): Promise<void> {
             onReady: () => {
               if (++listos < 2) return;
               marcarActivo();
+              preparados = true;
+              if (enEspera) p()?.loadVideoById(enEspera);
+              enEspera = null;
               resolver();
             },
             // Lo que haga el relevo solo le importa al Automix.
@@ -59,11 +66,14 @@ export function iniciarMotor(oyentes: Oyentes): Promise<void> {
 }
 
 export const motor = {
-  cargar: (id: string) => p()?.loadVideoById(id),
-  reanudar: () => p()?.playVideo(),
-  pausar: () => p()?.pauseVideo(),
-  ir: (s: number) => p()?.seekTo(s, true),
-  volumen: (v: number) => p()?.setVolume(v),
+  cargar: (id: string) => {
+    if (preparados) p()?.loadVideoById(id);
+    else enEspera = id;
+  },
+  reanudar: () => p()?.playVideo?.(),
+  pausar: () => p()?.pauseVideo?.(),
+  ir: (s: number) => p()?.seekTo?.(s, true),
+  volumen: (v: number) => p()?.setVolume?.(v),
   tiempo: () => p()?.getCurrentTime?.() ?? 0,
   duracion: () => p()?.getDuration?.() ?? 0,
 };
@@ -71,11 +81,11 @@ export const motor = {
 /** El segundo reproductor, para el Automix: arranca la siguiente canción en silencio y sube su volumen. */
 export const relevo = {
   cargar: (id: string) => {
-    relevoJugador()?.setVolume(0);
-    relevoJugador()?.loadVideoById(id);
+    relevoJugador()?.setVolume?.(0);
+    relevoJugador()?.loadVideoById?.(id);
   },
-  volumen: (v: number) => relevoJugador()?.setVolume(v),
-  detener: () => relevoJugador()?.stopVideo(),
+  volumen: (v: number) => relevoJugador()?.setVolume?.(v),
+  detener: () => relevoJugador()?.stopVideo?.(),
 };
 
 /** Al terminar la mezcla, el relevo pasa a ser el que suena. */

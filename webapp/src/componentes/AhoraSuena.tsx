@@ -8,6 +8,7 @@ import { BarraTiempo } from "./BarraTiempo";
 import { CaratulaSuave } from "./Caratula";
 import { Deslizador, Desliza } from "./Deslizador";
 import { FilaCancion } from "./FilaCancion";
+import { Letras } from "./Letras";
 import { Icono, IconoApple } from "./Iconos";
 import { usarMenu } from "./MenuCancion";
 import { useIr } from "./Transicion";
@@ -184,6 +185,8 @@ export function AhoraSuena({ abierta, alCerrar }: { abierta: boolean; alCerrar: 
   const abrirMenu = usarMenu((s) => s.abrir);
   const ir = useIr();
   const [cola, setCola] = useState(false);
+  // La letra sincronizada (plan 0.4, punto 4.1): los controles siguen abajo y la carátula se recoge arriba.
+  const [letra, setLetra] = useState(false);
   const gesto = useRef<{ x: number; y: number } | null>(null);
   const [arrastre, setArrastre] = useState(0);
   // Mientras se arrastra la barra del tiempo, los números muestran a dónde va; salta al soltar.
@@ -191,7 +194,10 @@ export function AhoraSuena({ abierta, alCerrar }: { abierta: boolean; alCerrar: 
 
   // Al cerrar «Ahora suena», la próxima vez abre en la carátula y no en la cola.
   useEffect(() => {
-    if (!abierta) setCola(false);
+    if (!abierta) {
+      setCola(false);
+      setLetra(false);
+    }
   }, [abierta]);
 
   if (!c) return null;
@@ -202,7 +208,7 @@ export function AhoraSuena({ abierta, alCerrar }: { abierta: boolean; alCerrar: 
   const pausa = !r.sonando && !r.cargando;
 
   const empezar = (e: PointerEvent) => {
-    if ((e.target as HTMLElement).closest("button, input, .deslizador, .cola-hoja")) return;
+    if ((e.target as HTMLElement).closest("button, input, .deslizador, .cola-hoja, .letra-lineas")) return;
     gesto.current = { x: e.clientX, y: e.clientY };
   };
   const mover = (e: PointerEvent) => {
@@ -239,7 +245,7 @@ export function AhoraSuena({ abierta, alCerrar }: { abierta: boolean; alCerrar: 
 
   return (
     <div
-      className={`ahora sobre-imagen${abierta ? " ahora--abierta" : ""}${pausa ? " ahora--pausa" : ""}${cola ? " ahora--cola" : ""}`}
+      className={`ahora sobre-imagen${abierta ? " ahora--abierta" : ""}${pausa ? " ahora--pausa" : ""}${cola ? " ahora--cola" : ""}${letra ? " ahora--letra" : ""}`}
       style={arrastre ? { transform: `translateY(${arrastre}px)`, transition: "none" } : undefined}
       role="dialog"
       aria-modal="true"
@@ -346,18 +352,36 @@ export function AhoraSuena({ abierta, alCerrar }: { abierta: boolean; alCerrar: 
           </div>
         )}
 
-        {/* Como Apple Music: íconos chicos y sin fondo en las puntas. Aleatorio y repetir viven en «A continuación».
-            Cuando lleguen las letras van a la izquierda y Compartir pasa al centro (plan 0.4, punto 1.1). */}
+        {/* Como Apple Music: íconos chicos y sin fondo; la letra a la izquierda, Compartir al centro y la cola a la
+            derecha (plan 0.4, puntos 1.1 y 4.1). Aleatorio y repetir viven en «A continuación». */}
         <div className="ahora-abajo">
+          <button
+            type="button"
+            className={`ahora-abajo-icono${letra ? " activo" : ""}`}
+            onClick={() => setLetra(!letra)}
+            aria-label={letra ? "Ocultar la letra" : "Letra"}
+            aria-pressed={letra}
+          >
+            <Icono nombre="letra" />
+          </button>
           <button type="button" className="ahora-abajo-icono" onClick={compartir} aria-label="Compartir">
             <Icono nombre="compartir" />
           </button>
-          <button type="button" className="ahora-abajo-icono" onClick={() => setCola(true)} aria-label="A continuación">
+          <button
+            type="button"
+            className="ahora-abajo-icono"
+            onClick={() => {
+              setLetra(false);
+              setCola(true);
+            }}
+            aria-label="A continuación"
+          >
             <IconoApple nombre="cola" tam={26} />
           </button>
         </div>
       </div>
 
+      <Letras cancion={c} abierta={letra && !cola} alCerrar={() => setLetra(false)} />
       <Cola abierta={cola} alCerrar={() => setCola(false)} />
     </div>
   );

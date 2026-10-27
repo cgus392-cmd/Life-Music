@@ -183,11 +183,13 @@ No cambian: el título grande (34 px, igual que Apple), los colores, la letra Ge
 
 ## 6. Bloque 3 · Cerrar y entregar la 0.4
 
+**El bloque 2 quedó cerrado el 26-10.**
+
 | # | Qué |
 |---|---|
-| 3.1 | Commit local de todo (sin subir a GitHub). |
+| 3.1 | Commit local de todo (sin subir a GitHub). **Hecho el 26-10: 69e5fe6d en `main`**, solo `webapp/` y `docs/versiones/web-1.0/`. |
 | 3.2 | Pruebas un día antes, con lista fija: CG en el PC y el probador en el iPhone. |
-| 3.3 | Publicar, con el «publica» de CG. |
+| 3.3 | Publicar, con el «publica» de CG. **Hecho el 27-10, con su orden: la 0.4.0 en lifemusic-web.pages.dev** (despliegue 1d084228), con los bloques 1 y 2 y las letras (4.1 y 4.1b). Comprobado en la dirección publicada: sirve la 0.4.0, Inicio, búsqueda y radio dan 200, una canción suena, y YouLyPlus y LrcLib aceptan pedidos desde ahí. **Sin commit todavía de lo posterior a 69e5fe6d.** |
 | 3.4 | Rehacer las capturas del video «Agregar a inicio» con el reproductor nuevo (Diseño y marca tiene las del viejo). |
 
 ## 7. Bloque 4 · Funciones nuevas (la 0.5, con la regla de 3 a 5)
@@ -200,6 +202,107 @@ No cambian: el título grande (34 px, igual que Apple), los colores, la letra Ge
 | 4.4 | **Compartir con enlace propio** (`/cancion/:id`) | Hoy Compartir manda solo el enlace de la web. |
 
 **Por evaluar:** Life Line narrando, enlazar con el TV.
+
+**Propuesta del 4.1, letras sincronizadas (26-10).** CG pidió heredar los proveedores de la app Android
+(`LyricsProviderRegistry`: YouLyPlus, PaxSenix, Unison, BetterLyrics, SimpMusic, LrcLib, KuGou, YouTube). Se
+probaron desde aquí con «Despacito», como si preguntara la web publicada:
+
+| Proveedor | ¿Sirve en la web? | Qué trae |
+|---|---|---|
+| YouLyPlus (servidores binimum y prjktla) | Sí, directo desde el navegador | **Palabra por palabra**, como Apple Music; dice que viene de Apple Music |
+| LrcLib | Sí, directo | Por línea; base abierta de la comunidad; tiene hasta «Todo Lo Fue» de Lenin Ramirez |
+| Unison | Deja preguntar, pero no tenía «Despacito» | Por línea; de reserva |
+| SimpMusic | Solo si se pide con su firma de app, que un navegador no puede poner | Por línea; habría que pasarlo por nuestro servidor |
+| PaxSenix | No: exige hacerse pasar por la app Echo Music | — |
+| Better Lyrics | No: pide autorización (401) | — |
+| KuGou | No deja que una página lea la respuesta | Catálogo chino, poco latino |
+| YouTube Music | Por nuestro servidor | Casi siempre sin sincronizar |
+
+- **Orden propuesto, el mismo de Android con los que sirven:** YouLyPlus → LrcLib → Unison. Todo directo desde el
+  navegador: no gasta el cupo de Cloudflare ni pasa por nuestro servidor.
+- **Cómo se ve (como Apple Music):**
+  - un botón de letra en la esquina izquierda de abajo de «Ahora suena», y Compartir pasa al centro, como quedó
+    en el 1.1;
+  - la carátula se recoge arriba, como en la cola;
+  - las líneas grandes y en negrita: la que suena en blanco y las demás tenues;
+  - avanza sola, y con YouLyPlus se llena palabra por palabra;
+  - tocar una línea lleva la canción ahí;
+  - si no hay letra, lo dice.
+- **Riesgo:** YouLyPlus es un servicio no oficial que copia las letras de Apple Music. Puede caerse o cerrar, y
+  por eso LrcLib va de reserva.
+
+**4.1 hecho en local (26-10), aprobado por CG tal cual** (`datos/letras.ts` y `componentes/Letras.tsx`):
+- **Proveedores, en orden:** YouLyPlus (primero binimum, luego prjktla), LrcLib y Unison.
+  - Se descarta la letra que no cuadra: casi toda en escritura asiática, como la «Despacito» de JJ Lin que
+    devolvió prjktla, o que empieza después del final de la canción.
+  - Se busca con el título limpio (sin «(Visualizer)», «feat.»…) y el primer artista.
+  - Cada canción se pide una sola vez.
+- **Pantalla:**
+  - botón de letra abajo a la izquierda (Compartir pasa al centro), encendido con un cuadrito blanco;
+  - la carátula se recoge arriba y los controles quedan abajo;
+  - líneas de 28 px, la que suena en blanco;
+  - palabra por palabra con YouLyPlus, con el tiempo contado en cada cuadro;
+  - avanza sola, pero espera 3 s si la persona está leyendo; tocar una línea salta ahí;
+  - dice de dónde viene la letra;
+  - en el computador va a la derecha.
+- **Arreglo que salió:** la carátula de la cabecera de la cola y de la letra se estiraba hasta la mitad del ancho
+  (`.cola-compacto > span` también agarraba la carátula, que desde el 1.5 es un span).
+- **Probado con «Todo Lo Fue»** (YouLyPlus, 24 líneas): saltar con una línea, palabra por palabra, desplazamiento
+  solo, y pasar a la cola y volver. Falta que CG lo cierre y verlo en el iPhone real.
+
+**Propuesta del 4.1b, el diseño de la letra como Apple Music (26-10).** Lo pidió CG: los modos de letra, el
+difuminado de Apple Music y los detalles chicos.
+
+Se investigaron dos fuentes:
+- **La letra de nuestra app Android** (`ui/component/Lyrics.kt`): diez estilos (Apple, Apple V2, Karaoke, Brillo…),
+  el difuminado por distancia, los duetos y los coros.
+- **AMLL** («Apple Music-like Lyrics»), el proyecto abierto que replica Apple Music en la web: se leyó su código
+  publicado. Es AGPL-3.0, así que **se toman las ideas y los valores, no el código**.
+
+| # | Detalle | Cómo queda | De dónde sale |
+|---|---|---|---|
+| a | **Difuminado por distancia** | La línea que suena, nítida; las demás se desenfocan más cuanto más lejos están (1 px por línea, hasta 5 px), y las ya cantadas un poco más. Al desplazar con el dedo todo se ve nítido, para leer. | AMLL (`computeLineBlur`); Android: 0, 0, 2, 4, 6 px |
+| b | **Escala** | La línea que suena, al 100 %; las demás, un poco más chicas (unos 97 %), crecen al llegarles el turno. | AMLL y Android (1,05) |
+| c | **Movimiento en ola** | Al cambiar de línea, todas suben con un resorte, cada una un pelín después de la anterior. Es el movimiento típico de Apple. | AMLL (resortes por línea, con retraso) |
+| d | **Dónde va la línea** | A un 35 % de la altura, como Apple. | AMLL (`alignPosition: .35`) |
+| e | **Palabra por palabra con barrido** | Cada palabra se ilumina de izquierda a derecha con una orilla suave, en vez de encenderse de golpe. | AMLL (`wordFadeWidth: .5`, máscara) |
+| f | **Modo «por línea» también con barrido** | Cuando la letra viene solo por línea (LrcLib, Unison), se reparte el tiempo de la línea entre las palabras según sus letras, y se barre igual. | Android, estilo Apple V2 |
+| g | **Énfasis** | Las palabras largas y sostenidas (1 s o más, de 2 a 7 letras) brillan un poco y suben apenas al cantarse. | Regla de Apple, según AMLL |
+| h | **Coros** | Las voces de fondo van más chicas y más tenues, debajo de la línea principal. | Android (85 %) y YouLyPlus las marca |
+| i | **Duetos** | La segunda voz va alineada a la derecha y el grupo al centro. | Android (agentes v1, v2 y v1000) |
+| j | **Pausas instrumentales** | En una pausa larga (más de 4 s) salen tres puntos que respiran y se llenan mientras dura. | Apple; AMLL (`InterludeDots`) |
+| k | **Créditos al final** | «Escrita por …» (YouLyPlus trae los compositores) y de dónde viene la letra. | Apple Music |
+| l | **Modo sin sincronizar** | Se lee como texto normal, sin difuminado ni barrido. | Ya está |
+
+**Cómo se hace en la web:**
+- todo con `transform`, `opacity` y `filter: blur()` por línea, que el iPhone acelera con la tarjeta gráfica;
+- el resorte, con una cuenta propia por línea;
+- el barrido, con una máscara degradada en cada palabra;
+- se anima solo lo que se ve en pantalla, para no cargar el iPhone.
+
+**4.1b hecho en local (26-10), aprobado por CG con los doce detalles.**
+- **La ola:** técnica FLIP (la lista salta y cada línea se anima desde donde estaba, con 40 ms más por línea) y
+  una curva con rebote. Medido: la línea siguiente arranca primero y las de abajo después.
+- **Difuminado:** 1 px por línea de distancia y 1 px más en las ya cantadas, hasta 5 px. Al leer con el dedo, todo
+  nítido durante 3 s.
+- **Barrido, énfasis y pausa:** van directo en el DOM cada cuadro (`--p` y `--brillo`), sin repintar React.
+- **Probado con «Despacito»:** coros, dueto a la derecha, grupo al centro, énfasis, pausa con sus tres puntos y
+  «Escrita por…».
+
+**Arreglos que salieron al mirar:**
+- **YouLyPlus elige la versión por la duración.** Con la del video oficial (4:40, con intro) trajo «Despacito
+  (Live)».
+  - Ahora se descarta la letra de otra versión (Live, Remix, Acústico…) y se vuelve a preguntar sin duración.
+  - Si la versión dura distinto que lo que suena, la letra se muestra para leer, con un aviso.
+  - Sin datos de versión (servidor prjktla), se comprueba que la letra termine cerca del final.
+  - Se quitan las líneas de créditos de QQ Music («Título - Artista (…)», «作词：…»).
+- **La letra espera a saber la duración** antes de buscar: si se abría mientras la canción cargaba, elegía mal.
+- **Tocar una canción en el primer segundo de la app fallaba** («loadVideoById is not a function»; venía de
+  antes). Ahora queda en espera hasta que el reproductor está listo. Probado: tocada a los 0,4 s, sonó.
+
+**Pendiente, de la fuente:** algunas versiones traen espacios de más en palabras con tilde, en la línea completa
+también («mirá ndote»). No se adivina con reglas, porque rompería «está bien». Falta que CG lo cierre y verlo en el
+iPhone real.
 
 ## 8. Después (ideas que llegan en medio)
 
