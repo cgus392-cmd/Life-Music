@@ -97,4 +97,95 @@ En vivo manda mensajes solo cuando algo cambia, no cada segundo, y se mide antes
 - **Nada se publica sin el «publica» de CG.**
 
 **Recomendación (28-10):** la sesión General ya va al 76 % de su contexto, y cada mensaje la relee entera. Bandas se
-programa mejor en un chat nuevo, «Life Music · Bandas», que arranque leyendo esta ficha.
+programa mejor en un chat nuevo, «Life Music · Bandas», que arranque leyendo esta ficha. **Hecho:** ese chat existe
+desde el 28-10 por la tarde y sigue desde aquí.
+
+## F3 · el servidor, por tandas (propuesta del 28-10, espera el sí de CG)
+
+**Lo que se vio en el código antes de proponer:**
+- El cliente de la app manda JSON en marcos binarios y entiende respuestas en texto. El servidor tiene que aceptar los dos.
+- **Quien manda la música no recibe su propio eco.** Si le llega `sync_playback`, el anfitrión se corre a sí mismo.
+  Solo se reenvía a los demás.
+- El anfitrión manda un PLAY cada 10 s mientras suena (`startHeartbeat`), y cada cliente manda un ping cada 25 s.
+  Por eso la sala no hiberna mientras suena, y eso es lo que más gasta del plan gratis. Ver «Consumo».
+- El invitado espera a `buffer_complete` antes de arrancar una canción nueva. El servidor lo manda cuando todos
+  cargaron, o a los 8 s, para que un teléfono lento no frene a todos.
+- La maqueta pide estos datos al servidor:
+  - por persona: nombre, inicial, color y desde cuándo está;
+  - por banda: «5 de 8 · la creó Camila» y quién pide entrar;
+  - En vivo ahora: qué suena, quién pone la música y cuántos escuchan;
+  - en la cola: «La puso Andrés».
+- El código de respaldo «trae tus bandas». Por eso hace falta un índice mínimo de persona a bandas, solo con códigos.
+
+**Cómo queda por dentro:**
+- El código va en un archivo nuevo, `enlace/src/bandas.js`. `index.js` solo suma las rutas y el TV no se toca.
+- Hay dos clases nuevas en la migración `v2`:
+  - `Banda`: un objeto por código. Guarda el nombre, el color y los miembros, y ahí mismo vive la sala En vivo;
+  - `Persona`: un objeto por persona, que guarda solo los códigos de sus bandas, para el respaldo.
+- **Identidad sin cuentas:**
+  - el teléfono inventa un `id` público y un `secreto`;
+  - los manda en la cabecera `Authorization`, nunca en la dirección;
+  - el servidor guarda solo la huella SHA-256 del secreto;
+  - el código de respaldo es ese id y ese secreto, escritos en grupos fáciles de copiar.
+- **Rutas HTTP:**
+  - `POST /bandas` crea la banda y devuelve el código de 6 letras, con el alfabeto del TV;
+  - `POST /banda/COD/pedir` pide entrar;
+  - `GET /banda/COD` muestra la banda: a los miembros les da todo; a quien pidió, si está pendiente o rechazado;
+  - `POST /banda/COD/aprobar`, `/rechazar` y `/quitar` son solo de quien la creó;
+  - `POST /banda/COD/salir` saca a la persona;
+  - `DELETE /banda/COD` la borra, solo quien la creó, y cierra En vivo;
+  - `GET /yo` da mis bandas con su estado corto, para la tarjeta del Inicio y para restaurar el respaldo.
+- **En vivo:** WebSocket en `/banda/COD/envivo`, con el mismo protocolo de `Protocol.kt` en JSON.
+  - `create_room` hace anfitrión al primero; con `join_room`, los de la banda entran directo con `join_approved`,
+    sin pedir permiso, porque ya son de la banda.
+  - El anfitrión manda `playback_action`, y a los demás les llega `sync_playback` con `server_time`.
+  - `change_track` abre la espera de carga: `buffer_wait` y `buffer_complete`, con el tope de 8 s.
+  - También van `request_sync` → `sync_state`, con la posición calculada; `transfer_host`; las sugerencias;
+    `reconnect` con `session_token` y 2 minutos de gracia.
+  - Si el anfitrión se va, el mando pasa a quien lleva más tiempo en la sala.
+  - Va un mensaje nuevo, `reaccion`, con las 6 de la maqueta. Llega a todos, no se guarda y se permite una por segundo
+    por persona.
+  - `chat` se ignora. `kick_user` y la aprobación de Metrolist no aplican.
+  - El estado de la sala vive en el objeto solo mientras dura y se borra cuando sale el último. Eso incluye qué suena
+    y la cola.
+- **Topes:**
+  - 8 por banda;
+  - 5 pedidos pendientes;
+  - 10 bandas por persona;
+  - el nombre de la banda, de 1 a 30 letras, y el de la persona, de 1 a 20;
+  - el color, solo de la lista Pulso.
+
+**Consumo (plan gratis, a medir en F5):**
+- El cupo de Durable Objects es de unas 100 000 peticiones y 13 000 GB-s al día. Cada mensaje de WebSocket que
+  entra cuenta 1/20 de petición.
+- Una sala de 8 personas durante 2 horas:
+  - son unas 3100 entradas, que suman unas 155 peticiones, poca cosa;
+  - como no hiberna, son unos 920 GB-s. Caben unas 14 salas así al día, compartidas con el TV.
+- **Para F4 en la app**, para que la sala pueda dormir entre mensajes:
+  - el ping va como texto exacto, y así lo contesta el relevo sin despertar la sala;
+  - el latido del anfitrión pasa de 10 s a 30 s.
+
+**Tandas (sin publicar; pruebas en local con `wrangler dev --persist-to` en el scratchpad):**
+1. **F3.1 · La banda:**
+   - qué entra: la identidad, crear, pedir, aprobar, rechazar, quitar, ver, salir, borrar, `GET /yo` y los topes;
+   - cómo se prueba: con un guion de node con 3 personas de mentira.
+2. **F3.2 · En vivo:**
+   - qué entra: la sala con el protocolo de Metrolist, las reacciones, la espera de carga, la reconexión y el mando;
+   - cómo se prueba: con 3 clientes simulados. Uno pone la música y los otros la siguen; uno se cae y vuelve; el
+     anfitrión se va.
+3. **F3.3 · Cierre:**
+   - qué entra: el código de respaldo, el tope de mensajes, `/salud` con la versión nueva y la prueba del TV repetida
+     para confirmar que el enlace no cambió;
+   - lo que queda: la estimación de consumo, medida.
+
+**Decisiones para CG (va lo recomendado si no dice otra cosa):**
+1. Si quien creó la banda se sale, la banda pasa a quien lleva más tiempo en ella. Recomendado: así la banda no
+   muere por una persona.
+2. Cualquiera de la banda puede prender En vivo, y el primero que entra pone la música. Recomendado: es lo que
+   muestra la maqueta.
+3. El código es fijo. Cambiarlo, si se filtra, queda para «Después».
+
+**Después (no entra en F3):**
+- cambiar el código;
+- cambiar mi nombre o mi color;
+- la edad mínima, que va en la app y en la política, no en el servidor.
