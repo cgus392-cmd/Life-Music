@@ -1456,4 +1456,23 @@
     <string name="ajustes_otros">Conexiones y otros</string>
     <string name="ajustes_otros_desc">Cast, Bluetooth, historial y más</string>
     <string name="estudio_ajustar">Ajustar</string>
+    <!-- Boletín de la 2.0 (28-10) -->
+    <string name="boletin_v200_titulo_1">Life Music</string>
+    <string name="boletin_v200_titulo_2">2.0 · Pulso</string>
+    <string name="boletin_v200_intro">La versión más grande de Life Music: identidad nueva, un DJ que te habla, un estudio para tu música y una forma de escuchar con tus amigos.</string>
+    <string name="boletin_v200_pulso_t">Nueva identidad</string>
+    <string name="boletin_v200_pulso">El logo «la nota es el pulso» en el ícono, las notificaciones y toda la app.</string>
+    <string name="boletin_v200_nova_t">Nova, tu DJ</string>
+    <string name="boletin_v200_nova">Presenta tus canciones con voz, sin internet. Elige su ritmo: pausado, normal o ágil.</string>
+    <string name="boletin_v200_estudio_t">Estudio</string>
+    <string name="boletin_v200_estudio">Toca tu foto: la prueba de sonido mide tu teléfono y te dice qué funciones avanzadas aguanta. Con centro de modelos.</string>
+    <string name="boletin_v200_bandas_t">Bandas (beta)</string>
+    <string name="boletin_v200_bandas">Crea una banda con tus amigos y escuchen En vivo, cada uno desde su teléfono, con reacciones propias.</string>
+    <string name="boletin_v200_tv_t">Life Music TV</string>
+    <string name="boletin_v200_tv">Receptor con Pulso, Escenario que salta con los golpes reales y el tema Liviano para TV sencillos.</string>
+    <string name="boletin_v200_ajustes_t">Ajustes ordenados</string>
+    <string name="boletin_v200_ajustes">Apariencia y Reproductor ahora tienen subcategorías. El buscador te sigue llevando directo.</string>
+    <string name="boletin_v200_ademas_1">Si la voz de Nova no alcanza, el anuncio sale escrito en Life Line.</string>
+    <string name="boletin_v200_ademas_2">Política de privacidad actualizada: Bandas guarda lo mínimo y En vivo no guarda nada.</string>
+    <string name="boletin_v200_boton">Abrir Estudio</string>
 </resources>

@@ -1836,4 +1836,23 @@
     <string name="ajustes_otros">Connections and more</string>
     <string name="ajustes_otros_desc">Cast, Bluetooth, history and more</string>
     <string name="estudio_ajustar">Adjust</string>
+    <!-- Boletín de la 2.0 (28-10) -->
+    <string name="boletin_v200_titulo_1">Life Music</string>
+    <string name="boletin_v200_titulo_2">2.0 · Pulse</string>
+    <string name="boletin_v200_intro">The biggest Life Music yet: a new identity, a DJ that talks to you, a studio for your music and a way to listen with friends.</string>
+    <string name="boletin_v200_pulso_t">New identity</string>
+    <string name="boletin_v200_pulso">The «the note is the pulse» logo on the icon, notifications and the whole app.</string>
+    <string name="boletin_v200_nova_t">Nova, your DJ</string>
+    <string name="boletin_v200_nova">Introduces your songs out loud, offline. Pick her pace: relaxed, normal or quick.</string>
+    <string name="boletin_v200_estudio_t">Studio</string>
+    <string name="boletin_v200_estudio">Tap your photo: the sound check measures your phone and tells you which advanced features it can handle. With a model center.</string>
+    <string name="boletin_v200_bandas_t">Bands (beta)</string>
+    <string name="boletin_v200_bandas">Create a band with friends and listen Live, each on their own phone, with custom reactions.</string>
+    <string name="boletin_v200_tv_t">Life Music TV</string>
+    <string name="boletin_v200_tv">A Pulse receiver, a Stage theme that jumps with real beats and the Lite theme for simple TVs.</string>
+    <string name="boletin_v200_ajustes_t">Tidier settings</string>
+    <string name="boletin_v200_ajustes">Appearance and Player now have subcategories. Search still takes you straight there.</string>
+    <string name="boletin_v200_ademas_1">If Nova's voice isn't ready in time, the intro shows up written in Life Line.</string>
+    <string name="boletin_v200_ademas_2">Updated privacy policy: Bands keeps the minimum and Live keeps nothing.</string>
+    <string name="boletin_v200_boton">Open Studio</string>
 </resources>

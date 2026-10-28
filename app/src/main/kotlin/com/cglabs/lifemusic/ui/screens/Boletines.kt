@@ -259,7 +259,29 @@ object Boletines {
         ademas = listOf(R.string.boletin_v1132_ademas_1, R.string.boletin_v1132_ademas_2, R.string.boletin_v1132_ademas_3),
     )
 
-    val todos: List<BoletinDeVersion> = listOf(v115, v116, v117, v118, v119, v1110, v1120, v1130, v1131, v1132)
+    // 2.0 «Pulso» (28-10): la version grande. Imagen de Diseño (Brand/app-2.0/novedades_20.webp).
+    private val v200 = BoletinDeVersion(
+        versionCode = 25,
+        versionName = "2.0.0",
+        tituloLinea1 = R.string.boletin_v200_titulo_1,
+        tituloLinea2 = R.string.boletin_v200_titulo_2,
+        intro = R.string.boletin_v200_intro,
+        apartados = listOf(
+            ApartadoBoletin(R.drawable.palette, Color(0xFFFFAB91), R.string.boletin_v200_pulso_t, R.string.boletin_v200_pulso),
+            ApartadoBoletin(R.drawable.mic, Color(0xFFCE93D8), R.string.boletin_v200_nova_t, R.string.boletin_v200_nova),
+            ApartadoBoletin(R.drawable.estudio_deslizadores, Color(0xFFFFCC80), R.string.boletin_v200_estudio_t, R.string.boletin_v200_estudio),
+            ApartadoBoletin(R.drawable.group_outlined, Color(0xFF80CBC4), R.string.boletin_v200_bandas_t, R.string.boletin_v200_bandas),
+            ApartadoBoletin(R.drawable.cast_tv, Color(0xFF90CAF9), R.string.boletin_v200_tv_t, R.string.boletin_v200_tv),
+            ApartadoBoletin(R.drawable.settings, Color(0xFFA5D6A7), R.string.boletin_v200_ajustes_t, R.string.boletin_v200_ajustes),
+        ),
+        ademas = listOf(R.string.boletin_v200_ademas_1, R.string.boletin_v200_ademas_2),
+        rutaAjustes = "estudio",
+        textoBoton = R.string.boletin_v200_boton,
+        heroImagen = R.drawable.novedades_20,
+        grande = true,
+    )
+
+    val todos: List<BoletinDeVersion> = listOf(v115, v116, v117, v118, v119, v1110, v1120, v1130, v1131, v1132, v200)
 
     /** El boletin de una version, o null si esa version no tiene nada que contar. */
     fun para(versionCode: Int): BoletinDeVersion? = todos.firstOrNull { it.versionCode == versionCode }
