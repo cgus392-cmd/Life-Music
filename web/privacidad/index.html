@@ -90,8 +90,8 @@
           <li><strong>YouTube y YouTube Music:</strong> el catálogo y la reproducción, siempre.</li>
           <li><strong>LRCLIB, Kugou, YouLyPlus, PaxSenix, SimpMusic y Unison:</strong> las letras, al reproducir, si están activados.</li>
           <li><strong>Apple Music y canvas.echomusic.fun:</strong> los videos de fondo, si activas la función.</li>
-          <li><strong>echomusic-listen-together.onrender.com:</strong> las salas de Escuchar juntos, si las usas.</li>
-          <li><strong>GitHub:</strong> para ver si hay versión nueva. Viene desactivado.</li>
+          <li><strong>El relevo de CG LABS en Cloudflare (lifemusic-enlace):</strong> Bandas y En vivo, si los usas. Más abajo está qué guarda.</li>
+          <li><strong>GitHub:</strong> para ver si hay versión nueva (viene desactivado) y, solo si tú los pides en Estudio, para bajar los modelos del karaoke propio y las voces HD de Nova. Esos modelos funcionan dentro de tu teléfono: tu música y tu voz no salen de él.</li>
           <li><strong>Discord:</strong> la presencia enriquecida, si la activas.</li>
           <li><strong>Un servicio de traducción o de IA:</strong> solo si lo configuras tú, con tu propia clave.</li>
         </ul>
@@ -118,6 +118,16 @@
         <p>Para enlazar un TV con código, el teléfono y el TV se conectan a un relevo de CG LABS en Cloudflare (lifemusic-enlace.cho--usic.workers.dev) que pasa sus mensajes de uno a otro. El relevo <strong>no guarda nada</strong>: ni canciones ni códigos. El audio va del TV a YouTube directamente, sin pasar por él.</p>
         <p><strong>Con el botón de Cast de la app</strong>, tu Chromecast o Google TV abre nuestra pantalla de receptor (lifemusic.app/cast), que carga la librería de Google Cast desde los servidores de Google (gstatic.com). Al cargarla, Google ve la dirección IP del TV, como con cualquier receptor de Cast. En lifemusic.app/tv, la del TV con navegador, esa librería no se carga.</p>
       </section>
+      <section id="bandas">
+        <h2>Bandas y En vivo (desde la 2.0)</h2>
+        <p>Bandas es opcional. Si creas una banda o entras a una, el relevo de CG LABS en Cloudflare guarda lo mínimo para que funcione:</p>
+        <ul>
+          <li>el <strong>nombre y el color</strong> de la banda;</li>
+          <li>de cada miembro: un <strong>identificador al azar</strong>, el <strong>nombre que tú escribes</strong> (puede ser un apodo), la inicial, el color y la fecha en que entró;</li>
+          <li>una huella de tu clave secreta, <strong>nunca la clave</strong>.</li>
+        </ul>
+        <p><strong>En vivo no guarda nada:</strong> la canción que suena y la cola se borran cuando sale el último. No hay historial de lo que escuchas, ni chat (solo reacciones), ni telemetría. Cada quien escucha desde su teléfono: el relevo no pasa audio. Puedes salir de una banda cuando quieras, y quien la creó puede borrarla con todo lo que guarda.</p>
+      </section>
       <section id="web">
         <h2>Esta página</h2>
         <p>lifemusic.app no tiene analítica, ni píxeles de seguimiento, ni cookies. Las fuentes tipográficas se sirven desde aquí mismo, y la música de ejemplo se genera en tu navegador, sin descargar canciones.</p>
@@ -133,7 +143,7 @@
         <h2>Cambios y contacto</h2>
         <p>Si esta política cambia, queda en el registro de cambios y en el historial del proyecto en <a href="/github">GitHub</a>.</p>
         <p>Escríbenos a <a href="mailto:cgus392@gmail.com">cgus392@gmail.com</a>.</p>
-        <p>Última revisión: 22 de octubre de 2026.</p>
+        <p>Última revisión: 28 de octubre de 2026 (Life Music 2.0: Estudio, Bandas y En vivo).</p>
       </section>
     </article>
   </div>

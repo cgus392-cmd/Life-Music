@@ -52,14 +52,15 @@ ocurre con cualquier aplicación conectada.
 | YouTube / YouTube Music | catálogo y reproducción | siempre |
 | LRCLIB, Kugou, YouLyPlus, PaxSenix, SimpMusic, Unison | letras | al reproducir, si están activados |
 | Apple Music, `canvas.echomusic.fun` | vídeos de fondo (*canvas*) | si activa la función |
-| `echomusic-listen-together.onrender.com` | salas de Escuchar juntos | si usa la función |
+| Relevo de CG LABS en Cloudflare (`lifemusic-enlace`) | Bandas y En vivo, Life Music TV | si usa la función |
 | GitHub | comprobar si hay versión nueva | **desactivado por defecto** |
+| GitHub | bajar los modelos de Estudio (karaoke propio, voces HD de Nova) | solo si usted los pide |
 | Discord | presencia enriquecida | si la activa usted |
 | Servicio de traducción, si lo configura | traducir letras | solo con clave propia |
 | Proveedor de IA, si lo configura | listas generadas | solo con clave propia |
 
-**Ninguno de estos servicios es nuestro.** Dos de ellos —el de *canvas* y el de
-Escuchar juntos— pertenecen al proyecto de origen, y así consta en
+**Salvo el relevo de CG LABS, ninguno de estos servicios es nuestro.** El de
+*canvas* pertenece al proyecto de origen, y así consta en
 `constants/Repo.kt` para que la dependencia esté a la vista y no escondida en
 una pantalla cualquiera. Cada uno tiene su propia política de
 privacidad y CG LABS no controla qué hacen con la petición.
@@ -141,6 +142,21 @@ pantalla de receptor (`lifemusic.app/cast`), que carga la librería de Google
 Cast desde los servidores de Google (gstatic.com). Al cargarla, Google ve la
 dirección IP del TV, como con cualquier receptor de Cast. En `lifemusic.app/tv`,
 la del TV con navegador, esa librería no se carga.
+
+## Bandas y En vivo (desde la 2.0)
+
+Bandas es opcional. Si crea una banda o entra a una, el relevo de CG LABS en
+Cloudflare guarda lo mínimo: el nombre y el color de la banda y, de cada
+miembro, un identificador al azar, el nombre que escribe (puede ser un apodo),
+la inicial, el color, la fecha de entrada y una huella de su clave secreta
+(nunca la clave). En vivo no guarda nada: lo que suena y la cola se borran
+cuando sale el último. No hay historial de escucha, ni chat (solo reacciones),
+ni telemetría; el relevo no transporta audio. Puede salir de una banda cuando
+quiera, y quien la creó puede borrarla con todo lo que guarda.
+
+Los modelos de Estudio (karaoke propio, voces HD de Nova) se bajan de GitHub
+solo si usted los pide y funcionan dentro del dispositivo: su música y su voz
+no salen de él.
 
 ## Modo de ahorro de datos
 
