@@ -1269,7 +1269,7 @@
     <string name="estudio_titulo">Estudio</string>
     <string name="estudio_menu_desc">Funciones avanzadas y modelos</string>
     <string name="estudio_nuevo">Nuevo</string>
-    <string name="estudio_activo">Estudio 2.0 (beta)</string>
+    <string name="estudio_activo">Estudio</string>
     <string name="estudio_activo_desc">Funciones avanzadas en el menú de tu foto. Apagado: todo queda donde estaba</string>
     <string name="estudio_bajada">Funciones que usan la potencia de tu teléfono. Tú decides cuáles se prenden.</string>
     <string name="estudio_prueba">La prueba de sonido</string>

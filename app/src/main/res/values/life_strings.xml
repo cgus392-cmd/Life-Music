@@ -1649,7 +1649,7 @@
     <string name="estudio_titulo">Studio</string>
     <string name="estudio_menu_desc">Advanced features and models</string>
     <string name="estudio_nuevo">New</string>
-    <string name="estudio_activo">Studio 2.0 (beta)</string>
+    <string name="estudio_activo">Studio</string>
     <string name="estudio_activo_desc">Advanced features in your photo menu. Off: everything stays where it was</string>
     <string name="estudio_bajada">Features that use your phone\'s power. You choose which ones are on.</string>
     <string name="estudio_prueba">The sound check</string>

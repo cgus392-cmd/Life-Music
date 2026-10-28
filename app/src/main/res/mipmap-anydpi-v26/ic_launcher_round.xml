@@ -1,5 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Life Music 2.0 · ícono adaptativo con el logo «la nota es el pulso» -->
 <adaptive-icon xmlns:android="http://schemas.android.com/apk/res/android">
-  <background android:drawable="@color/ic_launcher_background"/>
-  <foreground android:drawable="@mipmap/ic_launcher_foreground"/>
-  <monochrome android:drawable="@mipmap/ic_launcher_monochrome"/>
+    <background android:drawable="@drawable/ic_launcher_lm_background" />
+    <foreground android:drawable="@drawable/ic_launcher_lm_foreground" />
+    <monochrome android:drawable="@drawable/ic_launcher_lm_monochrome" />
 </adaptive-icon>
