@@ -1112,6 +1112,7 @@ class MainActivity : ComponentActivity() {
                                 // ver el degradado y, al bajar, se vuelve vidrio (VidrioDeBarra).
                                 val auroraActiva by rememberPreference(com.cglabs.lifemusic.constants.AuroraActivaKey, defaultValue = false)
                                 val estudioActivo by rememberPreference(com.cglabs.lifemusic.constants.EstudioActivoKey, defaultValue = true)
+                                val bandasActiva by rememberPreference(com.cglabs.lifemusic.constants.BandasActivaKey, defaultValue = false)
                                 val enInicio = auroraActiva && navBackStackEntry?.destination?.route == Screens.Home.route
                                 val recogido = if (enInicio) com.cglabs.lifemusic.ui.component.Aurora.fraccion else 1f
                                 Box {
@@ -1272,6 +1273,8 @@ class MainActivity : ComponentActivity() {
                                                     alAjustes = { showSettingDialoge = true },
                                                     mostrarEstudio = estudioActivo,
                                                     alEstudio = { navController.navigate("estudio") },
+                                                    mostrarBandas = bandasActiva,
+                                                    alBandas = { navController.navigate("bandas") },
                                                 )
                                             }
                                           }
@@ -1720,6 +1723,13 @@ class MainActivity : ComponentActivity() {
         com.cglabs.lifemusic.cast.EnlaceTvPendiente.desdeUri(uri)?.let { codigo ->
             intent.data = null
             com.cglabs.lifemusic.cast.EnlaceTvPendiente.codigo.value = codigo
+            return
+        }
+
+        // 2.0: el QR de una banda (lifemusic.app/banda/CODIGO) abre «Entrar a una banda» con el codigo.
+        com.cglabs.lifemusic.bandas.Bandas.codigoDeEnlace(uri)?.let { codigo ->
+            intent.data = null
+            navController.navigate("bandas/entrar?codigo=$codigo")
             return
         }
 

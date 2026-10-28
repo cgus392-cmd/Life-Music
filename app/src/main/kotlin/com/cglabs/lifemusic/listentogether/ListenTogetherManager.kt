@@ -1463,6 +1463,13 @@ class ListenTogetherManager @Inject constructor(
     
     fun transferHost(newHostId: String) = client.transferHost(newHostId)
 
+    /** Bandas (2.0): la banda de En vivo; null es el Escuchar juntos de siempre. */
+    var banda: BandaConexion?
+        get() = client.banda
+        set(valor) { client.banda = valor }
+
+    fun enviarReaccion(tipo: String) = client.sendReaction(tipo)
+
     fun updateRoomSettings(allowParticipantControl: Boolean) {
         client.updateRoomSettings(allowParticipantControl)
         refreshSyncCapabilities()
@@ -1653,7 +1660,8 @@ class ListenTogetherManager @Inject constructor(
         if (heartbeatJob?.isActive == true) return
         heartbeatJob = scope.launch {
             while (heartbeatJob?.isActive == true && isInRoom && isHost) {
-                delay(10000L) 
+                // En una banda, cada 30 s: entre latidos la sala del relevo puede dormir (plan gratis).
+                delay(if (client.banda != null) 30000L else 10000L)
                 playerConnection?.player?.let { player ->
                     if (player.playWhenReady && player.playbackState == Player.STATE_READY) {
                         val pos = player.currentPosition

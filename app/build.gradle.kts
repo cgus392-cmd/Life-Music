@@ -345,6 +345,8 @@ dependencies {
 
     implementation(libs.activity)
     implementation(libs.webkit)
+    // 2.0 · Bandas: el QR de la banda (Apache 2.0).
+    implementation("com.google.zxing:core:3.5.3")
     implementation(libs.hilt.navigation)
     implementation(libs.datastore)
 

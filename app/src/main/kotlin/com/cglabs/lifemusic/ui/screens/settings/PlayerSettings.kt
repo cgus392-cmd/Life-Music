@@ -137,6 +137,10 @@ highlightKey: String? = null, seccion: String? = null) {
         com.cglabs.lifemusic.constants.KaraokePropioKey,
         defaultValue = false
     )
+    val (bandasActiva, onBandasActivaChange) = rememberPreference(
+        com.cglabs.lifemusic.constants.BandasActivaKey,
+        defaultValue = false
+    )
     val (crossfadeDuration, onCrossfadeDurationChange) = rememberPreference(
         CrossfadeDurationKey,
         defaultValue = 5f
@@ -1375,6 +1379,29 @@ highlightKey: String? = null, seccion: String? = null) {
         Material3SettingsGroup(scrollState = scrollState, 
             title = stringResource(R.string.misc),
             items = listOf(
+                // 2.0 · Bandas (beta, apagada de fabrica): escuchar en vivo con amigos, en el menu de la foto.
+                Material3SettingsItem(
+                    isHighlighted = (highlightKey == stringResource(R.string.bandas_ajuste)),
+                    icon = painterResource(R.drawable.bandas_acorde),
+                    title = { Text(stringResource(R.string.bandas_ajuste)) },
+                    description = { Text(stringResource(R.string.bandas_ajuste_desc)) },
+                    trailingContent = {
+                        Switch(
+                            checked = bandasActiva,
+                            onCheckedChange = onBandasActivaChange,
+                            thumbContent = {
+                                Icon(
+                                    painter = painterResource(
+                                        id = if (bandasActiva) R.drawable.check else R.drawable.close
+                                    ),
+                                    contentDescription = null,
+                                    modifier = Modifier.size(SwitchDefaults.IconSize)
+                                )
+                            }
+                        )
+                    },
+                    onClick = { onBandasActivaChange(!bandasActiva) }
+                ),
                 Material3SettingsItem(
     isHighlighted = (highlightKey == stringResource(R.string.stop_music_on_task_clear)),
                     icon = painterResource(R.drawable.clear_all),

@@ -129,7 +129,21 @@ sealed class ListenTogetherEvent {
     data class LocalSuggestionApproved(val payload: SuggestionReceivedPayload) : ListenTogetherEvent()
 
     data class RoomSettingsChanged(val allowParticipantControl: Boolean) : ListenTogetherEvent()
+
+    data class ReaccionRecibida(val payload: ReaccionRecibidaPayload) : ListenTogetherEvent()
 }
+
+/**
+ * Bandas (2.0): En vivo habla el mismo protocolo, pero con el relevo propio
+ * (`enlace/src/bandas.js`) y la identidad de la persona en la cabecera, nunca en
+ * la direccion. Con [ListenTogetherClient.banda] puesto, el cliente va ahi en vez
+ * del servidor de Metrolist.
+ */
+data class BandaConexion(
+    val codigo: String,
+    val url: String,
+    val autorizacion: String,
+)
 
 
 @Singleton
@@ -398,7 +412,12 @@ class ListenTogetherClient @Inject constructor(
         .pingInterval(30, TimeUnit.SECONDS)
         .build()
 
+    /** La banda de En vivo, si la hay (ver [BandaConexion]). */
+    @Volatile
+    var banda: BandaConexion? = null
+
     private fun getServerUrl(): String {
+        banda?.let { return it.url }
         return context.dataStore.get(ListenTogetherServerUrlKey, DEFAULT_SERVER_URL)
     }
     
@@ -447,6 +466,7 @@ class ListenTogetherClient @Inject constructor(
 
         val request = Request.Builder()
             .url(serverUrl)
+            .apply { banda?.let { header("Authorization", it.autorizacion) } }
             .build()
 
         webSocket = client.newWebSocket(request, object : WebSocketListener() {
@@ -544,7 +564,8 @@ class ListenTogetherClient @Inject constructor(
             while (true) {
                 delay(PING_INTERVAL_MS)
                 pingSentTime = System.currentTimeMillis()
-                sendMessageNoPayload(MessageTypes.PING)
+                // Con una banda, el ping exacto en texto lo contesta el relevo sin despertar la sala (plan gratis).
+                if (banda != null) webSocket?.send("{\"type\":\"ping\"}") else sendMessageNoPayload(MessageTypes.PING)
             }
         }
     }
@@ -1047,7 +1068,8 @@ class ListenTogetherClient @Inject constructor(
                     when (payload.code) {
                         "session_not_found" -> {
                             
-                            if (storedRoomCode != null && storedUsername != null && !wasHost) {
+                            // En una banda tambien vuelve quien ponia la musica: entra directo, sin aprobar.
+                            if (storedRoomCode != null && storedUsername != null && (!wasHost || banda != null)) {
                                 log(LogLevel.WARNING, "Session expired on server", 
                                     "Attempting automatic rejoin to room: $storedRoomCode")
                                 
@@ -1162,6 +1184,11 @@ class ListenTogetherClient @Inject constructor(
                     scope.launch {
                         _events.emit(ListenTogetherEvent.RoomSettingsChanged(payload.allowParticipantControl))
                     }
+                }
+
+                MessageTypes.REACCION -> {
+                    val payload = codec.decodePayload(msgType, payloadBytes, detectedFormat) as? ReaccionRecibidaPayload ?: return
+                    scope.launch { _events.emit(ListenTogetherEvent.ReaccionRecibida(payload)) }
                 }
 
                 else -> {
@@ -1366,6 +1393,11 @@ class ListenTogetherClient @Inject constructor(
     }
 
     
+    /** Bandas: manda una de las 6 reacciones a los demas de En vivo. */
+    fun sendReaction(tipo: String) {
+        sendMessage(MessageTypes.REACCION, ReaccionPayload(tipo))
+    }
+
     fun sendBufferReady(trackId: String) {
         sendMessage(MessageTypes.BUFFER_READY, BufferReadyPayload(trackId))
     }

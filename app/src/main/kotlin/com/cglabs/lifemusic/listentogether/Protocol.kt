@@ -49,6 +49,9 @@ object MessageTypes {
     const val SUGGESTION_APPROVED = "suggestion_approved"
     const val SUGGESTION_REJECTED = "suggestion_rejected"
     const val ROOM_SETTINGS_CHANGED = "room_settings_changed"
+
+    // Bandas (2.0): las 6 reacciones de En vivo. Va y vuelve con el mismo nombre.
+    const val REACCION = "reaccion"
 }
 
 
@@ -324,6 +327,20 @@ data class ReconnectedPayload(
 data class UserReconnectedPayload(
     @SerialName("user_id") val userId: String,
     val username: String
+)
+
+/** Bandas (2.0): una de las 6 reacciones (suena, me_encanta, otra_vez, subele, a_bailar, escalofrio). */
+@Serializable
+data class ReaccionPayload(
+    val tipo: String
+)
+
+@Serializable
+data class ReaccionRecibidaPayload(
+    @SerialName("user_id") val userId: String,
+    val username: String,
+    val tipo: String,
+    @SerialName("track_id") val trackId: String? = null
 )
 
 @Serializable

@@ -262,11 +262,12 @@ class MessageCodec(
             MessageTypes.SUGGESTION_REJECTED -> json.decodeFromString<SuggestionRejectedPayload>(payloadString)
             MessageTypes.CHAT -> json.decodeFromString<ChatMessagePayload>(payloadString)
             MessageTypes.ROOM_SETTINGS_CHANGED -> json.decodeFromString<UpdateRoomSettingsPayload>(payloadString)
+            MessageTypes.REACCION -> json.decodeFromString<ReaccionRecibidaPayload>(payloadString)
             else -> null
         }
     }
-    
-    
+
+
     private fun decodeProtobufPayload(msgType: String, payloadBytes: ByteArray): Any? {
         return when (msgType) {
             MessageTypes.ROOM_CREATED -> {
@@ -455,6 +456,7 @@ class MessageCodec(
             is TransferHostPayload -> TransferHostPayload.serializer()
             is ChatPayload -> ChatPayload.serializer()
             is UpdateRoomSettingsPayload -> UpdateRoomSettingsPayload.serializer()
+            is ReaccionPayload -> ReaccionPayload.serializer()
             else -> throw IllegalArgumentException("Unknown type: ${value!!::class.simpleName}")
         } as kotlinx.serialization.KSerializer<T>
     }

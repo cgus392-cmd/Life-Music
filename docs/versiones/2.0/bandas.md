@@ -185,6 +185,42 @@ desde el 28-10 por la tarde y sigue desde aquí.
    muestra la maqueta.
 3. El código es fijo. Cambiarlo, si se filtra, queda para «Después».
 
+## 28-10, mediodía: CG mete Bandas en la 2.0 de hoy, como beta
+
+CG aprobó en General, que lo transmitió: Bandas entra en la 2.0 detrás de un interruptor, apagada de fábrica. Si a las
+16:30 no pasa la prueba con los dos teléfonos, sale en la 2.0.1.
+
+**Recorte para hoy:**
+- **Va:**
+  - crear con nombre y color;
+  - el código y el QR, que se escanea con la cámara del sistema y no pide permiso de cámara;
+  - entrar con el código o el enlace `lifemusic.app/banda/COD`;
+  - aprobar, rechazar y quitar;
+  - la banda por dentro, con salir y borrar;
+  - En vivo con la cola, el mando y las 6 reacciones;
+  - la tarjeta del Inicio.
+- **Para la 2.0.1:**
+  - el código de respaldo, con la clase `Persona`;
+  - el escáner dentro de la app;
+  - cambiar el código;
+  - las animaciones del acorde.
+
+**Servidor (F3):** hecho y probado en local, en el commit 0ad3bd9b, sin publicar.
+- `enlace/src/bandas.js` lleva la clase `Banda` (migración v2) y En vivo en el mismo objeto.
+- Pasan 53 pruebas de Bandas y 8 del TV.
+- `wrangler dev` necesita `--persist-to` con una ruta corta, porque con la del scratchpad SQLite se pasa de los 260
+  caracteres y falla con «internal error». Se levanta con la configuración `bandas-relevo` de `.claude/launch.json`.
+
+**App (F4):**
+- `bandas/Bandas.kt`: la identidad, las llamadas al relevo y `entrarEnVivo`.
+- `ui/screens/bandas/`: la lista, crear, entrar, invitar, la banda, En vivo y `TarjetaBandaEnVivo`.
+- `listentogether/`: si `banda` está puesta, el cliente va al relevo con `Authorization`. Además:
+  - el ping va como texto exacto;
+  - el latido del anfitrión pasa a 30 s;
+  - suma el mensaje `reaccion`;
+  - si la sesión se pierde, se vuelve a entrar.
+- El interruptor está en Ajustes › Reproductor › Conexiones y otros. Entrar a una banda lo prende solo.
+
 **Después (no entra en F3):**
 - cambiar el código;
 - cambiar mi nombre o mi color;

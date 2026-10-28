@@ -282,6 +282,8 @@ fun MenuDeLaFoto(
     alAjustes: () -> Unit,
     mostrarEstudio: Boolean = false,
     alEstudio: () -> Unit = {},
+    mostrarBandas: Boolean = false,
+    alBandas: () -> Unit = {},
 ) {
     val colores = Aurora.colores
     var actividadAbierta by remember(abierto) { mutableStateOf(false) }
@@ -304,7 +306,15 @@ fun MenuDeLaFoto(
             SubopcionDelMenu(R.drawable.music_history, stringResource(R.string.history)) { alCerrar(); alHistorial() }
             SubopcionDelMenu(R.drawable.stats, stringResource(R.string.stats)) { alCerrar(); alEstadisticas() }
         }
-        if (mostrarJuntos) {
+        // 2.0 · Bandas (maqueta del 28-10): toma el lugar de Escuchar juntos, con su «Nuevo».
+        if (mostrarBandas) {
+            OpcionDelMenu(
+                icono = R.drawable.bandas_acorde, color = Color(0xFFFF6B3D),
+                titulo = stringResource(R.string.bandas_titulo),
+                detalle = stringResource(R.string.bandas_menu_desc),
+                etiqueta = stringResource(R.string.estudio_nuevo),
+            ) { alCerrar(); alBandas() }
+        } else if (mostrarJuntos) {
             OpcionDelMenu(
                 icono = R.drawable.group_outlined, color = colores.c2,
                 titulo = stringResource(R.string.menu_foto_juntos),

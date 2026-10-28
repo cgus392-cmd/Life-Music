@@ -138,6 +138,34 @@ fun NavGraphBuilder.navigationBuilder(
         com.cglabs.lifemusic.ui.screens.estudio.EstudioModelosScreen(navController)
     }
 
+    // 2.0 · Bandas (beta): desde el menu de la foto, la tarjeta del Inicio y el QR lifemusic.app/banda/CODIGO.
+    composable("bandas") {
+        com.cglabs.lifemusic.ui.screens.bandas.BandasScreen(navController)
+    }
+
+    composable("bandas/nueva") {
+        com.cglabs.lifemusic.ui.screens.bandas.NuevaBandaScreen(navController)
+    }
+
+    composable(
+        route = "bandas/entrar?codigo={codigo}",
+        arguments = listOf(navArgument("codigo") { type = NavType.StringType; nullable = true; defaultValue = null }),
+    ) { entrada ->
+        com.cglabs.lifemusic.ui.screens.bandas.EntrarBandaScreen(navController, entrada.arguments?.getString("codigo"))
+    }
+
+    composable("banda/{codigo}") { entrada ->
+        com.cglabs.lifemusic.ui.screens.bandas.BandaScreen(navController, entrada.arguments?.getString("codigo").orEmpty())
+    }
+
+    composable("banda/{codigo}/invitar") { entrada ->
+        com.cglabs.lifemusic.ui.screens.bandas.InvitarBandaScreen(navController, entrada.arguments?.getString("codigo").orEmpty())
+    }
+
+    composable("banda/{codigo}/envivo") { entrada ->
+        com.cglabs.lifemusic.ui.screens.bandas.EnVivoScreen(navController, entrada.arguments?.getString("codigo").orEmpty())
+    }
+
     composable("concurso") {
         com.cglabs.lifemusic.concurso.ConcursoScreen(navController, scrollBehavior)
     }

@@ -135,6 +135,8 @@
                 <data android:host="lifemusic.pages.dev" />
                 <data android:host="prueba.lifemusic.pages.dev" />
                 <data android:pathPrefix="/tv/enlazar" />
+                <!-- 2.0 · Bandas: el QR de la banda (lifemusic.app/banda/CODIGO). -->
+                <data android:pathPrefix="/banda/" />
             </intent-filter>
 
             <!-- El mismo enlace por esquema propio: el boton de la pagina del QR si el App Link no se verifico. -->

@@ -986,6 +986,13 @@ fun HomeScreen(
                 state = lazylistState,
                 contentPadding = LocalPlayerAwareWindowInsets.current.asPaddingValues()
             ) {
+                // 2.0 · Bandas: sin push, Inicio avisa que tu banda esta en vivo (solo con Bandas prendida).
+                item(key = "banda_en_vivo") {
+                    com.cglabs.lifemusic.ui.screens.bandas.TarjetaBandaEnVivo(
+                        navController, Modifier.padding(horizontal = 16.dp, vertical = 6.dp)
+                    )
+                }
+
                 item {
                     ChipsRow(
                         chips = homePage?.chips?.filter { 

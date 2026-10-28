@@ -1146,3 +1146,15 @@ val GuiasVistasKey = stringSetPreferencesKey("guiasVistas")
 
 /** El estilo de Nova: «calida» (de fabrica), «energica», «breve» o «curiosa». */
 val NovaEstiloKey = stringPreferencesKey("novaEstilo")
+
+/** Bandas (2.0, beta; docs/versiones/2.0/bandas.md): apagada de fabrica, se prende en Ajustes. */
+val BandasActivaKey = booleanPreferencesKey("bandasActiva")
+
+/** Bandas: quien soy, sin cuentas. El id es publico; el secreto solo sale en la cabecera hacia el relevo. */
+val BandasIdKey = stringPreferencesKey("bandasId")
+val BandasSecretoKey = stringPreferencesKey("bandasSecreto")
+val BandasNombreKey = stringPreferencesKey("bandasNombre")
+val BandasColorKey = stringPreferencesKey("bandasColor")
+
+/** Bandas: los codigos de mis bandas y de las que pedi entrar. */
+val BandasCodigosKey = stringSetPreferencesKey("bandasCodigos")
