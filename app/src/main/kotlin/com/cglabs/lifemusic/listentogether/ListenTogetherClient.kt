@@ -780,6 +780,7 @@ class ListenTogetherClient @Inject constructor(
             
             
             val (msgType, payloadBytes) = codec.decode(data)
+            log(LogLevel.DEBUG, "Received type", msgType)
             
             when (msgType) {
                 MessageTypes.ROOM_CREATED -> {

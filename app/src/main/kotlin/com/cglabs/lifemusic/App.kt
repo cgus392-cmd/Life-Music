@@ -122,6 +122,18 @@ class App : Application(), SingletonImageLoader.Factory {
 
         if (BuildConfig.DEBUG) {
             Timber.plant(Timber.DebugTree())
+        } else {
+            // Bandas (2.0, beta): en release, solo mientras se esta en una banda, lo de En vivo
+            // (Escuchar juntos) va a logcat con la etiqueta LifeMusicJuntos, para diagnosticar desde el telefono.
+            Timber.plant(object : Timber.Tree() {
+                override fun isLoggable(tag: String?, priority: Int) =
+                    tag?.startsWith("ListenTogether") == true &&
+                        com.cglabs.lifemusic.listentogether.ListenTogetherClient.getInstance()?.banda != null
+
+                override fun log(priority: Int, tag: String?, message: String, t: Throwable?) {
+                    android.util.Log.println(priority, "LifeMusicJuntos", "[$tag] $message")
+                }
+            })
         }
 
         applicationScope.launch(Dispatchers.IO) {

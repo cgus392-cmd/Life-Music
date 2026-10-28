@@ -247,7 +247,10 @@ class ListenTogetherManager @Inject constructor(
                 if (isSyncing || !canControlMusic || !isInRoom) return
                 
                 
-                if (reason == Player.DISCONTINUITY_REASON_SEEK) {
+                // Solo un salto dentro de la misma cancion es un SEEK. Al tocar «siguiente» el salto
+                // cambia de cancion: mandar SEEK 0 aqui ocupaba isSyncing y se perdia el cambio de
+                // cancion, y los demas repetian la que sonaba (prueba de CG, 28-10).
+                if (reason == Player.DISCONTINUITY_REASON_SEEK && oldPosition.mediaItemIndex == newPosition.mediaItemIndex) {
                     Timber.tag(TAG).d("Host sending SEEK to ${newPosition.positionMs}")
                     sendPlaybackActionWithSync {
                         client.sendPlaybackAction(PlaybackActions.SEEK, position = newPosition.positionMs)
@@ -301,9 +304,11 @@ class ListenTogetherManager @Inject constructor(
 
         connection.shouldBlockPlaybackChanges = { isGuestPlaybackRestricted }
 
+        // En una banda, «anterior» y «siguiente» viajan como cambio de cancion (CHANGE_TRACK), que es
+        // la verdad; un SKIP aparte moveria a los demas por su propia cola y podia saltar dos veces.
         connection.onSkipPrevious = {
             try {
-                if (canControlMusic && !isSyncing) {
+                if (canControlMusic && !isSyncing && client.banda == null) {
                     Timber.tag(TAG).d("Skip Previous triggered")
                     sendPlaybackActionWithSync {
                         client.sendPlaybackAction(PlaybackActions.SKIP_PREV)
@@ -315,7 +320,7 @@ class ListenTogetherManager @Inject constructor(
         }
         connection.onSkipNext = {
             try {
-                if (canControlMusic && !isSyncing) {
+                if (canControlMusic && !isSyncing && client.banda == null) {
                     Timber.tag(TAG).d("Skip Next triggered")
                     sendPlaybackActionWithSync {
                         client.sendPlaybackAction(PlaybackActions.SKIP_NEXT)
@@ -783,13 +788,23 @@ class ListenTogetherManager @Inject constructor(
         connection.service.playerVolume.value = target
     }
 
+    /**
+     * Lo que tardo en llegar un PLAY desde el anfitrion. En una banda no se usan los relojes de los
+     * telefonos, que pueden andar corridos (prueba del 28-10: el S25 iba 93 s atras y el Motorola 1,5 s
+     * adelante); se estima con la ida y vuelta del ping.
+     */
+    private fun transito(action: PlaybackActionPayload, now: Long): Long {
+        if (client.banda != null) return client.rtt.value.takeIf { it > 0 }?.coerceAtMost(1500L) ?: 200L
+        return action.serverTime?.let { kotlin.math.max(0L, now - it) } ?: 0L
+    }
+
     /** Guarda un PLAY o PAUSE para aplicarlo cuando la cancion nueva termine de cargar. */
     private fun guardarPendiente(action: PlaybackActionPayload) {
         val now = System.currentTimeMillis()
         val suena = action.action == PlaybackActions.PLAY
         val base = action.position ?: pendingSyncState?.position ?: 0L
         // Lo que tardo en llegar desde el anfitrion ya sono alla.
-        val posicion = if (suena) base + (action.serverTime?.let { kotlin.math.max(0L, now - it) } ?: 0L) else base
+        val posicion = if (suena) base + transito(action, now) else base
         pendingSyncState = (pendingSyncState ?: SyncStatePayload(
             currentTrack = roomState.value?.currentTrack,
             isPlaying = suena,
@@ -866,9 +881,7 @@ class ListenTogetherManager @Inject constructor(
                 PlaybackActions.PLAY -> {
                     val basePos = action.position ?: 0L
                     val now = System.currentTimeMillis()
-                    val adjustedPos = action.serverTime?.let { serverTime ->
-                        basePos + kotlin.math.max(0L, now - serverTime)
-                    } ?: basePos
+                    val adjustedPos = basePos + transito(action, now)
 
                     Timber.tag(TAG).d("Guest: PLAY at position $adjustedPos, currently playing=${player.playWhenReady}")
 
@@ -1702,6 +1715,15 @@ class ListenTogetherManager @Inject constructor(
                 // corregirse (prueba de CG, 28-10). El relevo gratis lo aguanta.
                 delay(10000L)
                 playerConnection?.player?.let { player ->
+                    // Red de seguridad: si un cambio de cancion no salio, el latido lo manda.
+                    val actual = player.currentMediaItem?.mediaId
+                    if (actual != null && actual != lastSyncedTrackId) {
+                        player.currentMetadata?.let { metadata ->
+                            Timber.tag(TAG).d("Host heartbeat: track $actual was not synced, sending it")
+                            sendTrackChangeInternal(metadata)
+                            lastSyncedTrackId = actual
+                        }
+                    }
                     if (player.playWhenReady && player.playbackState == Player.STATE_READY) {
                         val pos = player.currentPosition
                         Timber.tag(TAG).d("Host heartbeat: sending PLAY at pos $pos")
