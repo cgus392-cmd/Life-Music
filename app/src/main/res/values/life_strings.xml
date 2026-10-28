@@ -1847,7 +1847,7 @@
     <string name="boletin_v200_estudio_t">Studio</string>
     <string name="boletin_v200_estudio">Tap your photo: the sound check measures your phone and tells you which advanced features it can handle. With a model center.</string>
     <string name="boletin_v200_bandas_t">Bands (beta)</string>
-    <string name="boletin_v200_bandas">Create a band with friends and listen Live, each on their own phone, with custom reactions.</string>
+    <string name="boletin_v200_bandas">Create a band with friends and listen Live, each on their own phone, with custom reactions. Turn it on in Settings › Player and audio › Connections and more.</string>
     <string name="boletin_v200_tv_t">Life Music TV</string>
     <string name="boletin_v200_tv">A Pulse receiver, a Stage theme that jumps with real beats and the Lite theme for simple TVs.</string>
     <string name="boletin_v200_ajustes_t">Tidier settings</string>
