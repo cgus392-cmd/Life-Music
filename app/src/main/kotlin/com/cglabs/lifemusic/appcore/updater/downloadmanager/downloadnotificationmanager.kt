@@ -117,7 +117,7 @@ object DownloadNotificationManager {
             .setProgress(0)
 
         val builder = Notification.Builder(appContext, CHANNEL_ID)
-            .setSmallIcon(R.drawable.ic_launcher_foreground) 
+            .setSmallIcon(R.drawable.ic_stat_lifemusic) 
             .setContentTitle(appContext.getString(R.string.downloading_update))
             .setContentText(appContext.getString(R.string.version_file_size, version, fileSize))
             .setOngoing(true)
@@ -155,7 +155,7 @@ object DownloadNotificationManager {
             .setProgress(progress)
 
         val builder = Notification.Builder(appContext, CHANNEL_ID)
-            .setSmallIcon(R.drawable.ic_launcher_foreground) 
+            .setSmallIcon(R.drawable.ic_stat_lifemusic) 
             .setContentTitle(appContext.getString(R.string.downloading_update))
             .setContentText(detalle ?: appContext.getString(R.string.version_progress, version, progress))
             .setOngoing(progress < 100)
@@ -258,7 +258,7 @@ object DownloadNotificationManager {
 
     private fun buildDownloadStartingLegacy(version: String, fileSize: String): Notification {
         return NotificationCompat.Builder(appContext, CHANNEL_ID)
-            .setSmallIcon(R.drawable.ic_launcher_foreground) 
+            .setSmallIcon(R.drawable.ic_stat_lifemusic) 
             .setContentTitle(appContext.getString(R.string.downloading_update))
             .setContentText(appContext.getString(R.string.version_file_size, version, fileSize))
             .setProgress(100, 0, false)

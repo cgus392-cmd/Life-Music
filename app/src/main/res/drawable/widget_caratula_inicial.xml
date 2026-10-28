@@ -7,5 +7,5 @@
             <corners android:radius="16dp" />
         </shape>
     </item>
-    <item android:drawable="@drawable/ic_qs_life_logo" android:gravity="center" android:width="40dp" android:height="40dp" />
+    <item android:drawable="@drawable/widget_logo_lm" android:gravity="center" android:width="40dp" android:height="40dp" />
 </layer-list>

@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Life Music 2.0 · logo a color para la carátula de espera del widget (hueso y coral), sobre el cristal del widget.
+     Mismo dibujo y medidas que ic_stat_lifemusic, pero con color: el widget no tiñe sus íconos. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="24"
+    android:viewportHeight="24">
+    <group
+        android:scaleX="0.18"
+        android:scaleY="0.18"
+        android:translateX="4.71"
+        android:translateY="3">
+        <path
+            android:pathData="M28,31 Q28,22 21,18 Q13,14 12,8 V80 Q12,92 24,92 Q36,92 36,80 V58 Q36,42 49,42 Q62,42 62,58 V90 V58 Q62,42 75,42 Q88,42 88,58 V90"
+            android:strokeColor="#FFF5F5F3"
+            android:strokeWidth="10"
+            android:strokeLineCap="round"
+            android:strokeLineJoin="round"
+            android:fillColor="#00000000" />
+        <group
+            android:rotation="-22"
+            android:pivotX="2.5"
+            android:pivotY="85">
+            <path
+                android:pathData="M-9,85 a11.5,8.5 0 1,0 23,0 a11.5,8.5 0 1,0 -23,0z"
+                android:fillColor="#FFFF6B3D" />
+        </group>
+    </group>
+</vector>

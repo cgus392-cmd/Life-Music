@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Life Music 2.0 · ícono del mosaico de ajustes rápidos (silueta blanca; el sistema la tiñe). Es ic_stat_lifemusic.
+     Versión de trazo 12, la de tamaños pequeños. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="24"
+    android:viewportHeight="24">
+    <group
+        android:scaleX="0.18"
+        android:scaleY="0.18"
+        android:translateX="4.71"
+        android:translateY="3">
+        <path
+            android:pathData="M29,32 Q29,22 21,18 Q13,14 12,8 V80 Q12,92 24,92 Q36,92 36,80 V58 Q36,42 49,42 Q62,42 62,58 V90 V58 Q62,42 75,42 Q88,42 88,58 V90"
+            android:strokeColor="#FFFFFFFF"
+            android:strokeWidth="12"
+            android:strokeLineCap="round"
+            android:strokeLineJoin="round"
+            android:fillColor="#00000000" />
+        <group
+            android:rotation="-22"
+            android:pivotX="1.5"
+            android:pivotY="84">
+            <path
+                android:pathData="M-12,84 a13.5,10 0 1,0 27,0 a13.5,10 0 1,0 -27,0z"
+                android:fillColor="#FFFFFFFF" />
+        </group>
+    </group>
+</vector>
