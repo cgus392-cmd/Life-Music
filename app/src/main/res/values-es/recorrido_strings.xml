@@ -10,7 +10,7 @@
     <string name="recorrido_nova_et">Nuevo</string>
     <string name="recorrido_nova_t">Nova, tu DJ</string>
     <string name="recorrido_nova_p">Arma la música por bloques y habla entre canciones, como en la radio. Tú eliges su voz y cada cuántas canciones habla.</string>
-    <string name="recorrido_nova_donde">La prendes en <b>Ajustes › Reproductor y audio</b>, y vive en <b>su estrella</b>, arriba en Inicio.</string>
+    <string name="recorrido_nova_donde">La prendes en <b>Ajustes › Reproductor y audio › Transiciones y DJ</b>, y vive en <b>su estrella</b>, arriba en Inicio.</string>
     <string name="recorrido_estudio_et">Nuevo</string>
     <string name="recorrido_estudio_t">Estudio mide tu teléfono</string>
     <string name="recorrido_estudio_p">Mide tu teléfono en 3 segundos y cada función te dice si está Lista, si Va a tardar o si No da. Ahí bajas y borras los modelos.</string>

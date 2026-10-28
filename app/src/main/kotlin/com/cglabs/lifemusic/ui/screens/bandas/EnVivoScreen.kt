@@ -81,8 +81,16 @@ fun EnVivoScreen(navController: NavController, codigo: String) {
     val sala by manager.roomState.collectAsState()
     val miId by manager.userId.collectAsState()
     val cancion = conexion?.mediaMetadata?.collectAsState()?.value
+    val sonando = conexion?.isPlaying?.collectAsState()?.value == true
     // La ultima reaccion de cada persona, para que flote sobre su cabeza un rato.
     val reacciones = remember { mutableStateMapOf<String, Pair<String, Long>>() }
+    // Cuantas veces brinco cada cabeza (reaccion) y cuantas recibio el mando (dos brincos).
+    val brincos = remember { mutableStateMapOf<String, Int>() }
+    val mandos = remember { mutableStateMapOf<String, Int>() }
+    val reaccionar: (String, String) -> Unit = { id, tipo ->
+        reacciones[id] = tipo to System.currentTimeMillis()
+        brincos[id] = (brincos[id] ?: 0) + 1
+    }
     var menuMando by remember { mutableStateOf(false) }
     val teQuitaron = stringResource(R.string.bandas_te_quitaron)
 
@@ -97,7 +105,8 @@ fun EnVivoScreen(navController: NavController, codigo: String) {
     LaunchedEffect(manager) {
         manager.events.collect { e ->
             when (e) {
-                is ListenTogetherEvent.ReaccionRecibida -> reacciones[e.payload.userId] = e.payload.tipo to System.currentTimeMillis()
+                is ListenTogetherEvent.ReaccionRecibida -> reaccionar(e.payload.userId, e.payload.tipo)
+                is ListenTogetherEvent.HostChanged -> mandos[e.newHostId] = (mandos[e.newHostId] ?: 0) + 1
                 is ListenTogetherEvent.Kicked -> {
                     Toast.makeText(contexto, teQuitaron, Toast.LENGTH_LONG).show()
                     Bandas.salirDeEnVivo(manager)
@@ -176,13 +185,21 @@ fun EnVivoScreen(navController: NavController, codigo: String) {
             // Quienes estan: su cabeza con la inicial, y la reaccion que acaban de mandar encima.
             Row(Modifier.padding(top = 18.dp).fillMaxWidth(), verticalAlignment = Alignment.Bottom) {
                 Row(Modifier.weight(1f), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                    sala?.users?.forEach { u ->
+                    sala?.users?.forEachIndexed { indice, u ->
                         Column(horizontalAlignment = Alignment.CenterHorizontally) {
                             Box(Modifier.height(30.dp), contentAlignment = Alignment.BottomCenter) {
                                 val r = reacciones[u.userId]
-                                if (r != null) IconoReaccion(r.first, t.txt, tam = 26.dp)
+                                if (r != null) ReaccionQueSube(r.first, r.second, t.txt, tam = 26.dp)
                             }
-                            CabezaPersona(colorDe(u.userId).copy(alpha = if (u.isConnected) 1f else 0.4f), inicialDe(u.userId, u.username), ancho = 34.dp)
+                            // Tocarla brinca y dice su nombre; reacciona y brinca; recibe el mando y brinca dos veces;
+                            // late con la musica mientras suena, cada una con su desfase.
+                            CabezaViva(
+                                colorDe(u.userId).copy(alpha = if (u.isConnected) 1f else 0.4f), inicialDe(u.userId, u.username), u.username, 34.dp,
+                                brincos = brincos[u.userId] ?: 0,
+                                doblesBrincos = mandos[u.userId] ?: 0,
+                                latiendo = sonando && u.isConnected,
+                                desfase = indice,
+                            )
                             Text(
                                 u.username, color = if (u.isHost) t.txt else t.sec, fontSize = 11.sp, maxLines = 1,
                                 fontWeight = if (u.isHost) FontWeight.SemiBold else FontWeight.Normal, modifier = Modifier.width(48.dp),
@@ -235,7 +252,7 @@ fun EnVivoScreen(navController: NavController, codigo: String) {
                     Box(
                         Modifier.size(46.dp).clip(RoundedCornerShape(23.dp)).semantics { contentDescription = nombre }.clickable {
                             manager.enviarReaccion(tipo)
-                            miId?.let { reacciones[it] = tipo to System.currentTimeMillis() }
+                            miId?.let { reaccionar(it, tipo) }
                         },
                         contentAlignment = Alignment.Center,
                     ) { IconoReaccion(tipo, t.txt, tam = 30.dp, modifier = Modifier.padding(2.dp)) }

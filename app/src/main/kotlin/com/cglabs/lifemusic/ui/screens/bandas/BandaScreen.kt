@@ -246,7 +246,7 @@ private fun ContenidoDeBanda(
 private fun FilaDeMiembro(m: Bandas.Miembro, t: TonoEstudio, esJefe: Boolean, soyYo: Boolean, puedoQuitar: Boolean, alQuitar: () -> Unit) {
     var menu by remember { mutableStateOf(false) }
     Row(Modifier.fillMaxWidth().padding(horizontal = 14.dp, vertical = 12.dp), verticalAlignment = Alignment.CenterVertically) {
-        CabezaPersona(Bandas.color(m.color), m.inicial, ancho = 34.dp)
+        CabezaViva(Bandas.color(m.color), m.inicial, m.nombre, 34.dp)
         Column(Modifier.weight(1f).padding(start = 12.dp)) {
             Text(m.nombre, color = t.txt, fontSize = 15.sp, fontWeight = if (soyYo) FontWeight.SemiBold else FontWeight.Medium)
             val detalle = if (esJefe) stringResource(R.string.bandas_creo_la_banda) else desdeCuando(m.desde)?.let { stringResource(R.string.bandas_desde, it) }

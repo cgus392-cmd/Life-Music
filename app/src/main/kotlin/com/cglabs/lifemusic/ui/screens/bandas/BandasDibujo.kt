@@ -5,7 +5,15 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
+import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.AnimationVector1D
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.spring
+import androidx.compose.animation.core.tween
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
@@ -68,10 +76,26 @@ fun CabezaPersona(color: Color, inicial: String, ancho: Dp = 40.dp, modifier: Mo
     }
 }
 
-/** El acorde de la banda: las cabezas apiladas en un palo; los lugares libres, punteados. */
+/**
+ * El acorde de la banda: las cabezas apiladas en un palo; los lugares libres, punteados.
+ * Al entrar, las cabezas caen al acorde una por una (70 ms entre cada una) con rebote;
+ * la que llega despues (alguien aprobado) cae sola. Sin animaciones, aparecen con un fundido.
+ */
 @Composable
 fun Acorde(colores: List<Color>, alto: Dp, libres: Int = 0, tinta: Color, modifier: Modifier = Modifier) {
     val n = (colores.size + libres).coerceAtLeast(1)
+    val quieto = sinMovimiento()
+    // 1 = arriba, fuera del acorde; 0 = en su lugar. Una por cabeza; las nuevas se suman.
+    val caidas = remember { ArrayList<Animatable<Float, AnimationVector1D>>() }
+    while (caidas.size < colores.size) caidas.add(Animatable(1f))
+    LaunchedEffect(colores.size) {
+        caidas.forEachIndexed { i, caida ->
+            if (caida.targetValue != 0f) launch {
+                delay(70L * i)
+                caida.animateTo(0f, if (quieto) tween(150) else spring(dampingRatio = 0.5f, stiffness = Spring.StiffnessMediumLow))
+            }
+        }
+    }
     val paso = 18f
     val base = 26f + (n - 1) * paso
     val arriba = 6f
@@ -90,7 +114,13 @@ fun Acorde(colores: List<Color>, alto: Dp, libres: Int = 0, tinta: Color, modifi
         for (i in 0 until n) {
             val y = base - i * paso
             val x = if (i % 2 == 0) 0f else 3f
-            if (i < colores.size) cabeza(p(x, y), 11.5f * s, 8.5f * s, colores[i])
+            if (i < colores.size) {
+                val caida = caidas.getOrNull(i)?.value ?: 0f
+                // Sin animaciones solo se funde; si no, cae y se aclara un poco mientras cae.
+                val alfa = if (quieto) 1f - caida else 1f - 0.4f * caida
+                val color = colores[i].copy(alpha = colores[i].alpha * alfa.coerceIn(0f, 1f))
+                cabeza(p(x, y - if (quieto) 0f else caida * 40f), 11.5f * s, 8.5f * s, color)
+            }
             else cabeza(p(x, y), 10.5f * s, 7.5f * s, tinta, punteada = tinta)
         }
     }

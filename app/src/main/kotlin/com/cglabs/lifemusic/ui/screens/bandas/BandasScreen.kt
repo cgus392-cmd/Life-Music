@@ -378,6 +378,7 @@ fun EntrarBandaScreen(navController: NavController, codigoInicial: String?) {
     var trabajando by remember { mutableStateOf(false) }
     var error by remember { mutableStateOf<Throwable?>(null) }
     var espera by remember { mutableStateOf<Bandas.Vista?>(null) }
+    var cayendo by remember { mutableStateOf(false) }
     LaunchedEffect(Unit) {
         yo = Bandas.yo(contexto).also { miNombre = it.nombre; if (it.conPerfil) miColor = it.color }
     }
@@ -391,7 +392,14 @@ fun EntrarBandaScreen(navController: NavController, codigoInicial: String?) {
                     if (v.estado == "miembro") navController.navigate("banda/$cod") { popUpTo("bandas/entrar") { inclusive = true } }
                 }
                 .onFailure { e ->
-                    if ((e as? Bandas.ErrorDeBanda)?.codigo in setOf("rechazado", "no-existe")) { espera = null; error = e }
+                    if ((e as? Bandas.ErrorDeBanda)?.codigo in setOf("rechazado", "no-existe")) {
+                        // Si lo rechazan, su cabeza cae antes de quitar la espera.
+                        cayendo = true
+                        delay(700)
+                        espera = null
+                        cayendo = false
+                        error = e
+                    }
                 }
         }
     }
@@ -416,7 +424,7 @@ fun EntrarBandaScreen(navController: NavController, codigoInicial: String?) {
         Column(Modifier.padding(horizontal = 20.dp).padding(top = 20.dp)) {
             val esperando = espera
             if (esperando != null) {
-                Esperando(esperando, miColor, t) {
+                Esperando(esperando, miColor, t, cayendo) {
                     escena.launch { Bandas.olvidar(contexto, esperando.codigo) }
                     espera = null
                 }
@@ -464,14 +472,14 @@ fun EntrarBandaScreen(navController: NavController, codigoInicial: String?) {
 
 /** «Esperando a Camila»: tu cabeza flota junto al acorde mientras te aprueban. */
 @Composable
-internal fun Esperando(v: Bandas.Vista, miColor: String, t: TonoEstudio, alCancelar: () -> Unit) {
+internal fun Esperando(v: Bandas.Vista, miColor: String, t: TonoEstudio, cayendo: Boolean = false, alCancelar: () -> Unit) {
     Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.fillMaxWidth()) {
         Row(
             Modifier.fillMaxWidth().clip(RoundedCornerShape(24.dp)).background(t.sup).padding(18.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
             Row(verticalAlignment = Alignment.CenterVertically) {
-                CabezaPersona(Bandas.color(miColor), "", ancho = 30.dp)
+                CabezaQueEspera(Bandas.color(miColor), 30.dp, cayendo)
                 Acorde(coloresDe(v.colores), alto = 72.dp, tinta = t.txt)
             }
             Column(Modifier.padding(start = 14.dp)) {

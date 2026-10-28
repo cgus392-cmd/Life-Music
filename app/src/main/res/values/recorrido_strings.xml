@@ -10,7 +10,7 @@
     <string name="recorrido_nova_et">New</string>
     <string name="recorrido_nova_t">Nova, your DJ</string>
     <string name="recorrido_nova_p">It builds your music in blocks and talks between songs, like on the radio. You pick its voice and how often it talks.</string>
-    <string name="recorrido_nova_donde">Turn it on in <b>Settings › Player and audio</b>; it lives in <b>its star</b>, at the top of Home.</string>
+    <string name="recorrido_nova_donde">Turn it on in <b>Settings › Player and audio › Transitions and DJ</b>; it lives in <b>its star</b>, at the top of Home.</string>
     <string name="recorrido_estudio_et">New</string>
     <string name="recorrido_estudio_t">Studio measures your phone</string>
     <string name="recorrido_estudio_p">It measures your phone in 3 seconds, and each feature tells you if it\'s Ready, if it Will be slow or if it Won\'t run. Download and delete models there.</string>
