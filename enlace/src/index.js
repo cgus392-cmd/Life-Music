@@ -23,9 +23,14 @@
    - en el cuarto del token entra un solo telefono: el mismo que vuelve
      reemplaza a su lado viejo, uno distinto recibe 409 ocupado;
    - GET /salud para el estado del sistema;
-   - GET /presencia/<token>: si el TV recordado tiene la pagina abierta. */
+   - GET /presencia/<token>: si el TV recordado tiene la pagina abierta.
+
+   2.0: las Bandas y su En vivo viven en bandas.js (rutas /bandas y /banda). */
 
 import { DurableObject } from "cloudflare:workers";
+import { rutaBandas } from "./bandas.js";
+
+export { Banda } from "./bandas.js";
 
 const CUARTO = /^(c-[2-9A-HJKMNP-Z]{6}|t-[0-9a-f]{32})$/;
 const TOKEN = /^t-[0-9a-f]{32}$/;
@@ -34,7 +39,7 @@ const ORIGENES = [/^https:\/\/([a-z0-9-]+\.)?lifemusic\.pages\.dev$/, /^https:\/
 const MAX_MENSAJE = 512 * 1024; // la letra con palabras cronometradas cabe de sobra
 // 1.3.2: un codigo vale 5 minutos y el relevo lo hace cumplir (antes solo el TV lo cambiaba).
 const VIDA_CODIGO_MS = 5 * 60 * 1000;
-const VERSION = "2026-10-08";
+const VERSION = "2026-10-28";
 
 function respuesta(cuerpo, estado = 200) {
   return new Response(JSON.stringify(cuerpo), {
@@ -62,6 +67,9 @@ export default {
       if (!TOKEN.test(partes[1] || "")) return respuesta({ error: "no-existe" }, 404);
       return env.CUARTOS.get(env.CUARTOS.idFromName(partes[1])).fetch(new Request("https://cuarto/presencia"));
     }
+
+    const deBandas = await rutaBandas(request, env, partes);
+    if (deBandas) return deBandas;
 
     if (partes[0] !== "cuarto" || !CUARTO.test(partes[1] || "")) return respuesta({ error: "no-existe" }, 404);
 

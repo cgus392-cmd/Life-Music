@@ -10,6 +10,15 @@ workers_dev = true
 name = "CUARTOS"
 class_name = "Cuarto"
 
+[[durable_objects.bindings]]
+name = "BANDAS"
+class_name = "Banda"
+
 [[migrations]]
 tag = "v1"
 new_sqlite_classes = ["Cuarto"]
+
+# 2.0: Bandas (docs/versiones/2.0/bandas.md).
+[[migrations]]
+tag = "v2"
+new_sqlite_classes = ["Banda"]
