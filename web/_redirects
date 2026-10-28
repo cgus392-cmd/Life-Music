@@ -13,6 +13,7 @@
 /concurso/video.mp4 /concurso/   301
 /califica    /            200
 /califica/   /            200
+/banda/*     /banda/      200
 # Life Music TV en el navegador: la misma pagina del receptor de Cast (200 = se
 # sirve sin cambiar la direccion; la pagina sabe por la ruta que es /tv).
 /tv          /cast/                                                                                   200
