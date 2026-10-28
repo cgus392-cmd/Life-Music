@@ -138,6 +138,11 @@ fun NavGraphBuilder.navigationBuilder(
         com.cglabs.lifemusic.ui.screens.estudio.EstudioModelosScreen(navController)
     }
 
+    // 2.0 · El recorrido de bienvenida: una vez por version (Recorrido.hayPara), tambien al instalar.
+    composable("recorrido") {
+        com.cglabs.lifemusic.ui.screens.recorrido.RecorridoScreen(navController)
+    }
+
     // 2.0 · Bandas (beta): desde el menu de la foto, la tarjeta del Inicio y el QR lifemusic.app/banda/CODIGO.
     composable("bandas") {
         com.cglabs.lifemusic.ui.screens.bandas.BandasScreen(navController)

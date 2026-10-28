@@ -766,7 +766,7 @@ class MainActivity : ComponentActivity() {
                 val isLandscape = configuration.containerDpSize.width > configuration.containerDpSize.height
 
                 val showRail = isLandscape && !inSearchScreen &&
-                    currentRoute != "ambient_mode" && currentRoute != "karaoke"
+                    currentRoute != "ambient_mode" && currentRoute != "karaoke" && currentRoute != "recorrido"
 
                 val navPadding = if (shouldShowNavigationBar && !showRail) {
                     NavigationBarHeight + FloatingToolbarBottomPadding
@@ -942,6 +942,8 @@ class MainActivity : ComponentActivity() {
                 val (lastOpenedVersionCode, setLastOpenedVersionCode) = rememberPreference(com.cglabs.lifemusic.constants.LastOpenedVersionCodeKey, -1)
                 var showWelcomeDialog by remember { mutableStateOf(false) }
                 var mostrarBoletin by remember { mutableStateOf(false) }
+                // 2.0: el recorrido de bienvenida es una ruta propia, opaca y a pantalla completa.
+                var abrirRecorrido by remember { mutableStateOf(false) }
                 // Saludo de entrada: una vez por arranque en frio, y nunca encima de la
                 // bienvenida ni del boletin. Dos intros seguidas es una de mas.
                 var mostrarSaludo by remember { mutableStateOf(SaludoEntrada.reclamarArranqueEnFrio()) }
@@ -955,9 +957,20 @@ class MainActivity : ComponentActivity() {
                     when {
                         lastOpenedVersionCode < 0 -> showWelcomeDialog = true
                         lastOpenedVersionCode < BuildConfig.VERSION_CODE -> {
-                            if (Boletines.para(BuildConfig.VERSION_CODE) != null) mostrarBoletin = true
+                            if (com.cglabs.lifemusic.ui.screens.recorrido.Recorrido.hayPara(BuildConfig.VERSION_CODE)) abrirRecorrido = true
+                            else if (Boletines.para(BuildConfig.VERSION_CODE) != null) mostrarBoletin = true
                             else setLastOpenedVersionCode(BuildConfig.VERSION_CODE)
                         }
+                    }
+                }
+
+                // El recorrido anota la version cuando termina o se salta. Se espera a que el
+                // NavHost tenga su grafo para navegar.
+                LaunchedEffect(abrirRecorrido) {
+                    if (abrirRecorrido) {
+                        navController.currentBackStackEntryFlow.first()
+                        navController.navigate("recorrido") { launchSingleTop = true }
+                        abrirRecorrido = false
                     }
                 }
 
@@ -1325,7 +1338,7 @@ class MainActivity : ComponentActivity() {
                                 }
                             }
 
-                            if (!showRail && currentRoute != "update" && currentRoute != "listen_together/chat" && currentRoute != "ambient_mode" && currentRoute != "karaoke" && currentRoute != "uptime" && currentRoute?.startsWith("settings") != true) {
+                            if (!showRail && currentRoute != "update" && currentRoute != "listen_together/chat" && currentRoute != "ambient_mode" && currentRoute != "karaoke" && currentRoute != "uptime" && currentRoute != "recorrido" && currentRoute?.startsWith("settings") != true) {
                                 Box {
                                     BottomSheetPlayer(
                                         state = playerBottomSheetState,
@@ -1424,7 +1437,7 @@ class MainActivity : ComponentActivity() {
                                     }
                                 }
                             } else {
-                                if (currentRoute != "update" && currentRoute != "listen_together/chat" && currentRoute != "ambient_mode" && currentRoute != "karaoke" && currentRoute != "uptime" && currentRoute?.startsWith("settings") != true) {
+                                if (currentRoute != "update" && currentRoute != "listen_together/chat" && currentRoute != "ambient_mode" && currentRoute != "karaoke" && currentRoute != "uptime" && currentRoute != "recorrido" && currentRoute?.startsWith("settings") != true) {
                                     BottomSheetPlayer(
                                         state = playerBottomSheetState,
                                         navController = navController,
@@ -1656,7 +1669,9 @@ class MainActivity : ComponentActivity() {
                         WelcomeDialog(
                             onDismissRequest = {
                                 showWelcomeDialog = false
-                                setLastOpenedVersionCode(BuildConfig.VERSION_CODE)
+                                // Instalacion nueva de la 2.0: despues de la bienvenida, el recorrido.
+                                if (com.cglabs.lifemusic.ui.screens.recorrido.Recorrido.hayPara(BuildConfig.VERSION_CODE)) abrirRecorrido = true
+                                else setLastOpenedVersionCode(BuildConfig.VERSION_CODE)
                             }
                         )
                     }

@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Recorrido de bienvenida de la 2.0 («el recorrido es una canción»): Brand/maquetas/2026-10-28-recorrido-2-0. -->
+<resources>
+    <string name="recorrido_saltar">Saltar</string>
+    <string name="recorrido_siguiente">Siguiente</string>
+    <string name="recorrido_empezar">Empezar a escuchar</string>
+    <string name="recorrido_pulso_et">Life Music 2.0</string>
+    <string name="recorrido_pulso_t">Esto es Pulso</string>
+    <string name="recorrido_pulso_p">La nota del logo es el pulso de lo que suena: late con la música y toma el color de cada canción. La app se ve nueva por dentro y por fuera.</string>
+    <string name="recorrido_nova_et">Nuevo</string>
+    <string name="recorrido_nova_t">Nova, tu DJ</string>
+    <string name="recorrido_nova_p">Arma la música por bloques y habla entre canciones, como en la radio. Tú eliges su voz y cada cuántas canciones habla.</string>
+    <string name="recorrido_nova_donde">La prendes en <b>Ajustes › Reproductor y audio</b>, y vive en <b>su estrella</b>, arriba en Inicio.</string>
+    <string name="recorrido_estudio_et">Nuevo</string>
+    <string name="recorrido_estudio_t">Estudio mide tu teléfono</string>
+    <string name="recorrido_estudio_p">Mide tu teléfono en 3 segundos y cada función te dice si está Lista, si Va a tardar o si No da. Ahí bajas y borras los modelos.</string>
+    <string name="recorrido_estudio_donde">Toca <b>tu foto</b>, arriba a la derecha, y entra a <b>Estudio</b>.</string>
+    <string name="recorrido_estudio_lista">Lista</string>
+    <string name="recorrido_estudio_lista_q">tu teléfono la aguanta</string>
+    <string name="recorrido_estudio_tarda">Va a tardar</string>
+    <string name="recorrido_estudio_tarda_q">funciona, con calma</string>
+    <string name="recorrido_estudio_noda">No da</string>
+    <string name="recorrido_estudio_noda_q">usa la versión ligera</string>
+    <string name="recorrido_bandas_et">Beta</string>
+    <string name="recorrido_bandas_t">Bandas, en vivo</string>
+    <string name="recorrido_bandas_p">Crea una banda con un código o un QR. En vivo todos oyen lo mismo a la vez, cada uno en su teléfono, y se habla con reacciones.</string>
+    <string name="recorrido_bandas_donde">Se prende en <b>Ajustes › Reproductor y audio › Conexiones y otros</b>.</string>
+    <string name="recorrido_icono_et">Tuyo</string>
+    <string name="recorrido_icono_t">Elige tu ícono</string>
+    <string name="recorrido_icono_p">Toca tu favorito. Puedes cambiarlo cuando quieras en Apariencia.</string>
+    <string name="recorrido_icono_donde">Tu pantalla de inicio puede tardar <b>unos segundos</b> en mostrar el ícono nuevo.</string>
+    <string name="recorrido_listo_et">Todo listo</string>
+    <string name="recorrido_listo_t">A escuchar</string>
+    <string name="recorrido_listo_p">Además, el TV se ve nuevo y Ajustes quedó más ordenado. Lo que trae cada versión lo encuentras en Ajustes › Novedades.</string>
+</resources>

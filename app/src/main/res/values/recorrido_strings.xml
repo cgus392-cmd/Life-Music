@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 2.0 welcome tour ("the tour is a song"). Spanish in values-es/recorrido_strings.xml. -->
+<resources>
+    <string name="recorrido_saltar">Skip</string>
+    <string name="recorrido_siguiente">Next</string>
+    <string name="recorrido_empezar">Start listening</string>
+    <string name="recorrido_pulso_et">Life Music 2.0</string>
+    <string name="recorrido_pulso_t">This is Pulso</string>
+    <string name="recorrido_pulso_p">The note in the logo is the pulse of what\'s playing: it beats with the music and takes each song\'s color. The app looks new inside and out.</string>
+    <string name="recorrido_nova_et">New</string>
+    <string name="recorrido_nova_t">Nova, your DJ</string>
+    <string name="recorrido_nova_p">It builds your music in blocks and talks between songs, like on the radio. You pick its voice and how often it talks.</string>
+    <string name="recorrido_nova_donde">Turn it on in <b>Settings › Player and audio</b>; it lives in <b>its star</b>, at the top of Home.</string>
+    <string name="recorrido_estudio_et">New</string>
+    <string name="recorrido_estudio_t">Studio measures your phone</string>
+    <string name="recorrido_estudio_p">It measures your phone in 3 seconds, and each feature tells you if it\'s Ready, if it Will be slow or if it Won\'t run. Download and delete models there.</string>
+    <string name="recorrido_estudio_donde">Tap <b>your photo</b>, top right, and open <b>Studio</b>.</string>
+    <string name="recorrido_estudio_lista">Ready</string>
+    <string name="recorrido_estudio_lista_q">your phone can handle it</string>
+    <string name="recorrido_estudio_tarda">Will be slow</string>
+    <string name="recorrido_estudio_tarda_q">works, just slower</string>
+    <string name="recorrido_estudio_noda">Won\'t run</string>
+    <string name="recorrido_estudio_noda_q">use the light version</string>
+    <string name="recorrido_bandas_et">Beta</string>
+    <string name="recorrido_bandas_t">Bands, live</string>
+    <string name="recorrido_bandas_p">Create a band with a code or a QR. Live, everyone hears the same thing at the same time, each on their own phone, and you talk with reactions.</string>
+    <string name="recorrido_bandas_donde">Turn it on in <b>Settings › Player and audio › Connections and more</b>.</string>
+    <string name="recorrido_icono_et">Yours</string>
+    <string name="recorrido_icono_t">Pick your icon</string>
+    <string name="recorrido_icono_p">Tap your favorite. You can change it anytime in Appearance.</string>
+    <string name="recorrido_icono_donde">Your home screen may take <b>a few seconds</b> to show the new icon.</string>
+    <string name="recorrido_listo_et">All set</string>
+    <string name="recorrido_listo_t">Let\'s listen</string>
+    <string name="recorrido_listo_p">Also, the TV looks new and Settings is tidier. What each version brings is in Settings › What\'s new.</string>
+</resources>
