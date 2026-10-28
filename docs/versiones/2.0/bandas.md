@@ -72,3 +72,29 @@ En vivo manda mensajes solo cuando algo cambia, no cada segundo, y se mide antes
 3. **F3:** el servidor, con pruebas en local y sin publicar.
 4. **F4:** la app, en tandas instalables.
 5. **F5:** prueba con dos teléfonos. CG consigue el segundo con un probador.
+
+## Estado al 28-10 y cómo seguir (F3)
+
+**La maqueta está APROBADA por CG (28-10):** `Brand/maquetas/2026-10-28-bandas/`.
+- El concepto es «la banda es un acorde»: cada persona es una cabeza de nota con su color y su inicial.
+- Hay 6 reacciones propias, dibujadas en `bandas.js` (`REACCIONES`): Suena, Me encanta, Otra vez, Súbele, A bailar y
+  Escalofrío.
+- Bandas entra en el menú de la foto, en el lugar de «Escuchar juntos». En Inicio va la tarjeta «Tu banda está en vivo».
+
+**Lo que ya se sabe para el servidor (F3):**
+- **El relevo** `enlace/` (`src/index.js`, 191 líneas) tiene un Durable Object `Cuarto` en SQLite, con la migración
+  `v1`. Para las bandas se suma una clase nueva, con su migración `v2`.
+- **El cliente de la app** (`listentogether/`, unas 4300 líneas) puede hablar **JSON** (`MessageCodec`, `MessageFormat.JSON`).
+  - Mensajes del cliente: `create_room`, `join_room`, `leave_room`, `approve_join`, `reject_join`, `playback_action`,
+    `buffer_ready`, `kick_user`, `transfer_host`, `ping`, `request_sync`, `reconnect`, `suggest_track` y
+    `update_room_settings`.
+  - Mensajes del servidor: `room_created`, `join_request`, `join_approved`, `user_joined`, `user_left`, `sync_playback`,
+    `buffer_wait`, `buffer_complete`, `host_changed`, `kicked`, `sync_state`, `reconnected`, `pong`, `error` y los
+    demás.
+  - El tipo `chat` se ignora, porque la banda solo usa reacciones.
+- **Para probar en local:** en este PC, `wrangler dev` falló con «miniflare-email-store: acceso denegado» (lo vio la
+  sesión iPhone). Hay que probar con `--persist-to` apuntando al scratchpad.
+- **Nada se publica sin el «publica» de CG.**
+
+**Recomendación (28-10):** la sesión General ya va al 76 % de su contexto, y cada mensaje la relee entera. Bandas se
+programa mejor en un chat nuevo, «Life Music · Bandas», que arranque leyendo esta ficha.
