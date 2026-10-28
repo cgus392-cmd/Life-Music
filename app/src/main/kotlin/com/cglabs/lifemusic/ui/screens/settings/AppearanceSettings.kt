@@ -179,6 +179,16 @@ highlightKey: String? = null, seccion: String? = null) {
         com.cglabs.lifemusic.constants.EnableLegacyIconKey,
         defaultValue = false
     )
+    val (iconoGuardado, alCambiarIcono) = rememberPreference(com.cglabs.lifemusic.constants.IconoAppKey, defaultValue = "carbon")
+    val iconoActual = IconoDeLaApp.de(iconoGuardado)
+    var verSelectorDeIcono by remember { mutableStateOf(false) }
+    if (verSelectorDeIcono) {
+        SelectorDeIcono(
+            actual = iconoActual,
+            alElegir = { alCambiarIcono(it.clave); onEnableLegacyIconChange(false) },
+            alCerrar = { verSelectorDeIcono = false },
+        )
+    }
     val (enableHighRefreshRate, onEnableHighRefreshRateChange) = rememberPreference(
         com.cglabs.lifemusic.constants.EnableHighRefreshRateKey,
         defaultValue = true
@@ -1179,28 +1189,15 @@ highlightKey: String? = null, seccion: String? = null) {
 
 
 
+                // 2.0 · El ícono de la app (CG, 28-10): elegir entre las seis versiones del logo.
+                // Reemplaza al interruptor del ícono clásico de la hoja verde.
                 add(
                     Material3SettingsItem(
-    isHighlighted = (highlightKey == stringResource(R.string.legacy_icon)),
-                        customIcon = { Icon(painterResource(R.mipmap.legacy_icon_monochrome), contentDescription = null, modifier = Modifier.size(48.dp), tint = MaterialTheme.colorScheme.primary) },
-                        title = { Text(stringResource(R.string.legacy_icon)) },
-                        description = { Text(stringResource(R.string.legacy_icon_desc)) },
-                        trailingContent = {
-                            Switch(
-                                checked = enableLegacyIcon,
-                                onCheckedChange = { handleIconChange(it) },
-                                thumbContent = {
-                                    Icon(
-                                        painter = painterResource(
-                                            id = if (enableLegacyIcon) R.drawable.check else R.drawable.close
-                                        ),
-                                        contentDescription = null,
-                                        modifier = Modifier.size(SwitchDefaults.IconSize)
-                                    )
-                                }
-                            )
-                        },
-                        onClick = { handleIconChange(!enableLegacyIcon) }
+                        isHighlighted = (highlightKey == stringResource(R.string.icono_de_la_app)),
+                        icon = painterResource(R.drawable.ic_launcher_mono_pulso),
+                        title = { Text(stringResource(R.string.icono_de_la_app)) },
+                        description = { Text(stringResource(iconoActual.nombre)) },
+                        onClick = { verSelectorDeIcono = true }
                     )
                 )
                 add(

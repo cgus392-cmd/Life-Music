@@ -1475,4 +1475,14 @@
     <string name="boletin_v200_ademas_1">Si la voz de Nova no alcanza, el anuncio sale escrito en Life Line.</string>
     <string name="boletin_v200_ademas_2">Política de privacidad actualizada: Bandas guarda lo mínimo y En vivo no guarda nada.</string>
     <string name="boletin_v200_boton">Abrir Estudio</string>
+    <!-- 2.0 · Ícono de la app (28-10) -->
+    <string name="icono_de_la_app">Ícono de la app</string>
+    <string name="icono_carbon">Carbón</string>
+    <string name="icono_blanco">Blanco</string>
+    <string name="icono_gris">Gris</string>
+    <string name="icono_tinta">Tinta</string>
+    <string name="icono_coral">Coral</string>
+    <string name="icono_sobrecoral">Sobre coral</string>
+    <string name="icono_aviso">Listo: el ícono cambia en unos segundos</string>
+    <string name="icono_nota">Tu launcher puede tardar unos segundos. Si tenías Life Music en la pantalla de inicio, quizá tengas que volver a ponerla.</string>
 </resources>

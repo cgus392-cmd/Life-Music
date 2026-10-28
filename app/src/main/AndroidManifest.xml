@@ -273,6 +273,73 @@
             </intent-filter>
         </activity-alias>
 
+        <!-- 2.0 · El selector de ícono de Apariencia (IconoDeLaApp.kt): un alias por versión del logo; solo uno prendido. -->
+        <activity-alias
+            android:name=".MainActivityIconoBlanco"
+            android:enabled="false"
+            android:exported="true"
+            android:icon="@mipmap/ic_launcher_blanco"
+            android:label="@string/app_name"
+            android:roundIcon="@mipmap/ic_launcher_blanco"
+            android:targetActivity=".MainActivity">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity-alias>
+        <activity-alias
+            android:name=".MainActivityIconoGris"
+            android:enabled="false"
+            android:exported="true"
+            android:icon="@mipmap/ic_launcher_gris"
+            android:label="@string/app_name"
+            android:roundIcon="@mipmap/ic_launcher_gris"
+            android:targetActivity=".MainActivity">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity-alias>
+        <activity-alias
+            android:name=".MainActivityIconoTinta"
+            android:enabled="false"
+            android:exported="true"
+            android:icon="@mipmap/ic_launcher_tinta"
+            android:label="@string/app_name"
+            android:roundIcon="@mipmap/ic_launcher_tinta"
+            android:targetActivity=".MainActivity">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity-alias>
+        <activity-alias
+            android:name=".MainActivityIconoCoral"
+            android:enabled="false"
+            android:exported="true"
+            android:icon="@mipmap/ic_launcher_coral"
+            android:label="@string/app_name"
+            android:roundIcon="@mipmap/ic_launcher_coral"
+            android:targetActivity=".MainActivity">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity-alias>
+        <activity-alias
+            android:name=".MainActivityIconoSobreCoral"
+            android:enabled="false"
+            android:exported="true"
+            android:icon="@mipmap/ic_launcher_sobrecoral"
+            android:label="@string/app_name"
+            android:roundIcon="@mipmap/ic_launcher_sobrecoral"
+            android:targetActivity=".MainActivity">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity-alias>
+
         <provider
             android:name="androidx.core.content.FileProvider"
             android:authorities="${applicationId}.FileProvider"

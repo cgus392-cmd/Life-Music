@@ -1,16 +1,16 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Life Music 2.0 · logo «la nota es el pulso» · frente del ícono adaptativo (hueso y coral sobre carbón)
-     108 dp con el símbolo dentro de la zona segura de 66 dp. -->
+<!-- Life Music 2.0 · ícono «Carbón» · frente del ícono adaptativo (trazo #F5F5F3, cabeza #FF6B3D)
+     108 dp con el símbolo dentro de la zona segura de 66 dp; escala 0,38 (pedido de CG, 28-10: con más aire): lo más lejano del símbolo queda a 26 dp del centro (zona segura: 33). -->
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
     android:width="108dp"
     android:height="108dp"
     android:viewportWidth="108"
     android:viewportHeight="108">
     <group
-        android:scaleX="0.56"
-        android:scaleY="0.56"
-        android:translateX="30.76"
-        android:translateY="26">
+        android:scaleX="0.38"
+        android:scaleY="0.38"
+        android:translateX="38.13"
+        android:translateY="35">
         <path
             android:pathData="M28,31 Q28,22 21,18 Q13,14 12,8 V80 Q12,92 24,92 Q36,92 36,80 V58 Q36,42 49,42 Q62,42 62,58 V90 V58 Q62,42 75,42 Q88,42 88,58 V90"
             android:strokeColor="#FFF5F5F3"

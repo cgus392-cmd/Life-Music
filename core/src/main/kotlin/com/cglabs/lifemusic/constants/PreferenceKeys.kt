@@ -1095,6 +1095,9 @@ val EstudioActivoKey = booleanPreferencesKey("estudioActivo")
  */
 val GolpesTvKey = booleanPreferencesKey("golpesTv")
 
+/** 2.0 · El ícono elegido en Apariencia: «carbon» (de fabrica), «blanco», «gris», «tinta», «coral» o «sobrecoral». */
+val IconoAppKey = stringPreferencesKey("iconoApp")
+
 /**
  * Instante del ultimo arranque en frio, en milisegundos. Sirve para que el saludo
  * sepa cuanto hace que no abres —una semana sin entrar merece otra frase— sin

@@ -1852,7 +1852,17 @@
     <string name="boletin_v200_tv">A Pulse receiver, a Stage theme that jumps with real beats and the Lite theme for simple TVs.</string>
     <string name="boletin_v200_ajustes_t">Tidier settings</string>
     <string name="boletin_v200_ajustes">Appearance and Player now have subcategories. Search still takes you straight there.</string>
-    <string name="boletin_v200_ademas_1">If Nova's voice isn't ready in time, the intro shows up written in Life Line.</string>
+    <string name="boletin_v200_ademas_1">If Nova\'s voice isn\'t ready in time, the intro shows up written in Life Line.</string>
     <string name="boletin_v200_ademas_2">Updated privacy policy: Bands keeps the minimum and Live keeps nothing.</string>
     <string name="boletin_v200_boton">Open Studio</string>
+    <!-- 2.0 · Ícono de la app (28-10) -->
+    <string name="icono_de_la_app">App icon</string>
+    <string name="icono_carbon">Charcoal</string>
+    <string name="icono_blanco">White</string>
+    <string name="icono_gris">Gray</string>
+    <string name="icono_tinta">Ink</string>
+    <string name="icono_coral">Coral</string>
+    <string name="icono_sobrecoral">On coral</string>
+    <string name="icono_aviso">Done: the icon changes in a few seconds</string>
+    <string name="icono_nota">Your launcher may take a few seconds. If Life Music was on your home screen, you may need to add it again.</string>
 </resources>
