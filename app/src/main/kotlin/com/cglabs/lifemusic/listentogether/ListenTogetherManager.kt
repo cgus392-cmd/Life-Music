@@ -501,7 +501,15 @@ class ListenTogetherManager @Inject constructor(
             
             is ListenTogetherEvent.PlaybackSync -> {
                 Timber.tag(TAG).d("PlaybackSync received: ${event.action.action}")
-                if (isSyncing) return
+                if (isSyncing) {
+                    // Bandas (28-10): el PLAY que llega mientras se carga la cancion nueva no se pierde;
+                    // antes se botaba y el invitado quedaba quieto hasta el siguiente latido del anfitrion.
+                    val accion = event.action.action
+                    if (bufferingTrackId != null && (accion == PlaybackActions.PLAY || accion == PlaybackActions.PAUSE)) {
+                        guardarPendiente(event.action)
+                    }
+                    return
+                }
                 handlePlaybackSync(event.action)
             }
             
@@ -775,6 +783,21 @@ class ListenTogetherManager @Inject constructor(
         connection.service.playerVolume.value = target
     }
 
+    /** Guarda un PLAY o PAUSE para aplicarlo cuando la cancion nueva termine de cargar. */
+    private fun guardarPendiente(action: PlaybackActionPayload) {
+        val now = System.currentTimeMillis()
+        val suena = action.action == PlaybackActions.PLAY
+        val base = action.position ?: pendingSyncState?.position ?: 0L
+        // Lo que tardo en llegar desde el anfitrion ya sono alla.
+        val posicion = if (suena) base + (action.serverTime?.let { kotlin.math.max(0L, now - it) } ?: 0L) else base
+        pendingSyncState = (pendingSyncState ?: SyncStatePayload(
+            currentTrack = roomState.value?.currentTrack,
+            isPlaying = suena,
+            position = posicion,
+            lastUpdate = now
+        )).copy(isPlaying = suena, position = posicion, lastUpdate = now)
+    }
+
     private fun applyPendingSyncIfReady() {
         val pending = pendingSyncState ?: return
         val pendingTrackId = pending.currentTrack?.id ?: bufferingTrackId ?: return
@@ -788,7 +811,12 @@ class ListenTogetherManager @Inject constructor(
         Timber.tag(TAG).d("Applying pending sync: track=$pendingTrackId, pos=${pending.position}, play=${pending.isPlaying}")
         isSyncing = true
 
-        val targetPos = pending.position
+        // Si el anfitrion ya esta sonando, lo que tardo la carga tambien sono alla (Bandas, 28-10).
+        val targetPos = if (pending.isPlaying) {
+            pending.position + kotlin.math.max(0L, System.currentTimeMillis() - pending.lastUpdate)
+        } else {
+            pending.position
+        }
         val posDiff = kotlin.math.abs(player.currentPosition - targetPos)
         val willPlay = pending.isPlaying
         
@@ -1275,14 +1303,24 @@ class ListenTogetherManager @Inject constructor(
                     bufferingTrackId = null
                     bufferCompleteReceivedForTrack = null
                 } else {
-                    
+
                     connection.pause()
-                    pendingSyncState = SyncStatePayload(
-                        currentTrack = currentTrack,
-                        isPlaying = isPlaying,
-                        position = position,
-                        lastUpdate = System.currentTimeMillis()
-                    )
+                    // Bandas (28-10): «listo» de verdad, como en syncToTrack. Antes se avisaba apenas se
+                    // ponia la cola, y el invitado arrancaba tarde. Se espera la carga hasta 5 s.
+                    var espera = 0
+                    while (player.playbackState != Player.STATE_READY && espera < 100 && currentTrackGeneration == generation) {
+                        delay(50)
+                        espera++
+                    }
+                    if (currentTrackGeneration != generation) return@launch
+                    // Si mientras cargaba llego el PLAY del anfitrion, ese manda.
+                    pendingSyncState = pendingSyncState?.takeIf { it.currentTrack?.id == currentTrack.id }
+                        ?: SyncStatePayload(
+                            currentTrack = currentTrack,
+                            isPlaying = isPlaying,
+                            position = position,
+                            lastUpdate = System.currentTimeMillis()
+                        )
                     applyPendingSyncIfReady()
                     client.sendBufferReady(currentTrack.id)
                 }
@@ -1660,8 +1698,9 @@ class ListenTogetherManager @Inject constructor(
         if (heartbeatJob?.isActive == true) return
         heartbeatJob = scope.launch {
             while (heartbeatJob?.isActive == true && isInRoom && isHost) {
-                // En una banda, cada 30 s: entre latidos la sala del relevo puede dormir (plan gratis).
-                delay(if (client.banda != null) 30000L else 10000L)
+                // Cada 10 s, tambien en una banda: con 30 s un invitado desfasado tardaba demasiado en
+                // corregirse (prueba de CG, 28-10). El relevo gratis lo aguanta.
+                delay(10000L)
                 playerConnection?.player?.let { player ->
                     if (player.playWhenReady && player.playbackState == Player.STATE_READY) {
                         val pos = player.currentPosition
