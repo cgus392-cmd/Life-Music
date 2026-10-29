@@ -30,9 +30,13 @@ import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Switch
+import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -66,11 +70,15 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.edit
 import androidx.navigation.NavController
 import com.cglabs.lifemusic.BuildConfig
 import com.cglabs.lifemusic.R
 import com.cglabs.lifemusic.bandas.Bandas
+import com.cglabs.lifemusic.constants.AuroraActivaKey
+import com.cglabs.lifemusic.constants.BandasActivaKey
+import com.cglabs.lifemusic.constants.EstudioActivoKey
 import com.cglabs.lifemusic.constants.IconoAppKey
 import com.cglabs.lifemusic.constants.LastOpenedVersionCodeKey
 import com.cglabs.lifemusic.ui.component.Aurora
@@ -197,7 +205,7 @@ private fun Avance(fraccion: Float, t: TonoEstudio, modifier: Modifier) {
 
 @Composable
 private fun Pagina(i: Int, t: TonoEstudio) {
-    Column(Modifier.fillMaxSize()) {
+    Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState())) {
         Box(Modifier.fillMaxWidth().height(320.dp).padding(horizontal = 24.dp), contentAlignment = Alignment.Center) {
             when (i) {
                 0 -> Simbolo(t.txt, 190.dp)
@@ -233,7 +241,42 @@ private fun Pagina(i: Int, t: TonoEstudio) {
                         .padding(horizontal = 14.dp, vertical = 10.dp),
                 )
             }
+            // Aurora, Estudio y Bandas vienen prendidos; aqui cada quien decide si los apaga.
+            when (i) {
+                0 -> Interruptor(AuroraActivaKey, R.string.aurora_activa, R.string.recorrido_aurora_nota, t)
+                2 -> Interruptor(EstudioActivoKey, R.string.estudio_titulo, R.string.recorrido_interruptor_nota, t)
+                3 -> Interruptor(BandasActivaKey, R.string.bandas_titulo, R.string.recorrido_interruptor_nota, t)
+            }
+            Spacer(Modifier.height(16.dp))
         }
+    }
+}
+
+@Composable
+private fun Interruptor(clave: Preferences.Key<Boolean>, titulo: Int, nota: Int, t: TonoEstudio) {
+    val (prendido, cambiar) = rememberPreference(clave, defaultValue = true)
+    Row(
+        Modifier.padding(top = 10.dp).fillMaxWidth().clip(RoundedCornerShape(16.dp)).background(t.sup)
+            .clickable { cambiar(!prendido) }.padding(start = 14.dp, end = 10.dp, top = 10.dp, bottom = 10.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Column(Modifier.weight(1f)) {
+            Text(stringResource(titulo), color = t.txt, fontSize = 14.5.sp, fontWeight = FontWeight.SemiBold)
+            Text(stringResource(nota), color = t.sec, fontSize = 12.5.sp, lineHeight = 17.sp, modifier = Modifier.padding(top = 2.dp))
+        }
+        Switch(
+            checked = prendido,
+            onCheckedChange = cambiar,
+            colors = SwitchDefaults.colors(
+                checkedThumbColor = Color.White,
+                checkedTrackColor = CORAL,
+                checkedBorderColor = CORAL,
+                uncheckedThumbColor = t.terc,
+                uncheckedTrackColor = t.sup2,
+                uncheckedBorderColor = t.terc,
+            ),
+            modifier = Modifier.padding(start = 10.dp),
+        )
     }
 }
 

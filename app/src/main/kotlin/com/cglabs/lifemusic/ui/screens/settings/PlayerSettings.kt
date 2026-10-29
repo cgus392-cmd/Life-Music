@@ -139,7 +139,7 @@ highlightKey: String? = null, seccion: String? = null) {
     )
     val (bandasActiva, onBandasActivaChange) = rememberPreference(
         com.cglabs.lifemusic.constants.BandasActivaKey,
-        defaultValue = false
+        defaultValue = true
     )
     val (crossfadeDuration, onCrossfadeDurationChange) = rememberPreference(
         CrossfadeDurationKey,

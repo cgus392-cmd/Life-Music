@@ -301,7 +301,7 @@ private fun minutos(ms: Long): String {
  */
 @Composable
 fun TarjetaBandaEnVivo(navController: NavController, modifier: Modifier = Modifier) {
-    val (activa, _) = rememberPreference(BandasActivaKey, defaultValue = false)
+    val (activa, _) = rememberPreference(BandasActivaKey, defaultValue = true)
     if (!activa) return
     val contexto = LocalContext.current
     val t = tonoDeEstudio()

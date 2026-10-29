@@ -24,7 +24,7 @@
     <string name="recorrido_bandas_et">Beta</string>
     <string name="recorrido_bandas_t">Bandas, en vivo</string>
     <string name="recorrido_bandas_p">Crea una banda con un código o un QR. En vivo todos oyen lo mismo a la vez, cada uno en su teléfono, y se habla con reacciones.</string>
-    <string name="recorrido_bandas_donde">Se prende en <b>Ajustes › Reproductor y audio › Conexiones y otros</b>.</string>
+    <string name="recorrido_bandas_donde">Toca <b>tu foto</b>, arriba a la derecha, y entra a <b>Bandas</b>.</string>
     <string name="recorrido_icono_et">Tuyo</string>
     <string name="recorrido_icono_t">Elige tu ícono</string>
     <string name="recorrido_icono_p">Toca tu favorito. Puedes cambiarlo cuando quieras en Apariencia.</string>
@@ -32,4 +32,6 @@
     <string name="recorrido_listo_et">Todo listo</string>
     <string name="recorrido_listo_t">A escuchar</string>
     <string name="recorrido_listo_p">Además, el TV se ve nuevo y Ajustes quedó más ordenado. Lo que trae cada versión lo encuentras en Ajustes › Novedades.</string>
+    <string name="recorrido_aurora_nota">Recomendada. Si la apagas, Estudio y Bandas no salen en el menú de tu foto.</string>
+    <string name="recorrido_interruptor_nota">Viene prendido. Lo cambias cuando quieras en Ajustes.</string>
 </resources>

@@ -276,7 +276,7 @@ highlightKey: String? = null, seccion: String? = null) {
     val (greetingEnabled, onGreetingEnabledChange) =
         rememberPreference(GreetingEnabledKey, defaultValue = true)
     val (auroraActiva, onAuroraActivaChange) =
-        rememberPreference(com.cglabs.lifemusic.constants.AuroraActivaKey, defaultValue = false)
+        rememberPreference(com.cglabs.lifemusic.constants.AuroraActivaKey, defaultValue = true)
     val (estudioActivo, onEstudioActivoChange) =
         rememberPreference(com.cglabs.lifemusic.constants.EstudioActivoKey, defaultValue = true)
     val (lifeLineEnabled, onLifeLineEnabledChange) =

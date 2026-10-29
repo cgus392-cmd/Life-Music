@@ -24,7 +24,7 @@
     <string name="recorrido_bandas_et">Beta</string>
     <string name="recorrido_bandas_t">Bands, live</string>
     <string name="recorrido_bandas_p">Create a band with a code or a QR. Live, everyone hears the same thing at the same time, each on their own phone, and you talk with reactions.</string>
-    <string name="recorrido_bandas_donde">Turn it on in <b>Settings › Player and audio › Connections and more</b>.</string>
+    <string name="recorrido_bandas_donde">Tap <b>your photo</b>, top right, and open <b>Bands</b>.</string>
     <string name="recorrido_icono_et">Yours</string>
     <string name="recorrido_icono_t">Pick your icon</string>
     <string name="recorrido_icono_p">Tap your favorite. You can change it anytime in Appearance.</string>
@@ -32,4 +32,6 @@
     <string name="recorrido_listo_et">All set</string>
     <string name="recorrido_listo_t">Let\'s listen</string>
     <string name="recorrido_listo_p">Also, the TV looks new and Settings is tidier. What each version brings is in Settings › What\'s new.</string>
+    <string name="recorrido_aurora_nota">Recommended. If you turn it off, Studio and Bands won\'t show in your photo menu.</string>
+    <string name="recorrido_interruptor_nota">On by default. Change it anytime in Settings.</string>
 </resources>

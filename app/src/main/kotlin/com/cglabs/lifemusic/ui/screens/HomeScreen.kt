@@ -957,7 +957,7 @@ fun HomeScreen(
 
             // 2.0 · Aurora: el degradado detrás del Inicio, con los colores de lo que suena.
             // Al bajar se apaga y la barra de arriba pasa a vidrio (lee Aurora.fraccion).
-            val auroraActiva by rememberPreference(AuroraActivaKey, defaultValue = false)
+            val auroraActiva by rememberPreference(AuroraActivaKey, defaultValue = true)
             val coloresAurora = rememberColoresAurora()
             val oscuroAurora = MaterialTheme.colorScheme.surface.luminance() < 0.5f
             val negroPuroAurora by rememberPreference(PureBlackKey, defaultValue = false)
