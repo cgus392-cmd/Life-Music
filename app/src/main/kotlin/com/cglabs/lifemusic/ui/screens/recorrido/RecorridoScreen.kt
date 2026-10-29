@@ -103,11 +103,16 @@ import kotlinx.coroutines.launch
  * telefonos dejaba ver lo de atras. Sale una vez por version, tambien al instalar.
  */
 
-/** La version que tiene recorrido. Las demas siguen con su boletin. */
+/**
+ * Las versiones que tienen recorrido (2.0.0 y 2.0.1). Las demas siguen con su boletin.
+ * Quien ya lo vio en la 2.0.0 no lo repite al pasar a la 2.0.1.
+ */
 object Recorrido {
-    const val VERSION_CODE = 25
+    const val DESDE = 25
+    const val HASTA = 26
 
-    fun hayPara(versionCode: Int) = versionCode == VERSION_CODE
+    fun hayPara(versionCode: Int, ultimaAbierta: Int = -1) =
+        versionCode in DESDE..HASTA && ultimaAbierta < DESDE
 }
 
 private val CORAL = Color(0xFFFF6B3D)

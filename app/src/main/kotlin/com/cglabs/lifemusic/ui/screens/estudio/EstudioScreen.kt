@@ -92,7 +92,7 @@ fun EstudioScreen(navController: NavController) {
     val medidor = remember { Animatable(0f) }
     LaunchedEffect(Unit) { medidor.animateTo(aguante, tween(900, easing = FastOutSlowInEasing)) }
 
-    val (karaoke, alKaraoke) = rememberPreference(KaraokePropioKey, defaultValue = false)
+    val (karaoke, alKaraoke) = rememberPreference(KaraokePropioKey, defaultValue = true)
     val (vozHD, alVozHD) = rememberPreference(NovaVozHDKey, defaultValue = "")
     val (golpes, alGolpes) = rememberPreference(GolpesTvKey, defaultValue = true)
     val (vidrio, alVidrio) = rememberPreference(LiquidGlassGlobalEnabledKey, defaultValue = false)

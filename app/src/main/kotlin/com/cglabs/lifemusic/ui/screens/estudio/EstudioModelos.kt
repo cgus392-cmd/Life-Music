@@ -73,7 +73,7 @@ fun EstudioModelosScreen(navController: NavController) {
     var vuelta by remember { mutableIntStateOf(0) }
     val bajados = remember(vuelta) { ModelosDelTelefono.bajados(contexto) }
     val (vozHD, alVozHD) = rememberPreference(NovaVozHDKey, defaultValue = "")
-    val (_, alKaraoke) = rememberPreference(KaraokePropioKey, defaultValue = false)
+    val (_, alKaraoke) = rememberPreference(KaraokePropioKey, defaultValue = true)
     var aBorrar by remember { mutableStateOf<ModeloBajado?>(null) }
     var verCreditos by remember { mutableStateOf(false) }
     var bajando by remember { mutableStateOf<Map<String, Float>>(emptyMap()) }

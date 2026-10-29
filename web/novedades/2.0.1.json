@@ -1,0 +1,36 @@
+{
+  "version": "2.0.1",
+  "imagen": "https://lifemusic.pages.dev/novedades/2.0.1.webp",
+  "es": {
+    "resumen": "Una versión corta para que el karaoke propio se vea donde importa: en la letra.",
+    "funciones": [
+      { "icono": "lyrics", "titulo": "Cántala palabra por palabra", "texto": "Si una canción descargada o local trae la letra por línea, un toque encima de la letra y tu teléfono la pasa a palabra por palabra, en segundo plano." },
+      { "icono": "tune", "titulo": "Prendido de fábrica", "texto": "El karaoke propio, Aurora, Estudio y Bandas vienen prendidos. Si no los quieres, los apagas en el recorrido o en Estudio." }
+    ],
+    "arreglos": [
+      "El recorrido de la 2.0 también sale para quien instala la 2.0.1 o llega desde la 1.x.",
+      "El actualizador estrena el fondo de Pulso mientras carga la imagen de cada versión."
+    ]
+  },
+  "en": {
+    "resumen": "A short release so your own karaoke shows up where it matters: on the lyrics.",
+    "funciones": [
+      { "icono": "lyrics", "titulo": "Sing it word by word", "texto": "If a downloaded or local song has line-by-line lyrics, one tap above the lyrics and your phone turns them word by word, in the background." },
+      { "icono": "tune", "titulo": "On by default", "texto": "Your own karaoke, Aurora, Studio and Bands come turned on. If you do not want them, turn them off in the tour or in Studio." }
+    ],
+    "arreglos": [
+      "The 2.0 welcome tour also shows up when you install 2.0.1 or come from 1.x.",
+      "The updater shows the Pulse background while each version's image loads."
+    ]
+  },
+  "apk": {
+    "lifemusic.apk": {
+      "bytes": 126085462,
+      "sha256": "4ae58e05ec011ee17401815fb20547930fb51b4892f1c794514f30432ed3abcf"
+    },
+    "lifemusic-arm64.apk": {
+      "bytes": 54564363,
+      "sha256": "95117e53c1eae3bfcf01ac708c2b502c6824a122a435a42c6ae67b7c507101b7"
+    }
+  }
+}

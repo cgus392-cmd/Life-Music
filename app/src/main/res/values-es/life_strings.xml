@@ -1408,6 +1408,7 @@
     <!-- 2.x · Karaoke propio (beta) -->
     <string name="karaoke_propio">Karaoke Life Music (beta)</string>
     <string name="karaoke_propio_desc">Palabra por palabra para las letras que solo van por línea. Canciones descargadas o locales, se preparan una vez en segundo plano</string>
+    <string name="karaoke_invitacion">Cántala palabra por palabra (beta)</string>
     <string name="karaoke_preparar">Preparar karaoke (beta)</string>
     <string name="karaoke_preparar_desc">Palabra por palabra para esta letra, en segundo plano</string>
     <string name="karaoke_en_cola">Preparando el karaoke. Puedes salir de la app: la notificación te avisa cuando esté listo</string>

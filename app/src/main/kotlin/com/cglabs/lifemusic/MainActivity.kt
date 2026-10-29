@@ -957,7 +957,7 @@ class MainActivity : ComponentActivity() {
                     when {
                         lastOpenedVersionCode < 0 -> showWelcomeDialog = true
                         lastOpenedVersionCode < BuildConfig.VERSION_CODE -> {
-                            if (com.cglabs.lifemusic.ui.screens.recorrido.Recorrido.hayPara(BuildConfig.VERSION_CODE)) abrirRecorrido = true
+                            if (com.cglabs.lifemusic.ui.screens.recorrido.Recorrido.hayPara(BuildConfig.VERSION_CODE, lastOpenedVersionCode)) abrirRecorrido = true
                             else if (Boletines.para(BuildConfig.VERSION_CODE) != null) mostrarBoletin = true
                             else setLastOpenedVersionCode(BuildConfig.VERSION_CODE)
                         }

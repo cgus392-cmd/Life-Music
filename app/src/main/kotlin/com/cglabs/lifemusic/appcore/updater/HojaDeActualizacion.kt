@@ -118,7 +118,7 @@ fun HojaDeActualizacion(
     }
 }
 
-/** La imagen de la version; mientras carga o si no hay, un fondo de la marca. */
+/** La imagen de la version; mientras carga o si no hay, un fondo Pulso: carbon con la nota coral. */
 @Composable
 internal fun ImagenDeVersion(url: String?, local: Int? = null) {
     val forma = RoundedCornerShape(24.dp)
@@ -127,13 +127,13 @@ internal fun ImagenDeVersion(url: String?, local: Int? = null) {
             .fillMaxWidth()
             .aspectRatio(16f / 9f)
             .clip(forma)
-            .background(Brush.linearGradient(listOf(Color(0xFF0B0F0D), Color(0xFF12402F), Color(0xFF0B0F0D)))),
+            .background(Brush.linearGradient(listOf(Color(0xFF0E0E0E), Color(0xFF2B1610), Color(0xFF0E0E0E)))),
         contentAlignment = Alignment.Center,
     ) {
         Icon(
-            painterResource(R.drawable.music_note),
+            painterResource(R.drawable.ic_stat_lifemusic),
             contentDescription = null,
-            tint = Color(0x5534D399),
+            tint = Color(0x99FF6B3D),
             modifier = Modifier.size(56.dp),
         )
         if (local != null || url != null) {

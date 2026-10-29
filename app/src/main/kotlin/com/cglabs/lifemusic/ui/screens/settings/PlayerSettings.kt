@@ -135,7 +135,7 @@ highlightKey: String? = null, seccion: String? = null) {
     )
     val (karaokePropio, onKaraokePropioChange) = rememberPreference(
         com.cglabs.lifemusic.constants.KaraokePropioKey,
-        defaultValue = false
+        defaultValue = true
     )
     val (bandasActiva, onBandasActivaChange) = rememberPreference(
         com.cglabs.lifemusic.constants.BandasActivaKey,

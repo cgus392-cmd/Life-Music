@@ -1788,6 +1788,7 @@
     <!-- 2.x · Karaoke propio (beta) -->
     <string name="karaoke_propio">Life Music karaoke (beta)</string>
     <string name="karaoke_propio_desc">Word by word for lyrics that only sync by line. Downloaded or local songs, prepared once in the background</string>
+    <string name="karaoke_invitacion">Sing it word by word (beta)</string>
     <string name="karaoke_preparar">Prepare karaoke (beta)</string>
     <string name="karaoke_preparar_desc">Word by word for these lyrics, in the background</string>
     <string name="karaoke_en_cola">Preparing the karaoke. You can leave the app: the notification tells you when it is ready</string>

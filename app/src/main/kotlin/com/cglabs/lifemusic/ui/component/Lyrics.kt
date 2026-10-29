@@ -122,6 +122,7 @@ import coil3.request.allowHardware
 import coil3.toBitmap
 import com.cglabs.lifemusic.LocalDatabase
 import com.cglabs.lifemusic.LocalListenTogetherManager
+import com.cglabs.lifemusic.LocalDownloadUtil
 import com.cglabs.lifemusic.LocalPlayerConnection
 import com.cglabs.lifemusic.R
 import com.cglabs.lifemusic.constants.DarkModeKey
@@ -191,6 +192,8 @@ import com.cglabs.lifemusic.ui.utils.fadingEdge
 import com.cglabs.lifemusic.utils.ComposeToImage
 import com.cglabs.lifemusic.utils.rememberEnumPreference
 import com.cglabs.lifemusic.utils.rememberPreference
+import com.cglabs.lifemusic.utils.isLocalMediaId
+import com.cglabs.lifemusic.ui.menu.InvitacionKaraoke
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
@@ -254,6 +257,10 @@ fun Lyrics(
     val lyricsEntity by playerConnection.currentLyrics.collectAsState(initial = null)
     val currentSong by playerConnection.currentSong.collectAsState(initial = null)
     val lyrics = remember(lyricsEntity) { lyricsEntity?.lyrics?.trim() }
+    // 2.0.1 · El karaoke propio a la vista: una letra por linea de una cancion que esta en el
+    // telefono se pasa a palabra por palabra desde la letra misma, sin buscarlo en el menu.
+    val (karaokePropio) = rememberPreference(com.cglabs.lifemusic.constants.KaraokePropioKey, defaultValue = true)
+    val descargaKaraoke by LocalDownloadUtil.current.getDownload(mediaMetadata?.id.orEmpty()).collectAsState(initial = null)
 
     val playerBackground by rememberEnumPreference(
         key = PlayerBackgroundStyleKey,
@@ -451,6 +458,9 @@ fun Lyrics(
         remember(lyrics) {
             !lyrics.isNullOrEmpty() && lyrics.startsWith("[")
         }
+    val invitarKaraoke = karaokePropio && isSynced && !isGuest && lines.isNotEmpty() &&
+        lines.none { it.words?.isNotEmpty() == true } &&
+        (descargaKaraoke?.state == androidx.media3.exoplayer.offline.Download.STATE_COMPLETED || mediaMetadata?.id?.isLocalMediaId() == true)
 
     
     val translationStatus by LyricsTranslationHelper.status.collectAsState()
@@ -914,6 +924,12 @@ fun Lyrics(
                             .fillMaxWidth()
                             .padding(horizontal = 12.dp, vertical = 8.dp)
                     )
+                }
+            }
+
+            if (invitarKaraoke) {
+                item(key = "invitacion_karaoke") {
+                    InvitacionKaraoke(mediaMetadata?.id.orEmpty(), mediaMetadata?.title.orEmpty())
                 }
             }
 
