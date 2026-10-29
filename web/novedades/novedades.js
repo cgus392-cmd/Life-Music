@@ -6,7 +6,7 @@
   "use strict";
 
   // Las versiones con ficha en esta carpeta. Al publicar una version con ficha nueva, se agrega aqui.
-  const CON_FICHA = ["1.3.2", "1.3.1"];
+  const CON_FICHA = ["2.0.0", "1.3.2", "1.3.1"];
   const RELEASES = "https://api.github.com/repos/cgus392-cmd/Life-Music/releases?per_page=100";
   const CACHE = "lm-novedades", CACHE_MS = 1800000;
   const lista = document.getElementById("versiones");

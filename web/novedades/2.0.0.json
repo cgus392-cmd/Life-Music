@@ -1,0 +1,44 @@
+{
+  "version": "2.0.0",
+  "imagen": "https://lifemusic.pages.dev/novedades/2.0.0.webp",
+  "es": {
+    "resumen": "La versión más grande de Life Music: identidad nueva, Nova como tu DJ, un estudio para tu música y, por primera vez, una forma de escuchar con tus amigos.",
+    "funciones": [
+      { "icono": "palette", "titulo": "Nueva identidad: Pulso", "texto": "El logo nuevo late con la música. Elige entre seis versiones del ícono y, en Android 13 o más, el temático de Material You." },
+      { "icono": "radio", "titulo": "Nova, tu DJ", "texto": "Presenta tus canciones con voz entre una y otra, con voces HD que funcionan sin internet. Tú eliges su ritmo: pausado, normal o ágil." },
+      { "icono": "tune", "titulo": "Estudio", "texto": "Toca tu foto y entra. La prueba de sonido te dice qué aguanta tu teléfono, y en el centro de modelos bajas y borras lo que quieras." },
+      { "icono": "link", "titulo": "Bandas (beta)", "texto": "Arma una banda con tus amigos con un código o un QR y escuchen lo mismo al mismo tiempo, En vivo, con seis reacciones propias." },
+      { "icono": "tv", "titulo": "El TV nuevo", "texto": "El receptor estrena Pulso con Nova de anfitriona, Escenario salta con los golpes reales de la canción y llega el tema Liviano." }
+    ],
+    "arreglos": [
+      "Ajustes más ordenados: Apariencia y Reproductor y audio ahora tienen subcategorías.",
+      "Un recorrido de bienvenida te muestra lo nuevo la primera vez que abres la 2.0.",
+      "Si la voz de Nova no alcanza a estar lista, el anuncio sale escrito en Life Line."
+    ]
+  },
+  "en": {
+    "resumen": "The biggest Life Music release yet: a new identity, Nova as your DJ, a studio for your music and, for the first time, a way to listen with your friends.",
+    "funciones": [
+      { "icono": "palette", "titulo": "New identity: Pulse", "texto": "The new logo beats with the music. Pick one of six icon versions and, on Android 13 or later, the Material You themed one." },
+      { "icono": "radio", "titulo": "Nova, your DJ", "texto": "Introduces your songs out loud between tracks, with HD voices that work offline. You choose the pace: relaxed, normal or quick." },
+      { "icono": "tune", "titulo": "Studio", "texto": "Tap your photo to open it. The sound check tells you what your phone can handle, and the model center lets you download and delete what you want." },
+      { "icono": "link", "titulo": "Bands (beta)", "texto": "Start a band with your friends using a code or a QR and listen to the same thing at the same time, Live, with six reactions of our own." },
+      { "icono": "tv", "titulo": "The new TV", "texto": "The receiver debuts Pulse with Nova as host, Stage jumps with the song's real beats, and there is a new Light theme." }
+    ],
+    "arreglos": [
+      "Tidier Settings: Appearance and Player and audio now have subcategories.",
+      "A welcome tour shows you what is new the first time you open 2.0.",
+      "If Nova's voice is not ready in time, the announcement shows up as text in Life Line."
+    ]
+  },
+  "apk": {
+    "lifemusic.apk": {
+      "bytes": 126083278,
+      "sha256": "12024367421017682028539f3c1afc667f5a1f4247d1f649cc6168781b898b53"
+    },
+    "lifemusic-arm64.apk": {
+      "bytes": 54562735,
+      "sha256": "a426fad1af925c75faf4713d3b3a43cc39367ade48af3397dce27de4b5b1404a"
+    }
+  }
+}
