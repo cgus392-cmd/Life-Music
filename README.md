@@ -64,8 +64,13 @@ instalada, la app avisa sola de las versiones nuevas y se actualiza sin salir de
 
 | APK | Para quién |
 |---|---|
-| `lifemusic-arm64.apk` | Casi todos los teléfonos de los últimos años. Es la más liviana |
-| `lifemusic.apk` | Universal: cualquier teléfono Android (ARM de 32 y 64 bits) |
+| `lifemusic-arm64.apk` | Casi todos los teléfonos de los últimos años. La más recomendada |
+| `lifemusic-armv7.apk` | Teléfonos viejos de 32 bits |
+| `lifemusic-x86_64.apk` | Chromebooks y emuladores modernos |
+| `lifemusic-x86.apk` | Equipos x86 viejos de 32 bits |
+| `lifemusic.apk` | Universal: cualquier teléfono Android, si no sabes cuál bajar |
+
+La app sabe cuál es la tuya: cuando se actualiza sola, baja la de tu arquitectura.
 
 ## Qué es
 

@@ -1,0 +1,78 @@
+{
+  "version": "2.0.2",
+  "imagen": "https://lifemusic.pages.dev/novedades/2.0.2.webp",
+  "es": {
+    "resumen": "Una puesta a punto: lo que nos reportaron, arreglado, y la app más liviana.",
+    "funciones": [
+      {
+        "icono": "lyrics",
+        "titulo": "Ya no desaparecen canciones",
+        "texto": "La sincronización con YouTube ya no borra tus «me gusta», tu biblioteca ni tus listas. Si la respuesta llega incompleta, no se toca nada."
+      },
+      {
+        "icono": "speed",
+        "titulo": "Modo ligero automático",
+        "texto": "En teléfonos de gama baja se apagan solos los efectos más pesados, solo si nunca los tocaste."
+      },
+      {
+        "icono": "download",
+        "titulo": "Un APK para cada equipo",
+        "texto": "arm64, armv7, x86_64 y x86, más la universal, que baja de 126 a 78 MB. La app baja la tuya sola."
+      }
+    ],
+    "arreglos": [
+      "Nova › Personalizar: el nombre se escribe en orden y el cursor ya no salta.",
+      "El ícono de Cast conectado ya no se deforma.",
+      "El Canvas animado, el orden aleatorio del Inicio y «parar al cerrar» ya hacen lo que muestran.",
+      "El widget en Android 8 y 9."
+    ]
+  },
+  "en": {
+    "resumen": "A tune-up: what you reported, fixed, and a lighter app.",
+    "funciones": [
+      {
+        "icono": "lyrics",
+        "titulo": "Songs no longer disappear",
+        "texto": "Syncing with YouTube no longer deletes your likes, library or playlists. If the response is incomplete, nothing is touched."
+      },
+      {
+        "icono": "speed",
+        "titulo": "Automatic light mode",
+        "texto": "On low-end phones the heaviest effects turn off on their own, only if you never changed them."
+      },
+      {
+        "icono": "download",
+        "titulo": "An APK for every device",
+        "texto": "arm64, armv7, x86_64 and x86, plus the universal one, now 78 MB instead of 126. The app downloads yours."
+      }
+    ],
+    "arreglos": [
+      "Nova › Customize: the name types in order and the cursor no longer jumps.",
+      "The connected Cast icon is no longer distorted.",
+      "Animated Canvas, Home shuffle and stop-on-close now do what they show.",
+      "The widget on Android 8 and 9."
+    ]
+  },
+  "apk": {
+    "lifemusic.apk": {
+      "bytes": 77838399,
+      "sha256": "11d1b52ae96a23ddf1f1376655dce72fe6db23e2231149d6f224382bd019d7c0"
+    },
+    "lifemusic-arm64.apk": {
+      "bytes": 54541403,
+      "sha256": "05fbec868948ab8dd4b39de94a9760b5e394f20a310cd78943a6e4e3907d5953"
+    },
+    "lifemusic-armv7.apk": {
+      "bytes": 53308972,
+      "sha256": "ece5fefc42383e1193db72491a0392e4af826f1e47c44ff6604cde48dcedc9dd"
+    },
+    "lifemusic-x86_64.apk": {
+      "bytes": 57400710,
+      "sha256": "efab02a227d619ed6695a5e020ffc0b5f86aa5c8c7a8eafd30b89906c3b8b36d"
+    },
+    "lifemusic-x86.apk": {
+      "bytes": 50846273,
+      "sha256": "1c64708642dde10fcd282614cc83e689b6fb6994ac52a919bd870ac5c757afd0"
+    }
+  }
+}

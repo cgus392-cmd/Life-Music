@@ -2,6 +2,9 @@
 # la ultima version publicada: no hay que tocar esto en cada publicacion.
 /apk         https://github.com/cgus392-cmd/Life-Music/releases/latest/download/lifemusic.apk        302
 /apk-arm64   https://github.com/cgus392-cmd/Life-Music/releases/latest/download/lifemusic-arm64.apk  302
+/apk-armv7   https://github.com/cgus392-cmd/Life-Music/releases/latest/download/lifemusic-armv7.apk  302
+/apk-x86_64  https://github.com/cgus392-cmd/Life-Music/releases/latest/download/lifemusic-x86_64.apk 302
+/apk-x86     https://github.com/cgus392-cmd/Life-Music/releases/latest/download/lifemusic-x86.apk    302
 /descargar   /apk                                                                                     302
 /github      https://github.com/cgus392-cmd/Life-Music                                                302
 # /novedades, /privacidad, /estado y /calificar son paginas propias desde el 22-10 (carpetas con index.html).

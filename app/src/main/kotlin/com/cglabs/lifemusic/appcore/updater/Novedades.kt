@@ -105,22 +105,29 @@ object Novedades {
         else -> R.drawable.star
     }
 
+    /** El APK propio de cada arquitectura (2.0.2: arm64, armv7, x86_64 y x86 por separado). */
+    private val APK_POR_ABI = mapOf(
+        "arm64-v8a" to Repo.APK_ARM64_ASSET,
+        "armeabi-v7a" to Repo.APK_ARMV7_ASSET,
+        "x86_64" to Repo.APK_X86_64_ASSET,
+        "x86" to Repo.APK_X86_ASSET,
+    )
+
     /**
      * El APK que conviene a este telefono ([abis] = Build.SUPPORTED_ABIS, el
-     * preferido primero): el de arm64 si su primer ABI es arm64-v8a y la
-     * publicacion lo trae (pesa ~40 % menos que el universal); si no, el
-     * universal ([Repo.APK_ASSET]); si tampoco, cualquier .apk que no sea de
-     * depuracion. Los dos salen de la misma variante con la misma firma y el
-     * mismo versionCode, asi que uno instala encima del otro.
+     * preferido primero): el de su arquitectura si la publicacion lo trae (el
+     * mas liviano); si no, el universal ([Repo.APK_ASSET]); si tampoco,
+     * cualquier .apk que no sea de depuracion ni de otra arquitectura. Todos
+     * salen de la misma variante con la misma firma y el mismo versionCode,
+     * asi que uno instala encima del otro.
      */
     fun elegirApk(adjuntos: List<ApkAdjunto>, abis: List<String>): ApkAdjunto? {
         val apks = adjuntos.filter { it.nombre.endsWith(".apk", ignoreCase = true) && !it.nombre.contains("debug", ignoreCase = true) }
-        if (abis.firstOrNull() == "arm64-v8a") {
-            apks.firstOrNull { it.nombre.equals(Repo.APK_ARM64_ASSET, ignoreCase = true) }?.let { return it }
+        APK_POR_ABI[abis.firstOrNull()]?.let { propio ->
+            apks.firstOrNull { it.nombre.equals(propio, ignoreCase = true) }?.let { return it }
         }
         return apks.firstOrNull { it.nombre.equals(Repo.APK_ASSET, ignoreCase = true) }
-            ?: apks.firstOrNull { !it.nombre.equals(Repo.APK_ARM64_ASSET, ignoreCase = true) }
-            ?: apks.firstOrNull().takeIf { abis.firstOrNull() == "arm64-v8a" }
+            ?: apks.firstOrNull { a -> APK_POR_ABI.values.none { a.nombre.equals(it, ignoreCase = true) } }
     }
 
     /** Los adjuntos de una publicacion de GitHub (el arreglo «assets» de su API). */

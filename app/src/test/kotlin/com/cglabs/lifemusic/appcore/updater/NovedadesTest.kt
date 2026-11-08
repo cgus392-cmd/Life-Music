@@ -80,6 +80,26 @@ class NovedadesTest {
         assertEquals("lifemusic-arm64.apk", Novedades.elegirApk(publicacion, listOf("arm64-v8a", "armeabi-v7a", "armeabi"))!!.nombre)
     }
 
+    private val publicacionCompleta = publicacion + listOf(
+        ApkAdjunto("lifemusic-armv7.apk", "https://x/lifemusic-armv7.apk", 35_000_000),
+        ApkAdjunto("lifemusic-x86_64.apk", "https://x/lifemusic-x86_64.apk", 45_000_000),
+        ApkAdjunto("lifemusic-x86.apk", "https://x/lifemusic-x86.apk", 42_000_000),
+    )
+
+    @Test
+    fun cadaArquitecturaBajaSuPropioApk() {
+        assertEquals("lifemusic-arm64.apk", Novedades.elegirApk(publicacionCompleta, listOf("arm64-v8a", "armeabi-v7a"))!!.nombre)
+        assertEquals("lifemusic-armv7.apk", Novedades.elegirApk(publicacionCompleta, listOf("armeabi-v7a", "armeabi"))!!.nombre)
+        assertEquals("lifemusic-x86_64.apk", Novedades.elegirApk(publicacionCompleta, listOf("x86_64", "x86", "arm64-v8a"))!!.nombre)
+        assertEquals("lifemusic-x86.apk", Novedades.elegirApk(publicacionCompleta, listOf("x86"))!!.nombre)
+    }
+
+    @Test
+    fun unaArquitecturaRaraBajaElUniversalYNuncaElDeOtra() {
+        assertEquals("lifemusic.apk", Novedades.elegirApk(publicacionCompleta, listOf("riscv64"))!!.nombre)
+        assertNull(Novedades.elegirApk(publicacionCompleta.filter { it.nombre != "lifemusic.apk" }, listOf("riscv64")))
+    }
+
     @Test
     fun unTelefonoDe32BitsNuncaRecibeElDeArm64() {
         assertEquals("lifemusic.apk", Novedades.elegirApk(publicacion, listOf("armeabi-v7a", "armeabi"))!!.nombre)
