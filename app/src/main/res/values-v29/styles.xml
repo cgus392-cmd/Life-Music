@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- 2.0.2: desde Android 10 el widget sigue el tema claro u oscuro del sistema. -->
+    <style name="Theme.Widget.LifeMusic" parent="@android:style/Theme.DeviceDefault.DayNight">
+        <item name="android:colorBackground">#E6E1E5</item>
+    </style>
+</resources>

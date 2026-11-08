@@ -349,7 +349,7 @@ highlightKey: String? = null, seccion: String? = null) {
     )
     val (canvasThumbnailAnimation, onCanvasThumbnailAnimationChange) = rememberPreference(
         CanvasThumbnailAnimationKey,
-        defaultValue = false
+        defaultValue = true
     )
     val (rotatingThumbnail, onRotatingThumbnailChange) = rememberPreference(
         RotatingThumbnailKey,

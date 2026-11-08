@@ -13,7 +13,8 @@
     </style>
 
     <!-- Widget Theme with Material 3 colors fallback for API < 31 -->
-    <style name="Theme.Widget.LifeMusic" parent="@android:style/Theme.DeviceDefault.DayNight">
+    <!-- 2.0.2: DayNight no existe antes de Android 10; ahí va el claro. values-v29 trae el DayNight. -->
+    <style name="Theme.Widget.LifeMusic" parent="@android:style/Theme.DeviceDefault.Light">
         <item name="android:colorBackground">#E6E1E5</item>
     </style>
 

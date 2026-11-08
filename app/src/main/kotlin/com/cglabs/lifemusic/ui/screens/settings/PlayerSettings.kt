@@ -285,7 +285,7 @@ highlightKey: String? = null, seccion: String? = null) {
     )
     val (stopMusicOnTaskClear, onStopMusicOnTaskClearChange) = rememberPreference(
         StopMusicOnTaskClearKey,
-        defaultValue = true
+        defaultValue = false
     )
     val (pauseOnMute, onPauseOnMuteChange) = rememberPreference(
         PauseOnMute,

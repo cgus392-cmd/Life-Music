@@ -39,7 +39,7 @@ android {
         // instalado, asi que un 152 publicado como primera version dejaria sin
         // camino a cualquier version posterior que empezara a contar desde 1.
         versionCode = 27
-        versionName = "2.0.2-prueba.1"
+        versionName = "2.0.2-prueba.2"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables.useSupportLibrary = true
@@ -126,6 +126,9 @@ android {
         create("universal") {
             dimension = "abi"
             buildConfigField("String", "ARCHITECTURE", "\"universal\"")
+            // 2.0.2: solo los teléfonos (ARM). Las librerías x86 eran ~46 MB que solo usan los
+            // emuladores; los x86 tienen su propio sabor abajo.
+            ndk { abiFilters.addAll(listOf("arm64-v8a", "armeabi-v7a")) }
         }
         create("arm64") {
             dimension = "abi"

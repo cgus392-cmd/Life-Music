@@ -421,7 +421,7 @@ class SyncUtils @Inject constructor(
                     val remoteSongs = page.songs
                     val remoteIds = remoteSongs.map { it.id }.toSet()
                     val localSongs = database.likedSongsByNameAsc().first()
-                    val espejo = EspejoDeSync(context, "me_gusta", remoteIds)
+                    val espejo = EspejoDeSync(context.filesDir, "me_gusta", remoteIds)
 
                     // 2.0.2: antes se quitaba el «me gusta» comparando fechas (con la hora local leida
                     // como UTC) y se perdian canciones. Ahora solo se quita lo que estaba en YouTube y
@@ -500,7 +500,7 @@ class SyncUtils @Inject constructor(
                     val remoteSongs = page.items.filterIsInstance<SongItem>().reversed()
                     val remoteIds = remoteSongs.map { it.id }.toSet()
                     val localSongs = database.songsByNameAsc().first()
-                    val espejo = EspejoDeSync(context, "biblioteca", remoteIds)
+                    val espejo = EspejoDeSync(context.filesDir, "biblioteca", remoteIds)
 
                     // 2.0.2: lo guardado en la app que nunca llego a YouTube ya no se saca de la biblioteca.
                     localSongs.filter { it.id !in remoteIds && !it.song.isLocal && espejo.sePuedeQuitar(it.id) }.forEach { song ->
@@ -576,7 +576,7 @@ class SyncUtils @Inject constructor(
                     val localSongs = database.uploadedSongsByNameAsc().first()
                     Timber.d("[UPLOAD_DEBUG] Local uploaded songs count: ${localSongs.size}")
 
-                    val espejo = EspejoDeSync(context, "subidas", remoteIds)
+                    val espejo = EspejoDeSync(context.filesDir, "subidas", remoteIds)
                     val songsToRemove = localSongs.filter { it.id !in remoteIds && espejo.sePuedeQuitar(it.id) }
                     espejo.guardar()
                     Timber.d("[UPLOAD_DEBUG] Songs to remove from uploaded: ${songsToRemove.size}")
@@ -644,7 +644,7 @@ class SyncUtils @Inject constructor(
                     val remoteIds = remoteAlbums.map { it.id }.toSet()
                     val localAlbums = database.albumsLikedByNameAsc().first()
 
-                    val espejoAlbumes = EspejoDeSync(context, "albumes", remoteIds)
+                    val espejoAlbumes = EspejoDeSync(context.filesDir, "albumes", remoteIds)
                     localAlbums.filter { it.id !in remoteIds && espejoAlbumes.sePuedeQuitar(it.id) }.also { espejoAlbumes.guardar() }.forEach { album ->
                         try {
                             database.update(album.album.localToggleLike())
@@ -706,7 +706,7 @@ class SyncUtils @Inject constructor(
                     val remoteIds = remoteAlbums.map { it.id }.toSet()
                     val localAlbums = database.albumsUploadedByNameAsc().first()
 
-                    val espejoSubidos = EspejoDeSync(context, "albumes_subidos", remoteIds)
+                    val espejoSubidos = EspejoDeSync(context.filesDir, "albumes_subidos", remoteIds)
                     localAlbums.filter { it.id !in remoteIds && espejoSubidos.sePuedeQuitar(it.id) }.also { espejoSubidos.guardar() }.forEach { album ->
                         try {
                             database.update(album.album.toggleUploaded())
@@ -768,7 +768,7 @@ class SyncUtils @Inject constructor(
                     val remoteIds = remoteArtists.map { it.id }.toSet()
                     val localArtists = database.artistsBookmarkedByNameAsc().first()
 
-                    val espejo = EspejoDeSync(context, "artistas", remoteIds)
+                    val espejo = EspejoDeSync(context.filesDir, "artistas", remoteIds)
                     localArtists.filter { it.id !in remoteIds && espejo.sePuedeQuitar(it.id) }.also { espejo.guardar() }.forEach { artist ->
                         try {
                             database.update(artist.artist.localToggleLike())
@@ -858,7 +858,7 @@ class SyncUtils @Inject constructor(
                     val remoteIds = remotePlaylists.map { it.id }.toSet()
 
                     val localPlaylists = database.playlistsByNameAsc().first()
-                    val espejo = EspejoDeSync(context, "listas", remoteIds)
+                    val espejo = EspejoDeSync(context.filesDir, "listas", remoteIds)
                     localPlaylists.filter { it.playlist.browseId !in remoteIds && espejo.sePuedeQuitar(it.playlist.browseId) }.also { espejo.guardar() }
                         .filterNot { it.playlist.browseId == null }
                         .forEach { playlist ->
@@ -961,7 +961,7 @@ class SyncUtils @Inject constructor(
 
                     // 2.0.2: una respuesta vacia o muy corta suele ser una pagina que no cargo, no una lista
                     // vaciada. Antes se borraba la lista de la app; ahora se deja como esta.
-                    if (localIds.isNotEmpty() && (songs.isEmpty() || (localIds.size >= 10 && songs.size * 2 < localIds.size))) {
+                    if (listaRemotaSospechosa(remotas = songs.size, locales = localIds.size)) {
                         Timber.w("syncPlaylist: remote has ${songs.size} songs vs ${localIds.size} local, keeping local")
                         return@onSuccess
                     }
@@ -1112,8 +1112,8 @@ class SyncUtils @Inject constructor(
  * llego a YouTube se queda. Si la respuesta trae menos de la mitad de lo de la vez pasada, se toma como
  * pagina incompleta y no se quita nada ni se guarda.
  */
-private class EspejoDeSync(context: Context, tipo: String, private val remotos: Set<String>) {
-    private val archivo = java.io.File(context.filesDir, "sync/$tipo.txt")
+internal class EspejoDeSync(carpeta: java.io.File, tipo: String, private val remotos: Set<String>) {
+    private val archivo = java.io.File(carpeta, "sync/$tipo.txt")
     private val antes: Set<String>? = runCatching {
         if (archivo.exists()) archivo.readLines().filter { it.isNotBlank() }.toSet() else null
     }.getOrNull()
@@ -1134,3 +1134,10 @@ private class EspejoDeSync(context: Context, tipo: String, private val remotos: 
         }.onFailure { Timber.e(it, "No se pudo guardar ${archivo.name}") }
     }
 }
+
+/**
+ * 2.0.2 · Una lista que llega vacia, o con menos de la mitad de las canciones que hay en la app (con 10
+ * o mas), casi siempre es una pagina que no cargo: no se toca la lista de la app.
+ */
+internal fun listaRemotaSospechosa(remotas: Int, locales: Int): Boolean =
+    locales > 0 && (remotas == 0 || (locales >= 10 && remotas * 2 < locales))

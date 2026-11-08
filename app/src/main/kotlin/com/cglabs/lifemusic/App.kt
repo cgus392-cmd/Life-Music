@@ -144,6 +144,10 @@ class App : Application(), SingletonImageLoader.Factory {
             initializeSettings()
             observeSettingsChanges()
         }
+
+        applicationScope.launch(Dispatchers.IO) {
+            runCatching { com.cglabs.lifemusic.utils.ModoLigero.aplicarSiHaceFalta(this@App) }
+        }
     }
 
     private suspend fun initializeSettings() {
