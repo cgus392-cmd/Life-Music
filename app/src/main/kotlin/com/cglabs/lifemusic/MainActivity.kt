@@ -942,6 +942,8 @@ class MainActivity : ComponentActivity() {
                 val (lastOpenedVersionCode, setLastOpenedVersionCode) = rememberPreference(com.cglabs.lifemusic.constants.LastOpenedVersionCodeKey, -1)
                 var showWelcomeDialog by remember { mutableStateOf(false) }
                 var mostrarBoletin by remember { mutableStateOf(false) }
+                // 2.1.0 · Lo nuevo de la version instalada, de su ficha en linea (desde la 2.x).
+                var mostrarLoNuevo by remember { mutableStateOf(false) }
                 // 2.0: el recorrido de bienvenida es una ruta propia, opaca y a pantalla completa.
                 var abrirRecorrido by remember { mutableStateOf(false) }
                 // Saludo de entrada: una vez por arranque en frio, y nunca encima de la
@@ -959,6 +961,7 @@ class MainActivity : ComponentActivity() {
                         lastOpenedVersionCode < BuildConfig.VERSION_CODE -> {
                             if (com.cglabs.lifemusic.ui.screens.recorrido.Recorrido.hayPara(BuildConfig.VERSION_CODE, lastOpenedVersionCode)) abrirRecorrido = true
                             else if (Boletines.para(BuildConfig.VERSION_CODE) != null) mostrarBoletin = true
+                            else if (lastOpenedVersionCode >= com.cglabs.lifemusic.ui.screens.recorrido.Recorrido.DESDE) mostrarLoNuevo = true
                             else setLastOpenedVersionCode(BuildConfig.VERSION_CODE)
                         }
                     }
@@ -986,7 +989,7 @@ class MainActivity : ComponentActivity() {
                 var mostrarCalificacion by remember { mutableStateOf(false) }
                 var otraVentanaEnSesion by remember { mutableStateOf(false) }
                 LaunchedEffect(showWelcomeDialog, mostrarBoletin, showUpdateDialog) {
-                    if (showWelcomeDialog || mostrarBoletin || showUpdateDialog) otraVentanaEnSesion = true
+                    if (showWelcomeDialog || mostrarBoletin || mostrarLoNuevo || showUpdateDialog) otraVentanaEnSesion = true
                 }
                 LaunchedEffect(Unit) {
                     delay(45_000)
@@ -1673,6 +1676,21 @@ class MainActivity : ComponentActivity() {
                                 if (com.cglabs.lifemusic.ui.screens.recorrido.Recorrido.hayPara(BuildConfig.VERSION_CODE)) abrirRecorrido = true
                                 else setLastOpenedVersionCode(BuildConfig.VERSION_CODE)
                             }
+                        )
+                    }
+
+                    if (mostrarLoNuevo) {
+                        com.cglabs.lifemusic.appcore.updater.HojaDeLoNuevo(
+                            version = BuildConfig.VERSION_NAME.substringBefore("-"),
+                            alCerrar = {
+                                mostrarLoNuevo = false
+                                setLastOpenedVersionCode(BuildConfig.VERSION_CODE)
+                            },
+                            alVerHistorial = {
+                                mostrarLoNuevo = false
+                                setLastOpenedVersionCode(BuildConfig.VERSION_CODE)
+                                navController.navigate("settings/changelog")
+                            },
                         )
                     }
 

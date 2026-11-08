@@ -143,12 +143,9 @@ fun UpdateSettings(
                     title = {
                         Text(stringResource(R.string.version, BuildConfig.VERSION_NAME))
                     },
-                    description = if (boletinActual != null) {
-                        { Text(stringResource(R.string.boletin_novedades)) }
-                    } else null,
-                    onClick = if (boletinActual != null) {
-                        { mostrarBoletin = true }
-                    } else null
+                    // 2.1.0: las novedades de la version instalada salen en linea, en el historial.
+                    description = { Text(stringResource(R.string.boletin_novedades)) },
+                    onClick = { navController.navigate("settings/changelog") }
                 ),
 
                 // 1.3.1: una pastilla por version, con su imagen y lo que trajo.

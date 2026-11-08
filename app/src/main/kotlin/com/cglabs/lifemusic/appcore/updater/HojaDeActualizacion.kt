@@ -24,6 +24,12 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -148,7 +154,7 @@ internal fun ImagenDeVersion(url: String?, local: Int? = null) {
 }
 
 @Composable
-private fun FilaDeFuncion(f: FuncionNueva) {
+internal fun FilaDeFuncion(f: FuncionNueva) {
     Row(
         horizontalArrangement = Arrangement.spacedBy(14.dp),
         modifier = Modifier
@@ -173,6 +179,77 @@ private fun FilaDeFuncion(f: FuncionNueva) {
             Text(f.titulo, style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.SemiBold)
             if (f.texto.isNotBlank()) {
                 Text(f.texto, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            }
+        }
+    }
+}
+
+/**
+ * 2.1.0 · Una ficha de novedades completa (la misma del actualizador): imagen, numero, resumen,
+ * funciones y arreglos. La usan el historial de versiones y la hoja «Lo nuevo».
+ */
+@Composable
+internal fun FichaDeVersion(version: String, ficha: NovedadesDeVersion) {
+    Column {
+        ImagenDeVersion(ficha.imagen)
+        Spacer(Modifier.height(18.dp))
+        Text(
+            stringResource(R.string.update_hoja_titulo, version.removePrefix("v")),
+            style = MaterialTheme.typography.headlineMedium,
+            fontWeight = FontWeight.Bold,
+        )
+        ficha.resumen?.let {
+            Spacer(Modifier.height(6.dp))
+            Text(it, style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        }
+        if (ficha.funciones.isNotEmpty()) {
+            Spacer(Modifier.height(16.dp))
+            ficha.funciones.forEach { FilaDeFuncion(it) }
+        }
+        if (ficha.arreglos.isNotEmpty()) {
+            Spacer(Modifier.height(14.dp))
+            Text(stringResource(R.string.update_arreglos_titulo), style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.SemiBold)
+            Spacer(Modifier.height(4.dp))
+            ficha.arreglos.forEach {
+                Text("• $it", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.padding(start = 6.dp, bottom = 3.dp))
+            }
+        }
+    }
+}
+
+/**
+ * 2.1.0 · Al abrir por primera vez una version nueva (desde la 2.x), lo que trae: la ficha de la
+ * version instalada, bajada en linea. Si no hay internet ni copia guardada, no sale nada.
+ */
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun HojaDeLoNuevo(version: String, alCerrar: () -> Unit, alVerHistorial: () -> Unit) {
+    val contexto = LocalContext.current
+    var ficha by remember { mutableStateOf<NovedadesDeVersion?>(null) }
+    LaunchedEffect(version) {
+        ficha = NovedadesEnLinea.ficha(contexto, version)
+        if (ficha == null) alCerrar()
+    }
+    val lista = ficha ?: return
+    val estado = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+    ModalBottomSheet(onDismissRequest = alCerrar, sheetState = estado) {
+        Column(Modifier.fillMaxWidth().padding(horizontal = 20.dp).padding(bottom = 20.dp)) {
+            Column(Modifier.weight(1f, fill = false).verticalScroll(rememberScrollState())) {
+                Text(
+                    stringResource(R.string.update_novedades_titulo).uppercase(),
+                    style = MaterialTheme.typography.labelMedium,
+                    fontWeight = FontWeight.SemiBold,
+                    color = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.padding(bottom = 10.dp),
+                )
+                FichaDeVersion(version, lista)
+            }
+            Spacer(Modifier.height(12.dp))
+            Button(onClick = alCerrar, modifier = Modifier.fillMaxWidth().height(52.dp)) {
+                Text(stringResource(android.R.string.ok), fontWeight = FontWeight.SemiBold)
+            }
+            TextButton(onClick = alVerHistorial, modifier = Modifier.fillMaxWidth()) {
+                Text(stringResource(R.string.historial_versiones))
             }
         }
     }

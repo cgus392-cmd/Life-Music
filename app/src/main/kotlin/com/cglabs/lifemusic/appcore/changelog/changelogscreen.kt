@@ -41,6 +41,9 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.cglabs.lifemusic.BuildConfig
 import com.cglabs.lifemusic.R
+import com.cglabs.lifemusic.appcore.updater.FichaDeVersion
+import com.cglabs.lifemusic.appcore.updater.NovedadesDeVersion
+import com.cglabs.lifemusic.appcore.updater.NovedadesEnLinea
 import com.cglabs.lifemusic.ui.screens.Boletines
 import com.cglabs.lifemusic.ui.screens.CuerpoDeBoletin
 
@@ -49,8 +52,8 @@ import com.cglabs.lifemusic.ui.screens.CuerpoDeBoletin
  * version, como el changelog de Vivi que le gusto a CG, y debajo lo que trajo
  * esa version, con su imagen, su titulo y sus novedades.
  *
- * Sale de los boletines que viajan dentro de la app (Boletines.todos): funciona
- * sin internet y en el idioma del telefono. Reemplaza al changelog heredado de
+ * 2.1.0: las versiones salen de las fichas en linea (NovedadesEnLinea, con copia en
+ * el telefono) y, las viejas sin ficha, de los boletines que viajan en la app. Reemplaza al changelog heredado de
  * Echo, que dependia de un changelog.json por publicacion que Life Music nunca
  * publico (mostraba error en todas) y que ninguna pantalla abria.
  */
@@ -60,11 +63,20 @@ fun ChangelogScreen(
     navController: NavController,
     scrollBehavior: TopAppBarScrollBehavior,
 ) {
-    // De la mas nueva a la mas vieja. Los boletines viajan con la version que los trae,
-    // asi que en una build publicada nunca hay uno de una version futura.
-    val versiones = remember { Boletines.todos.sortedByDescending { it.versionCode } }
-    var elegida by rememberSaveable { mutableIntStateOf(versiones.firstOrNull()?.versionCode ?: 0) }
-    val boletin = versiones.firstOrNull { it.versionCode == elegida } ?: versiones.firstOrNull()
+    val contexto = androidx.compose.ui.platform.LocalContext.current
+    val locales = remember { Boletines.todos.associateBy { it.versionName } }
+    var enLinea by remember { androidx.compose.runtime.mutableStateOf<List<String>>(emptyList()) }
+    androidx.compose.runtime.LaunchedEffect(Unit) { enLinea = NovedadesEnLinea.indice(contexto) }
+    // De la mas nueva a la mas vieja: las de la ficha en linea y las viejas que solo estan en la app.
+    val versiones = remember(enLinea) { (enLinea + locales.keys).distinct().sortedWith(NovedadesEnLinea.porVersion.reversed()) }
+    var elegida by rememberSaveable { androidx.compose.runtime.mutableStateOf(BuildConfig.VERSION_NAME.substringBefore("-")) }
+    val nombre = elegida.takeIf { it in versiones } ?: versiones.firstOrNull()
+    val fichas = remember { androidx.compose.runtime.mutableStateMapOf<String, NovedadesDeVersion?>() }
+    androidx.compose.runtime.LaunchedEffect(nombre, enLinea) {
+        if (nombre != null && nombre in enLinea && nombre !in fichas) fichas[nombre] = NovedadesEnLinea.ficha(contexto, nombre)
+    }
+    val ficha = nombre?.let { fichas[it] }
+    val boletin = nombre?.let { locales[it] }
 
     Scaffold(
         topBar = {
@@ -93,17 +105,17 @@ fun ChangelogScreen(
                     .padding(horizontal = 16.dp, vertical = 8.dp),
             ) {
                 versiones.forEach { v ->
-                    val esLaInstalada = v.versionCode == BuildConfig.VERSION_CODE
+                    val esLaInstalada = v == BuildConfig.VERSION_NAME.substringBefore("-")
                     FilterChip(
-                        selected = v.versionCode == boletin?.versionCode,
-                        onClick = { elegida = v.versionCode },
+                        selected = v == nombre,
+                        onClick = { elegida = v },
                         label = {
                             Text(
-                                if (esLaInstalada) stringResource(R.string.historial_version_actual, v.versionName) else v.versionName,
+                                if (esLaInstalada) stringResource(R.string.historial_version_actual, v) else v,
                                 fontWeight = FontWeight.SemiBold,
                             )
                         },
-                        leadingIcon = if (v.grande) {
+                        leadingIcon = if (locales[v]?.grande == true || v.endsWith(".0")) {
                             { Icon(painterResource(R.drawable.star), null, modifier = Modifier.padding(start = 2.dp)) }
                         } else null,
                         shape = MaterialTheme.shapes.extraLarge,
@@ -114,7 +126,10 @@ fun ChangelogScreen(
                     )
                 }
             }
-            if (boletin == null) {
+            val cargando = nombre != null && nombre in enLinea && nombre !in fichas
+            if (cargando) {
+                androidx.compose.material3.LinearProgressIndicator(Modifier.fillMaxWidth().padding(horizontal = 20.dp, vertical = 12.dp))
+            } else if (ficha == null && boletin == null) {
                 Text(
                     stringResource(R.string.historial_vacio),
                     style = MaterialTheme.typography.bodyLarge,
@@ -129,7 +144,7 @@ fun ChangelogScreen(
                         .padding(horizontal = 20.dp),
                 ) {
                     Spacer(Modifier.height(12.dp))
-                    CuerpoDeBoletin(boletin, animar = false)
+                    if (ficha != null && nombre != null) FichaDeVersion(nombre, ficha) else if (boletin != null) CuerpoDeBoletin(boletin, animar = false)
                     Spacer(Modifier.height(32.dp))
                 }
             }
