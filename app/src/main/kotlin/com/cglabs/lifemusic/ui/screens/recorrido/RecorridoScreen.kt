@@ -104,12 +104,12 @@ import kotlinx.coroutines.launch
  */
 
 /**
- * Las versiones que tienen recorrido (2.0.0 y 2.0.1). Las demas siguen con su boletin.
+ * Las versiones que tienen recorrido (2.0.0 a 2.0.2). Las demas siguen con su boletin.
  * Quien ya lo vio en la 2.0.0 no lo repite al pasar a la 2.0.1.
  */
 object Recorrido {
     const val DESDE = 25
-    const val HASTA = 26
+    const val HASTA = 27
 
     fun hayPara(versionCode: Int, ultimaAbierta: Int = -1) =
         versionCode in DESDE..HASTA && ultimaAbierta < DESDE

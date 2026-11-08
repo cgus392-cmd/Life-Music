@@ -421,28 +421,28 @@ class SyncUtils @Inject constructor(
                     val remoteSongs = page.songs
                     val remoteIds = remoteSongs.map { it.id }.toSet()
                     val localSongs = database.likedSongsByNameAsc().first()
+                    val espejo = EspejoDeSync(context, "me_gusta", remoteIds)
 
-                    
-                    val lastSync = context.dataStore.get(LastFullSyncKey, 0L)
-
+                    // 2.0.2: antes se quitaba el «me gusta» comparando fechas (con la hora local leida
+                    // como UTC) y se perdian canciones. Ahora solo se quita lo que estaba en YouTube y
+                    // ya no esta; lo que nunca subio se sube.
                     localSongs.filterNot { it.id in remoteIds || it.song.isLocal }.forEach { song ->
                         try {
-                            val likedDate = song.song.likedDate
-                            if (likedDate == null || likedDate.toEpochSecond(ZoneOffset.UTC) > lastSync) {
-                                // Schedule a migration/backfill job for songs with null likedDate
+                            if (espejo.sePuedeQuitar(song.id)) {
+                                database.update(song.song.localToggleLike())
+                            } else if (espejo.nuncaSubio(song.id)) {
                                 withRetry {
                                     YouTube.likeVideo(song.id, true)
                                 }.onFailure { e ->
                                     Timber.e(e, "Failed to like song on YouTube: ${song.id}")
                                 }
-                            } else {
-                                database.update(song.song.localToggleLike())
                             }
                             delay(DB_OPERATION_DELAY_MS)
                         } catch (e: Exception) {
                             Timber.e(e, "Failed to update song: ${song.id}")
                         }
                     }
+                    espejo.guardar()
 
                     
                     val now = LocalDateTime.now()
@@ -500,8 +500,10 @@ class SyncUtils @Inject constructor(
                     val remoteSongs = page.items.filterIsInstance<SongItem>().reversed()
                     val remoteIds = remoteSongs.map { it.id }.toSet()
                     val localSongs = database.songsByNameAsc().first()
+                    val espejo = EspejoDeSync(context, "biblioteca", remoteIds)
 
-                    localSongs.filterNot { it.id in remoteIds }.forEach { song ->
+                    // 2.0.2: lo guardado en la app que nunca llego a YouTube ya no se saca de la biblioteca.
+                    localSongs.filter { it.id !in remoteIds && !it.song.isLocal && espejo.sePuedeQuitar(it.id) }.forEach { song ->
                         try {
                             database.update(song.song.toggleLibrary())
                             delay(DB_OPERATION_DELAY_MS)
@@ -509,6 +511,7 @@ class SyncUtils @Inject constructor(
                             Timber.e(e, "Failed to update song: ${song.id}")
                         }
                     }
+                    espejo.guardar()
 
                     remoteSongs.forEach { song ->
                         try {
@@ -573,7 +576,9 @@ class SyncUtils @Inject constructor(
                     val localSongs = database.uploadedSongsByNameAsc().first()
                     Timber.d("[UPLOAD_DEBUG] Local uploaded songs count: ${localSongs.size}")
 
-                    val songsToRemove = localSongs.filterNot { it.id in remoteIds }
+                    val espejo = EspejoDeSync(context, "subidas", remoteIds)
+                    val songsToRemove = localSongs.filter { it.id !in remoteIds && espejo.sePuedeQuitar(it.id) }
+                    espejo.guardar()
                     Timber.d("[UPLOAD_DEBUG] Songs to remove from uploaded: ${songsToRemove.size}")
                     songsToRemove.forEach { song ->
                         try {
@@ -639,7 +644,8 @@ class SyncUtils @Inject constructor(
                     val remoteIds = remoteAlbums.map { it.id }.toSet()
                     val localAlbums = database.albumsLikedByNameAsc().first()
 
-                    localAlbums.filterNot { it.id in remoteIds }.forEach { album ->
+                    val espejoAlbumes = EspejoDeSync(context, "albumes", remoteIds)
+                    localAlbums.filter { it.id !in remoteIds && espejoAlbumes.sePuedeQuitar(it.id) }.also { espejoAlbumes.guardar() }.forEach { album ->
                         try {
                             database.update(album.album.localToggleLike())
                             delay(DB_OPERATION_DELAY_MS)
@@ -700,7 +706,8 @@ class SyncUtils @Inject constructor(
                     val remoteIds = remoteAlbums.map { it.id }.toSet()
                     val localAlbums = database.albumsUploadedByNameAsc().first()
 
-                    localAlbums.filterNot { it.id in remoteIds }.forEach { album ->
+                    val espejoSubidos = EspejoDeSync(context, "albumes_subidos", remoteIds)
+                    localAlbums.filter { it.id !in remoteIds && espejoSubidos.sePuedeQuitar(it.id) }.also { espejoSubidos.guardar() }.forEach { album ->
                         try {
                             database.update(album.album.toggleUploaded())
                             delay(DB_OPERATION_DELAY_MS)
@@ -761,7 +768,8 @@ class SyncUtils @Inject constructor(
                     val remoteIds = remoteArtists.map { it.id }.toSet()
                     val localArtists = database.artistsBookmarkedByNameAsc().first()
 
-                    localArtists.filterNot { it.id in remoteIds }.forEach { artist ->
+                    val espejo = EspejoDeSync(context, "artistas", remoteIds)
+                    localArtists.filter { it.id !in remoteIds && espejo.sePuedeQuitar(it.id) }.also { espejo.guardar() }.forEach { artist ->
                         try {
                             database.update(artist.artist.localToggleLike())
                             delay(DB_OPERATION_DELAY_MS)
@@ -850,7 +858,8 @@ class SyncUtils @Inject constructor(
                     val remoteIds = remotePlaylists.map { it.id }.toSet()
 
                     val localPlaylists = database.playlistsByNameAsc().first()
-                    localPlaylists.filterNot { it.playlist.browseId in remoteIds }
+                    val espejo = EspejoDeSync(context, "listas", remoteIds)
+                    localPlaylists.filter { it.playlist.browseId !in remoteIds && espejo.sePuedeQuitar(it.playlist.browseId) }.also { espejo.guardar() }
                         .filterNot { it.playlist.browseId == null }
                         .forEach { playlist ->
                             try {
@@ -945,18 +954,18 @@ class SyncUtils @Inject constructor(
                     val songs = page.songs.map(SongItem::toMediaMetadata)
                     Timber.d("syncPlaylist: Fetched ${songs.size} songs from remote")
 
-                    if (songs.isEmpty()) {
-                        Timber.w("syncPlaylist: Remote playlist is empty, clearing local playlist")
-                        database.withTransaction {
-                            database.clearPlaylist(playlistId)
-                        }
-                        return@onSuccess
-                    }
-
                     val remoteIds = songs.map { it.id }
                     val localIds = database.playlistSongs(playlistId).first()
                         .sortedBy { it.map.position }
                         .map { it.song.id }
+
+                    // 2.0.2: una respuesta vacia o muy corta suele ser una pagina que no cargo, no una lista
+                    // vaciada. Antes se borraba la lista de la app; ahora se deja como esta.
+                    if (localIds.isNotEmpty() && (songs.isEmpty() || (localIds.size >= 10 && songs.size * 2 < localIds.size))) {
+                        Timber.w("syncPlaylist: remote has ${songs.size} songs vs ${localIds.size} local, keeping local")
+                        return@onSuccess
+                    }
+                    if (songs.isEmpty()) return@onSuccess
 
                     if (remoteIds == localIds) {
                         Timber.d("syncPlaylist: Local and remote are in sync, no changes needed")
@@ -1094,5 +1103,34 @@ class SyncUtils @Inject constructor(
         processingJob?.cancel()
         startProcessingQueue()
         updateState { SyncState() }
+    }
+}
+
+/**
+ * 2.0.2 · Lo que vino de YouTube en la ultima sincronizacion, por tipo (filesDir/sync/<tipo>.txt).
+ * Solo se quita de la app lo que estaba alla y ya no esta, porque se quito en otro lado; lo que nunca
+ * llego a YouTube se queda. Si la respuesta trae menos de la mitad de lo de la vez pasada, se toma como
+ * pagina incompleta y no se quita nada ni se guarda.
+ */
+private class EspejoDeSync(context: Context, tipo: String, private val remotos: Set<String>) {
+    private val archivo = java.io.File(context.filesDir, "sync/$tipo.txt")
+    private val antes: Set<String>? = runCatching {
+        if (archivo.exists()) archivo.readLines().filter { it.isNotBlank() }.toSet() else null
+    }.getOrNull()
+    private val confiable = antes == null || antes.size < 20 || remotos.size * 2 >= antes.size
+
+    fun sePuedeQuitar(id: String?) = id != null && confiable && antes?.contains(id) == true && id !in remotos
+
+    fun nuncaSubio(id: String) = antes?.contains(id) != true
+
+    fun guardar() {
+        if (!confiable) {
+            Timber.w("Sync ${archivo.name}: ${remotos.size} remotos vs ${antes?.size} antes, no se quita nada")
+            return
+        }
+        runCatching {
+            archivo.parentFile?.mkdirs()
+            archivo.writeText(remotos.joinToString("\n"))
+        }.onFailure { Timber.e(it, "No se pudo guardar ${archivo.name}") }
     }
 }

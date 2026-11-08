@@ -14,6 +14,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.FilterChip
@@ -27,7 +28,11 @@ import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
@@ -66,8 +71,10 @@ fun NovaPersonalizar(alVolver: () -> Unit) {
     val alAire by NovaSesion.alAire.collectAsState()
     val colores = rememberColoresAurora()
 
-    val (nombre, alCambiarNombre) = rememberPreference(NovaNombreKey, defaultValue = "")
-    val (comoTeDice, alCambiarComoTeDice) = rememberPreference(NovaComoTeDiceKey, defaultValue = "")
+    val (nombreGuardado, alGuardarNombre) = rememberPreference(NovaNombreKey, defaultValue = "")
+    val (comoTeDiceGuardado, alGuardarComoTeDice) = rememberPreference(NovaComoTeDiceKey, defaultValue = "")
+    val nombre = rememberTextoGuardado(nombreGuardado, alGuardarNombre)
+    val comoTeDice = rememberTextoGuardado(comoTeDiceGuardado, alGuardarComoTeDice)
     val cuenta by rememberPreference(AccountNameKey, defaultValue = "")
     val (region, alCambiarRegion) = rememberPreference(NovaRegionKey, defaultValue = "latam")
     val (cada, alCambiarCada) = rememberPreference(NovaCadaKey, defaultValue = 1)
@@ -109,11 +116,12 @@ fun NovaPersonalizar(alVolver: () -> Unit) {
             Column(Modifier.weight(1f)) {
                 Rotulo(stringResource(R.string.nova_su_nombre))
                 OutlinedTextField(
-                    value = nombre,
-                    onValueChange = { alCambiarNombre(it.take(20)) },
+                    value = nombre.texto,
+                    onValueChange = { nombre.escribir(it.take(20)) },
                     placeholder = { Text("Nova") },
                     singleLine = true,
                     keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Words, imeAction = ImeAction.Done),
+                    keyboardActions = KeyboardActions(onDone = { nombre.guardarYa() }),
                     supportingText = { Text(stringResource(R.string.nova_su_nombre_ayuda)) },
                     modifier = Modifier.fillMaxWidth(),
                 )
@@ -124,11 +132,12 @@ fun NovaPersonalizar(alVolver: () -> Unit) {
         Spacer(Modifier.height(8.dp))
         Rotulo(stringResource(R.string.nova_como_te_dice))
         OutlinedTextField(
-            value = comoTeDice,
-            onValueChange = { alCambiarComoTeDice(it.take(24)) },
+            value = comoTeDice.texto,
+            onValueChange = { comoTeDice.escribir(it.take(24)) },
             placeholder = { Text(NovaFrases.primerNombre(cuenta) ?: stringResource(R.string.nova_como_te_dice_vacio)) },
             singleLine = true,
             keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Words, imeAction = ImeAction.Done),
+            keyboardActions = KeyboardActions(onDone = { comoTeDice.guardarYa() }),
             supportingText = { Text(stringResource(R.string.nova_como_te_dice_ayuda)) },
             modifier = Modifier.fillMaxWidth(),
         )
@@ -308,4 +317,40 @@ private fun Rotulo(texto: String, modifier: Modifier = Modifier) {
         color = MaterialTheme.colorScheme.onSurfaceVariant,
         modifier = modifier.padding(bottom = 4.dp),
     )
+}
+
+/**
+ * 2.0.2 · Un campo que escribe en memoria y se guarda medio segundo despues de la ultima letra (o al
+ * tocar Listo). Guardar en cada letra hacia que el campo se redibujara con el valor viejo mientras
+ * llegaba el nuevo: el cursor saltaba al inicio y las letras se desordenaban.
+ */
+private class TextoGuardado(inicial: String, private val guardar: (String) -> Unit) {
+    var texto by mutableStateOf(inicial)
+        private set
+    var tocado by mutableStateOf(false)
+        private set
+
+    fun escribir(nuevo: String) {
+        tocado = true
+        texto = nuevo
+    }
+
+    fun recibir(guardado: String) {
+        if (!tocado) texto = guardado
+    }
+
+    fun guardarYa() = guardar(texto)
+}
+
+@Composable
+private fun rememberTextoGuardado(guardado: String, guardar: (String) -> Unit): TextoGuardado {
+    val campo = remember { TextoGuardado(guardado, guardar) }
+    // El valor guardado llega un instante despues de abrir la pantalla.
+    LaunchedEffect(guardado) { campo.recibir(guardado) }
+    LaunchedEffect(campo.texto) {
+        if (!campo.tocado || campo.texto == guardado) return@LaunchedEffect
+        kotlinx.coroutines.delay(500)
+        campo.guardarYa()
+    }
+    return campo
 }
