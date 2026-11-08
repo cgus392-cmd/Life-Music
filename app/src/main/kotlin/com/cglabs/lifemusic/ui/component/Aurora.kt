@@ -221,7 +221,11 @@ fun VidrioDeBarra(fraccion: Float, oscuro: Boolean, negroPuro: Boolean, modifier
     }
     val linea = if (oscuro) Color.White.copy(alpha = 0.09f) else Color.Black.copy(alpha = 0.09f)
     val densidad = LocalDensity.current
-    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+    // 2.1.0: el vidrio esmerilado captura y desenfoca la pantalla en cada cuadro; en gama baja eso
+    // solo llevaba el Inicio al 60 % de cuadros con tiron (A04s). Ahi va el vidrio solido de abajo.
+    val contexto = androidx.compose.ui.platform.LocalContext.current
+    val ligero = remember { com.cglabs.lifemusic.utils.ModoLigero.esGamaBaja(contexto) }
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S && !ligero) {
         val desenfoque = with(densidad) { 22.dp.toPx() }
         val opacidadVidrio = if (oscuro && negroPuro) 0.56f else if (oscuro) 0.58f else 0.60f
         Box(

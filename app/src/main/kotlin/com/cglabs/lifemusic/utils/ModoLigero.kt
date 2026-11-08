@@ -17,7 +17,8 @@ import kotlinx.coroutines.flow.first
  * a prender, se quedan prendidos. Nada se quita, solo se dosifica segun el equipo.
  */
 object ModoLigero {
-    private val RevisadoKey = booleanPreferencesKey("modoLigeroRevisado")
+    // 2.1.0: clave nueva, para volver a evaluar una vez con la medida de gama corregida.
+    private val RevisadoKey = booleanPreferencesKey("modoLigeroRevisado2")
     private val PESADOS = listOf(
         CanvasThumbnailAnimationKey,
         AppleMusicLyricsBlurKey,
@@ -25,7 +26,11 @@ object ModoLigero {
         AmbienteFondoReactivoKey,
     )
 
-    fun esGamaBaja(context: Context) = NovaCapacidad.aguante(NovaCapacidad.telefono(context)) <= 0.32f
+    @Volatile private var gamaBaja: Boolean? = null
+
+    /** Se mide una vez por proceso: es barato, pero se pregunta en cada cuadro de algunos efectos. */
+    fun esGamaBaja(context: Context): Boolean =
+        gamaBaja ?: (NovaCapacidad.aguante(NovaCapacidad.telefono(context)) <= 0.32f).also { gamaBaja = it }
 
     suspend fun aplicarSiHaceFalta(context: Context) {
         if (context.dataStore.data.first()[RevisadoKey] == true) return

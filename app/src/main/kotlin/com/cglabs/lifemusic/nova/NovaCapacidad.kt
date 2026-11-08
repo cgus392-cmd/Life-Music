@@ -61,6 +61,10 @@ object NovaCapacidad {
      */
     fun aguante(t: Telefono): Float {
         if (t.memoriaBaja) return 0.25f
+        // 2.1.0: un Galaxy A04s (3,6 GB, 8 nucleos lentos, sin clase de rendimiento) salia como
+        // gama media y el Inicio iba al 60 % de cuadros con tiron. Sin clase y con menos de 4,5 GB,
+        // es gama baja, tenga los nucleos que tenga.
+        if (t.claseRendimiento < Build.VERSION_CODES.R && t.memoriaGb < 4.5f) return 0.32f
         val gamaAlta = t.claseRendimiento >= Build.VERSION_CODES.S || (t.memoriaGb >= 7.5f && t.nucleos >= 8)
         val gamaMedia = t.claseRendimiento >= Build.VERSION_CODES.R || (t.memoriaGb >= 3.5f && t.nucleos >= 8)
         return when {

@@ -1,0 +1,16 @@
+# 2.1.0 · Perfil de arranque de Life Music: Android precompila esto al instalar (o en la primera
+# optimizacion en reposo) en vez de interpretarlo la primera vez que se usa. Las librerias (Compose,
+# Media3...) traen el suyo; este cubre el codigo propio que corre al abrir, en el Inicio, el
+# reproductor y la carga de datos. En el A04s, el Inicio iba al 60 % de cuadros con tiron.
+HSPLcom/cglabs/lifemusic/App**->**(**)**
+HSPLcom/cglabs/lifemusic/MainActivity**->**(**)**
+HSPLcom/cglabs/lifemusic/ui/**->**(**)**
+HSPLcom/cglabs/lifemusic/viewmodels/**->**(**)**
+HSPLcom/cglabs/lifemusic/playback/**->**(**)**
+HSPLcom/cglabs/lifemusic/db/**->**(**)**
+HSPLcom/cglabs/lifemusic/models/**->**(**)**
+HSPLcom/cglabs/lifemusic/utils/**->**(**)**
+HSPLcom/cglabs/lifemusic/extensions/**->**(**)**
+HSPLcom/music/innertube/**->**(**)**
+Lcom/cglabs/lifemusic/**;
+Lcom/music/innertube/**;
