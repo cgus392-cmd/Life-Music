@@ -1491,4 +1491,15 @@
     <string name="nova_entrada_antes">Primero hablo</string>
     <string name="nova_entrada_encima_desc">Como en la radio: la canción arranca bajita, Nova habla y termina justo cuando entra la voz.</string>
     <string name="nova_entrada_antes_desc">La canción espera quieta a que Nova termine de hablar y luego arranca.</string>
+    <string name="mixed_mezclar">Mezclar</string>
+    <string name="mixed_analizando">Analizando canciones…</string>
+    <string name="mixed_analizando_desc">Nova escucha las primeras canciones una vez: los golpes, el tempo y la tonalidad. Lo hace en el teléfono y lo guarda, así la próxima vez es inmediato. Las demás las escucha mientras suenan.</string>
+    <string name="mixed_bpm">%1$d BPM</string>
+    <string name="mixed_mayor">mayor</string>
+    <string name="mixed_menor">menor</string>
+    <string name="mixed_sin_golpes">Sin golpes claros: va con fundido</string>
+    <string name="mixed_buscando_golpes">Buscando los golpes…</string>
+    <string name="mixed_en_espera">En espera</string>
+    <string name="mixed_progreso">%1$d de %2$d</string>
+    <string name="mixed_mezclar_ya">Mezclar ya con lo que hay</string>
 </resources>

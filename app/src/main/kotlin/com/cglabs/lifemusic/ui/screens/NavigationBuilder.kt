@@ -133,6 +133,10 @@ fun NavGraphBuilder.navigationBuilder(
     composable("estudio") {
         com.cglabs.lifemusic.ui.screens.estudio.EstudioScreen(navController)
     }
+    // 2.1.0 · Mixed Editor: «Analizando canciones…» antes de mezclar.
+    composable("mixed/analizando") {
+        com.cglabs.lifemusic.ui.screens.mixed.MixedAnalizandoScreen(navController)
+    }
 
     composable("estudio/modelos") {
         com.cglabs.lifemusic.ui.screens.estudio.EstudioModelosScreen(navController)

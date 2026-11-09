@@ -592,6 +592,34 @@ class MusicService :
     private var secondaryPlayer: ExoPlayer? = null
     private var fadingPlayer: ExoPlayer? = null
     val isCrossfading = MutableStateFlow(false)
+
+    /**
+     * 2.1.0 · Mixed Editor: se esta mezclando esta sesion (el boton «Mezclar»). Prende la mezcla
+     * al compas del Automix sin tocar los Ajustes de la persona; se apaga al cerrar la app o con
+     * [dejarDeMezclar].
+     */
+    val mixedEditor = MutableStateFlow(false)
+
+    fun dejarDeMezclar() {
+        mixedEditor.value = false
+    }
+
+    /**
+     * 2.1.0 · Mixed Editor: los golpes, el BPM y la tonalidad de cada cancion antes de mezclar.
+     * Lee lo ya guardado y analiza lo que falta, de una en una (es lo que hace el Automix cuando
+     * le toca a cada cancion, adelantado). [alTerminar] avisa por cada una, con o sin datos.
+     */
+    suspend fun analizarParaMezcla(ids: List<String>, alTerminar: (String, BeatInfoEntity?) -> Unit) {
+        for (id in ids) {
+            val guardada = withContext(Dispatchers.IO) { database.beatInfo(id) }
+            if (guardada == null || guardada.bpm <= 0f) {
+                maybeAnalyzeBeat(id, BeatAnalysisPriority.IMMEDIATE)
+                val trabajo = synchronized(beatAnalysisJobs) { beatAnalysisJobs[id]?.job }
+                trabajo?.join()
+            }
+            alTerminar(id, withContext(Dispatchers.IO) { database.beatInfo(id) })
+        }
+    }
     val isAutomixing = MutableStateFlow(false)
     private var crossfadeJob: Job? = null
 
@@ -1269,10 +1297,11 @@ class MusicService :
                     prefs[CrossfadeGaplessKey] ?: true
                 )
             },
-            listenTogetherManager.roomState
-        ) { (enabled, duration, gapless), roomState ->
-            
-            Triple(enabled && roomState == null, duration, gapless)
+            listenTogetherManager.roomState,
+            mixedEditor,
+        ) { (enabled, duration, gapless), roomState, mezclando ->
+            // 2.1.0 · El Mixed Editor prende la mezcla aunque en Ajustes este apagada.
+            Triple((enabled || mezclando) && roomState == null, duration, gapless)
         }
             .distinctUntilChanged()
             .collect(scope) { (enabled, duration, gapless) ->
@@ -1289,8 +1318,10 @@ class MusicService :
                 }
             }
 
-        dataStore.data
-            .map { (try { it[AutomixCrossfadeKey] } catch(e: Exception) { null }) ?: false }
+        combine(
+            dataStore.data.map { (try { it[AutomixCrossfadeKey] } catch(e: Exception) { null }) ?: false },
+            mixedEditor,
+        ) { ajuste, mezclando -> ajuste || mezclando }
             .distinctUntilChanged()
             .collect(scope) {
                 automixEnabled = it

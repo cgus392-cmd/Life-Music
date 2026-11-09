@@ -540,7 +540,12 @@ fun LocalPlaylistScreen(
                                 onStartSearch = { isSearching = true },
                                 onExport = { exportCsvLauncher.launch("${playlist.playlist.name}_export.csv") },
                                 snackbarHostState = snackbarHostState,
-                                modifier = Modifier.animateItem()
+                                modifier = Modifier.animateItem(),
+                                onMezclar = {
+                                    com.cglabs.lifemusic.ui.screens.mixed.PedidoDeMezcla.abrir(
+                                        navController, playlist.playlist.name, songs.map { it.song.toMediaItem() },
+                                    )
+                                },
                             )
                         }
                     }
@@ -907,6 +912,7 @@ fun LocalPlaylistHeader(
     onExport: () -> Unit,
     snackbarHostState: SnackbarHostState,
     modifier: Modifier,
+    onMezclar: () -> Unit = {},
 ) {
     val playerConnection = LocalPlayerConnection.current ?: return
     val context = LocalContext.current
@@ -1351,6 +1357,9 @@ fun LocalPlaylistHeader(
                     overflow = TextOverflow.Ellipsis
                 )
             }
+
+            // 2.1.0 · Mixed Editor: al lado de Reproducir, como en la maqueta.
+            com.cglabs.lifemusic.ui.screens.mixed.BotonMezclar(onClick = onMezclar, modifier = Modifier.weight(1f))
 
             
             Surface(

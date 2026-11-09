@@ -1871,4 +1871,15 @@
     <string name="nova_entrada_antes">I talk first</string>
     <string name="nova_entrada_encima_desc">Like on the radio: the song starts low, Nova talks and finishes right as the vocals come in.</string>
     <string name="nova_entrada_antes_desc">The song waits until Nova finishes talking, then starts.</string>
+    <string name="mixed_mezclar">Mix</string>
+    <string name="mixed_analizando">Analyzing songs…</string>
+    <string name="mixed_analizando_desc">Nova listens to the first songs once: the beats, the tempo and the key. It happens on your phone and is saved, so next time it is instant. The rest are analyzed as they play.</string>
+    <string name="mixed_bpm">%1$d BPM</string>
+    <string name="mixed_mayor">major</string>
+    <string name="mixed_menor">minor</string>
+    <string name="mixed_sin_golpes">No clear beats: it will fade</string>
+    <string name="mixed_buscando_golpes">Finding the beats…</string>
+    <string name="mixed_en_espera">Waiting</string>
+    <string name="mixed_progreso">%1$d of %2$d</string>
+    <string name="mixed_mezclar_ya">Mix now with what is ready</string>
 </resources>

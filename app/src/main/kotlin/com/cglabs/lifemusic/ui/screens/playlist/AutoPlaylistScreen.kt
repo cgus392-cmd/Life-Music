@@ -344,7 +344,12 @@ fun AutoPlaylistScreen(
                                 onShowRemoveDownloadDialog = { showRemoveDownloadDialog = true },
                                 menuState = menuState,
                                 playerConnection = playerConnection,
-                                modifier = Modifier.animateItem()
+                                modifier = Modifier.animateItem(),
+                                onMezclar = {
+                                    com.cglabs.lifemusic.ui.screens.mixed.PedidoDeMezcla.abrir(
+                                        navController, playlist, songs!!.map { it.toMediaItem() },
+                                    )
+                                }
                             )
                         }
                     }
@@ -604,7 +609,8 @@ private fun AutoPlaylistHeader(
     onShowRemoveDownloadDialog: () -> Unit,
     menuState: com.cglabs.lifemusic.ui.component.MenuState,
     playerConnection: PlayerConnection?,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    onMezclar: () -> Unit = {},
 ) {
     val context = LocalContext.current
     
@@ -721,6 +727,9 @@ private fun AutoPlaylistHeader(
                     )
                 }
             }
+
+            // 2.1.0 · Mixed Editor
+            com.cglabs.lifemusic.ui.screens.mixed.BotonMezclar(onClick = onMezclar, modifier = Modifier.weight(1f))
 
             
             androidx.compose.material3.Button(
