@@ -121,6 +121,7 @@ private enum class Estado { ESPERA, ANALIZANDO, LISTA, SIN_GOLPES, AL_SONAR }
 @Composable
 fun MixedAnalizandoScreen(navController: NavController) {
     val conexion = LocalPlayerConnection.current ?: return
+    val contexto = androidx.compose.ui.platform.LocalContext.current
     val canciones = remember { PedidoDeMezcla.canciones }
     val titulo = remember { PedidoDeMezcla.titulo }
     val porAnalizar = remember { canciones.take(PedidoDeMezcla.ANTES_DE_SONAR) }
@@ -133,6 +134,7 @@ fun MixedAnalizandoScreen(navController: NavController) {
         if (!arrancada) {
             arrancada = true
             conexion.service.mixedEditor.value = true
+            android.widget.Toast.makeText(contexto, contexto.getString(R.string.mixed_activado), android.widget.Toast.LENGTH_LONG).show()
             conexion.playQueue(ListQueue(title = titulo, items = canciones))
             navController.navigateUp()
         }

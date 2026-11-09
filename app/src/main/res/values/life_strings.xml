@@ -1883,4 +1883,10 @@
     <string name="mixed_progreso">%1$d of %2$d</string>
     <string name="mixed_mezclar_ya">Mix now with what is ready</string>
     <string name="mixed_empezar">Start the mix</string>
+    <string name="mixed_etiqueta">MIX</string>
+    <string name="mixed_modo_titulo">Mix mode</string>
+    <string name="mixed_modo_desc">Your songs are being mixed on the beat, like a DJ: every change lands on the beat, with the bass handing over. The green label next to the time tells you it is still on.</string>
+    <string name="mixed_dejar">Stop mixing</string>
+    <string name="mixed_seguir">Keep mixing</string>
+    <string name="mixed_activado">Mix mode on: your songs will play mixed</string>
 </resources>

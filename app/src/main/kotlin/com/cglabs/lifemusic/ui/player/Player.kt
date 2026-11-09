@@ -342,6 +342,10 @@ fun BottomSheetPlayer(
     val isPlaying by playerConnection.isPlaying.collectAsState()
     val isCrossfading by playerConnection.isCrossfading.collectAsState()
     val isAutomixing by playerConnection.isAutomixing.collectAsState()
+    // 2.1.0 · Mixed Editor: la sesion esta mezclando (boton «Mezclar»). Pedido de CG, 09-11: que se
+    // sepa siempre, con la etiqueta del formato en verde.
+    val mezclando by playerConnection.service.mixedEditor.collectAsState()
+    var mostrarModoMezcla by remember { mutableStateOf(false) }
     val automixDebug by playerConnection.automixDebugInfo.collectAsState()
     val transiciones by playerConnection.transicionesAutomix.collectAsState()
     val automixDebugOverlayEnabled by rememberPreference(com.cglabs.lifemusic.constants.AutomixDebugOverlayKey, false)
@@ -810,6 +814,26 @@ fun BottomSheetPlayer(
     var sleepTimerValue by remember {
         mutableFloatStateOf(30f)
     }
+    if (mostrarModoMezcla) {
+        androidx.compose.material3.AlertDialog(
+            onDismissRequest = { mostrarModoMezcla = false },
+            icon = { Icon(painterResource(R.drawable.mezclar), contentDescription = null) },
+            title = { Text(stringResource(R.string.mixed_modo_titulo)) },
+            text = { Text(stringResource(R.string.mixed_modo_desc)) },
+            confirmButton = {
+                androidx.compose.material3.TextButton(onClick = {
+                    playerConnection.service.dejarDeMezclar()
+                    mostrarModoMezcla = false
+                }) { Text(stringResource(R.string.mixed_dejar)) }
+            },
+            dismissButton = {
+                androidx.compose.material3.TextButton(onClick = { mostrarModoMezcla = false }) {
+                    Text(stringResource(R.string.mixed_seguir))
+                }
+            },
+        )
+    }
+
     if (showSleepTimerDialog) {
         AlertDialog(
             properties = DialogProperties(usePlatformDefaultWidth = false),
@@ -1989,7 +2013,8 @@ fun BottomSheetPlayer(
                 modifier = Modifier.padding(horizontal = PlayerHorizontalPadding),
             )
 
-            when (sliderStyle) {
+            // 2.1.0 · Mixed Editor: mientras mezcla, la barra se vuelve ondulada (maqueta, lamina 4).
+            when (if (isCrossfading && mezclando) SliderStyle.WAVY else sliderStyle) {
                 SliderStyle.DEFAULT -> {
                     Slider(
                         value = (sliderPosition ?: effectivePosition).toFloat(),
@@ -2181,19 +2206,20 @@ fun BottomSheetPlayer(
                     }
                     val mixCountdownActive = !isCrossfading && mixBeatsLeft != null && mixBeatsLeft in 1..16
 
-                    val shouldShowCodecBox = showCodecOnPlayer && (formatText.isNotEmpty() || isBuffering) || isCrossfading || mixCountdownActive
+                    val shouldShowCodecBox = showCodecOnPlayer && (formatText.isNotEmpty() || isBuffering) || isCrossfading || mixCountdownActive || mezclando
                     if (sleepTimerEnabled || shouldShowCodecBox) {
+                        val verdeMix = Color(0xFF34C759)
                         Box(
                             modifier = Modifier
                                 .clip(RoundedCornerShape(4.dp))
-                                .background(TextBackgroundColor.copy(alpha = 0.08f))
+                                .background(if (mezclando) verdeMix.copy(alpha = 0.22f) else TextBackgroundColor.copy(alpha = 0.08f))
                                 .border(
-                                    width = 0.5.dp,
-                                    color = TextBackgroundColor.copy(alpha = 0.12f),
+                                    width = if (mezclando) 1.dp else 0.5.dp,
+                                    color = if (mezclando) verdeMix.copy(alpha = 0.7f) else TextBackgroundColor.copy(alpha = 0.12f),
                                     shape = RoundedCornerShape(4.dp)
                                 )
-                                .clickable(enabled = sleepTimerEnabled) {
-                                    showSleepTimerDialog = true
+                                .clickable(enabled = sleepTimerEnabled || mezclando) {
+                                    if (sleepTimerEnabled) showSleepTimerDialog = true else mostrarModoMezcla = true
                                 }
                                 .padding(horizontal = 6.dp, vertical = 2.dp)
                         ) {
@@ -2201,6 +2227,7 @@ fun BottomSheetPlayer(
                                 sleepTimerEnabled -> 0
                                 isCrossfading -> 1
                                 mixCountdownActive -> 4
+                                mezclando -> 5
                                 isBuffering -> 2
                                 else -> 3
                             }
@@ -2301,6 +2328,29 @@ fun BottomSheetPlayer(
                                             color = TextBackgroundColor.copy(alpha = 0.8f),
                                             maxLines = 1,
                                         )
+                                    }
+                                    5 -> {
+                                        Row(
+                                            verticalAlignment = Alignment.CenterVertically,
+                                            horizontalArrangement = Arrangement.spacedBy(4.dp)
+                                        ) {
+                                            Icon(
+                                                painter = painterResource(R.drawable.mezclar),
+                                                contentDescription = null,
+                                                tint = Color(0xFF7CE495),
+                                                modifier = Modifier.size(12.dp)
+                                            )
+                                            Text(
+                                                text = stringResource(R.string.mixed_etiqueta) + if (formatText.isNotEmpty()) " • $formatText" else "",
+                                                style = MaterialTheme.typography.labelSmall.copy(
+                                                    fontSize = 10.sp,
+                                                    fontWeight = FontWeight.Bold,
+                                                    letterSpacing = 1.sp
+                                                ),
+                                                color = Color(0xFF7CE495),
+                                                maxLines = 1,
+                                            )
+                                        }
                                     }
                                     4 -> {
                                         val beatTransition = androidx.compose.animation.core.rememberInfiniteTransition(label = "MixCountdownBeat")
