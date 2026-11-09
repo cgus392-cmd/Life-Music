@@ -114,6 +114,7 @@ import com.cglabs.lifemusic.db.entities.Playlist
 import com.cglabs.lifemusic.db.entities.PlaylistEntity
 import com.cglabs.lifemusic.db.entities.PlaylistSongMap
 import com.cglabs.lifemusic.models.toMediaMetadata
+import com.cglabs.lifemusic.extensions.toMediaItem
 import com.cglabs.lifemusic.playback.ExoDownloadService
 import com.cglabs.lifemusic.playback.queues.YouTubePlaylistQueue
 import com.cglabs.lifemusic.ui.component.IconButton
@@ -978,6 +979,31 @@ private fun OnlinePlaylistHeader(
                 }
 
                 
+                // 2.1.0 · Mixed Editor
+                ToggleButton(
+                    checked = false,
+                    onCheckedChange = {
+                        com.cglabs.lifemusic.ui.screens.mixed.PedidoDeMezcla.abrir(
+                            navController, playlist.title, songs.map { it.toMediaItem() },
+                        )
+                    },
+                    modifier = Modifier.weight(1f).semantics { role = Role.Button },
+                    shapes = ButtonGroupDefaults.connectedMiddleButtonShapes(),
+                ) {
+                    Icon(
+                        painter = painterResource(R.drawable.mezclar),
+                        contentDescription = null,
+                        modifier = Modifier.size(20.dp)
+                    )
+                    Spacer(Modifier.size(ToggleButtonDefaults.IconSpacing))
+                    Text(
+                        stringResource(R.string.mixed_mezclar),
+                        style = MaterialTheme.typography.labelMedium,
+                        maxLines = 1,
+                        overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis
+                    )
+                }
+
                 ToggleButton(
                     checked = false,
                     onCheckedChange = {

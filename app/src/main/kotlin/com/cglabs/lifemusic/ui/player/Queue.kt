@@ -980,6 +980,45 @@ fun Queue(
                             )
                     }
 
+                    // 2.1.0 · Mixed Editor: mezclar lo que ya suena, sin empezar de nuevo.
+                    val mezclandoCola by playerConnection.service.mixedEditor.collectAsState()
+                    val contextoCola = androidx.compose.ui.platform.LocalContext.current
+                    ToggleButton(
+                        checked = mezclandoCola,
+                        onCheckedChange = { prender ->
+                            if (prender) {
+                                playerConnection.service.mixedEditor.value = true
+                                android.widget.Toast.makeText(contextoCola, contextoCola.getString(R.string.mixed_activado), android.widget.Toast.LENGTH_LONG).show()
+                            } else {
+                                playerConnection.service.dejarDeMezclar()
+                            }
+                        },
+                        enabled = !isListenTogetherGuest,
+                        shapes = ButtonGroupDefaults.connectedMiddleButtonShapes(),
+                        colors = ToggleButtonDefaults.toggleButtonColors(
+                            containerColor = MaterialTheme.colorScheme.secondaryContainer,
+                            contentColor = MaterialTheme.colorScheme.onSecondaryContainer,
+                            checkedContainerColor = androidx.compose.ui.graphics.Color(0xFF34C759),
+                            checkedContentColor = androidx.compose.ui.graphics.Color.Black
+                        ),
+                        modifier = Modifier
+                            .weight(1f)
+                            .height(56.dp),
+                    ) {
+                        Icon(
+                            painter = painterResource(R.drawable.mezclar),
+                            contentDescription = null,
+                            modifier = Modifier.size(22.dp)
+                        )
+                        Spacer(Modifier.size(ToggleButtonDefaults.IconSpacing))
+                        Text(
+                            text = stringResource(R.string.mixed_mezclar),
+                            style = MaterialTheme.typography.labelMedium,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis
+                        )
+                    }
+
                     ToggleButton(
                         checked = repeatMode != Player.REPEAT_MODE_OFF,
                         onCheckedChange = {

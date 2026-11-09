@@ -8,7 +8,8 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.navigationBarsPadding
+import androidx.compose.foundation.layout.only
+import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -164,7 +165,14 @@ fun MixedAnalizandoScreen(navController: NavController) {
             )
         },
     ) { relleno ->
-        Column(Modifier.fillMaxSize().padding(relleno).navigationBarsPadding()) {
+        // Prueba de CG (09-11): con musica sonando, el mini reproductor tapaba la ultima fila y el
+        // boton «Empezar la mezcla» no se veia. Se deja el espacio del mini reproductor, como las demas.
+        Column(
+            Modifier.fillMaxSize().padding(top = relleno.calculateTopPadding())
+                .windowInsetsPadding(
+                    com.cglabs.lifemusic.LocalPlayerAwareWindowInsets.current.only(androidx.compose.foundation.layout.WindowInsetsSides.Bottom),
+                ),
+        ) {
             LinearWavyProgressIndicator(
                 progress = { if (porAnalizar.isEmpty()) 1f else hechas.toFloat() / porAnalizar.size },
                 modifier = Modifier.fillMaxWidth().padding(horizontal = 20.dp, vertical = 8.dp),
