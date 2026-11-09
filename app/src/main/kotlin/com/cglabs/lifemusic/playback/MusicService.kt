@@ -611,13 +611,20 @@ class MusicService :
      */
     suspend fun analizarParaMezcla(ids: List<String>, alTerminar: (String, BeatInfoEntity?) -> Unit) {
         for (id in ids) {
+            val inicio = android.os.SystemClock.elapsedRealtime()
             val guardada = withContext(Dispatchers.IO) { database.beatInfo(id) }
             if (guardada == null || guardada.bpm <= 0f) {
                 maybeAnalyzeBeat(id, BeatAnalysisPriority.IMMEDIATE)
                 val trabajo = synchronized(beatAnalysisJobs) { beatAnalysisJobs[id]?.job }
                 trabajo?.join()
             }
-            alTerminar(id, withContext(Dispatchers.IO) { database.beatInfo(id) })
+            val info = withContext(Dispatchers.IO) { database.beatInfo(id) }
+            android.util.Log.i(
+                "LifeMusicMixed",
+                "$id: " + (if (guardada != null && guardada.bpm > 0f) "ya analizada" else "analizada ahora") +
+                    " en ${android.os.SystemClock.elapsedRealtime() - inicio} ms, bpm=${info?.bpm} confianza=${info?.confidence} tono=${info?.keyPitchClass}",
+            )
+            alTerminar(id, info)
         }
     }
     val isAutomixing = MutableStateFlow(false)

@@ -1502,4 +1502,5 @@
     <string name="mixed_en_espera">En espera</string>
     <string name="mixed_progreso">%1$d de %2$d</string>
     <string name="mixed_mezclar_ya">Mezclar ya con lo que hay</string>
+    <string name="mixed_empezar">Empezar la mezcla</string>
 </resources>

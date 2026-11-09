@@ -127,6 +127,7 @@ fun MixedAnalizandoScreen(navController: NavController) {
     val datos = remember { mutableStateMapOf<String, BeatInfoEntity?>() }
     var actual by remember { mutableStateOf<String?>(null) }
     var arrancada by remember { mutableStateOf(false) }
+    var terminado by remember { mutableStateOf(false) }
 
     val mezclar: () -> Unit = {
         if (!arrancada) {
@@ -142,7 +143,9 @@ fun MixedAnalizandoScreen(navController: NavController) {
             datos[id] = info
             actual = porAnalizar.getOrNull(porAnalizar.indexOfFirst { it.mediaId == id } + 1)?.mediaId
         }
-        mezclar()
+        // Prueba de CG (09-11): si ya estaban analizadas, esto terminaba al instante y la pantalla se
+        // cerraba sola. Ahora espera a que la persona toque «Empezar la mezcla».
+        terminado = true
     }
     LaunchedEffect(Unit) { actual = porAnalizar.firstOrNull()?.mediaId }
 
@@ -191,7 +194,15 @@ fun MixedAnalizandoScreen(navController: NavController) {
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     modifier = Modifier.weight(1f),
                 )
-                TextButton(onClick = mezclar) { Text(stringResource(R.string.mixed_mezclar_ya)) }
+                if (terminado) {
+                    androidx.compose.material3.Button(onClick = mezclar) {
+                        Icon(painterResource(R.drawable.mezclar), contentDescription = null, modifier = Modifier.size(18.dp))
+                        Spacer(Modifier.width(8.dp))
+                        Text(stringResource(R.string.mixed_empezar))
+                    }
+                } else {
+                    TextButton(onClick = mezclar) { Text(stringResource(R.string.mixed_mezclar_ya)) }
+                }
             }
         }
     }

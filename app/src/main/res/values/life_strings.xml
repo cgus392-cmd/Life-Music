@@ -1882,4 +1882,5 @@
     <string name="mixed_en_espera">Waiting</string>
     <string name="mixed_progreso">%1$d of %2$d</string>
     <string name="mixed_mezclar_ya">Mix now with what is ready</string>
+    <string name="mixed_empezar">Start the mix</string>
 </resources>
