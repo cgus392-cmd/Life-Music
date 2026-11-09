@@ -315,7 +315,8 @@ class NovaLocutor(
                     return@launch
                 }
                 ultimoTexto = anuncio.texto
-                salirAlAire(anuncio.texto, anuncio.archivo, anuncio.id, ESPERA_SONAR_MS)
+                // 2.1.0 · Al prender y al cambiar de onda tambien cuentan «Primero hablo» y pegar al poste.
+                salirAlAire(anuncio.texto, anuncio.archivo, anuncio.id, ESPERA_SONAR_MS, alInicio = true)
             } catch (e: kotlinx.coroutines.CancellationException) {
                 throw e
             } catch (e: Exception) {
