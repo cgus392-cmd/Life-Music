@@ -594,7 +594,21 @@ private fun ThumbnailItem(
     // terminar la transicion vuelve a ser cuadrada. Con «quitar animaciones» solo se redondea.
     val mezclandoDisco by playerConnection.service.mixedEditor.collectAsState()
     val transicionDisco by playerConnection.isCrossfading.collectAsState()
-    val enDisco = mezclandoDisco && transicionDisco && isCurrentItem
+    val enTransicionDisco = mezclandoDisco && transicionDisco
+    // Prueba de CG (09-11): no lo vio. Se sostiene 2,5 s tras el cambio para que se alcance a ver,
+    // y deja rastro en el registro (LifeMusicMixed) para saber si la transicion llego a la pantalla.
+    var enDisco by remember { mutableStateOf(false) }
+    LaunchedEffect(enTransicionDisco) {
+        if (enTransicionDisco) {
+            enDisco = true
+        } else if (enDisco) {
+            kotlinx.coroutines.delay(2500)
+            enDisco = false
+        }
+        if (isCurrentItem && (mezclandoDisco || transicionDisco)) {
+            android.util.Log.i("LifeMusicMixed", "disco=$enTransicionDisco mezcla=$mezclandoDisco transicion=$transicionDisco ${item.mediaId}")
+        }
+    }
     val contextoDisco = androidx.compose.ui.platform.LocalContext.current
     val discoQuieto = remember {
         com.cglabs.lifemusic.utils.ModoLigero.esGamaBaja(contextoDisco) ||

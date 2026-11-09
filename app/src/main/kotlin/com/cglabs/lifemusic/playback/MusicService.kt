@@ -5052,6 +5052,7 @@ class MusicService :
         val saliente = player
         val entrante = secondaryPlayer ?: return
         isCrossfading.value = true
+        android.util.Log.i("LifeMusicMixed", "transicion empieza mezcla=${mixedEditor.value}")
         isAutomixing.value = true
         automixEstilo.value = EstiloTransicion.CIERRE
         registrarTransicion(alBeat = true, estilo = EstiloTransicion.CIERRE)
@@ -5147,6 +5148,7 @@ class MusicService :
      */
     private fun performCrossfadeSwap(relevo: Boolean = false) {
         isCrossfading.value = true
+        android.util.Log.i("LifeMusicMixed", "transicion empieza mezcla=${mixedEditor.value}")
         isAutomixing.value = activeAutomixPlan != null
         if (!relevo) {
             automixEstilo.value = activeAutomixPlan?.estilo ?: EstiloTransicion.PLANO

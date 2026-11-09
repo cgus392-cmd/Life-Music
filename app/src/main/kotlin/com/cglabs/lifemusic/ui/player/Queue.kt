@@ -943,7 +943,7 @@ fun Queue(
                     }
                 }
 
-                FlowRow(
+                Row(
                     modifier = Modifier
                         .padding(horizontal = 12.dp, vertical = 8.dp)
                         .fillMaxWidth(),
@@ -964,20 +964,22 @@ fun Queue(
                         ),
                         modifier = Modifier
                             .weight(1f)
-                            .height(56.dp),
+                            .height(64.dp),
+                        contentPadding = androidx.compose.foundation.layout.PaddingValues(horizontal = 4.dp, vertical = 6.dp),
                     ) {
+                        Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(4.dp)) {
                         Icon(
                             painter = painterResource(R.drawable.shuffle),
                             contentDescription = null,
                             modifier = Modifier.size(22.dp)
                         )
-                        Spacer(Modifier.size(ToggleButtonDefaults.IconSpacing))
                         Text(
                             text = stringResource(R.string.shuffle),
                             style = MaterialTheme.typography.labelMedium,
                             maxLines = 1,
                             overflow = TextOverflow.Ellipsis
                             )
+                        }
                     }
 
                     // 2.1.0 · Mixed Editor: mezclar lo que ya suena, sin empezar de nuevo.
@@ -1003,20 +1005,22 @@ fun Queue(
                         ),
                         modifier = Modifier
                             .weight(1f)
-                            .height(56.dp),
+                            .height(64.dp),
+                        contentPadding = androidx.compose.foundation.layout.PaddingValues(horizontal = 4.dp, vertical = 6.dp),
                     ) {
+                        Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(4.dp)) {
                         Icon(
                             painter = painterResource(R.drawable.mezclar),
                             contentDescription = null,
                             modifier = Modifier.size(22.dp)
                         )
-                        Spacer(Modifier.size(ToggleButtonDefaults.IconSpacing))
                         Text(
                             text = stringResource(R.string.mixed_mezclar),
                             style = MaterialTheme.typography.labelMedium,
                             maxLines = 1,
                             overflow = TextOverflow.Ellipsis
                         )
+                        }
                     }
 
                     ToggleButton(
@@ -1034,8 +1038,10 @@ fun Queue(
                         ),
                         modifier = Modifier
                             .weight(1f)
-                            .height(56.dp),
+                            .height(64.dp),
+                        contentPadding = androidx.compose.foundation.layout.PaddingValues(horizontal = 4.dp, vertical = 6.dp),
                     ) {
+                        Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(4.dp)) {
                         Icon(
                             painter = painterResource(
                                 when (repeatMode) {
@@ -1047,13 +1053,13 @@ fun Queue(
                             contentDescription = null,
                             modifier = Modifier.size(22.dp)
                         )
-                        Spacer(Modifier.size(ToggleButtonDefaults.IconSpacing))
                         Text(
                             text = stringResource(R.string.repeat),
                             style = MaterialTheme.typography.labelMedium,
                             maxLines = 1,
                             overflow = TextOverflow.Ellipsis
                         )
+                        }
                     }
 
                     ToggleButton(
@@ -1072,15 +1078,15 @@ fun Queue(
                         ),
                         modifier = Modifier
                             .weight(1f)
-                            .height(56.dp),
+                            .height(64.dp),
+                        contentPadding = androidx.compose.foundation.layout.PaddingValues(horizontal = 4.dp, vertical = 6.dp),
                     ) {
-                        Row(verticalAlignment = Alignment.CenterVertically) {
+                        Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(4.dp)) {
                             Icon(
                                 painter = painterResource(R.drawable.radio),
                                 contentDescription = null,
                                 modifier = Modifier.size(22.dp)
                             )
-                            Spacer(Modifier.size(ToggleButtonDefaults.IconSpacing))
                             Text(
                                 text = stringResource(R.string.start_an_radio),
                                 style = MaterialTheme.typography.labelMedium,

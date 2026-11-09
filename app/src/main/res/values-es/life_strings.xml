@@ -1509,4 +1509,7 @@
     <string name="mixed_dejar">Dejar de mezclar</string>
     <string name="mixed_seguir">Seguir mezclando</string>
     <string name="mixed_activado">Modo mezcla activado: las canciones van a sonar mezcladas</string>
+    <string name="repeat">Repetir</string>
+    <string name="continue_playing">Sigue sonando</string>
+    <string name="next_in_queue">Lo que viene</string>
 </resources>
