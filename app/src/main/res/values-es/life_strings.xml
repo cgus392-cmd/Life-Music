@@ -1486,4 +1486,9 @@
     <string name="icono_sobrecoral">Sobre coral</string>
     <string name="icono_aviso">Listo: el ícono cambia en unos segundos</string>
     <string name="icono_nota">Tu launcher puede tardar unos segundos. Si tenías Life Music en la pantalla de inicio, quizá tengas que volver a ponerla.</string>
+    <string name="nova_entrada">Cómo entra la música</string>
+    <string name="nova_entrada_encima">Encima de la intro</string>
+    <string name="nova_entrada_antes">Primero hablo</string>
+    <string name="nova_entrada_encima_desc">Como en la radio: la canción arranca bajita, Nova habla y termina justo cuando entra la voz.</string>
+    <string name="nova_entrada_antes_desc">La canción espera quieta a que Nova termine de hablar y luego arranca.</string>
 </resources>

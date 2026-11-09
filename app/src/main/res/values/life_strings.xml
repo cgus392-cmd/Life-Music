@@ -1866,4 +1866,9 @@
     <string name="icono_sobrecoral">On coral</string>
     <string name="icono_aviso">Done: the icon changes in a few seconds</string>
     <string name="icono_nota">Your launcher may take a few seconds. If Life Music was on your home screen, you may need to add it again.</string>
+    <string name="nova_entrada">How the music comes in</string>
+    <string name="nova_entrada_encima">Over the intro</string>
+    <string name="nova_entrada_antes">I talk first</string>
+    <string name="nova_entrada_encima_desc">Like on the radio: the song starts low, Nova talks and finishes right as the vocals come in.</string>
+    <string name="nova_entrada_antes_desc">The song waits until Nova finishes talking, then starts.</string>
 </resources>

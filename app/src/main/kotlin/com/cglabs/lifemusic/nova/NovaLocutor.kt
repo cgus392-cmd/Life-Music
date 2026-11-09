@@ -48,6 +48,9 @@ class NovaLocutor(
         /** El id de la cancion que suena. */
         fun idSonando(): String?
 
+        /** Por donde va la cancion que suena, en ms (2.1.0: para pegar al poste). */
+        fun posicionMs(): Long?
+
         /** Lleva la musica a [nivel] (1 = el volumen de la persona) en [ms], con rampa. */
         suspend fun llevarA(nivel: Float, ms: Long)
 
@@ -151,6 +154,9 @@ class NovaLocutor(
 
     /** A que ritmo habla, elegido en Personalizar («Ritmo de Nova»). Vale para la frase siguiente. */
     var ritmo: RitmoNova = RitmoNova.NORMAL
+
+    /** Encima de la intro o primero habla (Personalizar, 2.1.0). */
+    var entrada: EntradaNova = EntradaNova.ENCIMA
 
     /** El acento de la voz del telefono: «latam» o «espana». */
     fun region(region: String) = voz.cambiarRegion(region)
@@ -476,7 +482,7 @@ class NovaLocutor(
                     "frase ($motivo) lista en ${SystemClock.elapsedRealtime() - inicio} ms" + if (preparada != null) " (preparada antes)" else "",
                 )
                 ultimoTexto = texto
-                salirAlAire(texto, archivo, idNueva, ESPERA_SONAR_MS)
+                salirAlAire(texto, archivo, idNueva, ESPERA_SONAR_MS, alInicio = true)
             } catch (e: kotlinx.coroutines.CancellationException) {
                 throw e
             } catch (e: Exception) {
@@ -703,7 +709,7 @@ class NovaLocutor(
      * la frase con su subtitulo y su onda, y subir. Si algo la interrumpe, el
      * subtitulo se va y la musica vuelve ya.
      */
-    private suspend fun salirAlAire(texto: String, archivo: File, idNueva: String, esperaMs: Long) {
+    private suspend fun salirAlAire(texto: String, archivo: File, idNueva: String, esperaMs: Long, alInicio: Boolean = false) {
         // Esperar a que la nueva suene de verdad y nada este mezclando.
         val limite = SystemClock.elapsedRealtime() + esperaMs
         while (!mezcla.puedeHablar()) {
@@ -721,23 +727,32 @@ class NovaLocutor(
         val onda = withContext(Dispatchers.IO) {
             runCatching { NovaOnda.envolvente(archivo.readBytes()) }.getOrDefault(FloatArray(0))
         }
+        // 2.1.0 · «Primero hablo»: la cancion espera quieta en su arranque (solo si va empezando).
+        val primeroHablo = alInicio && entrada == EntradaNova.ANTES && mezcla.retener()
+        // «Encima», como en la radio: la intro respira y la frase termina cuando entra la voz.
+        if (alInicio && !primeroHablo && !pegarAlPoste(idNueva, onda.size.toLong() * NovaOnda.TRAMO_MS)) return
         var bajo = false
         var publicada: NovaSesion.Habla? = null
         var completa = false
         try {
-            bajo = true
-            mezcla.llevarA(NIVEL_MUSICA, BAJAR_MS)
+            if (!primeroHablo) {
+                bajo = true
+                mezcla.llevarA(NIVEL_MUSICA, BAJAR_MS)
+            }
             yaSePresento = true
             val hablando = SystemClock.elapsedRealtime()
-            completa = decir(archivo, idNueva) { duracionMs ->
+            completa = decir(archivo, idNueva, onda, retenida = primeroHablo) { duracionMs ->
                 publicada = NovaSesion.Habla(texto, SystemClock.elapsedRealtime(), duracionMs, onda)
                     .also { NovaSesion.empiezaAHablar(it) }
             }
-            mezcla.llevarA(1f, SUBIR_MS)
-            bajo = false
-            android.util.Log.i(ETIQUETA, "hable ${SystemClock.elapsedRealtime() - hablando} ms (onda ${onda.size} tramos)")
+            if (bajo) {
+                mezcla.llevarA(1f, SUBIR_MS)
+                bajo = false
+            }
+            android.util.Log.i(ETIQUETA, "hable ${SystemClock.elapsedRealtime() - hablando} ms (onda ${onda.size} tramos)" + if (primeroHablo) " antes de la cancion" else "")
         } finally {
             soltarReproductor()
+            if (primeroHablo) mezcla.soltarRetencion()
             if (bajo) mezcla.devolver()
             if (completa) {
                 // Entera: el subtitulo se queda un momento, quieto, por si la tocan para repetir.
@@ -750,6 +765,27 @@ class NovaLocutor(
                 NovaSesion.callada(soloSi = publicada)
             }
         }
+    }
+
+    /**
+     * 2.1.0 · Pegar al poste, el truco del locutor: si se sabe cuando entra la voz (la primera linea
+     * de la letra sincronizada) y la frase cabe en la intro con aire, se espera con la musica arriba
+     * para que la frase termine justo antes de que cante. Devuelve falso si mientras tanto la
+     * persona pauso o cambio de cancion (entonces no se habla).
+     */
+    private suspend fun pegarAlPoste(idNueva: String, duracionVozMs: Long): Boolean {
+        if (duracionVozMs <= 0L) return true
+        val primera = mezcla.primeraLetraMs(idNueva) ?: return true
+        val posicion = mezcla.posicionMs() ?: return true
+        val espera = primera - MARGEN_POSTE_MS - duracionVozMs - posicion
+        if (espera < 400L || espera > ESPERA_POSTE_MAXIMA_MS) return true
+        android.util.Log.i(ETIQUETA, "pego al poste: espero $espera ms y termino cuando entra la voz ($primera ms)")
+        val hasta = SystemClock.elapsedRealtime() + espera
+        while (SystemClock.elapsedRealtime() < hasta) {
+            if (!mezcla.sigueSonando() || mezcla.idSonando() != idNueva) return false
+            delay(100)
+        }
+        return mezcla.puedeHablar()
     }
 
     /** Espera hasta 2 s a que la cancion que suena sea la que vio «sonando». */
@@ -787,7 +823,13 @@ class NovaLocutor(
      * Devuelve verdadero si la dijo entera; falso si la persona pauso o cambio
      * de cancion (o el motor se colgo).
      */
-    private suspend fun decir(archivo: File, idNueva: String, alEmpezar: (Long) -> Unit): Boolean {
+    private suspend fun decir(
+        archivo: File,
+        idNueva: String,
+        onda: FloatArray = FloatArray(0),
+        retenida: Boolean = false,
+        alEmpezar: (Long) -> Unit,
+    ): Boolean {
         val mp = MediaPlayer()
         reproductor = mp
         var termino = false
@@ -802,15 +844,37 @@ class NovaLocutor(
         mp.prepare()
         mp.start()
         alEmpezar(mp.duration.toLong().coerceAtLeast(1L))
-        val limite = SystemClock.elapsedRealtime() + MAXIMO_HABLANDO_MS
-        while (!termino && SystemClock.elapsedRealtime() < limite) {
-            if (!mezcla.sigueSonando() || mezcla.idSonando() != idNueva) {
-                android.util.Log.i(ETIQUETA, "me callo: pausa o cambio de cancion")
-                return false
+        // 2.1.0 · La musica respira con la voz: en las pausas de Nova sube un poco y baja
+        // cuando vuelve a hablar, como en las emisoras. Con la cancion retenida no hace falta.
+        val respiro = if (retenida || onda.isEmpty()) null else scope.launch {
+            var enPausa = false
+            while (true) {
+                val i = runCatching { mp.currentPosition }.getOrDefault(0) / NovaOnda.TRAMO_MS
+                val hasta = (i + TRAMOS_PAUSA).coerceAtMost(onda.size)
+                val habla = i < onda.size && (i until hasta).any { onda[it] > UMBRAL_VOZ }
+                if (!habla && !enPausa) {
+                    enPausa = true
+                    mezcla.llevarA(NIVEL_RESPIRO, 220L)
+                } else if (habla && enPausa) {
+                    enPausa = false
+                    mezcla.llevarA(NIVEL_MUSICA, 120L)
+                }
+                delay(60)
             }
-            delay(50)
         }
-        return termino
+        try {
+            val limite = SystemClock.elapsedRealtime() + MAXIMO_HABLANDO_MS
+            while (!termino && SystemClock.elapsedRealtime() < limite) {
+                if ((!retenida && !mezcla.sigueSonando()) || mezcla.idSonando() != idNueva) {
+                    android.util.Log.i(ETIQUETA, "me callo: pausa o cambio de cancion")
+                    return false
+                }
+                delay(50)
+            }
+            return termino
+        } finally {
+            respiro?.cancel()
+        }
     }
 
     private fun soltarReproductor() {
@@ -841,6 +905,21 @@ class NovaLocutor(
 
         /** La musica mientras Nova habla: 30 % del volumen de la persona. */
         const val NIVEL_MUSICA = 0.3f
+
+        /** 2.1.0 · En las pausas de la voz la musica sube a este nivel (respira). */
+        const val NIVEL_RESPIRO = 0.5f
+
+        /** Una pausa cuenta si en los proximos 300 ms no hay voz (tramos de 50 ms). */
+        const val TRAMOS_PAUSA = 6
+
+        /** Por debajo de esto (envolvente normalizada de 0 a 1) no hay voz. */
+        const val UMBRAL_VOZ = 0.12f
+
+        /** Pegar al poste: la frase termina este tiempo antes de que entre la voz. */
+        const val MARGEN_POSTE_MS = 500L
+
+        /** Pegar al poste: no se espera mas que esto con la intro sonando. */
+        const val ESPERA_POSTE_MAXIMA_MS = 12_000L
         const val BAJAR_MS = 400L
         const val SUBIR_MS = 600L
 

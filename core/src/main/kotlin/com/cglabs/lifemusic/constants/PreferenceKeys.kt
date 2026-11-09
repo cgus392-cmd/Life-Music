@@ -1082,6 +1082,8 @@ val NovaCalidadKey = stringPreferencesKey("novaCalidad")
 
 /** A que ritmo habla Nova: «pausado», «normal» (de fabrica) o «agil». Ver RitmoNova. */
 val NovaRitmoKey = stringPreferencesKey("novaRitmo")
+/** 2.1.0 · Como entra la musica cuando Nova habla: «encima» de la intro (de fabrica) o «antes». */
+val NovaEntradaKey = stringPreferencesKey("novaEntrada")
 
 /**
  * 2.0 · Estudio (ficha docs/versiones/2.0/estudio.md): la fila en el menu de la

@@ -39,7 +39,7 @@ android {
         // instalado, asi que un 152 publicado como primera version dejaria sin
         // camino a cualquier version posterior que empezara a contar desde 1.
         versionCode = 28
-        versionName = "2.1.0-prueba.2"
+        versionName = "2.1.0-prueba.3"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables.useSupportLibrary = true

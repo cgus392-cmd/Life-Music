@@ -52,6 +52,7 @@ import com.cglabs.lifemusic.constants.NovaRegionKey
 import com.cglabs.lifemusic.constants.NovaSoloSubtitulosKey
 import com.cglabs.lifemusic.nova.NovaFrases
 import com.cglabs.lifemusic.nova.NovaSesion
+import com.cglabs.lifemusic.nova.EntradaNova
 import com.cglabs.lifemusic.nova.RitmoNova
 import com.cglabs.lifemusic.utils.rememberPreference
 import java.util.Locale
@@ -84,6 +85,8 @@ fun NovaPersonalizar(alVolver: () -> Unit) {
     val (vozHD, alCambiarVozHD) = rememberPreference(com.cglabs.lifemusic.constants.NovaVozHDKey, defaultValue = "")
     val (ritmoGuardado, alCambiarRitmo) = rememberPreference(com.cglabs.lifemusic.constants.NovaRitmoKey, defaultValue = RitmoNova.NORMAL.clave)
     val ritmo = RitmoNova.de(ritmoGuardado)
+    val (entradaGuardada, alCambiarEntrada) = rememberPreference(com.cglabs.lifemusic.constants.NovaEntradaKey, defaultValue = EntradaNova.ENCIMA.clave)
+    val entrada = EntradaNova.de(entradaGuardada)
 
     Column(
         modifier = Modifier
@@ -256,6 +259,28 @@ fun NovaPersonalizar(alVolver: () -> Unit) {
         }
         Text(
             stringResource(R.string.nova_ritmo_desc),
+            style = MaterialTheme.typography.bodySmall,
+            color = esquema.onSurfaceVariant,
+            modifier = Modifier.padding(top = 4.dp, start = 4.dp),
+        )
+
+        // 2.1.0 · Como entra la musica cuando habla: encima de la intro (radio) o primero habla.
+        Spacer(Modifier.height(18.dp))
+        Rotulo(stringResource(R.string.nova_entrada))
+        Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.fillMaxWidth()) {
+            listOf(
+                EntradaNova.ENCIMA to R.string.nova_entrada_encima,
+                EntradaNova.ANTES to R.string.nova_entrada_antes,
+            ).forEach { (e, rotulo) ->
+                FilterChip(
+                    selected = e == entrada,
+                    onClick = { alCambiarEntrada(e.clave) },
+                    label = { Text(stringResource(rotulo)) },
+                )
+            }
+        }
+        Text(
+            stringResource(if (entrada == EntradaNova.ENCIMA) R.string.nova_entrada_encima_desc else R.string.nova_entrada_antes_desc),
             style = MaterialTheme.typography.bodySmall,
             color = esquema.onSurfaceVariant,
             modifier = Modifier.padding(top = 4.dp, start = 4.dp),

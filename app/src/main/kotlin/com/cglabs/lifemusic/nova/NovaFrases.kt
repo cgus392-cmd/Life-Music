@@ -76,24 +76,31 @@ object NovaFrases {
         fun una(vararg opciones: String) = opciones[Math.floorMod(eleccion, opciones.size)]
 
         return when (estilo) {
+            // 2.1.0 · Mas radio (pedido de CG, 09-11): frases cortas, con aire entre una y otra,
+            // para que la voz respire y se note que le gusta lo que pone. Los datos, siempre ciertos.
             Estilo.CALIDA -> when {
-                mismoArtista -> "Seguimos con $artista, que no se va: $titulo."
-                nunca -> una("Algo nuevo para ti, escúchala con calma: $cancion.", "Te traigo una que todavía no conoces: $cancion.")
-                favorita -> una("Esta te gusta, lo sé: $cancion.", "Una de las tuyas: $cancion.")
-                dias != null -> "Hace rato no sonaba, y hoy vuelve: $cancion."
+                mismoArtista -> una("Seguimos con $artista… porque una no basta. $titulo.", "$artista se queda un rato más. $titulo.")
+                nunca -> una("Algo nuevo para ti. Escúchala con calma… $cancion.", "Te traigo una que todavía no conoces. Atento… $cancion.")
+                favorita -> una("Esta sé que te gusta. $cancion.", "Una de las tuyas, de las que no fallan. $cancion.")
+                dias != null -> "Hace rato no sonaba… y hoy vuelve. $cancion."
                 else -> when (i) {
-                    0 -> "Ahora vamos con una de esas que pegan con el alma: $cancion."
-                    1 -> "Ahora viene $cancion."
-                    2 -> "Ahora toca esta: $cancion."
-                    else -> "Mira lo que sigue: $cancion."
+                    0 -> "Ahora, una de esas que pegan con el alma. $cancion."
+                    1 -> "Respira… que viene $cancion."
+                    2 -> "Y ahora, toca esta. $cancion."
+                    else -> "Mira lo que sigue… $cancion."
                 }
             }
             Estilo.ENERGICA -> when {
-                mismoArtista -> "¡Más de $artista! $titulo."
-                nunca -> "¡Estreno en tu radio! $cancion."
-                favorita -> "¡De tus favoritas! $cancion."
-                dias != null -> "¡Volvió! $cancion."
-                else -> una("¡Sube el volumen! $cancion.", "¡Seguimos arriba! $cancion.", "¡Esta pega duro! $cancion.")
+                mismoArtista -> "¡Más de $artista! No paramos. $titulo."
+                nunca -> "¡Estreno en tu radio! Atención… $cancion."
+                favorita -> "¡Una de tus favoritas! ¡Súbele! $cancion."
+                dias != null -> "¡Volvió! Hace rato no la ponías. $cancion."
+                else -> una(
+                    "¡Sube el volumen! Esto es… $cancion.",
+                    "¡Seguimos arriba, que no baje el ritmo! $cancion.",
+                    "¡Ojo con esta, que pega duro! $cancion.",
+                    "¡Vamos con todo! $cancion.",
+                )
             }
             Estilo.BREVE -> if (mismoArtista) "Más de $artista: $titulo." else "Ahora: $cancion."
             Estilo.CURIOSA -> when {
@@ -120,7 +127,7 @@ object NovaFrases {
      * uno y se anuncia; sin el, es el puente de siempre.
      */
     fun sobreElFinal(actual: Pista?, nueva: Pista, bloque: NovaBloque?, dato: String?): String {
-        val termina = actual?.let { "Va terminando ${tituloHablado(it.titulo)}. " }.orEmpty()
+        val termina = actual?.let { "Va terminando ${tituloHablado(it.titulo)}… " }.orEmpty()
         val sigue = if (bloque != null) {
             anuncio(bloque, dato, nueva)
         } else {
@@ -191,7 +198,7 @@ object NovaFrases {
      */
     fun presentacion(hora: Int, nombre: String?, anterior: Pista?, nueva: Pista, eleccion: Int, nombreDJ: String = "Nova"): String {
         val saludo = if (nombre != null) "${saludo(hora)}, $nombre." else "${saludo(hora)}."
-        return "$saludo Soy $nombreDJ, tu DJ. ${puente(anterior, nueva, eleccion)}"
+        return "$saludo Soy $nombreDJ, tu DJ… y hoy la música la ponemos juntos. ${puente(anterior, nueva, eleccion)}"
     }
 
     /** El puente entre dos canciones: lo que acaba de sonar y lo que suena ahora. */
@@ -206,15 +213,15 @@ object NovaFrases {
 
         // Mismo artista seguido: decirlo dos veces suena a maquina.
         val mismoArtista = artistaAnterior != null && artistaAnterior == artistasHablados(nueva.artistas)
-        if (mismoArtista) return "Seguimos con $artistaAnterior. Eso fue $tituloAnterior, y ahora, $tituloNueva."
+        if (mismoArtista) return "Seguimos con $artistaAnterior. Eso fue $tituloAnterior… y ahora, $tituloNueva."
 
         return when (Math.floorMod(eleccion, PUENTES)) {
-            0 -> "Eso fue $tituloAnterior$deAnterior. Ahora suena $tituloNueva$deNueva."
-            1 -> "Acabas de escuchar $tituloAnterior$deAnterior. Sigue $tituloNueva$deNueva."
+            0 -> "Eso fue $tituloAnterior$deAnterior. Y ahora… $tituloNueva$deNueva."
+            1 -> "Acabas de escuchar $tituloAnterior$deAnterior. Sigue… $tituloNueva$deNueva."
             else -> if (artistaAnterior != null) {
-                "Venías con $artistaAnterior. Ahora, $tituloNueva$deNueva."
+                "Venías con $artistaAnterior. Ahora, cambiamos… $tituloNueva$deNueva."
             } else {
-                "Eso fue $tituloAnterior. Ahora, $tituloNueva$deNueva."
+                "Eso fue $tituloAnterior. Ahora… $tituloNueva$deNueva."
             }
         }
     }

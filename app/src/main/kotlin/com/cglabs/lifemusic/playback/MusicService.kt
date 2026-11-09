@@ -982,6 +982,12 @@ class MusicService :
         }
         novaScope.launch {
             dataStore.data
+                .map { com.cglabs.lifemusic.nova.EntradaNova.de(it[com.cglabs.lifemusic.constants.NovaEntradaKey]) }
+                .distinctUntilChanged()
+                .collect { nova?.entrada = it }
+        }
+        novaScope.launch {
+            dataStore.data
                 .map { it[com.cglabs.lifemusic.constants.NovaRegionKey] ?: "latam" }
                 .distinctUntilChanged()
                 .collect { nova?.region(it) }
@@ -1862,6 +1868,9 @@ class MusicService :
                 lastAudioFocusState != AudioManager.AUDIOFOCUS_LOSS_TRANSIENT_CAN_DUCK
 
         override fun sigueSonando(): Boolean = playerInitialized.value && player.isPlaying
+
+        override fun posicionMs(): Long? =
+            if (playerInitialized.value) player.currentPosition else null
 
         override fun idSonando(): String? =
             if (playerInitialized.value) player.currentMediaItem?.mediaId else null

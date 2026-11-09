@@ -19,3 +19,17 @@ enum class RitmoNova(val clave: String, val vozHD: Float, val telefono: Float, v
         fun de(valor: String?): RitmoNova = entries.firstOrNull { it.clave == valor } ?: NORMAL
     }
 }
+
+/**
+ * 2.1.0 · Como entra la musica cuando Nova habla al empezar una cancion (pedido de CG, 09-11):
+ * [ENCIMA], como en la radio: la cancion arranca bajita, Nova habla y termina cuando entra la
+ * voz; [ANTES]: la cancion espera quieta en su arranque a que Nova termine.
+ */
+enum class EntradaNova(val clave: String) {
+    ENCIMA("encima"),
+    ANTES("antes");
+
+    companion object {
+        fun de(valor: String?): EntradaNova = entries.firstOrNull { it.clave == valor } ?: ENCIMA
+    }
+}
