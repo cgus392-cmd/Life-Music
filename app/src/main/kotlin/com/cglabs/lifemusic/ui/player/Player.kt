@@ -347,6 +347,8 @@ fun BottomSheetPlayer(
     val mezclando by playerConnection.service.mixedEditor.collectAsState()
     var mostrarModoMezcla by remember { mutableStateOf(false) }
     val automixDebug by playerConnection.automixDebugInfo.collectAsState()
+    // 2.1.0 · El tocadiscos del Mixed Editor: un solo reloj para la caratula en tarjeta y para Apple Music.
+    val tocadiscos = com.cglabs.lifemusic.ui.player.tocadiscos.rememberTocadiscos(estaAbierto = { state.isExpanded })
     val transiciones by playerConnection.transicionesAutomix.collectAsState()
     val automixDebugOverlayEnabled by rememberPreference(com.cglabs.lifemusic.constants.AutomixDebugOverlayKey, false)
 
@@ -2218,7 +2220,13 @@ fun BottomSheetPlayer(
                                     color = if (mezclando) verdeMix.copy(alpha = 0.7f) else TextBackgroundColor.copy(alpha = 0.12f),
                                     shape = RoundedCornerShape(4.dp)
                                 )
-                                .clickable(enabled = sleepTimerEnabled || mezclando) {
+                                .combinedClickable(
+                                    enabled = sleepTimerEnabled || mezclando,
+                                    // Toque largo con la mezcla prendida: una pasada del tocadiscos, sin cambiar la musica.
+                                    onLongClick = {
+                                        if (mezclando) com.cglabs.lifemusic.ui.player.tocadiscos.Tocadiscos.ensayar(playerConnection)
+                                    },
+                                ) {
                                     if (sleepTimerEnabled) showSleepTimerDialog = true else mostrarModoMezcla = true
                                 }
                                 .padding(horizontal = 6.dp, vertical = 2.dp)
@@ -2890,7 +2898,8 @@ fun BottomSheetPlayer(
                                     modifier = Modifier.animateContentSize(),
                                     isPlayerExpanded = isExpandedProvider,
                                     isLandscape = true,
-                                    isListenTogetherGuest = isListenTogetherGuest
+                                    isListenTogetherGuest = isListenTogetherGuest,
+                                    tocadiscos = tocadiscos,
                                 )
                             }
                         }
@@ -2951,7 +2960,8 @@ fun BottomSheetPlayer(
                                     sliderPositionProvider = sliderPositionProvider,
                                     modifier = Modifier.nestedScroll(state.preUpPostDownNestedScrollConnection),
                                     isPlayerExpanded = isExpandedProvider,
-                                    isListenTogetherGuest = isListenTogetherGuest
+                                    isListenTogetherGuest = isListenTogetherGuest,
+                                    tocadiscos = tocadiscos,
                                 )
                             }
                         }

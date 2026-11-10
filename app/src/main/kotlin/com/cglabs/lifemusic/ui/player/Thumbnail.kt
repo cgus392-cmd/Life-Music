@@ -55,7 +55,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.CompositingStrategy
 import androidx.compose.ui.graphics.graphicsLayer
@@ -260,6 +259,7 @@ fun Thumbnail(
     isPlayerExpanded: () -> Boolean = { true },
     isLandscape: Boolean = false,
     isListenTogetherGuest: Boolean = false,
+    tocadiscos: com.cglabs.lifemusic.ui.player.tocadiscos.EstadoTocadiscos? = null,
 ) {
     val playerConnection = LocalPlayerConnection.current ?: return
     val context = LocalContext.current
@@ -455,6 +455,9 @@ fun Thumbnail(
                             Modifier.size(dimensions.thumbnailSize + (PlayerHorizontalPadding * 2))
                         } else {
                             Modifier.fillMaxSize()
+                        }.graphicsLayer {
+                            // 2.1.0 · Mientras el tocadiscos pinta la caratula (y la funda nueva), la de siempre no se ve.
+                            alpha = if (tocadiscos?.tapaLaCaratula == true) 0f else 1f
                         }
                     ) {
                         items(
@@ -481,6 +484,16 @@ fun Thumbnail(
                                 playerBackground = playerBackground
                             )
                         }
+                    }
+
+                    // 2.1.0 · El tocadiscos del Mixed Editor, en el mismo lugar que la caratula.
+                    if (tocadiscos != null) {
+                        com.cglabs.lifemusic.ui.player.tocadiscos.TocadiscosEnTarjeta(
+                            estado = tocadiscos,
+                            lado = dimensions.thumbnailSize,
+                            esquina = dimensions.cornerRadius,
+                            modifier = Modifier.matchParentSize(),
+                        )
                     }
                 }
             }
@@ -590,44 +603,6 @@ private fun ThumbnailItem(
     val isCurrentItem = item.mediaId == currentMediaId
     
     val infiniteTransition = rememberInfiniteTransition(label = "ThumbnailRotation")
-    // 2.1.0 · Mixed Editor (lamina 3): mientras mezcla, la caratula se vuelve disco y gira; al
-    // terminar la transicion vuelve a ser cuadrada. Con «quitar animaciones» solo se redondea.
-    val mezclandoDisco by playerConnection.service.mixedEditor.collectAsState()
-    val transicionDisco by playerConnection.isCrossfading.collectAsState()
-    val enTransicionDisco = mezclandoDisco && transicionDisco
-    // Prueba de CG (09-11): no lo vio. Se sostiene 2,5 s tras el cambio para que se alcance a ver,
-    // y deja rastro en el registro (LifeMusicMixed) para saber si la transicion llego a la pantalla.
-    var enDisco by remember { mutableStateOf(false) }
-    LaunchedEffect(enTransicionDisco) {
-        if (enTransicionDisco) {
-            enDisco = true
-        } else if (enDisco) {
-            kotlinx.coroutines.delay(2500)
-            enDisco = false
-        }
-        if (isCurrentItem && (mezclandoDisco || transicionDisco)) {
-            android.util.Log.i("LifeMusicMixed", "disco=$enTransicionDisco mezcla=$mezclandoDisco transicion=$transicionDisco ${item.mediaId}")
-        }
-    }
-    val contextoDisco = androidx.compose.ui.platform.LocalContext.current
-    val discoQuieto = remember {
-        com.cglabs.lifemusic.utils.ModoLigero.esGamaBaja(contextoDisco) ||
-            android.provider.Settings.Global.getFloat(contextoDisco.contentResolver, android.provider.Settings.Global.ANIMATOR_DURATION_SCALE, 1f) == 0f
-    }
-    val disco by androidx.compose.animation.core.animateFloatAsState(
-        targetValue = if (enDisco) 1f else 0f,
-        animationSpec = tween(700),
-        label = "Disco",
-    )
-    val giroDisco by infiniteTransition.animateFloat(
-        initialValue = 0f,
-        targetValue = if (enDisco && !discoQuieto) 360f else 0f,
-        animationSpec = infiniteRepeatable(
-            animation = tween(2400, easing = LinearEasing),
-            repeatMode = androidx.compose.animation.core.RepeatMode.Restart
-        ),
-        label = "GiroDisco"
-    )
     val rotation by infiniteTransition.animateFloat(
         initialValue = 0f,
         targetValue = if (isPlaying && rotatingThumbnail && isCurrentItem) 360f else 0f,
@@ -720,29 +695,17 @@ private fun ThumbnailItem(
             modifier = Modifier
                 .size(dimensions.thumbnailSize)
                 .graphicsLayer {
-                    rotationZ = rotation + giroDisco * disco
-                    scaleX = 1f - 0.08f * disco
-                    scaleY = 1f - 0.08f * disco
+                    rotationZ = rotation
                 }
                 .clip(
                     if (rotatingThumbnail) {
                         MaterialShapes.Clover8Leaf.toShape()
-                    } else if (disco > 0.01f) {
-                        RoundedCornerShape(percent = (disco * 50f).toInt().coerceIn(1, 50))
                     } else {
                         RoundedCornerShape(dimensions.cornerRadius)
                     }
                 )
                 .graphicsLayer {
                     rotationZ = -rotation
-                }
-                .drawWithContent {
-                    drawContent()
-                    if (disco > 0.01f) {
-                        // El centro del disco: la etiqueta oscura y el eje.
-                        drawCircle(Color.Black.copy(alpha = 0.85f * disco), radius = size.minDimension * 0.08f)
-                        drawCircle(Color.White.copy(alpha = 0.9f * disco), radius = size.minDimension * 0.016f)
-                    }
                 }
         ) {
             if (hidePlayerThumbnail) {

@@ -372,6 +372,38 @@ class MusicService :
     val automixDebugInfo = MutableStateFlow<AutomixDebugInfo?>(null)
 
     /**
+     * 2.1.0 · Tocadiscos del Mixed Editor: la transicion que esta sonando, para que la pantalla siga el golpe
+     * (el golpe 9 de la coreografia es [inicioMs]). Se deja puesta al terminar: la pantalla sabe por la hora
+     * cuando acabo, y la siguiente transicion la reemplaza.
+     */
+    data class TransicionEnCurso(
+        val inicioMs: Long,
+        val golpeMs: Float,
+        val deId: String?,
+        val deArte: String?,
+        val aId: String?,
+        val aArte: String?,
+        val conPlan: Boolean,
+    )
+
+    val transicionEnCurso = MutableStateFlow<TransicionEnCurso?>(null)
+
+    private fun anotarTransicion(saliente: Player, entrante: Player, conPlan: Boolean) {
+        val bpm = automixDebugInfo.value?.outBpm?.takeIf { it > 0f }
+        val de = saliente.currentMediaItem
+        val a = entrante.currentMediaItem
+        transicionEnCurso.value = TransicionEnCurso(
+            inicioMs = android.os.SystemClock.elapsedRealtime(),
+            golpeMs = bpm?.let { 60_000f / it } ?: 600f,
+            deId = de?.mediaId,
+            deArte = de?.let { com.cglabs.lifemusic.ui.player.tocadiscos.Tocadiscos.arte(it) },
+            aId = a?.mediaId,
+            aArte = a?.let { com.cglabs.lifemusic.ui.player.tocadiscos.Tocadiscos.arte(it) },
+            conPlan = conPlan,
+        )
+    }
+
+    /**
      * Progreso del reto de la semana, en vivo. Los eventos de escucha solo se
      * escriben al ACABAR cada cancion, asi que ademas de lo que ya cuenta la
      * base ([minutosHoy], [minutosTotal]) se llevan los segundos de la cancion
@@ -5053,6 +5085,7 @@ class MusicService :
         val entrante = secondaryPlayer ?: return
         isCrossfading.value = true
         android.util.Log.i("LifeMusicMixed", "transicion empieza mezcla=${mixedEditor.value}")
+        anotarTransicion(saliente, entrante, conPlan = true)
         isAutomixing.value = true
         automixEstilo.value = EstiloTransicion.CIERRE
         registrarTransicion(alBeat = true, estilo = EstiloTransicion.CIERRE)
@@ -5149,6 +5182,7 @@ class MusicService :
     private fun performCrossfadeSwap(relevo: Boolean = false) {
         isCrossfading.value = true
         android.util.Log.i("LifeMusicMixed", "transicion empieza mezcla=${mixedEditor.value}")
+        if (!relevo) secondaryPlayer?.let { anotarTransicion(player, it, conPlan = activeAutomixPlan != null) }
         isAutomixing.value = activeAutomixPlan != null
         if (!relevo) {
             automixEstilo.value = activeAutomixPlan?.estilo ?: EstiloTransicion.PLANO

@@ -69,7 +69,7 @@ Por definir con CG: qué mejoras quiere en Estudio para esta versión.
    - **habla encima de la intro**, con la canción entrando bajita (ducking), o «primero hablo y luego suena», a elegir;
    - **guiones con energía y pausas**;
    - **otra onda**.
-3. **Mezcla Nova v1 (beta):**
+3. **Mixed Editor v1 (beta):**
    - mezcla la cola, una lista o los me gusta como un set;
    - las transiciones empiezan **en el compás** (con los golpes que ya detecta la app para el TV);
    - **cambio de bajos** (bass swap);
@@ -87,7 +87,7 @@ Por definir con CG: qué mejoras quiere en Estudio para esta versión.
 
 Las rachas y mascotas pasan a la 2.2.0. Lo de Estudio está pendiente de definir con CG.
 
-## Mezcla Nova: el editor y cómo se ve la transición (pedido de CG, 07-11)
+## Mixed Editor: el editor y cómo se ve la transición (pedido de CG, 07-11)
 
 **Referencias:**
 - Spotify Mix, en modo manual: volumen, ecualización, datos de los golpes, efectos y la forma de onda de cada transición.
@@ -124,3 +124,26 @@ Las rachas y mascotas pasan a la 2.2.0. Lo de Estudio está pendiente de definir
   - **cómo se ve la transición** (los pulsos en la barra y las carátulas en el tocadiscos).
 - **2.1.1:** **la mesa de mezcla**. Es grande (ondas, gestos, escucha previa y guardado) y conviene que Diseño haga la
   maqueta primero, para que no salga genérica.
+
+## Nombre y video (08-11)
+
+- **La función se llama «Mixed Editor»** (decisión de CG): ese nombre va en la app, en las fichas y en las notas. El aviso
+  del reproductor dice «Mezclando · Nova».
+- El video «Próximamente» está APROBADO: `Brand/videos/2026-11-07-proximamente-mezcla/proximamente-mezcla-1080x1920.mp4`,
+  de 35 s, vertical y claro.
+  - Muestra «Dale Don Dale» de Don Omar y «Por si mañana no estoy» de Omar Courtz.
+  - Lleva música pop original, cierre con el logo de CG LABS y las ondas latiendo al ritmo.
+- Pendiente de Diseño: la lámina de la transición en cada estilo de reproductor (DEFAULT, GRADIENT, BLUR, GLOW_ANIMATED,
+  APPLE_MUSIC, LIVE_MESH, LIQUID_GLASS y Canvas).
+
+## Mixed Editor · Tanda 4: el tocadiscos real (pedido de CG, 09-11)
+
+La Tanda 3 (prueba.9 y prueba.10) quedó probada. CG la ve «muy simplona: solo gira» y pide un tocadiscos que se vea casi real: el vinilo sale de su funda (la carátula), se pone en el plato y el otro se guarda. Tiene que ser gráfico de verdad, no figuras armadas por código.
+
+- **Diseño** (encargado el 09-11): maqueta en movimiento para la carátula en tarjeta y para Apple Music, kit de piezas por capas (vinilo, brillo, etiqueta, funda, brazo) y hoja de movimiento.
+- **Apple Music:** es el estilo diario de CG; la carátula va a sangre y no se puede dañar ese estilo. Hoy no tiene tocadiscos: la carátula en tarjeta no existe en ese estilo.
+- **General**, cuando CG apruebe:
+  - programar con las piezas de Diseño, con la carátula y la etiqueta dinámicas;
+  - giro con inercia, a los BPM o a 33⅓ rpm;
+  - versión quieta para gama baja y para «Quitar animaciones»;
+  - después, el resto de estilos de la lámina 4.
