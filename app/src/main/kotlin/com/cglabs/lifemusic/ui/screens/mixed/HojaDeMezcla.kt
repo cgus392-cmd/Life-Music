@@ -72,7 +72,7 @@ private fun descripcion(estilo: AutomixEstilo) = when (estilo) {
  */
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
 @Composable
-fun HojaDeMezcla(onDejarDeMezclar: () -> Unit, onCerrar: () -> Unit) {
+fun HojaDeMezcla(onDejarDeMezclar: () -> Unit, onCerrar: () -> Unit, onAbrirMesa: () -> Unit = {}) {
     val conexion = LocalPlayerConnection.current ?: return
     val alcance = rememberCoroutineScope()
     val (estilo, cambiarEstilo) = rememberEnumPreference(AutomixEstiloKey, defaultValue = AutomixEstilo.AUTOMATICO)
@@ -147,7 +147,14 @@ fun HojaDeMezcla(onDejarDeMezclar: () -> Unit, onCerrar: () -> Unit) {
                 modifier = Modifier.padding(top = 4.dp),
             )
 
-            Spacer(Modifier.height(24.dp))
+            Spacer(Modifier.height(20.dp))
+            // 2.1.x · La mesa: las ondas con los puntos sugeridos.
+            androidx.compose.material3.OutlinedButton(onClick = onAbrirMesa, modifier = Modifier.fillMaxWidth()) {
+                Icon(painterResource(R.drawable.mezclar), contentDescription = null, modifier = Modifier.size(18.dp))
+                Spacer(Modifier.width(8.dp))
+                Text(stringResource(R.string.mixed_abrir_mesa))
+            }
+            Spacer(Modifier.height(12.dp))
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End, verticalAlignment = Alignment.CenterVertically) {
                 TextButton(onClick = onDejarDeMezclar) { Text(stringResource(R.string.mixed_dejar)) }
                 Spacer(Modifier.width(8.dp))

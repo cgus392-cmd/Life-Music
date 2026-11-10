@@ -379,6 +379,8 @@ class MusicService :
         val estilo: String? = null,
         /** 2.1.0 · Compases de la transicion planeada, para el aviso «Mixed Editor · Subida de 8 compases». */
         val compases: Int? = null,
+        /** 2.1.x · Cuanto dura la mezcla planeada, para la vista de las ondas. */
+        val overlapMs: Long? = null,
     )
 
     val automixDebugInfo = MutableStateFlow<AutomixDebugInfo?>(null)
@@ -396,9 +398,62 @@ class MusicService :
         val aId: String?,
         val aArte: String?,
         val conPlan: Boolean,
+        /** 2.1.x · Para la vista de mezcla: cuanto dura y desde donde suena cada una. */
+        val duracionMs: Long = 0L,
+        val salienteDesdeMs: Long = 0L,
+        val entranteDesdeMs: Long = 0L,
     )
 
     val transicionEnCurso = MutableStateFlow<TransicionEnCurso?>(null)
+
+    // ── 2.1.x · Automix v2: el mapa de cada cancion (ondas, secciones y puntos de mezcla) ──
+    private val intentosDeMapa = java.util.concurrent.ConcurrentHashMap<String, Int>()
+    private val mapasEnMemoria = android.util.LruCache<String, com.cglabs.lifemusic.playback.audio.MapaDeCancion>(8)
+
+    /** El ultimo id con mapa nuevo: la pantalla vuelve a mirar cuando cambia. */
+    val mapaNuevo = MutableStateFlow<String?>(null)
+
+    private fun archivoDeMapa(id: String) =
+        java.io.File(filesDir, "mapas/" + id.replace(Regex("[^A-Za-z0-9_-]"), "_").takeLast(100) + ".mapa")
+
+    /** El mapa guardado de una cancion, o null si todavia no se escucho entera (o su comienzo). Leer fuera del hilo principal. */
+    fun mapaDe(id: String): com.cglabs.lifemusic.playback.audio.MapaDeCancion? {
+        mapasEnMemoria.get(id)?.let { return it }
+        val mapa = com.cglabs.lifemusic.playback.audio.MapaDeCancion.leer(archivoDeMapa(id)) ?: return null
+        mapasEnMemoria.put(id, mapa)
+        return mapa
+    }
+
+    private fun guardarMapa(id: String, mapa: com.cglabs.lifemusic.playback.audio.MapaDeCancion) {
+        runCatching { mapa.guardar(archivoDeMapa(id)) }
+        mapasEnMemoria.put(id, mapa)
+        android.util.Log.i(
+            "LifeMusicMapa",
+            "$id: ${mapa.compases.size} compases, ${mapa.duracionMs / 1000} s, secciones=" +
+                mapa.secciones.joinToString { "${it.tipo.name.lowercase()}@${it.desde}" } +
+                " puntos=" + mapa.puntos.joinToString { "${it.tipo.name.lowercase()}/${it.motivo.name.lowercase()}@${it.ms / 1000}s" },
+        )
+        mapaNuevo.value = id
+    }
+
+    /** 2.1.x · La mesa: puntos elegidos a mano, por cancion. La proxima mezcla de esa cancion los usa. */
+    private val entradaElegida = java.util.concurrent.ConcurrentHashMap<String, Long>()
+    private val salidaElegida = java.util.concurrent.ConcurrentHashMap<String, Long>()
+
+    /** La mesa pide el mapa de una cancion que todavia no tiene. */
+    fun escucharParaLaMesa(id: String) = maybeAnalyzeBeat(id, BeatAnalysisPriority.IMMEDIATE)
+
+    fun elegirEntrada(id: String, ms: Long) {
+        entradaElegida[id] = ms
+        android.util.Log.i("LifeMusicMapa", "$id: entrada elegida en la mesa en ${ms / 1000} s")
+        replanificarMezcla()
+    }
+
+    fun elegirSalida(id: String, ms: Long) {
+        salidaElegida[id] = ms
+        android.util.Log.i("LifeMusicMapa", "$id: salida elegida en la mesa en ${ms / 1000} s")
+        replanificarMezcla()
+    }
 
     private fun anotarTransicion(saliente: Player, entrante: Player, conPlan: Boolean) {
         val bpm = automixDebugInfo.value?.outBpm?.takeIf { it > 0f }
@@ -412,6 +467,9 @@ class MusicService :
             aId = a?.mediaId,
             aArte = a?.let { com.cglabs.lifemusic.ui.player.tocadiscos.Tocadiscos.arte(it) },
             conPlan = conPlan,
+            duracionMs = activeAutomixPlan?.overlapMs ?: crossfadeDuration.toLong(),
+            salienteDesdeMs = saliente.currentPosition,
+            entranteDesdeMs = entrante.currentPosition,
         )
     }
 
@@ -4517,10 +4575,25 @@ class MusicService :
             // Poll playback position instead of a wall-clock delay: position freezes on
             // pause, so the trigger can't misfire while paused and get lost.
             var prebufferStarted = false
+            var reescuchada = false
             while (isActive) {
                 if (player.currentMediaItem?.mediaId != targetMediaId) return@launch
                 val remaining = triggerTime - player.currentPosition
                 if (remaining <= 0) break
+                // 2.1.x · YouTube entrega la cancion a velocidad de reproduccion: bajarla entera para analizarla tarda
+                // minutos. Cuando el reproductor ya tiene el final en cache, volver a escucharla es instantaneo, y llega
+                // antes de la mezcla con el tempo del final y el mapa.
+                if (!reescuchada && targetMediaId != null && trackDuration > 0 && player.bufferedPosition >= trackDuration - 1_500L) {
+                    reescuchada = true
+                    val id = targetMediaId
+                    scope.launch {
+                        val fila = withContext(Dispatchers.IO) { database.beatInfo(id) }
+                        if (fila == null || fila.bpmSalida == null || !archivoDeMapa(id).exists()) {
+                            android.util.Log.i("LifeMusicMapa", "$id: el final ya esta en cache, se vuelve a escuchar")
+                            maybeAnalyzeBeat(id, BeatAnalysisPriority.IMMEDIATE)
+                        }
+                    }
+                }
                 if (!prebufferStarted && remaining <= PREBUFFER_LEAD_MS) {
                     prebufferStarted = true
                     prebufferSecondaryPlayer(plan)
@@ -4633,6 +4706,10 @@ class MusicService :
         // wrapping to track 1 on repeat-all). Rather than discarding the whole plan for
         // a few seconds of overshoot, shrink the overlap to whatever room is actually
         // left; only fall back if that leaves too little room to blend at all.
+        // 2.1.x · Si en la mesa se eligio por donde sale, se respeta (si todavia esta por delante).
+        salidaElegida[currentId]?.let { elegida ->
+            if (elegida > player.currentPosition + 1_000L && elegida < trackDuration - minimoMs) triggerTime = elegida
+        }
         val roomMs = trackDuration - 500 - triggerTime
         val effectiveOverlapMs = overlapMs.coerceAtMost(roomMs)
         if (effectiveOverlapMs < minimoMs || triggerTime >= trackDuration - minimoMs) {
@@ -4734,7 +4811,7 @@ class MusicService :
             currentId = currentId,
             nextId = nextId,
             triggerTimeMs = triggerTime,
-            incomingStartMs = incomingStart,
+            incomingStartMs = entradaElegida[nextId] ?: incomingStart,
             tempoRatio = tempoRatio,
             pitchRatio = pitchRatio,
             overlapMs = effectiveOverlapMs,
@@ -4754,6 +4831,7 @@ class MusicService :
             status = "plan ready: ${nivel.name.lowercase()} / ${estilo.name.lowercase()} / ${modo.name.lowercase()}",
             estilo = estilo.name.lowercase(),
             compases = plan.compases,
+            overlapMs = plan.overlapMs,
             triggerTimeMs = plan.triggerTimeMs,
             incomingStartMs = plan.incomingStartMs,
             tempoRatio = plan.tempoRatio,
@@ -4911,7 +4989,10 @@ class MusicService :
                 existing.bpmSalida == null)
         // 2.1.0 · Lo analizado antes del arreglo del dembow puede tener el tempo a 4/3: se reanaliza una vez.
         val vieja = existing != null && existing.analyzedAt < TEMPO_VIGENTE_DESDE
-        if (existing != null && !incompleta && !vieja) return
+        // 2.1.x · Sin mapa todavia (dos intentos por sesion, para no bajar la cancion una y otra vez).
+        val sinMapa = !archivoDeMapa(mediaId).exists() && (intentosDeMapa[mediaId] ?: 0) < 2
+        if (existing != null && !incompleta && !vieja && !sinMapa) return
+        intentosDeMapa.merge(mediaId, 1, Int::plus)
         Timber.tag(TAG).d("Beat analysis starting for %s (%s)", mediaId, priority)
 
         val result: BeatAnalyzer.Result?
@@ -4928,13 +5009,22 @@ class MusicService :
                 shouldCancel = ::timedOutOrCancelled,
             )
             dataComplete = true
+            BeatAnalyzer.construirMapa(result?.bpm ?: 0f, result?.firstBeatOffsetMs ?: 0L, ::timedOutOrCancelled) { extractor ->
+                extractor.setDataSource(this@MusicService, android.net.Uri.parse(mediaId), null)
+            }?.let { guardarMapa(mediaId, it) }
         } else {
             val fetched = BeatAnalyzer.analyzeStream(
                 analysisDataSourceFactory,
                 mediaId,
                 cacheDir,
                 uri = playbackSeedUri(mediaId).toUri(),
-                shouldCancel = { !analysisContext.isActive || timedOutOrCancelled() },
+                // Con el tiempo justo para analizar lo bajado: si YouTube la entrega lento, se analiza el comienzo.
+                shouldCancel = {
+                    !analysisContext.isActive ||
+                        android.os.SystemClock.elapsedRealtime() - startedAt > beatAnalysisTimeoutMs(priority) + 15_000L
+                },
+                cortarDescarga = { android.os.SystemClock.elapsedRealtime() - startedAt > beatAnalysisTimeoutMs(priority) - 12_000L },
+                rejillaDeRespaldo = existing?.takeIf { it.bpm > 0f }?.let { it.bpm to it.firstBeatOffsetMs },
             )
                 ?: run {
                     Timber.tag(TAG).d("Beat analysis skipped for %s: fetch failed", mediaId)
@@ -4942,6 +5032,7 @@ class MusicService :
                 }
             result = fetched.result
             dataComplete = fetched.complete
+            fetched.mapa?.let { guardarMapa(mediaId, it) }
         }
         Timber.tag(TAG).d(
             "Beat analysis done for %s: %s", mediaId,
@@ -5403,6 +5494,7 @@ class MusicService :
             var ultimaVelB = -1f
             var peorDesfaseMs = 0f
             var ultimoRegistro = 0L
+            var ultimoLog = 0L
             // Eco: la saliente suena un golpe mas y luego queda solo su eco.
             val corteEco = if (estilo == EstiloTransicion.ECO) (golpeEntranteMs / duration).coerceIn(0.05f, 0.5f) else 0f
             var ecoCortado = false
@@ -5474,7 +5566,8 @@ class MusicService :
                                     ultimaVelA = vA
                                 }
                             } catch (e: Exception) { }
-                            if (ahora - ultimoRegistro >= 1_000L || i == 0) {
+                            if (ahora - ultimoLog >= 1_000L || i == 0) {
+                                ultimoLog = ahora
                                 android.util.Log.i(
                                     "LifeMusicMezcla",
                                     "p=${"%.2f".format(progress)} velSale=${"%.3f".format(vA)} velEntra=${"%.3f".format(vB)} " +

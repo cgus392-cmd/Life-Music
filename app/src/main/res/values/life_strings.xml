@@ -1908,4 +1908,26 @@
     <string name="mixed_estilo_cierre">Close</string>
     <string name="mixed_aviso">Mixed Editor · %1$s</string>
     <string name="mixed_aviso_compases">Mixed Editor · %1$s, %2$d bars</string>
+    <string name="mixed_sale">Out</string>
+    <string name="mixed_entra">In</string>
+    <string name="mixed_mesa">The desk</string>
+    <string name="mixed_abrir_mesa">Open the desk</string>
+    <string name="mixed_compatibles">Compatible</string>
+    <string name="mixed_lejanas">Distant tempos</string>
+    <string name="mixed_nova_sugiere">Nova suggests</string>
+    <string name="mixed_punto_salida">“Leave at bar %1$d: that is where %2$s.”</string>
+    <string name="mixed_punto_entrada">“Come in at bar %1$d: that is where %2$s.”</string>
+    <string name="mixed_punto_destacado">“The highlight is at bar %1$d: %2$s.”</string>
+    <string name="mixed_usar">Use</string>
+    <string name="mixed_otra_idea">Another idea</string>
+    <string name="mixed_punto_usado">Done: the next mix uses that point</string>
+    <string name="mixed_mesa_ayuda">Tap a point on the wave to see why Nova suggests it. The line marks where it mixes today.</string>
+    <string name="mixed_mesa_escuchando">Listening to the song… its map shows up in a few seconds.</string>
+    <string name="mixed_motivo_arranca_bateria">the drums come in</string>
+    <string name="mixed_motivo_arranca_bajo">the bass comes in</string>
+    <string name="mixed_motivo_empieza_coro">the chorus starts</string>
+    <string name="mixed_motivo_se_va_bateria">the drums drop out</string>
+    <string name="mixed_motivo_empieza_outro">the outro starts</string>
+    <string name="mixed_motivo_baja_energia">the energy drops</string>
+    <string name="mixed_motivo_el_coro">the chorus, the loudest part of the song</string>
 </resources>

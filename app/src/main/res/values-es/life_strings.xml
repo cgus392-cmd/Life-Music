@@ -1531,4 +1531,26 @@
     <string name="mixed_estilo_cierre">Cierre</string>
     <string name="mixed_aviso">Mixed Editor · %1$s</string>
     <string name="mixed_aviso_compases">Mixed Editor · %1$s de %2$d compases</string>
+    <string name="mixed_sale">Sale</string>
+    <string name="mixed_entra">Entra</string>
+    <string name="mixed_mesa">La mesa</string>
+    <string name="mixed_abrir_mesa">Abrir la mesa</string>
+    <string name="mixed_compatibles">Compatibles</string>
+    <string name="mixed_lejanas">Tempos lejanos</string>
+    <string name="mixed_nova_sugiere">Nova sugiere</string>
+    <string name="mixed_punto_salida">«Sale en el compás %1$d: ahí %2$s.»</string>
+    <string name="mixed_punto_entrada">«Entra en el compás %1$d: ahí %2$s.»</string>
+    <string name="mixed_punto_destacado">«Lo más destacado está en el compás %1$d: %2$s.»</string>
+    <string name="mixed_usar">Usar</string>
+    <string name="mixed_otra_idea">Otra idea</string>
+    <string name="mixed_punto_usado">Listo: la próxima mezcla usa ese punto</string>
+    <string name="mixed_mesa_ayuda">Toca un punto sobre la onda para ver por qué Nova lo propone. La línea marca dónde mezcla hoy.</string>
+    <string name="mixed_mesa_escuchando">Escuchando la canción… su mapa aparece en unos segundos.</string>
+    <string name="mixed_motivo_arranca_bateria">arranca la batería</string>
+    <string name="mixed_motivo_arranca_bajo">arranca el bajo</string>
+    <string name="mixed_motivo_empieza_coro">empieza el coro</string>
+    <string name="mixed_motivo_se_va_bateria">se queda sin batería</string>
+    <string name="mixed_motivo_empieza_outro">empieza el outro</string>
+    <string name="mixed_motivo_baja_energia">baja la energía</string>
+    <string name="mixed_motivo_el_coro">el coro, lo más fuerte de la canción</string>
 </resources>

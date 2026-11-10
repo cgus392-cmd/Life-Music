@@ -824,6 +824,11 @@ fun BottomSheetPlayer(
                 mostrarModoMezcla = false
             },
             onCerrar = { mostrarModoMezcla = false },
+            onAbrirMesa = {
+                mostrarModoMezcla = false
+                state.collapseSoft()
+                navController.navigate("mixed/mesa")
+            },
         )
     }
 
@@ -2421,6 +2426,29 @@ fun BottomSheetPlayer(
 
             Spacer(Modifier.height(if (useNewPlayerDesign) 24.dp else 12.dp))
 
+            // 2.1.x · Pedido de CG (09-11): mientras se acerca y dura la mezcla, en el lugar de los controles se ven las
+            // dos ondas, la que sale y la que entra. Un toque devuelve los controles cinco segundos.
+            var verControlesEnMezcla by remember { mutableStateOf(false) }
+            LaunchedEffect(verControlesEnMezcla) {
+                if (verControlesEnMezcla) {
+                    kotlinx.coroutines.delay(5_000)
+                    verControlesEnMezcla = false
+                }
+            }
+            val vistaDeMezclaActiva = mezclando && tocadiscos?.activo == true && !verControlesEnMezcla
+            val vistaDeMezcla: @Composable () -> Unit = {
+                if (tocadiscos != null) {
+                    com.cglabs.lifemusic.ui.screens.mixed.VistaDeMezcla(
+                        estado = tocadiscos,
+                        colorSale = textButtonColor,
+                        colorEntra = Color(0xFF7CE495),
+                        colorTexto = textButtonColor,
+                        onTocar = { verControlesEnMezcla = true },
+                        modifier = Modifier.fillMaxWidth().padding(horizontal = PlayerHorizontalPadding),
+                    )
+                }
+            }
+
             AnimatedVisibility(
                 visible = !isFullScreen,
                 enter = slideInVertically(initialOffsetY = { it }) + fadeIn(),
@@ -2428,7 +2456,7 @@ fun BottomSheetPlayer(
             ) {
                 Column {
                     if (useNewPlayerDesign) {
-                        Row(
+                        if (vistaDeMezclaActiva) vistaDeMezcla() else Row(
                             horizontalArrangement = Arrangement.Center,
                             verticalAlignment = Alignment.CenterVertically,
                             modifier = Modifier
@@ -2574,7 +2602,7 @@ fun BottomSheetPlayer(
                             }
                         }
                     } else {
-                        Row(
+                        if (vistaDeMezclaActiva) vistaDeMezcla() else Row(
                             verticalAlignment = Alignment.CenterVertically,
                             modifier =
                             Modifier

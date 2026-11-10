@@ -109,7 +109,113 @@ object BeatAnalyzer {
      * @param complete true when the copied bytes are known to be the whole stream —
      *   only then is a failed analysis worth negative-caching.
      */
-    class CachedAnalysis(val result: Result?, val complete: Boolean)
+    class CachedAnalysis(val result: Result?, val complete: Boolean, val mapa: MapaDeCancion? = null)
+
+    /**
+     * 2.1.x · El mapa de la canción (Automix v2): se decodifica todo lo que haya, de principio a fin y por pedazos (sin
+     * guardar la canción en memoria). Con un archivo incompleto sale el mapa de lo que alcanzó a bajar: para la que
+     * entra basta su comienzo. [bpm] y [primerGolpeMs] dan la rejilla de compases.
+     */
+    fun construirMapa(
+        bpm: Float,
+        primerGolpeMs: Long,
+        shouldCancel: () -> Boolean = { false },
+        setSource: (MediaExtractor) -> Unit,
+    ): MapaDeCancion? {
+        val extractor = MediaExtractor()
+        try {
+            setSource(extractor)
+            var format: MediaFormat? = null
+            for (i in 0 until extractor.trackCount) {
+                val f = extractor.getTrackFormat(i)
+                if (f.getString(MediaFormat.KEY_MIME)?.startsWith("audio/") == true) {
+                    extractor.selectTrack(i)
+                    format = f
+                    break
+                }
+            }
+            if (format == null) return null
+            var constructor: ConstructorDeMapa? = null
+            val decodificadoMs = decodificarEnPedazos(extractor, format, shouldCancel) { pedazo, frecuencia ->
+                val c = constructor ?: ConstructorDeMapa(frecuencia).also { constructor = it }
+                c.alimentar(pedazo)
+            }
+            if (decodificadoMs < 20_000L) return null
+            return constructor?.terminar(bpm.takeIf { it > 0f } ?: 100f, primerGolpeMs, decodificadoMs)
+        } catch (e: Exception) {
+            Timber.tag(TAG).w(e, "Mapa de la cancion: fallo")
+            return null
+        } finally {
+            extractor.release()
+        }
+    }
+
+    /** Decodifica a mono por pedazos y se los pasa a [alRecibir]. Devuelve cuántos ms decodificó. Para al fallar. */
+    private fun decodificarEnPedazos(
+        extractor: MediaExtractor,
+        format: MediaFormat,
+        shouldCancel: () -> Boolean,
+        alRecibir: (FloatArray, Int) -> Unit,
+    ): Long {
+        val mime = format.getString(MediaFormat.KEY_MIME) ?: return 0L
+        val codec = MediaCodec.createDecoderByType(mime)
+        var decodificadoUs = 0L
+        try {
+            codec.configure(format, null, null, 0)
+            codec.start()
+            var entradaHecha = false
+            var salidaHecha = false
+            val info = MediaCodec.BufferInfo()
+            while (!salidaHecha) {
+                if (shouldCancel()) break
+                if (!entradaHecha) {
+                    val i = codec.dequeueInputBuffer(10_000)
+                    if (i >= 0) {
+                        val buffer = codec.getInputBuffer(i)!!
+                        val size = runCatching { extractor.readSampleData(buffer, 0) }.getOrDefault(-1)
+                        if (size < 0) {
+                            codec.queueInputBuffer(i, 0, 0, 0, MediaCodec.BUFFER_FLAG_END_OF_STREAM)
+                            entradaHecha = true
+                        } else {
+                            codec.queueInputBuffer(i, 0, size, extractor.sampleTime, 0)
+                            extractor.advance()
+                        }
+                    }
+                }
+                val o = codec.dequeueOutputBuffer(info, 10_000)
+                if (o >= 0) {
+                    if (info.flags and MediaCodec.BUFFER_FLAG_END_OF_STREAM != 0) salidaHecha = true
+                    if (info.size > 0) {
+                        val formato = codec.outputFormat
+                        val canales = formato.getInteger(MediaFormat.KEY_CHANNEL_COUNT)
+                        val frecuencia = formato.getInteger(MediaFormat.KEY_SAMPLE_RATE)
+                        val buf = codec.getOutputBuffer(o)!!
+                        buf.position(info.offset)
+                        buf.limit(info.offset + info.size)
+                        buf.order(java.nio.ByteOrder.LITTLE_ENDIAN)
+                        val cortos = buf.asShortBuffer()
+                        val cuadros = cortos.remaining() / canales
+                        val mono = FloatArray(cuadros)
+                        for (f in 0 until cuadros) {
+                            var acc = 0f
+                            for (c in 0 until canales) acc += cortos.get(f * canales + c) / 32768f
+                            mono[f] = acc / canales
+                        }
+                        alRecibir(mono, frecuencia)
+                        decodificadoUs += cuadros * 1_000_000L / max(1, frecuencia)
+                    }
+                    codec.releaseOutputBuffer(o, false)
+                }
+            }
+        } catch (e: Exception) {
+            // Un archivo cortado termina aqui: se queda lo decodificado.
+            Timber.tag(TAG).d("Mapa: decodificacion hasta %d ms (%s)", decodificadoUs / 1000, e.message)
+        } finally {
+            runCatching { codec.stop() }
+            codec.release()
+        }
+        return decodificadoUs / 1000
+    }
 
     /**
      * Fetches the track through the app's playback data-source chain (resolver + caches +
@@ -124,6 +230,13 @@ object BeatAnalyzer {
         shouldCancel: () -> Boolean = { false },
         /** URI que se abre. Con el id pelado, una cancion descargada se lee como fichero local y falla. */
         uri: Uri = Uri.parse(mediaId),
+        /**
+         * 2.1.x · Si YouTube entrega la cancion lento (a velocidad de reproduccion), deja de bajar y analiza lo que haya:
+         * del comienzo sale el mapa de la que entra. Distinto de [shouldCancel], que lo suelta todo.
+         */
+        cortarDescarga: () -> Boolean = { false },
+        /** Rejilla conocida para el mapa si el analisis de este archivo no alcanza a dar una. */
+        rejillaDeRespaldo: Pair<Float, Long>? = null,
     ): CachedAnalysis? {
         val tempFile = java.io.File(tempDir, "beat_${mediaId.hashCode()}.tmp")
         try {
@@ -140,6 +253,7 @@ object BeatAnalyzer {
                 java.io.FileOutputStream(tempFile).use { out ->
                     val buf = ByteArray(64 * 1024)
                     while (copied < MAX_FETCH_BYTES) {
+                        if (copied >= 1_000_000L && cortarDescarga()) break
                         if (shouldCancel()) {
                             Timber.tag(TAG).d("Stream fetch for %s cancelled at %d bytes", mediaId, copied)
                             return null
@@ -171,7 +285,13 @@ object BeatAnalyzer {
 
             if (shouldCancel()) return null
             val result = analyze(shouldCancel) { extractor -> extractor.setDataSource(tempFile.absolutePath) }
-            return CachedAnalysis(result, reachedEnd)
+            val rejilla = result?.let { it.bpm to it.firstBeatOffsetMs } ?: rejillaDeRespaldo
+            val mapa = if (shouldCancel()) null else {
+                construirMapa(rejilla?.first ?: 100f, rejilla?.second ?: 0L, shouldCancel) { extractor ->
+                    extractor.setDataSource(tempFile.absolutePath)
+                }
+            }
+            return CachedAnalysis(result, reachedEnd, mapa)
         } finally {
             tempFile.delete()
         }
