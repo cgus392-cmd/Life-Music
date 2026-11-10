@@ -985,6 +985,11 @@ fun BottomSheetPlayer(
     }
 
     val backgroundAlpha = state.progress.coerceIn(0f, 1f)
+    // 2.1.0 · Tocadiscos en Apple Music (version 2): mientras suena, el fondo lo pinta el tocadiscos y el
+    // reproductor se recoge. En gama baja, con letra en linea o en horizontal se queda el fundido de siempre.
+    val tocadiscosApple = tocadiscos != null && !tocadiscos.quieto && tocadiscos.tapaLaCaratula &&
+        playerBackground == PlayerBackgroundStyle.APPLE_MUSIC && !showInlineLyrics &&
+        LocalConfiguration.current.orientation != Configuration.ORIENTATION_LANDSCAPE
 
     BottomSheet(
         state = state,
@@ -1217,6 +1222,16 @@ fun BottomSheetPlayer(
                         }
                     }
                     PlayerBackgroundStyle.APPLE_MUSIC -> {
+                        // 2.1.0 · Tocadiscos: la caratula que habia al empezar, para el enfoque de camara.
+                        val urlFondoA = remember(tocadiscos?.idA) { backgroundThumbnailUrl }
+                        if (tocadiscosApple && tocadiscos != null) {
+                            com.cglabs.lifemusic.ui.player.tocadiscos.FondoAppleConTocadiscos(
+                                estado = tocadiscos,
+                                urlA = urlFondoA,
+                                urlB = if (backgroundThumbnailUrl != urlFondoA) backgroundThumbnailUrl else tocadiscos.arteB,
+                                alfaFondo = backgroundAlpha,
+                            )
+                        } else {
                         AnimatedContent(
                             targetState = backgroundThumbnailUrl,
                             transitionSpec = {
@@ -1308,6 +1323,7 @@ fun BottomSheetPlayer(
                                     )
                                 }
                             }
+                        }
                         }
                     }
                     PlayerBackgroundStyle.LIVE_MESH, PlayerBackgroundStyle.LIQUID_GLASS -> {
@@ -2699,6 +2715,16 @@ fun BottomSheetPlayer(
                                 modifier = Modifier
                                     .fillMaxWidth()
                                     .padding(horizontal = PlayerHorizontalPadding)
+                                    .graphicsLayer {
+                                        // 2.1.0 · Apple Music con tocadiscos: el volumen baja y se apaga.
+                                        val esconde = if (tocadiscosApple && tocadiscos != null) {
+                                            com.cglabs.lifemusic.ui.player.tocadiscos.Coreografia.escondeVolumen(tocadiscos.golpeParaPintar)
+                                        } else {
+                                            0f
+                                        }
+                                        alpha = 1f - esconde
+                                        translationY = esconde * 60.dp.toPx()
+                                    }
                             ) {
                                 val volumeInteractionSource = remember { MutableInteractionSource() }
                                 val isVolumeDragged by volumeInteractionSource.collectIsDraggedAsState()
@@ -2932,6 +2958,14 @@ fun BottomSheetPlayer(
                     horizontalAlignment = Alignment.CenterHorizontally,
                     modifier =
                     Modifier
+                        .graphicsLayer {
+                            // 2.1.0 · Apple Music con tocadiscos: el reproductor baja y le deja sitio al disco.
+                            translationY = if (tocadiscosApple && tocadiscos != null) {
+                                com.cglabs.lifemusic.ui.player.tocadiscos.Coreografia.recoge(tocadiscos.golpeParaPintar) * minOf(130.dp.toPx(), size.height * 0.16f)
+                            } else {
+                                0f
+                            }
+                        }
                         .windowInsetsPadding(WindowInsets.systemBars.only(WindowInsetsSides.Horizontal))
                         .padding(bottom = bottomPadding)
                         .animateContentSize(),
@@ -2976,8 +3010,15 @@ fun BottomSheetPlayer(
             }
         }
 
+        // 2.1.0 · Apple Music con tocadiscos: la fila de abajo se va mientras el reproductor esta recogido.
+        val filaEscondida by remember(tocadiscosApple, tocadiscos) {
+            derivedStateOf {
+                tocadiscosApple && tocadiscos != null && queueSheetState.isCollapsed &&
+                    com.cglabs.lifemusic.ui.player.tocadiscos.Coreografia.escondeFila(tocadiscos.golpeParaPintar) > 0.5f
+            }
+        }
         AnimatedVisibility(
-            visible = !isFullScreen,
+            visible = !isFullScreen && !filaEscondida,
             enter = slideInVertically(initialOffsetY = { it }) + fadeIn(),
             exit = shrinkVertically(shrinkTowards = Alignment.Top) + slideOutVertically(targetOffsetY = { it }) + fadeOut()
         ) {

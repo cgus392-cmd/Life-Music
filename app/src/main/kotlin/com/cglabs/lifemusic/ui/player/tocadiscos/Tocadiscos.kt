@@ -5,7 +5,12 @@ import android.graphics.BitmapFactory
 import android.os.SystemClock
 import android.provider.Settings
 import android.util.Log
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
@@ -19,19 +24,25 @@ import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.withFrameNanos
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.draw.blur
 import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.BlendMode
+import androidx.compose.ui.graphics.BlurEffect
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.CompositingStrategy
 import androidx.compose.ui.graphics.FilterQuality
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.ImageShader
 import androidx.compose.ui.graphics.Paint
 import androidx.compose.ui.graphics.ShaderBrush
+import androidx.compose.ui.graphics.TileMode
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.drawIntoCanvas
@@ -39,13 +50,17 @@ import androidx.compose.ui.graphics.drawscope.rotate
 import androidx.compose.ui.graphics.drawscope.scale
 import androidx.compose.ui.graphics.drawscope.translate
 import androidx.compose.ui.graphics.drawscope.withTransform
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.nativeCanvas
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.IntSize
+import androidx.compose.ui.unit.dp
 import androidx.media3.common.C
 import androidx.media3.common.MediaItem
+import coil3.compose.AsyncImage
 import coil3.imageLoader
 import coil3.request.ImageRequest
 import coil3.request.allowHardware
@@ -98,7 +113,10 @@ class KitTocadiscos private constructor(
     companion object {
         fun cargar(contexto: Context, ligero: Boolean): KitTocadiscos {
             val opciones = BitmapFactory.Options().apply { if (ligero) inSampleSize = 2 }
-            fun leer(id: Int) = BitmapFactory.decodeResource(contexto.resources, id, opciones).asImageBitmap()
+            // prepareToDraw: la pieza se sube a la GPU de una vez, y no en el primer cuadro del tocadiscos.
+            fun leer(id: Int) = BitmapFactory.decodeResource(contexto.resources, id, opciones)
+                .also { it.prepareToDraw() }
+                .asImageBitmap()
             return KitTocadiscos(
                 vinilo = leer(R.drawable.tocadiscos_vinilo),
                 brillo = leer(R.drawable.tocadiscos_brillo),
@@ -151,10 +169,17 @@ object Tocadiscos {
 
 @Stable
 class EstadoTocadiscos internal constructor(val quieto: Boolean) {
-    /** El golpe que se ve ahora; NaN cuando no hay tocadiscos (se ve la carátula de siempre). */
+    /**
+     * El golpe que se ve ahora; NaN cuando no hay tocadiscos (se ve la carátula de siempre). Cambia en cada cuadro:
+     * se lee solo al pintar (drawBehind, graphicsLayer), nunca al componer.
+     */
     var golpe by mutableFloatStateOf(Float.NaN)
         internal set
     var golpeMs by mutableFloatStateOf(600f)
+        internal set
+
+    /** Si hay una coreografía en marcha. Cambia pocas veces: se puede leer al componer. */
+    var activo by mutableStateOf(false)
         internal set
     var kit by mutableStateOf<KitTocadiscos?>(null)
         internal set
@@ -162,19 +187,34 @@ class EstadoTocadiscos internal constructor(val quieto: Boolean) {
         internal set
     var portadaB by mutableStateOf<Portada?>(null)
         internal set
-    internal var idA: String? = null
-    internal var idB: String? = null
+
+    /** La que sale y la que entra, con la dirección de su carátula. */
+    var idA by mutableStateOf<String?>(null)
+        internal set
+    var idB by mutableStateOf<String?>(null)
+        internal set
+    var arteA by mutableStateOf<String?>(null)
+        internal set
+    var arteB by mutableStateOf<String?>(null)
+        internal set
 
     /** Si el tocadiscos tapa la carátula de siempre (la capa ya tiene todo para pintarse). */
     val tapaLaCaratula: Boolean
-        get() = !golpe.isNaN() && kit != null && portadaA?.id == idA
+        get() = activo && kit != null && portadaA?.id == idA
+
+    /** El golpe para pintar, 0 si no hay tocadiscos. */
+    val golpeParaPintar: Float
+        get() = golpe.let { if (it.isNaN()) 0f else it }
 
     internal fun reposo() {
         golpe = Float.NaN
+        activo = false
         portadaA = null
         portadaB = null
         idA = null
         idB = null
+        arteA = null
+        arteB = null
     }
 }
 
@@ -233,7 +273,9 @@ private fun sinAnimaciones(contexto: Context) = runCatching {
 
 private suspend fun cargarPortada(contexto: Context, url: String, lado: Int): ImageBitmap? {
     val pedido = ImageRequest.Builder(contexto).data(url).size(lado, lado).allowHardware(false).build()
-    return runCatching { contexto.imageLoader.execute(pedido).image?.toBitmap()?.asImageBitmap() }.getOrNull()
+    return runCatching {
+        contexto.imageLoader.execute(pedido).image?.toBitmap()?.also { it.prepareToDraw() }?.asImageBitmap()
+    }.getOrNull()
 }
 
 /**
@@ -293,10 +335,13 @@ fun rememberTocadiscos(estaAbierto: () -> Boolean): EstadoTocadiscos? {
             if (estado.idB != c.aId) estado.portadaB = null
             estado.idA = c.deId
             estado.idB = c.aId
+            estado.arteA = c.deArte
+            estado.arteB = c.aArte
             pedir(c.deId, c.deArte, esA = true)
             pedir(c.aId, c.aArte, esA = false)
             estado.golpeMs = c.golpeMs
             estado.golpe = c.golpe
+            estado.activo = true
             withFrameNanos { }
         }
     }
@@ -332,6 +377,106 @@ fun TocadiscosEnTarjeta(estado: EstadoTocadiscos, lado: Dp, esquina: Dp, modifie
             }
         },
     )
+}
+
+/**
+ * Apple Music (versión 2, pedida por CG): la carátula a sangre se queda y sigue siendo la del estilo, con su fondo
+ * borroso y su desvanecido. El vinilo va DETRÁS de ella y sale por el borde de abajo, donde se desvanece; el cambio de
+ * carátula es un enfoque de cámara (la vieja se desenfoca y se apaga, la nueva entra borrosa y se enfoca). Mientras
+ * dura, el reproductor se recoge (eso lo hace Player.kt) y el desvanecido se acorta para que el disco se vea entero.
+ *
+ * Reemplaza al fondo de Apple Music solo mientras hay tocadiscos; en reposo pinta lo mismo que él, para que el relevo
+ * no se note. [urlA] es la carátula que había al empezar; [urlB], la nueva.
+ */
+@Composable
+fun FondoAppleConTocadiscos(
+    estado: EstadoTocadiscos,
+    urlA: String?,
+    urlB: String?,
+    alfaFondo: Float,
+    modifier: Modifier = Modifier,
+) {
+    val contexto = LocalContext.current
+    val pinturaSombra = remember { android.graphics.Paint(android.graphics.Paint.ANTI_ALIAS_FLAG) }
+    Box(modifier.fillMaxSize().alpha(alfaFondo)) {
+        // 1. El fondo borroso del estilo, mezclado entre las dos carátulas al ritmo del enfoque.
+        for ((url, esA) in listOf(urlA to true, urlB to false)) {
+            if (url == null) continue
+            AsyncImage(
+                model = ImageRequest.Builder(contexto).data(url).size(128, 128).allowHardware(false).build(),
+                contentDescription = null,
+                contentScale = ContentScale.Crop,
+                modifier = Modifier
+                    .fillMaxSize()
+                    .graphicsLayer {
+                        val cambia = Coreografia.cambia(estado.golpeParaPintar)
+                        alpha = if (esA) 1f - cambia else cambia
+                    }
+                    .blur(150.dp),
+            )
+        }
+        // 2. Los vinilos, detrás de la carátula.
+        Spacer(
+            Modifier.fillMaxSize().drawBehind {
+                val b = estado.golpe
+                val kit = estado.kit
+                val a = estado.portadaA
+                if (b.isNaN() || kit == null || a == null) return@drawBehind
+                Escena(this, kit, pinturaSombra, size.width * 360f / 440f, 0f).appleVinilos(b, estado.golpeMs, a, estado.portadaB)
+            },
+        )
+        // 3. Las carátulas nítidas, con el desvanecido del estilo (más corto mientras el reproductor está recogido).
+        Box(
+            Modifier
+                .fillMaxWidth()
+                .fillMaxHeight(0.65f)
+                .graphicsLayer(compositingStrategy = CompositingStrategy.Offscreen)
+                .drawWithContent {
+                    drawContent()
+                    val f = Coreografia.desvanecido(Coreografia.recoge(estado.golpeParaPintar))
+                    drawRect(
+                        brush = Brush.verticalGradient(
+                            0f to Color.Black,
+                            f[0] to Color.Black,
+                            f[1] to Color.Black.copy(alpha = 0.4f),
+                            f[2] to Color.Transparent,
+                        ),
+                        blendMode = BlendMode.DstIn,
+                    )
+                },
+        ) {
+            for ((url, esA) in listOf(urlA to true, urlB to false)) {
+                if (url == null) continue
+                AsyncImage(
+                    model = ImageRequest.Builder(contexto).data(url).size(coil3.size.Size.ORIGINAL).build(),
+                    contentDescription = null,
+                    contentScale = ContentScale.Crop,
+                    modifier = Modifier.fillMaxSize().graphicsLayer {
+                        val g = estado.golpeParaPintar
+                        val cambia = Coreografia.cambia(g)
+                        alpha = if (esA) Coreografia.alfaCaratulaA(g) else Coreografia.alfaCaratulaB(g)
+                        val radio = 26.dp.toPx() * (if (esA) cambia else 1f - cambia)
+                        renderEffect = if (radio > 0.5f) BlurEffect(radio, radio, TileMode.Clamp) else null
+                    },
+                )
+            }
+        }
+        // 4. El velo del estilo.
+        Box(
+            Modifier
+                .fillMaxSize()
+                .background(Brush.verticalGradient(listOf(Color.Black.copy(alpha = 0.05f), Color.Black.copy(alpha = 0.4f)))),
+        )
+        // 5. El brazo, delante de la carátula.
+        Spacer(
+            Modifier.fillMaxSize().drawBehind {
+                val b = estado.golpe
+                val kit = estado.kit
+                if (b.isNaN() || kit == null) return@drawBehind
+                Escena(this, kit, pinturaSombra, size.width * 360f / 440f, 0f).appleBrazo(b)
+            },
+        )
+    }
 }
 
 /** Todo lo que se pinta, en las medidas de la maqueta (carátula de 360) escaladas a la carátula real. */
@@ -372,10 +517,42 @@ private class Escena(
                 vinilo(vB, cy, radio, giroB, pb, sombra = adornos)
             }
         }
-        val brazo = Coreografia.brazoEnTarjeta(b)
-        if (brazo.visible > 0.003f) {
-            brazo(cx + 175f * u, cy - 170f * u, brazo.angulo, brazo.alto, 0.85f * u, brazo.visible)
+        val pose = Coreografia.brazoEnTarjeta(b)
+        if (pose.visible > 0.003f) {
+            brazo(cx + 175f * u, cy - 170f * u, pose.angulo, pose.alto, 0.85f * u, pose.visible)
         }
+    }
+
+    // ── Apple Music: medidas de la maqueta (teléfono de 440 de ancho) llevadas a la pantalla real ─────────────
+    private val anchoMaqueta get() = d.size.width / 440f
+
+    /** Dónde queda el centro del vinilo cuando ya salió: más abajo cuanto más recogido está el reproductor. */
+    private fun yAfuera(recoge: Float) = Coreografia.mix(0.42f, 0.50f, recoge) * d.size.height
+
+    /** Los vinilos de Apple Music: salen por el borde de abajo de la carátula, el viejo se va de lado. */
+    fun appleVinilos(b: Float, golpeMs: Float, a: Portada, pb: Portada?) {
+        val w = d.size.width
+        val recoge = Coreografia.recoge(b)
+        val r = Coreografia.mix(150f, 172f, recoge) * anchoMaqueta
+        // Escondido: detrás de la parte opaca de la carátula.
+        val yDentro = 0.20f * d.size.height
+        val yFuera = yAfuera(recoge)
+        if (Coreografia.hayViniloAEnApple(b)) {
+            val x = w / 2f + Coreografia.ladoA(b) * w
+            vinilo(x, Coreografia.mix(yDentro, yFuera, Coreografia.saleA(b)), r, Coreografia.giroA(b, golpeMs), a, sombra = 1f)
+        }
+        if (Coreografia.hayViniloBEnApple(b)) {
+            vinilo(w / 2f, Coreografia.mix(yDentro, yFuera, Coreografia.saleB(b)), r, Coreografia.giroB(b, golpeMs), pb, sombra = 1f)
+        }
+    }
+
+    /** El brazo de Apple Music, a la derecha del disco. El de la maqueta mide 175 a escala 0,72; la pieza, 230. */
+    fun appleBrazo(b: Float) {
+        val pose = Coreografia.brazoEnApple(b)
+        if (pose.visible <= 0.003f) return
+        val k = anchoMaqueta
+        val yFuera = yAfuera(Coreografia.recoge(b))
+        brazo(d.size.width / 2f + 174f * k, yFuera - 120f * k, pose.angulo, pose.alto, 0.72f * k * 175f / 230f, pose.visible)
     }
 
     /** Gama baja y «Quitar animaciones»: cuatro cuadros quietos, con fundidos de 400 ms entre ellos. */

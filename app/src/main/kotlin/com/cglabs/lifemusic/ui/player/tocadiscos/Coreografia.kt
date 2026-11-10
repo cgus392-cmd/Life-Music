@@ -80,6 +80,46 @@ object Coreografia {
         return Brazo(visible, mix(-0.9f, 0.12f, en), alto)
     }
 
+    // ── Apple Music (versión 2): la carátula a sangre se queda; el reproductor se recoge y el disco sale abajo ──
+    /** Cuánto se recoge el reproductor: 0 = completo; 1 = solo nombre, barra y controles, más abajo. */
+    fun recoge(b: Float) = suave(tramo(b, 1.4f, 1.2f)) * (1f - suave(tramo(b, 14.6f, 1.2f)))
+
+    /** El volumen baja y se apaga un poco después que la fila de abajo, y vuelve antes que ella. */
+    fun escondeVolumen(b: Float) = suave(tramo(b, 1.6f, 1.0f)) * (1f - suave(tramo(b, 14.9f, 1.0f)))
+    fun escondeFila(b: Float) = suave(tramo(b, 1.4f, 0.9f)) * (1f - suave(tramo(b, 15.1f, 0.9f)))
+
+    /** Enfoque de cámara: 0 = A nítida, 1 = B nítida. El fondo borroso se mezcla igual. */
+    fun cambia(b: Float) = suave(tramo(b, 8.8f, 1.8f))
+    fun alfaCaratulaA(b: Float) = 1f - suave(tramo(b, 9.4f, 1.6f))
+    fun alfaCaratulaB(b: Float) = suave(tramo(b, 9.0f, 1.4f))
+
+    /**
+     * El desvanecido de la carátula (fracciones de su alto: opaca hasta, 40 % en, transparente en). En reposo es el del
+     * estilo (0,75 · 0,92 · 1); recogido se acorta, para que el disco que sale por abajo se vea entero.
+     */
+    fun desvanecido(recoge: Float) = floatArrayOf(mix(0.75f, 0.48f, recoge), mix(0.92f, 0.60f, recoge), mix(1f, 0.70f, recoge))
+
+    /** Cuánto salió cada vinilo por el borde de abajo: 0 = escondido detrás de la carátula, 1 = afuera. */
+    fun saleA(b: Float) = sale(tramo(b, 2f, 2.6f))
+    fun saleB(b: Float) = sale(tramo(b, 10f, 2.2f)) - suave(tramo(b, 14f, 1.4f))
+
+    /** El vinilo A se va de lado mientras frena, en fracción del ancho. */
+    fun ladoA(b: Float) = mix(0f, -0.9f, entra(tramo(b, 9.4f, 1.4f)))
+    fun hayViniloAEnApple(b: Float) = b < 11f
+    fun hayViniloBEnApple(b: Float) = b > 9.8f
+
+    /** El brazo en Apple Music: entra con cada disco y gira hacia él a la vez que aparece. */
+    fun brazoEnApple(b: Float): Brazo {
+        val enA = suave(tramo(b, 4.6f, 1f)) * (1f - suave(tramo(b, 9f, 0.7f)))
+        val enB = suave(tramo(b, 11.6f, 1f)) * (1f - suave(tramo(b, 13.6f, 0.8f)))
+        val visible = maxOf(enA, enB)
+        val alto = 1f - (
+            suave(tramo(b, 5.6f, 0.4f)) * (1f - suave(tramo(b, 8.6f, 0.3f))) +
+                suave(tramo(b, 12.6f, 0.4f)) * (1f - suave(tramo(b, 13.4f, 0.3f)))
+            )
+        return Brazo(visible, mix(-0.95f, 0.42f, visible), alto)
+    }
+
     // ── El giro: 33⅓ rpm reales, con arranque y frenado. El ángulo es la integral de la velocidad. ──────────
     /** 33⅓ rpm en radianes por segundo. */
     const val OMEGA = (100f / 3f) / 60f * 2f * Math.PI.toFloat()

@@ -51,6 +51,29 @@ class CoreografiaTest {
     }
 
     @Test
+    fun enAppleMusicEmpiezaYTerminaComoElEstilo() {
+        for (b in listOf(0f, Coreografia.ENTRA, 1.3f, Coreografia.FIN)) {
+            assertEquals("el reproductor debe estar completo en el golpe $b", 0f, Coreografia.recoge(b), 0.001f)
+            assertEquals(0f, Coreografia.escondeVolumen(b), 0.001f)
+            assertEquals(0f, Coreografia.escondeFila(b), 0.001f)
+        }
+        // En reposo el desvanecido es exactamente el del estilo.
+        val reposo = Coreografia.desvanecido(Coreografia.recoge(0f))
+        assertEquals(0.75f, reposo[0], 0.0001f)
+        assertEquals(0.92f, reposo[1], 0.0001f)
+        assertEquals(1f, reposo[2], 0.0001f)
+        // Enfoque de cámara: A nítida antes del golpe, B nítida después.
+        assertEquals(0f, Coreografia.cambia(8.7f), 0.0001f)
+        assertEquals(1f, Coreografia.cambia(10.7f), 0.0001f)
+        // Los vinilos empiezan y terminan escondidos detrás de la carátula.
+        assertEquals(0f, Coreografia.saleA(1f), 0.0001f)
+        assertEquals(0f, Coreografia.saleB(Coreografia.FIN), 0.0001f)
+        assertEquals(1f, Coreografia.saleB(13f), 0.001f)
+        assertEquals(0f, Coreografia.brazoEnApple(0f).visible, 0.0001f)
+        assertEquals(0f, Coreografia.brazoEnApple(Coreografia.FIN).visible, 0.0001f)
+    }
+
+    @Test
     fun losCuadrosQuietosSiempreSumanUno() {
         var b = 0f
         while (b <= Coreografia.FIN) {
