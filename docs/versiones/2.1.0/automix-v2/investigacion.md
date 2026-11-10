@@ -58,3 +58,15 @@ Siguiente tanda (prueba.21), si CG aprueba:
 2. Tope de estiramiento del 5 %.
 3. Mezclas largas solo en el Mixed Editor.
 4. Primera versión de los perfiles por género.
+
+## Decisión de CG sobre los mashups (10-11)
+
+Los mashups (voz de una canción sobre la instrumental de otra, con las pistas separadas) se hacen **solo con música
+local**. Nunca con streaming, con la cola de la radio, con el autoplay del algoritmo ni con «A continuación».
+
+- La persona decide si **prepara** sus canciones: la app separa la voz y la instrumental y las guarda.
+- Tiene que ser eficiente y servir al promedio de teléfonos de la comunidad. En gama muy baja no se ofrece.
+
+Antes de comprometernos hay que medir. La prueba es separar una canción local con un modelo de licencia abierta
+(Demucs, Open-Unmix o Spleeter, todos MIT) convertido a ONNX, y medirlo en el PC y luego en el S25: tiempo por canción
+y memoria.
