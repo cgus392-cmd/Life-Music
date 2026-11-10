@@ -32,4 +32,13 @@ data class BeatInfoEntity(
      * sin hallar; null fila vieja, se reanaliza una vez.
      */
     val contentStartMs: Long? = null,
+    /**
+     * 2.1.0 · Tempo y rejilla del final (para salir en una mezcla) y del comienzo (para entrar). Muchas canciones
+     * cambian de ritmo y el de la mitad no sirve para mezclar. -1 = se miro y no hubo pulso fiable; null = fila
+     * anterior a estos campos, se reanaliza una vez.
+     */
+    val bpmSalida: Float? = null,
+    val primerGolpeSalidaMs: Long? = null,
+    val bpmEntrada: Float? = null,
+    val primerGolpeEntradaMs: Long? = null,
 )

@@ -114,7 +114,7 @@ class MusicDatabase(
         SortedSongAlbumMap::class,
         PlaylistSongMapPreview::class,
     ],
-    version = 47,
+    version = 48,
     exportSchema = true,
     autoMigrations = [
         AutoMigration(from = 2, to = 3),
@@ -152,6 +152,7 @@ class MusicDatabase(
         AutoMigration(from = 41, to = 42, spec = Migration41To42::class),
         // 2.0 · Nova: la tabla senal_nova (solo se agrega, no toca nada mas).
         AutoMigration(from = 46, to = 47),
+        AutoMigration(from = 47, to = 48),
     ],
 )
 @TypeConverters(Converters::class)

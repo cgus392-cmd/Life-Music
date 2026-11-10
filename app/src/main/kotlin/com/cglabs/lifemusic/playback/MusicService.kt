@@ -657,7 +657,8 @@ class MusicService :
         for (id in ids) {
             val inicio = android.os.SystemClock.elapsedRealtime()
             val guardada = withContext(Dispatchers.IO) { database.beatInfo(id)?.vigente() }
-            if (guardada == null || guardada.bpm <= 0f) {
+            // 2.1.0 · Sin el tempo del final o del comienzo (filas de antes) tambien se vuelve a escuchar.
+            if (guardada == null || guardada.bpm <= 0f || guardada.bpmSalida == null || guardada.bpmEntrada == null) {
                 maybeAnalyzeBeat(id, BeatAnalysisPriority.IMMEDIATE)
                 val trabajo = synchronized(beatAnalysisJobs) { beatAnalysisJobs[id]?.job }
                 trabajo?.join()
@@ -4547,10 +4548,13 @@ class MusicService :
         val nextId = pair.nextId
 
         val (outBeat, inBeat) = withContext(Dispatchers.IO) {
-            database.beatInfo(currentId)?.vigente() to database.beatInfo(nextId)?.vigente()
+            database.beatInfo(currentId)?.vigente()?.paraSalir() to database.beatInfo(nextId)?.vigente()?.paraEntrar()
         }
         if (outBeat == null) maybeAnalyzeBeat(currentId, BeatAnalysisPriority.IMMEDIATE)
         if (inBeat == null && nextId != currentId) maybeAnalyzeBeat(nextId, BeatAnalysisPriority.IMMEDIATE)
+        // 2.1.0 · Filas sin el tempo del final o del comienzo: se mezcla con lo que hay y se reanaliza para la proxima.
+        if (outBeat != null && outBeat.bpmSalida == null) maybeAnalyzeBeat(currentId, BeatAnalysisPriority.IMMEDIATE)
+        if (inBeat != null && inBeat.bpmEntrada == null && nextId != currentId) maybeAnalyzeBeat(nextId, BeatAnalysisPriority.IMMEDIATE)
         val partialDebug = AutomixDebugInfo(
             status = "",
             outBpm = outBeat?.bpm, outConfidence = outBeat?.confidence, outMixOutMs = outBeat?.mixOutPointMs,
@@ -4903,7 +4907,8 @@ class MusicService :
         // sin contentEnd es de una version anterior del analizador: se reanaliza una
         // vez y ya. Asi las canciones ya analizadas ganan el fin de contenido solas.
         val incompleta = existing != null && existing.bpm > 0f &&
-            (existing.mixOutPointMs == null || existing.contentEndMs == null || existing.contentStartMs == null)
+            (existing.mixOutPointMs == null || existing.contentEndMs == null || existing.contentStartMs == null ||
+                existing.bpmSalida == null)
         // 2.1.0 · Lo analizado antes del arreglo del dembow puede tener el tempo a 4/3: se reanaliza una vez.
         val vieja = existing != null && existing.analyzedAt < TEMPO_VIGENTE_DESDE
         if (existing != null && !incompleta && !vieja) return
@@ -4953,8 +4958,15 @@ class MusicService :
                 keyIsMinor = it.keyIsMinor,
                 contentEndMs = it.contentEndMs ?: -1L,
                 contentStartMs = it.contentStartMs ?: -1L,
+                bpmSalida = it.bpmSalida ?: -1f,
+                primerGolpeSalidaMs = it.primerGolpeSalidaMs,
+                bpmEntrada = it.bpmEntrada ?: -1f,
+                primerGolpeEntradaMs = it.primerGolpeEntradaMs,
             )
-        } ?: BeatInfoEntity(mediaId, 0f, 0L, 0f, mixInPointMs = -1L, mixOutPointMs = -1L, contentEndMs = -1L, contentStartMs = -1L)
+        } ?: BeatInfoEntity(
+            mediaId, 0f, 0L, 0f, mixInPointMs = -1L, mixOutPointMs = -1L, contentEndMs = -1L, contentStartMs = -1L,
+            bpmSalida = -1f, bpmEntrada = -1f,
+        )
         withContext(Dispatchers.IO) { database.upsert(entity) }
 
         // Fresh data may unlock a beat-aligned plan for the ongoing transition:
@@ -5035,6 +5047,20 @@ class MusicService :
      * 2.1.0 · A que velocidad arranca la entrante: estirada al tempo de la saliente si la pareja va al golpe y el estilo
      * las superpone. Sin cambiar el tono: lo hace Sonic, que ya viene en ExoPlayer.
      */
+    /**
+     * 2.1.0 · La rejilla con la que se mezcla: la del final para la que sale y la del comienzo para la que entra, si
+     * se pudieron medir. El resto del planificador no cambia: lee bpm y firstBeatOffsetMs como siempre.
+     */
+    private fun BeatInfoEntity.paraSalir(): BeatInfoEntity {
+        val b = bpmSalida?.takeIf { it > 0f } ?: return this
+        return copy(bpm = b, firstBeatOffsetMs = primerGolpeSalidaMs ?: firstBeatOffsetMs)
+    }
+
+    private fun BeatInfoEntity.paraEntrar(): BeatInfoEntity {
+        val b = bpmEntrada?.takeIf { it > 0f } ?: return this
+        return copy(bpm = b, firstBeatOffsetMs = primerGolpeEntradaMs ?: firstBeatOffsetMs)
+    }
+
     /** 2.1.0 · Null si el analisis es de antes del arreglo del dembow (su tempo puede estar a 4/3). */
     private fun BeatInfoEntity.vigente(): BeatInfoEntity? = takeIf { it.analyzedAt >= TEMPO_VIGENTE_DESDE }
 

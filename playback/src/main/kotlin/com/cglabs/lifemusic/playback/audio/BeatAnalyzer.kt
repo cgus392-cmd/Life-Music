@@ -40,7 +40,33 @@ object BeatAnalyzer {
         val contentEndMs: Long? = null,
         /** Primer instante audible. Null si no se pudo medir la cabeza. */
         val contentStartMs: Long? = null,
+        /**
+         * 2.1.0 · Tempo y rejilla del FINAL de la cancion (donde sale en una mezcla) y de su COMIENZO (donde entra).
+         * Muchas canciones cambian de ritmo: «No Me Quiero Casar» da 79 BPM en la mitad y 99,4 en el outro, que es
+         * donde se mezcla. -1 = se miro y no hubo pulso fiable; null = no se pudo mirar.
+         */
+        val bpmSalida: Float? = null,
+        val primerGolpeSalidaMs: Long? = null,
+        val bpmEntrada: Float? = null,
+        val primerGolpeEntradaMs: Long? = null,
     )
+
+    /** Tempo y fase de un tramo de PCM que empieza en [inicioMs] de la cancion. */
+    private fun rejillaDeTramo(samples: FloatArray, sampleRate: Int, inicioMs: Long): Pair<Float, Long>? {
+        if (samples.size < sampleRate * 8) return null
+        val flux = spectralFlux(samples)
+        val frameRate = sampleRate.toFloat() / HOP_SIZE
+        val (periodo, confianza) = estimateTempoPeriod(flux, frameRate) ?: return null
+        if (confianza < 0.3f) return null
+        val fase = estimateBeatPhase(flux, periodo)
+        var periodoMs = periodo / frameRate * 1000f
+        var bpm = 60_000f / periodoMs
+        while (bpm < MIN_CANONICAL_BPM) { bpm *= 2f; periodoMs /= 2f }
+        while (bpm >= MAX_CANONICAL_BPM) { bpm /= 2f; periodoMs *= 2f }
+        val anclaMs = inicioMs + (fase / frameRate * 1000f).roundToLong()
+        val p = periodoMs.roundToLong().coerceAtLeast(1L)
+        return bpm to ((anclaMs % p + p) % p)
+    }
 
     private const val TAG = "BeatAnalyzer"
 
@@ -220,12 +246,16 @@ object BeatAnalyzer {
             // sustained-energy downbeat instead.
             var mixInPointMs: Long? = null
             var contentStartMs: Long? = null
+            var rejillaEntrada: Pair<Float, Long>? = null
+            var cabezaMirada = false
             if (durationUs > HEAD_WINDOW_US) {
                 extractor.seekTo(0, MediaExtractor.SEEK_TO_PREVIOUS_SYNC)
                 decodeMono(extractor, format, HEAD_WINDOW_US, shouldCancel)?.let { head ->
                     val env = energyEnvelope(head.samples, head.sampleRate)
                     mixInPointMs = detectMixIn(env, firstBeatOffsetMs, periodMs)
                     contentStartMs = detectContentStart(env, bodyRef)
+                    rejillaEntrada = rejillaDeTramo(head.samples, head.sampleRate, 0L)
+                    cabezaMirada = true
                 }
             }
 
@@ -233,6 +263,8 @@ object BeatAnalyzer {
             // transition can begin there instead of a fixed distance from the end.
             var mixOutPointMs: Long? = null
             var contentEndMs: Long? = null
+            var rejillaSalida: Pair<Float, Long>? = null
+            var colaMirada = false
             val durationMs = durationUs / 1000
             if (durationUs > TAIL_WINDOW_US) {
                 val tailStartUs = durationUs - TAIL_WINDOW_US
@@ -242,10 +274,23 @@ object BeatAnalyzer {
                     val env = energyEnvelope(tail.samples, tail.sampleRate)
                     contentEndMs = detectContentEnd(env, tailActualStartMs, durationMs, bodyRef)
                     mixOutPointMs = detectMixOut(env, tailActualStartMs, durationMs, bodyRef)
+                    // El tempo de la salida, con los ultimos 40 s: ahi ocurre la mezcla.
+                    val desde = (tail.samples.size - tail.sampleRate * 40).coerceAtLeast(0)
+                    rejillaSalida = rejillaDeTramo(
+                        tail.samples.copyOfRange(desde, tail.samples.size), tail.sampleRate,
+                        tailActualStartMs + desde * 1000L / tail.sampleRate,
+                    )
+                    colaMirada = true
                 }
             }
 
-            return Result(bpm, firstBeatOffsetMs, confidence, mixInPointMs, mixOutPointMs, key?.first, key?.second, contentEndMs, contentStartMs)
+            return Result(
+                bpm, firstBeatOffsetMs, confidence, mixInPointMs, mixOutPointMs, key?.first, key?.second, contentEndMs, contentStartMs,
+                bpmSalida = rejillaSalida?.first ?: if (colaMirada) -1f else null,
+                primerGolpeSalidaMs = rejillaSalida?.second,
+                bpmEntrada = rejillaEntrada?.first ?: if (cabezaMirada) -1f else null,
+                primerGolpeEntradaMs = rejillaEntrada?.second,
+            )
         } catch (e: Exception) {
             Timber.tag(TAG).w(e, "Beat analysis failed")
             return null
@@ -642,7 +687,7 @@ object BeatAnalyzer {
     }
 
     /** In-place iterative radix-2 FFT. Arrays must be a power-of-two length. */
-    private fun fft(re: FloatArray, im: FloatArray) {
+    internal fun fft(re: FloatArray, im: FloatArray) {
         val n = re.size
         var j = 0
         for (i in 1 until n) {
