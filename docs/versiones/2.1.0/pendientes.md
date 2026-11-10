@@ -14,6 +14,18 @@ ideas nuevas van directo al banco (sección 4), sin interrumpir lo que está en 
 | 5 | Letra en vertical para estados | Hecha. Falta compartir una de prueba. |
 | 6 | Fallos vistos hoy | a) Los botones del encabezado de las listas no caben («Reprod / ucir», «Aleat…», «Mezc…»). b) La pantalla «Analizando» muestra el tempo de la mitad, no el de la mezcla. c) El análisis de una canción que no está en caché se corta a los 45 s y se queda el dato viejo. |
 
+## 1b. En lo que se trabaja ahora (orden de CG, 09-11 noche)
+
+Las pruebas quedan para después. CG: «lo que estamos haciendo ahora es el Automix v2».
+
+| Bloque | Qué | Estado |
+|---|---|---|
+| A · El mapa de la canción | Escucha la canción entera: energía, batería, graves y medios por compás, secciones y **puntos de mezcla** con su motivo | Motor hecho, con pruebas (`MapaDeCancion.kt`). Falta conectarlo al teléfono (construirlo con el audio en caché o mientras suena) y afinar la batería con canciones limpias: en el audio de TikTok la confunden las consonantes de la voz. |
+| B · La mesa del Mixed Editor | Lámina 2 aprobada: dos ondas sobre los compases, **puntos sugeridos como los destacados de Instagram**, imán al compás, largo, estilo, «Escuchar · 10 s», guardar por lista; más adelante cosas de estudio | Pendiente |
+| C · Automix por estructura y voces | Sale donde una se queda sin batería, entra donde la otra arranca, capas que no chocan: el mashup | Pendiente (usa A) |
+| D · Perfiles por género | Reconocer salsa, reguetón (huella del dembow), vallenato y balada, y reglas por pareja (salsa → vallenato, balada → reguetón…), aprendiendo de los metadatos (BPM y demás) | Pendiente |
+| Al final de todo | Voces de Nova y Wrapped | Lo último, según CG |
+
 ## 2. Para cerrar la 2.1.0
 
 1. Gama baja en el A04s: el tocadiscos quieto, que nada se trabe y el 17 % de contenido del Inicio que quedó pendiente.
