@@ -52,6 +52,18 @@ enum class EstiloTransicion {
      * sobre el que mezclar. Nunca lo elige el material; siempre el usuario.
      */
     CIERRE,
+
+    /**
+     * 2.1.0 · «Corte en el golpe»: sin fundido. En el golpe de frase la saliente se calla en unos milisegundos y la
+     * entrante entra entera desde su propio golpe. Lo elige el usuario.
+     */
+    CORTE,
+
+    /**
+     * 2.1.0 · «Eco»: la saliente suena un golpe mas mientras la entrante sube, y en el siguiente golpe se corta y se
+     * queda solo su eco (tres cuartos de golpe, cada vez mas oscuro) apagandose debajo de la nueva. Lo elige el usuario.
+     */
+    ECO,
 }
 
 /** Los cuatro cortes que el bucle del fundido reapunta en cada paso. */
@@ -80,7 +92,62 @@ object ConduccionAutomix {
         EstiloTransicion.FILTRO -> barridoDeFiltro(progreso)
         EstiloTransicion.BLEND -> cambioDeGraves(progreso)
         EstiloTransicion.CIERRE -> cierre(progreso)
+        // El corte y el eco no filtran: el corte es de volumen y el eco lo hace el procesador.
+        EstiloTransicion.CORTE, EstiloTransicion.ECO -> CortesDeFiltro.ABIERTOS
     }
+
+    // ---- 2.1.0 · Tempo: la rampa del Mixed Editor -------------------------------------------------------------
+
+    /**
+     * Cuanto de la rampa de tempo va hecho en [progreso] del fundido (0..1). La entrante arranca estirada al tempo de la
+     * saliente y las dos bajan (o suben) juntas hasta el tempo de la entrante, como el AutoMix de Apple: empieza en
+     * [RAMPA_DESDE] y termina en [RAMPA_HASTA], antes de que la saliente se apague, asi la entrante queda a su
+     * velocidad de siempre y al terminar no hay salto. Curva suave: nunca cambia de golpe.
+     */
+    fun rampaDeTempo(progreso: Float): Float {
+        val p = ((progreso - RAMPA_DESDE) / (RAMPA_HASTA - RAMPA_DESDE)).coerceIn(0f, 1f)
+        return p * p * p * (p * (6f * p - 15f) + 10f)
+    }
+
+    /** La rampa empieza pasado el primer decimo, cuando la entrante ya se oye. */
+    const val RAMPA_DESDE = 0.1f
+
+    /** Y termina al 60 %, cuando la saliente casi se ha ido. */
+    const val RAMPA_HASTA = 0.6f
+
+    /**
+     * Correccion de fase: cuanto acelerar (positivo) o frenar la entrante para recuperar [desfaseGolpes] (positivo: la
+     * saliente va por delante). Proporcional y con tope: un DJ empuja el plato, no lo arrastra.
+     */
+    fun correccionDeFase(desfaseGolpes: Float): Float =
+        (desfaseGolpes * CORRECCION_GANANCIA).coerceIn(-CORRECCION_TOPE, CORRECCION_TOPE)
+
+    const val CORRECCION_GANANCIA = 0.25f
+    const val CORRECCION_TOPE = 0.012f
+
+    // ---- 2.1.0 · Corte en el golpe ----------------------------------------------------------------------------
+
+    /** Fraccion del corte en que el cambio ya esta hecho: unos 40 ms de un corte de 260. */
+    const val CORTE_HECHO_EN = 0.15f
+
+    fun corteSaliente(progreso: Float): Float = 1f - suavizado(progreso / CORTE_HECHO_EN)
+    fun corteEntrante(progreso: Float): Float = suavizado(progreso / CORTE_HECHO_EN)
+
+    private fun suavizado(x: Float): Float {
+        val p = x.coerceIn(0f, 1f)
+        return p * p * (3f - 2f * p)
+    }
+
+    // ---- 2.1.0 · Eco ------------------------------------------------------------------------------------------
+
+    /** Retardo del eco en golpes: tres cuartos, el «corchea con puntillo» de los DJ. */
+    const val ECO_RETARDO_GOLPES = 0.75f
+
+    /** Cuanto vuelve de cada repeticion. 0,55: en cuatro golpes el eco ya bajo unos 30 dB. */
+    const val ECO_REALIMENTACION = 0.55f
+
+    /** Cuanto se oyen las repeticiones respecto a la pista. */
+    const val ECO_MOJADO = 0.8f
 
     /**
      * El cierre: mismo barrido que [barridoDeFiltro] pero sin suelo que lo pare

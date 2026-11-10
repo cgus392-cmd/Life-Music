@@ -215,8 +215,22 @@ val AutomixModoKey = stringPreferencesKey("automixModo")
  * es el unico sin superposicion: la saliente se cierra con el filtro y la
  * siguiente arranca entera desde su principio.
  */
-enum class AutomixEstilo { AUTOMATICO, BLEND, FILTRO, PLANO, CIERRE }
+enum class AutomixEstilo {
+    AUTOMATICO, BLEND, FILTRO, PLANO, CIERRE,
+
+    /** 2.1.0 · Mixed Editor «Corte en el golpe»: la saliente se va de tajo en el golpe y la nueva entra entera. */
+    CORTE,
+
+    /** 2.1.0 · Mixed Editor «Eco»: la saliente se corta en el golpe y se aleja en eco mientras entra la nueva. */
+    ECO,
+}
 val AutomixEstiloKey = stringPreferencesKey("automixEstilo")
+
+/**
+ * 2.1.0 · Mixed Editor: cuanto dura la transicion, en compases (4, 8 o 16). 0 = automatico: 16 golpes, como antes.
+ * No aplica a «Corte en el golpe» ni a «Eco», que tienen su propio largo.
+ */
+val MixedLargoKey = intPreferencesKey("mixedLargoCompases")
 
 /**
  * En un cierre, fraccion del cierre (0..1) a partir de la cual la siguiente

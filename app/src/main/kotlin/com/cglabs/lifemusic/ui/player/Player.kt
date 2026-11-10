@@ -817,22 +817,13 @@ fun BottomSheetPlayer(
         mutableFloatStateOf(30f)
     }
     if (mostrarModoMezcla) {
-        androidx.compose.material3.AlertDialog(
-            onDismissRequest = { mostrarModoMezcla = false },
-            icon = { Icon(painterResource(R.drawable.mezclar), contentDescription = null) },
-            title = { Text(stringResource(R.string.mixed_modo_titulo)) },
-            text = { Text(stringResource(R.string.mixed_modo_desc)) },
-            confirmButton = {
-                androidx.compose.material3.TextButton(onClick = {
-                    playerConnection.service.dejarDeMezclar()
-                    mostrarModoMezcla = false
-                }) { Text(stringResource(R.string.mixed_dejar)) }
+        // 2.1.0 · Mixed Editor, tanda 5: estilo y largo de la transicion.
+        com.cglabs.lifemusic.ui.screens.mixed.HojaDeMezcla(
+            onDejarDeMezclar = {
+                playerConnection.service.dejarDeMezclar()
+                mostrarModoMezcla = false
             },
-            dismissButton = {
-                androidx.compose.material3.TextButton(onClick = { mostrarModoMezcla = false }) {
-                    Text(stringResource(R.string.mixed_seguir))
-                }
-            },
+            onCerrar = { mostrarModoMezcla = false },
         )
     }
 
@@ -3009,6 +3000,27 @@ fun BottomSheetPlayer(
                 }
             }
         }
+
+        // 2.1.0 · Mixed Editor: el aviso de arriba mientras se acerca y dura la transicion.
+        val avisoVisible = mezclando && tocadiscos?.activo == true
+        val estiloPlaneado = com.cglabs.lifemusic.ui.screens.mixed.nombreDeEstiloPlaneado(automixDebug?.estilo)
+        val compasesPlaneados = automixDebug?.compases ?: 0
+        val textoDelAviso = remember(tocadiscos?.idA, estiloPlaneado, compasesPlaneados) {
+            when {
+                automixDebug?.estilo in listOf("corte", "eco", "cierre") || compasesPlaneados <= 0 ->
+                    context.getString(R.string.mixed_aviso, estiloPlaneado)
+                else -> context.getString(R.string.mixed_aviso_compases, estiloPlaneado, compasesPlaneados)
+            }
+        }
+        com.cglabs.lifemusic.ui.screens.mixed.AvisoDeMezcla(
+            visible = avisoVisible,
+            texto = textoDelAviso,
+            sobreOscuro = playerBackground != PlayerBackgroundStyle.DEFAULT,
+            modifier = Modifier
+                .align(Alignment.TopCenter)
+                .statusBarsPadding()
+                .padding(top = 6.dp),
+        )
 
         // 2.1.0 · Apple Music con tocadiscos: la fila de abajo se va mientras el reproductor esta recogido.
         val filaEscondida by remember(tocadiscosApple, tocadiscos) {

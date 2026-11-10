@@ -1889,4 +1889,23 @@
     <string name="mixed_dejar">Stop mixing</string>
     <string name="mixed_seguir">Keep mixing</string>
     <string name="mixed_activado">Mix mode on: your songs will play mixed</string>
+    <string name="mixed_titulo">Mixed Editor</string>
+    <string name="mixed_estilo">Transition style</string>
+    <string name="mixed_largo">Length</string>
+    <string name="mixed_largo_desc">In bars. Long mixes sound best when both songs have a similar tempo and key.</string>
+    <string name="mixed_largo_no_aplica">Cut and echo have their own length.</string>
+    <string name="mixed_listo">Done</string>
+    <string name="mixed_estilo_auto">Auto</string>
+    <string name="mixed_estilo_auto_desc">The pair decides: an on-beat fade when the tempos are close, a rise when they are far apart.</string>
+    <string name="mixed_estilo_fundido">Fade</string>
+    <string name="mixed_estilo_fundido_desc">Both play together on the same beat, tempo matched, and the bass changes hands once.</string>
+    <string name="mixed_estilo_subida">Rise</string>
+    <string name="mixed_estilo_subida_desc">The outgoing song closes through a filter while the new one opens, with a riser building until it lands.</string>
+    <string name="mixed_estilo_corte">Cut on the beat</string>
+    <string name="mixed_estilo_corte_desc">No fade: on the phrase beat one leaves and the other comes in, whole.</string>
+    <string name="mixed_estilo_eco">Echo</string>
+    <string name="mixed_estilo_eco_desc">The outgoing song is cut on the beat and fades away in echo while the new one comes in.</string>
+    <string name="mixed_estilo_cierre">Close</string>
+    <string name="mixed_aviso">Mixed Editor · %1$s</string>
+    <string name="mixed_aviso_compases">Mixed Editor · %1$s, %2$d bars</string>
 </resources>

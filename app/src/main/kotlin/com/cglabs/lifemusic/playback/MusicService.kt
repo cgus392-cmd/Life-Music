@@ -89,6 +89,8 @@ import com.cglabs.lifemusic.constants.AutomixEstilo
 import com.cglabs.lifemusic.constants.AutomixEstiloKey
 import com.cglabs.lifemusic.constants.AutomixModo
 import com.cglabs.lifemusic.constants.AutomixModoKey
+import com.cglabs.lifemusic.playback.audio.Riser
+import com.cglabs.lifemusic.constants.MixedLargoKey
 import com.cglabs.lifemusic.constants.CrossfadeDurationKey
 import com.cglabs.lifemusic.constants.CrossfadeEnabledKey
 import com.cglabs.lifemusic.constants.CrossfadeGaplessKey
@@ -238,6 +240,7 @@ import java.io.ObjectInputStream
 import java.io.ObjectOutputStream
 import java.time.LocalDateTime
 import javax.inject.Inject
+import kotlin.math.roundToInt
 import kotlin.coroutines.coroutineContext
 import kotlin.time.Duration.Companion.seconds
 
@@ -347,6 +350,13 @@ class MusicService :
         val nivel: NivelTransicion = NivelTransicion.AL_BEAT,
         /** Como se ejecuta: lo elige el material, no el usuario. */
         val estilo: EstiloTransicion = EstiloTransicion.BLEND,
+        /** 2.1.0 · Tempo y rejilla de las dos, para la rampa y para mantener la fase durante la mezcla. */
+        val outBpm: Float = 0f,
+        val inBpm: Float = 0f,
+        val outFirstBeatMs: Long = 0L,
+        val inFirstBeatMs: Long = 0L,
+        /** Cuantos compases dura, para el aviso del reproductor. */
+        val compases: Int = 0,
     )
 
     private data class AutomixPlanResult(
@@ -367,6 +377,8 @@ class MusicService :
         val incomingStartMs: Long? = null,
         val tempoRatio: Float? = null,
         val estilo: String? = null,
+        /** 2.1.0 · Compases de la transicion planeada, para el aviso «Mixed Editor · Subida de 8 compases». */
+        val compases: Int? = null,
     )
 
     val automixDebugInfo = MutableStateFlow<AutomixDebugInfo?>(null)
@@ -4571,11 +4583,17 @@ class MusicService :
         // DJ blend: 16 beats of the outgoing track (4 bars), 6-16s bounds. Un cierre
         // es otra cosa: nadie suena debajo, asi que 16 beats de graves apagandose
         // se hacen eternos. 8 beats, 3-6 s: lo que tarda un DJ en cerrar un filtro.
-        val overlapMs = if (estiloPedido == AutomixEstilo.CIERRE) {
-            (8 * periodMs).toLong().coerceIn(3_000L, 6_000L)
-        } else {
-            (16 * periodMs).toLong().coerceIn(6_000L, 16_000L)
+        // 2.1.0 · Mixed Editor: el corte dura lo que un parpadeo, el eco seis golpes (el ultimo de la saliente y la cola),
+        // y los que se superponen, los compases que eligio el usuario (4, 8 o 16) o los 16 golpes de siempre.
+        val largoPedido = dataStore.get(MixedLargoKey) ?: 0
+        val overlapMs = when {
+            estiloPedido == AutomixEstilo.CIERRE -> (8 * periodMs).toLong().coerceIn(3_000L, 6_000L)
+            estiloPedido == AutomixEstilo.CORTE -> CORTE_MS
+            estiloPedido == AutomixEstilo.ECO -> (6 * periodMs).toLong().coerceIn(2_500L, 7_000L)
+            largoPedido in listOf(4, 8, 16) -> (largoPedido * 4 * periodMs).toLong().coerceIn(3_000L, 48_000L)
+            else -> (16 * periodMs).toLong().coerceIn(6_000L, 16_000L)
         }
+        val minimoMs = if (estiloPedido == AutomixEstilo.CORTE) CORTE_MS else 3_000L
 
         // Dynamic mix-out: start the transition where the song's body ends (outro begins)
         // rather than a fixed distance from the end. Sentinel <= 0 means "no outro found".
@@ -4613,7 +4631,7 @@ class MusicService :
         // left; only fall back if that leaves too little room to blend at all.
         val roomMs = trackDuration - 500 - triggerTime
         val effectiveOverlapMs = overlapMs.coerceAtMost(roomMs)
-        if (effectiveOverlapMs < 3000L || triggerTime >= trackDuration - 3000) {
+        if (effectiveOverlapMs < minimoMs || triggerTime >= trackDuration - minimoMs) {
             Timber.tag(TAG).d("Automix fallback: trigger %d out of range (pos=%d dur=%d overlap=%d)", triggerTime, player.currentPosition, trackDuration, overlapMs)
             automixDebugInfo.value = partialDebug.copy(status = "fallback: trigger out of range")
             return AutomixPlanResult(plan = null, pairAnalyzed = true)
@@ -4651,6 +4669,12 @@ class MusicService :
             AutomixEstilo.FILTRO -> EstiloTransicion.FILTRO
             AutomixEstilo.PLANO -> EstiloTransicion.PLANO
             AutomixEstilo.CIERRE -> EstiloTransicion.CIERRE
+            AutomixEstilo.CORTE -> EstiloTransicion.CORTE
+            AutomixEstilo.ECO -> EstiloTransicion.ECO
+        }
+        // Solo se estira lo que suena encima: en un corte, un eco o un cierre la entrante entra sola, a su tempo.
+        if (estilo == EstiloTransicion.CORTE || estilo == EstiloTransicion.ECO || estilo == EstiloTransicion.CIERRE) {
+            tempoRatio = 1f
         }
 
         // Harmonic correction: compare keys via their relative-major pitch class (a minor
@@ -4712,6 +4736,11 @@ class MusicService :
             overlapMs = effectiveOverlapMs,
             nivel = nivel,
             estilo = estilo,
+            outBpm = outBeat.bpm,
+            inBpm = inBeat?.bpm ?: 0f,
+            outFirstBeatMs = outBeat.firstBeatOffsetMs,
+            inFirstBeatMs = inBeat?.firstBeatOffsetMs ?: 0L,
+            compases = (effectiveOverlapMs / (4 * periodMs)).roundToInt(),
         )
         Timber.tag(TAG).d(
             "Automix plan: trigger=%dms incomingStart=%dms tempoRatio=%.3f pitchRatio=%.3f overlap=%dms",
@@ -4720,6 +4749,7 @@ class MusicService :
         automixDebugInfo.value = partialDebug.copy(
             status = "plan ready: ${nivel.name.lowercase()} / ${estilo.name.lowercase()} / ${modo.name.lowercase()}",
             estilo = estilo.name.lowercase(),
+            compases = plan.compases,
             triggerTimeMs = plan.triggerTimeMs,
             incomingStartMs = plan.incomingStartMs,
             tempoRatio = plan.tempoRatio,
@@ -4989,7 +5019,7 @@ class MusicService :
         secPlayer.seekTo(targetIndex, plan?.incomingStartMs ?: 0)
         if (plan != null) {
             val base = try { player.playbackParameters } catch (e: Exception) { PlaybackParameters.DEFAULT }
-            if (base != PlaybackParameters.DEFAULT) secPlayer.playbackParameters = base
+            secPlayer.playbackParameters = PlaybackParameters(base.speed * velocidadDeEntrada(plan), base.pitch)
         }
         secPlayer.volume = 0f
         secPlayer.repeatMode = savedRepeatMode
@@ -4997,6 +5027,20 @@ class MusicService :
         secPlayer.prepare() // playWhenReady left false: buffers ahead without playing.
 
         prebuffered = PrebufferedTransition(secPlayer, plan, targetMediaId)
+    }
+
+    /**
+     * 2.1.0 · A que velocidad arranca la entrante: estirada al tempo de la saliente si la pareja va al golpe y el estilo
+     * las superpone. Sin cambiar el tono: lo hace Sonic, que ya viene en ExoPlayer.
+     */
+    private fun velocidadDeEntrada(plan: AutomixPlan?): Float {
+        if (plan == null || plan.nivel != NivelTransicion.AL_BEAT) return 1f
+        return plan.tempoRatio.takeIf { it in 0.92f..1.08f } ?: 1f
+    }
+
+    /** 2.1.0 · Mixed Editor: el usuario cambio el estilo o el largo; la proxima transicion se vuelve a planear. */
+    fun replanificarMezcla() {
+        if (!isCrossfading.value) scheduleCrossfade()
     }
 
     private fun startCrossfade(plan: AutomixPlan? = null) {
@@ -5040,7 +5084,7 @@ class MusicService :
             secPlayer.seekTo(targetIndex, plan?.incomingStartMs ?: 0)
             if (plan != null) {
                 val base = try { player.playbackParameters } catch (e: Exception) { PlaybackParameters.DEFAULT }
-                if (base != PlaybackParameters.DEFAULT) secPlayer.playbackParameters = base
+                secPlayer.playbackParameters = PlaybackParameters(base.speed * velocidadDeEntrada(plan), base.pitch)
             }
             secPlayer.volume = 0f
             secPlayer.repeatMode = savedRepeatMode
@@ -5314,15 +5358,107 @@ class MusicService :
                 return kotlin.math.cos(t * (Math.PI / 2.0).toFloat())
             }
 
+            // 2.1.0 · Tempo: la entrante arranco estirada al tempo de la saliente; en la rampa las dos van juntas al
+            // tempo de la entrante (velSaliente * bpmSaliente = velEntrante * bpmEntrante siempre) y la fase se corrige
+            // con toques minimos de velocidad. Asi se oia el AutoMix de Apple con Bad Bunny y Tego (09-11).
+            val baseVel = try { fadingPlayer?.playbackParameters?.speed ?: 1f } catch (e: Exception) { 1f }
+            val basePitch = try { fadingPlayer?.playbackParameters?.pitch ?: 1f } catch (e: Exception) { 1f }
+            val razon = if (relevo) 1f else velocidadDeEntrada(djPlan)
+            val alGolpe = !relevo && djPlan != null && djPlan.nivel == NivelTransicion.AL_BEAT &&
+                djPlan.inBpm > 0f && (estilo == EstiloTransicion.BLEND || estilo == EstiloTransicion.FILTRO || estilo == EstiloTransicion.PLANO)
+            val golpeEntranteMs = djPlan?.let { p -> if (p.inBpm > 0f) 60_000f / p.inBpm else 60_000f / p.outBpm.coerceAtLeast(1f) } ?: 500f
+            var correccion = 0f
+            var ultimaVelA = -1f
+            var ultimaVelB = -1f
+            var peorDesfaseMs = 0f
+            var ultimoRegistro = 0L
+            // Eco: la saliente suena un golpe mas y luego queda solo su eco.
+            val corteEco = if (estilo == EstiloTransicion.ECO) (golpeEntranteMs / duration).coerceIn(0.05f, 0.5f) else 0f
+            var ecoCortado = false
+            if (estilo == EstiloTransicion.ECO) {
+                filtroSaliente?.setEco(
+                    retardoMs = golpeEntranteMs * ConduccionAutomix.ECO_RETARDO_GOLPES,
+                    realimentacion = ConduccionAutomix.ECO_REALIMENTACION,
+                    envio = 1f, seco = 1f, mojado = ConduccionAutomix.ECO_MOJADO,
+                )
+            }
+            // Subida: el riser termina justo cuando la entrante ya esta entera (al 60 % del fundido).
+            val riser = if (estilo == EstiloTransicion.FILTRO && !relevo) {
+                val largo = minOf((8 * golpeEntranteMs).toLong(), (duration * 0.55f).toLong()).coerceAtLeast(1_500L)
+                runCatching { Riser(largo, 0.32f * startVolume) }.getOrNull()?.let { it to (0.6f - largo.toFloat() / duration).coerceAtLeast(0f) }
+            } else {
+                null
+            }
+            var riserSonando = false
+            if (!relevo) {
+                android.util.Log.i(
+                    "LifeMusicMezcla",
+                    "empieza ${estilo.name.lowercase()} ${djPlan?.compases ?: 0} compases, $duration ms, " +
+                        "saliente ${djPlan?.outBpm} BPM, entrante ${djPlan?.inBpm} BPM, estirar x$razon, al golpe=$alGolpe",
+                )
+            }
+
             try {
                 for (i in 0..steps) {
                     if (!isActive) break
 
+                    if (!player.isPlaying && riserSonando) riser?.first?.pausar()
                     while (!player.isPlaying && isActive) {
                         delay(100)
                     }
+                    if (riserSonando) riser?.first?.sonar()
 
                     val progress = i / steps.toFloat()
+
+                    // Tempo y fase, cada ~180 ms.
+                    if (razon != 1f || alGolpe) {
+                        val ahora = android.os.SystemClock.elapsedRealtime()
+                        if (i == 0 || ahora - ultimoRegistro >= 180L || i == steps) {
+                            val rampa = ConduccionAutomix.rampaDeTempo(progress)
+                            val velB = razon + (1f - razon) * rampa
+                            val velA = velB / razon
+                            var desfaseMs = 0f
+                            if (alGolpe && djPlan != null && i > 0) {
+                                val periodoA = 60_000.0 / djPlan.outBpm
+                                // La rejilla de la entrante se lee con el tempo normalizado (por si se detecto al doble o la mitad).
+                                val periodoB = 60_000.0 / (djPlan.outBpm / djPlan.tempoRatio.coerceAtLeast(0.1f))
+                                val fA = ((fadingPlayer?.currentPosition ?: 0L) - djPlan.outFirstBeatMs) / periodoA
+                                val fB = (player.currentPosition - djPlan.inFirstBeatMs) / periodoB
+                                var d = ((fA - kotlin.math.floor(fA)) - (fB - kotlin.math.floor(fB))).toFloat()
+                                if (d > 0.5f) d -= 1f
+                                if (d < -0.5f) d += 1f
+                                desfaseMs = d * golpeEntranteMs
+                                if (progress < 0.85f) correccion = 0.5f * correccion + 0.5f * ConduccionAutomix.correccionDeFase(d)
+                                if (kotlin.math.abs(desfaseMs) > kotlin.math.abs(peorDesfaseMs) && progress in 0.1f..0.7f) peorDesfaseMs = desfaseMs
+                            }
+                            val vB = baseVel * velB * (1f + correccion)
+                            val vA = baseVel * velA
+                            try {
+                                if (kotlin.math.abs(vB - ultimaVelB) > 0.0015f) {
+                                    player.playbackParameters = PlaybackParameters(vB, basePitch)
+                                    ultimaVelB = vB
+                                }
+                                if (kotlin.math.abs(vA - ultimaVelA) > 0.0015f) {
+                                    fadingPlayer?.playbackParameters = PlaybackParameters(vA, basePitch)
+                                    ultimaVelA = vA
+                                }
+                            } catch (e: Exception) { }
+                            if (ahora - ultimoRegistro >= 1_000L || i == 0) {
+                                android.util.Log.i(
+                                    "LifeMusicMezcla",
+                                    "p=${"%.2f".format(progress)} velSale=${"%.3f".format(vA)} velEntra=${"%.3f".format(vB)} " +
+                                        "desfase=${desfaseMs.roundToInt()} ms correccion=${"%.1f".format(correccion * 100)}%",
+                                )
+                            }
+                            ultimoRegistro = ahora
+                        }
+                    }
+
+                    // Subida: el riser.
+                    if (riser != null && !riserSonando && progress >= riser.second) {
+                        riser.first.sonar()
+                        riserSonando = true
+                    }
                     // Fade-out then fade-in with a gentle dip: the outgoing track drops away
                     // over the first ~60% of the blend, the incoming rises over the last ~60%,
                     // so they overlap only through the middle where both sit well below full.
@@ -5330,8 +5466,28 @@ class MusicService :
                     // Both curves are cosine/sine eased, so the ramp stays click-free.
                     // En un relevo las ganancias ya estan donde deben: saliente muda,
                     // entrante entera. No se tocan.
-                    val fadeOut = if (relevo) 0f else equalPowerOut(0f, 0.6f, progress)
-                    val fadeIn = if (relevo) 1f else equalPowerIn(0.4f, 1f, progress)
+                    val fadeOut = when {
+                        relevo -> 0f
+                        estilo == EstiloTransicion.CORTE -> ConduccionAutomix.corteSaliente(progress)
+                        // En el eco la saliente no se baja de volumen: el procesador apaga la pista y deja el eco.
+                        estilo == EstiloTransicion.ECO -> 1f
+                        else -> equalPowerOut(0f, 0.6f, progress)
+                    }
+                    val fadeIn = when {
+                        relevo -> 1f
+                        estilo == EstiloTransicion.CORTE -> ConduccionAutomix.corteEntrante(progress)
+                        estilo == EstiloTransicion.ECO -> equalPowerIn(0f, corteEco, progress)
+                        else -> equalPowerIn(0.4f, 1f, progress)
+                    }
+                    if (estilo == EstiloTransicion.ECO && !ecoCortado && progress >= corteEco) {
+                        // El golpe: la pista se calla y deja de alimentar el eco; las repeticiones siguen solas.
+                        filtroSaliente?.setEco(
+                            retardoMs = golpeEntranteMs * ConduccionAutomix.ECO_RETARDO_GOLPES,
+                            realimentacion = ConduccionAutomix.ECO_REALIMENTACION,
+                            envio = 0f, seco = 0f, mojado = ConduccionAutomix.ECO_MOJADO,
+                        )
+                        ecoCortado = true
+                    }
 
                     try {
                         player.volume = startVolume * fadeIn
@@ -5355,6 +5511,15 @@ class MusicService :
                 } catch (e: Exception) {
                     Timber.tag(TAG).d(e, "Crossfade volume reset skipped, player likely released")
                 }
+                // 2.1.0 · La entrante queda a su velocidad de siempre (la del usuario), sin el estiramiento ni la correccion.
+                if (razon != 1f || alGolpe) {
+                    try { player.playbackParameters = PlaybackParameters(baseVel, basePitch) } catch (e: Exception) { }
+                    if (!relevo) {
+                        android.util.Log.i("LifeMusicMezcla", "termina: peor desfase ${peorDesfaseMs.roundToInt()} ms")
+                    }
+                }
+                riser?.first?.soltar()
+                filtroSaliente?.apagarEco()
                 filtroSaliente?.open()
                 filtroEntrante?.open()
                 automixEstilo.value = null
@@ -5417,6 +5582,9 @@ class MusicService :
         const val MAX_TRANSICIONES = 50
         /** How far ahead of the crossfade trigger to start buffering the incoming track. */
         const val PREBUFFER_LEAD_MS = 3000L
+
+        /** 2.1.0 · «Corte en el golpe»: lo que dura el cambio, unos milisegundos para que no truene. */
+        const val CORTE_MS = 260L
         /** Gracia del relevo tras un cierre antes de soltar la saliente, ya muda. */
         const val RELEVO_MS = 250L
         const val PERSISTENT_PLAYER_STATE_FILE = "persistent_player_state.data"

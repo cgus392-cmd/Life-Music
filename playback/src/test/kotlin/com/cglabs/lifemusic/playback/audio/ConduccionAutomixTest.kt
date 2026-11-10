@@ -120,4 +120,35 @@ class ConduccionAutomixTest {
         assertEquals(ConduccionAutomix.BLEND_SALIDA_PASO_BAJO_HZ.toFloat(), fin.salienteLowPassHz, 1f)
         assertTrue("nunca baja al suelo del barrido", fin.salienteLowPassHz > ConduccionAutomix.SUELO_FILTRO_HZ * 3)
     }
+
+    @Test
+    fun la_rampa_de_tempo_empieza_quieta_y_termina_entera_antes_del_final() {
+        assertEquals(0f, ConduccionAutomix.rampaDeTempo(0f), 0f)
+        assertEquals(0f, ConduccionAutomix.rampaDeTempo(ConduccionAutomix.RAMPA_DESDE), 1e-6f)
+        assertEquals(1f, ConduccionAutomix.rampaDeTempo(ConduccionAutomix.RAMPA_HASTA), 1e-6f)
+        assertEquals(1f, ConduccionAutomix.rampaDeTempo(1f), 0f)
+        var antes = 0f
+        for (k in 0..100) {
+            val v = ConduccionAutomix.rampaDeTempo(k / 100f)
+            assertTrue("la rampa nunca retrocede", v >= antes - 1e-6f)
+            antes = v
+        }
+    }
+
+    @Test
+    fun el_corte_es_complementario_y_rapido() {
+        assertEquals(1f, ConduccionAutomix.corteSaliente(0f), 0f)
+        assertEquals(0f, ConduccionAutomix.corteEntrante(0f), 0f)
+        assertEquals(0f, ConduccionAutomix.corteSaliente(ConduccionAutomix.CORTE_HECHO_EN), 1e-6f)
+        assertEquals(1f, ConduccionAutomix.corteEntrante(ConduccionAutomix.CORTE_HECHO_EN), 1e-6f)
+        assertEquals(1f, ConduccionAutomix.corteSaliente(0.07f) + ConduccionAutomix.corteEntrante(0.07f), 1e-6f)
+    }
+
+    @Test
+    fun la_correccion_de_fase_empuja_y_tiene_tope() {
+        assertTrue(ConduccionAutomix.correccionDeFase(0.02f) > 0f)
+        assertTrue(ConduccionAutomix.correccionDeFase(-0.02f) < 0f)
+        assertEquals(ConduccionAutomix.CORRECCION_TOPE, ConduccionAutomix.correccionDeFase(0.5f), 0f)
+        assertEquals(-ConduccionAutomix.CORRECCION_TOPE, ConduccionAutomix.correccionDeFase(-0.5f), 0f)
+    }
 }

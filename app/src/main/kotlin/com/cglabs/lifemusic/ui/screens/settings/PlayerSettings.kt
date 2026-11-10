@@ -423,6 +423,8 @@ highlightKey: String? = null, seccion: String? = null) {
                         AutomixEstilo.FILTRO -> R.string.automix_estilo_filtro_desc
                         AutomixEstilo.PLANO -> R.string.automix_estilo_plano_desc
                         AutomixEstilo.CIERRE -> R.string.automix_estilo_cierre_desc
+                        AutomixEstilo.CORTE -> R.string.mixed_estilo_corte_desc
+                        AutomixEstilo.ECO -> R.string.mixed_estilo_eco_desc
                     }
                 )
             }
@@ -1547,6 +1549,8 @@ private fun textoEstiloAutomix(estilo: AutomixEstilo) = when (estilo) {
     AutomixEstilo.FILTRO -> R.string.automix_estilo_filtro
     AutomixEstilo.PLANO -> R.string.automix_estilo_plano
     AutomixEstilo.CIERRE -> R.string.automix_estilo_cierre
+    AutomixEstilo.CORTE -> R.string.mixed_estilo_corte
+    AutomixEstilo.ECO -> R.string.mixed_estilo_eco
 }
 
 @Composable

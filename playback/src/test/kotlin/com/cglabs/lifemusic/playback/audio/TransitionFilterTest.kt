@@ -102,4 +102,52 @@ class TransitionFilterTest {
         assertTrue("50 Hz cae", nivelDb(f, 50.0) < -40.0)
         assertTrue("16 kHz cae", nivelDb(f, 16_000.0) < -40.0)
     }
+
+    /** RMS (en unidades de muestra) del canal izquierdo de un trozo de salida. */
+    private fun rms(salida: ByteBuffer): Double {
+        var suma = 0.0
+        var n = 0
+        while (salida.remaining() >= 4) {
+            val l = salida.short.toDouble(); salida.short
+            suma += l * l; n++
+        }
+        return if (n == 0) 0.0 else sqrt(suma / n)
+    }
+
+    private fun trozo(frames: Int, tono: Boolean, desde: Int): ByteBuffer {
+        val b = ByteBuffer.allocateDirect(frames * 4).order(ByteOrder.nativeOrder())
+        for (i in 0 until frames) {
+            val v = if (tono) (sin(2 * PI * 440.0 * (desde + i) / sampleRate) * 16_000).toInt().toShort() else 0
+            b.putShort(v); b.putShort(v)
+        }
+        b.flip()
+        return b
+    }
+
+    @Test
+    fun el_eco_deja_una_cola_que_se_apaga_y_al_apagarlo_vuelve_la_copia_exacta() {
+        val f = filtroConfigurado(TransitionFilterAudioProcessor.OPEN_HZ, TransitionFilterAudioProcessor.OFF_HZ)
+        f.setEco(retardoMs = 150f, realimentacion = 0.55f, envio = 1f, seco = 1f, mojado = 0.8f)
+        // Medio segundo de tono alimentando el eco.
+        var frame = 0
+        repeat(12) { f.queueInput(trozo(2_000, true, frame)); f.output; frame += 2_000 }
+        // El golpe: la pista se calla y deja de alimentar el eco. Entra silencio.
+        f.setEco(retardoMs = 150f, realimentacion = 0.55f, envio = 0f, seco = 0f, mojado = 0.8f)
+        val niveles = (0 until 10).map {
+            f.queueInput(trozo(4_800, false, 0))
+            rms(f.output.order(ByteOrder.nativeOrder()))
+        }
+        assertTrue("tras el corte tiene que quedar eco: ${niveles[0]}", niveles[0] > 1_000.0)
+        assertTrue("el eco se apaga: ${niveles.first()} -> ${niveles.last()}", niveles.last() < niveles.first() * 0.2)
+        // Apagado: aparcado otra vez, copia exacta.
+        f.apagarEco()
+        f.queueInput(trozo(512, false, 0)); f.output
+        val bytes = ByteArray(4096) { (it * 37 % 251 - 125).toByte() }
+        val entrada = ByteBuffer.allocateDirect(bytes.size).order(ByteOrder.nativeOrder()).put(bytes)
+        entrada.flip()
+        f.queueInput(entrada)
+        val salida = f.output
+        val out = ByteArray(salida.remaining()).also { salida.get(it) }
+        assertTrue("sin eco tiene que volver a ser una copia exacta", bytes.contentEquals(out))
+    }
 }

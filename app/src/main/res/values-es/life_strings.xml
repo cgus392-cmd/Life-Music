@@ -1512,4 +1512,23 @@
     <string name="repeat">Repetir</string>
     <string name="continue_playing">Sigue sonando</string>
     <string name="next_in_queue">Lo que viene</string>
+    <string name="mixed_titulo">Mixed Editor</string>
+    <string name="mixed_estilo">Estilo de transición</string>
+    <string name="mixed_largo">Largo</string>
+    <string name="mixed_largo_desc">En compases. Las mezclas largas suenan mejor cuando las dos canciones tienen tempo y tono parecidos.</string>
+    <string name="mixed_largo_no_aplica">El corte y el eco tienen su propio largo.</string>
+    <string name="mixed_listo">Listo</string>
+    <string name="mixed_estilo_auto">Auto</string>
+    <string name="mixed_estilo_auto_desc">Lo decide la pareja: fundido al golpe si los tempos se parecen, subida si están lejos.</string>
+    <string name="mixed_estilo_fundido">Fundido</string>
+    <string name="mixed_estilo_fundido_desc">Las dos suenan juntas al mismo golpe, con el tempo igualado, y los graves cambian de mano una vez.</string>
+    <string name="mixed_estilo_subida">Subida</string>
+    <string name="mixed_estilo_subida_desc">La que sale se cierra por un filtro mientras la nueva se abre, con un riser que sube hasta que entra.</string>
+    <string name="mixed_estilo_corte">Corte en el golpe</string>
+    <string name="mixed_estilo_corte_desc">Sin fundido: en el golpe de la frase se va una y entra la otra, entera.</string>
+    <string name="mixed_estilo_eco">Eco</string>
+    <string name="mixed_estilo_eco_desc">La que sale se corta en el golpe y se aleja en eco mientras entra la nueva.</string>
+    <string name="mixed_estilo_cierre">Cierre</string>
+    <string name="mixed_aviso">Mixed Editor · %1$s</string>
+    <string name="mixed_aviso_compases">Mixed Editor · %1$s de %2$d compases</string>
 </resources>

@@ -110,6 +110,43 @@ class TransitionFilterAudioProcessor : BaseAudioProcessor() {
     /** Aparca los dos filtros. Deslizado, no de golpe: ver la documentacion de la clase. */
     fun open() = setCutoffs(OPEN_HZ, OFF_HZ)
 
+    // ---- 2.1.0 · Eco del Mixed Editor ------------------------------------------------------------------------
+    // Una linea de retardo con realimentacion despues de los filtros. [ecoEnvio] es cuanto de la pista entra al eco,
+    // [ecoSeco] cuanto de la pista se oye y [ecoMojado] cuanto se oyen las repeticiones. Para «irse en eco»: envio y
+    // seco en 1 durante el ultimo golpe y luego los dos a 0; quedan las repeticiones apagandose solas. Los cambios de
+    // seco y envio se deslizan unos milisegundos para que no hagan clic.
+    @Volatile private var ecoActivo = false
+    @Volatile private var ecoRetardoMs = 0f
+    @Volatile private var ecoRealimentacion = 0f
+    @Volatile private var ecoEnvio = 0f
+    @Volatile private var ecoSeco = 1f
+    @Volatile private var ecoMojado = 0f
+    @Volatile private var ecoLimpiar = false
+    private var ecoBuffer = FloatArray(0)
+    private var ecoOscuro = FloatArray(0)
+    private var ecoEscritura = 0
+    private var ecoFrames = 0
+    private var secoActual = 1f
+    private var envioActual = 0f
+
+    fun setEco(retardoMs: Float, realimentacion: Float, envio: Float, seco: Float, mojado: Float) {
+        ecoRetardoMs = retardoMs
+        ecoRealimentacion = realimentacion.coerceIn(0f, 0.9f)
+        ecoEnvio = envio.coerceIn(0f, 1f)
+        ecoSeco = seco.coerceIn(0f, 1f)
+        ecoMojado = mojado.coerceIn(0f, 1f)
+        ecoActivo = true
+    }
+
+    /** Apaga el eco y deja la pista entera, sin restos de repeticiones. */
+    fun apagarEco() {
+        ecoActivo = false
+        ecoEnvio = 0f
+        ecoSeco = 1f
+        ecoMojado = 0f
+        ecoLimpiar = true
+    }
+
     /**
      * Solo PCM de 16 bits, como el resto de la cadena de Life Music. Si llega otro
      * formato responde [AudioProcessor.AudioFormat.NOT_SET] en vez de lanzar:
@@ -134,6 +171,8 @@ class TransitionFilterAudioProcessor : BaseAudioProcessor() {
     override fun onFlush() {
         lowState.fill(0f)
         highState.fill(0f)
+        ecoBuffer.fill(0f)
+        ecoOscuro.fill(0f)
         // De golpe, no deslizado: un flush es un seek o una fuente nueva, y no hay
         // senal continua con la que un deslizamiento pueda ser continuo.
         currentLowPassHz = targetLowPassHz
@@ -143,6 +182,12 @@ class TransitionFilterAudioProcessor : BaseAudioProcessor() {
     override fun onReset() {
         targetLowPassHz = OPEN_HZ
         targetHighPassHz = OFF_HZ
+        ecoActivo = false
+        ecoSeco = 1f
+        ecoEnvio = 0f
+        ecoMojado = 0f
+        ecoBuffer = FloatArray(0)
+        ecoOscuro = FloatArray(0)
         lowState = FloatArray(0)
         highState = FloatArray(0)
     }
@@ -161,7 +206,22 @@ class TransitionFilterAudioProcessor : BaseAudioProcessor() {
         // que acaba de terminar sigue deslizandose hacia abierto, y quitarle el
         // filtro de debajo en mitad del deslizamiento es el clic que este existe
         // para evitar.
-        val parked = targetLow >= OPEN_HZ && targetHigh <= OFF_HZ &&
+        if (ecoLimpiar) {
+            ecoLimpiar = false
+            ecoBuffer.fill(0f)
+            ecoOscuro.fill(0f)
+            secoActual = 1f
+            envioActual = 0f
+        }
+        val eco = ecoActivo && sampleRate > 0
+        if (eco && ecoBuffer.isEmpty()) {
+            // Dos segundos de linea por canal: sobra para tres cuartos de golpe a 60 BPM.
+            ecoFrames = sampleRate * 2
+            ecoBuffer = FloatArray(ecoFrames * channelCount)
+            ecoOscuro = FloatArray(channelCount)
+            ecoEscritura = 0
+        }
+        val parked = !eco && targetLow >= OPEN_HZ && targetHigh <= OFF_HZ &&
             currentLowPassHz >= OPEN_HZ - SETTLED_HZ && currentHighPassHz <= OFF_HZ + SETTLED_HZ
         if (parked) {
             outputBuffer.put(inputBuffer)
@@ -182,13 +242,30 @@ class TransitionFilterAudioProcessor : BaseAudioProcessor() {
             if (lowOn) updateLowCoefficients()
             if (highOn) updateHighCoefficients()
 
+            if (eco) {
+                secoActual += (ecoSeco - secoActual) * 0.25f
+                envioActual += (ecoEnvio - envioActual) * 0.25f
+            }
+            val retardo = if (eco) (ecoRetardoMs * sampleRate / 1000f).toInt().coerceIn(1, ecoFrames - 1) else 0
+            val realimentacion = ecoRealimentacion
+            val mojado = ecoMojado
             repeat(block) {
+                val lectura = if (eco) (ecoEscritura - retardo + ecoFrames) % ecoFrames else 0
                 for (channel in 0 until channelCount) {
                     var sample = inputBuffer.short.toFloat()
                     if (lowOn) sample = lowPass(channel, sample)
                     if (highOn) sample = highPass(channel, sample)
+                    if (eco) {
+                        val repeticion = ecoBuffer[lectura * channelCount + channel]
+                        // Paso bajo de un polo en la realimentacion: cada repeticion suena mas lejos.
+                        ecoOscuro[channel] += 0.35f * (repeticion - ecoOscuro[channel])
+                        ecoBuffer[ecoEscritura * channelCount + channel] =
+                            sample * envioActual + ecoOscuro[channel] * realimentacion
+                        sample = sample * secoActual + repeticion * mojado
+                    }
                     outputBuffer.putShort(clampToShort(sample))
                 }
+                if (eco) ecoEscritura = (ecoEscritura + 1) % ecoFrames
             }
             remaining -= block
         }
