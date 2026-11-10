@@ -656,7 +656,7 @@ class MusicService :
     suspend fun analizarParaMezcla(ids: List<String>, alTerminar: (String, BeatInfoEntity?) -> Unit) {
         for (id in ids) {
             val inicio = android.os.SystemClock.elapsedRealtime()
-            val guardada = withContext(Dispatchers.IO) { database.beatInfo(id) }
+            val guardada = withContext(Dispatchers.IO) { database.beatInfo(id)?.vigente() }
             if (guardada == null || guardada.bpm <= 0f) {
                 maybeAnalyzeBeat(id, BeatAnalysisPriority.IMMEDIATE)
                 val trabajo = synchronized(beatAnalysisJobs) { beatAnalysisJobs[id]?.job }
@@ -4547,7 +4547,7 @@ class MusicService :
         val nextId = pair.nextId
 
         val (outBeat, inBeat) = withContext(Dispatchers.IO) {
-            database.beatInfo(currentId) to database.beatInfo(nextId)
+            database.beatInfo(currentId)?.vigente() to database.beatInfo(nextId)?.vigente()
         }
         if (outBeat == null) maybeAnalyzeBeat(currentId, BeatAnalysisPriority.IMMEDIATE)
         if (inBeat == null && nextId != currentId) maybeAnalyzeBeat(nextId, BeatAnalysisPriority.IMMEDIATE)
@@ -4815,9 +4815,9 @@ class MusicService :
      * y espera el resultado. Null si no se pudo o el tempo no es fiable.
      */
     suspend fun tempoDe(mediaId: String): BeatInfoEntity? {
-        fun guardado() = database.beatInfo(mediaId)?.takeIf { it.bpm > 40f && it.confidence >= 0.4f }
+        fun guardado() = database.beatInfo(mediaId)?.vigente()?.takeIf { it.bpm > 40f && it.confidence >= 0.4f }
         withContext(Dispatchers.IO) { guardado() }?.let { return it }
-        if (withContext(Dispatchers.IO) { database.beatInfo(mediaId) } != null) return null // ya se intento: sin tempo
+        if (withContext(Dispatchers.IO) { database.beatInfo(mediaId)?.vigente() } != null) return null // ya se intento: sin tempo
         maybeAnalyzeBeat(mediaId, BeatAnalysisPriority.IMMEDIATE)
         synchronized(beatAnalysisJobs) { beatAnalysisJobs[mediaId]?.job }?.join()
         return withContext(Dispatchers.IO) { guardado() }
@@ -4904,7 +4904,9 @@ class MusicService :
         // vez y ya. Asi las canciones ya analizadas ganan el fin de contenido solas.
         val incompleta = existing != null && existing.bpm > 0f &&
             (existing.mixOutPointMs == null || existing.contentEndMs == null || existing.contentStartMs == null)
-        if (existing != null && !incompleta) return
+        // 2.1.0 · Lo analizado antes del arreglo del dembow puede tener el tempo a 4/3: se reanaliza una vez.
+        val vieja = existing != null && existing.analyzedAt < TEMPO_VIGENTE_DESDE
+        if (existing != null && !incompleta && !vieja) return
         Timber.tag(TAG).d("Beat analysis starting for %s (%s)", mediaId, priority)
 
         val result: BeatAnalyzer.Result?
@@ -5033,6 +5035,9 @@ class MusicService :
      * 2.1.0 · A que velocidad arranca la entrante: estirada al tempo de la saliente si la pareja va al golpe y el estilo
      * las superpone. Sin cambiar el tono: lo hace Sonic, que ya viene en ExoPlayer.
      */
+    /** 2.1.0 · Null si el analisis es de antes del arreglo del dembow (su tempo puede estar a 4/3). */
+    private fun BeatInfoEntity.vigente(): BeatInfoEntity? = takeIf { it.analyzedAt >= TEMPO_VIGENTE_DESDE }
+
     private fun velocidadDeEntrada(plan: AutomixPlan?): Float {
         if (plan == null || plan.nivel != NivelTransicion.AL_BEAT) return 1f
         return plan.tempoRatio.takeIf { it in 0.92f..1.08f } ?: 1f
@@ -5585,6 +5590,12 @@ class MusicService :
 
         /** 2.1.0 · «Corte en el golpe»: lo que dura el cambio, unos milisegundos para que no truene. */
         const val CORTE_MS = 260L
+
+        /**
+         * 2.1.0 · Desde cuando vale un analisis de tempo: el detector se arreglo el 09-11-2026 (el dembow se leia a
+         * 4/3 del tempo). Lo analizado antes se vuelve a analizar una vez.
+         */
+        const val TEMPO_VIGENTE_DESDE = 1_794_281_000_000L
         /** Gracia del relevo tras un cierre antes de soltar la saliente, ya muda. */
         const val RELEVO_MS = 250L
         const val PERSISTENT_PLAYER_STATE_FILE = "persistent_player_state.data"

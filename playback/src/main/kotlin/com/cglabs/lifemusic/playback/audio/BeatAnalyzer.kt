@@ -492,16 +492,25 @@ object BeatAnalyzer {
      * Autocorrelation over the beat-period lag range. Returns (periodInFrames, confidence),
      * favoring candidates whose double period is also supported (down-weights half-period picks).
      */
-    private fun estimateTempoPeriod(flux: FloatArray, frameRate: Float): Pair<Float, Float>? {
+    internal fun estimateTempoPeriod(flux: FloatArray, frameRate: Float): Pair<Float, Float>? {
         val minLag = (frameRate * 60f / MAX_BPM).roundToInt()
         val maxLag = (frameRate * 60f / MIN_BPM).roundToInt()
         if (flux.size < maxLag * 2) return null
 
-        val ac = FloatArray(maxLag + 1)
-        for (lag in minLag..maxLag) {
+        // 2.1.0 · La autocorrelacion llega hasta 4 golpes del tempo mas lento: hace falta para mirar el compas.
+        val acMax = minOf(maxLag * 4 + 8, flux.size - 1)
+        val ac = FloatArray(acMax + 1)
+        for (lag in minLag..acMax) {
             var sum = 0f
             for (i in 0 until flux.size - lag) sum += flux[i] * flux[i + lag]
             ac[lag] = sum / (flux.size - lag)
+        }
+        // El maximo de la autocorrelacion cerca de [x]: un multiplo de un retardo entero se aleja del pico real una
+        // fraccion de cuadro por cada vuelta, y un pico estrecho se pierde si se mira justo al lado.
+        fun pico(x: Int, ancho: Int): Float {
+            var m = 0f
+            for (k in (x - ancho).coerceAtLeast(1)..(x + ancho).coerceAtMost(acMax)) if (ac[k] > m) m = ac[k]
+            return m
         }
 
         var mean = 0f
@@ -513,10 +522,14 @@ object BeatAnalyzer {
         var bestScore = 0f
         for (lag in minLag..maxLag) {
             if (lag > minLag && lag < maxLag && (ac[lag] < ac[lag - 1] || ac[lag] < ac[lag + 1])) continue
+            // 2.1.0 · Puntaje por compas. Un pulso de verdad se repite tambien a 2 y a 4 golpes (medio compas y compas).
+            // El dembow engañaba al puntaje viejo: su caja (3+3+2 semicorcheas) repite cada tres cuartos de golpe y el
+            // detector daba 4/3 del tempo (99,4 BPM -> 132,5; «No Me Quiero Casar» salio en 131,7). Dos y cuatro
+            // veces tres cuartos de golpe caen fuera de los golpes, asi que el falso pierde. Simulado con dembow,
+            // house, pop, cumbia y vallenato de 90 a 135 BPM: 25 de 25 (el viejo fallaba 4).
             var score = ac[lag]
-            // Reward candidates whose 2x lag also correlates (true beat vs half-beat).
-            val doubleLag = lag * 2
-            if (doubleLag <= maxLag) score += 0.5f * ac[doubleLag]
+            if (lag * 2 <= acMax) score += 0.6f * pico(lag * 2, 2)
+            if (lag * 4 <= acMax) score += 0.6f * pico(lag * 4, 4)
             if (score > bestScore) {
                 bestScore = score
                 bestLag = lag

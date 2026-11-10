@@ -5,8 +5,10 @@ package com.cglabs.lifemusic.utils
 import android.content.ContentValues
 import android.content.Context
 import android.graphics.Bitmap
+import android.graphics.BitmapShader
 import android.graphics.Canvas
 import android.graphics.LinearGradient
+import android.graphics.Matrix
 import android.graphics.Paint
 import android.graphics.Path
 import android.graphics.PorterDuff
@@ -335,7 +337,60 @@ object ComposeToImage {
         lyricsLayout.draw(canvas)
         canvas.restore()
 
-        return@withContext bitmap
+        // 2.1.0 · Pedido de CG (09-11): la tarjeta sola, cuadrada, salia gigante y sin aire en los estados y las
+        // historias. Ahora va centrada en una imagen vertical 9:16 con un fondo hecho de la caratula, como en Spotify.
+        return@withContext enHistoria(bitmap, coverArtBitmap, bgColor)
+    }
+
+    /**
+     * La tarjeta de la letra, centrada en una imagen vertical (1440 x 2560, la proporcion de los estados de WhatsApp
+     * y las historias de Instagram). El fondo es la caratula muy desenfocada y oscurecida a sangre; sin caratula, el
+     * color de la tarjeta. La tarjeta lleva esquinas redondas y una sombra suave para que se lea como objeto.
+     */
+    private fun enHistoria(tarjeta: Bitmap, portada: Bitmap?, colorBase: Int): Bitmap {
+        val ancho = 1440
+        val alto = 2560
+        val salida = createBitmap(ancho, alto)
+        val lienzo = Canvas(salida)
+        lienzo.drawColor(colorBase)
+        if (portada != null) {
+            runCatching {
+                // Muy chica y desenfocada: al estirarla queda un fondo de color suave, sin detalles que distraigan.
+                val chica = Bitmap.createScaledBitmap(portada, 64, 64, true)
+                val borrosa = fastBlur(chica, 1f, 6) ?: chica
+                val lado = alto.toFloat()
+                val destino = RectF((ancho - lado) / 2f, 0f, (ancho + lado) / 2f, alto.toFloat())
+                lienzo.drawBitmap(borrosa, null, destino, Paint(Paint.FILTER_BITMAP_FLAG))
+                lienzo.drawColor(0x73000000)
+            }
+        }
+        val lado = ancho * 0.86f
+        val izquierda = (ancho - lado) / 2f
+        val arriba = (alto - lado) / 2f
+        val destino = RectF(izquierda, arriba, izquierda + lado, arriba + lado)
+        // El mismo radio que el borde que la tarjeta ya trae dibujado (20 de 340).
+        val radio = lado * 20f / 340f
+        val sombra = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+            color = colorBase
+            setShadowLayer(56f, 0f, 22f, 0x80000000.toInt())
+        }
+        lienzo.drawRoundRect(destino, radio, radio, sombra)
+        val pincel = Paint(Paint.ANTI_ALIAS_FLAG or Paint.FILTER_BITMAP_FLAG).apply {
+            shader = BitmapShader(tarjeta, Shader.TileMode.CLAMP, Shader.TileMode.CLAMP).apply {
+                setLocalMatrix(
+                    Matrix().apply {
+                        setRectToRect(
+                            RectF(0f, 0f, tarjeta.width.toFloat(), tarjeta.height.toFloat()),
+                            destino,
+                            Matrix.ScaleToFit.FILL,
+                        )
+                    },
+                )
+            }
+        }
+        lienzo.drawRoundRect(destino, radio, radio, pincel)
+        tarjeta.recycle()
+        return salida
     }
 
     
