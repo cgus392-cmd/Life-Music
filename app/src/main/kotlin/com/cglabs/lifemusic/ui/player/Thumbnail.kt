@@ -802,7 +802,13 @@ private fun ThumbnailItem(
                             resultArtist.contains(requestedArtist, ignoreCase = true) || 
                             requestedArtist.contains(resultArtist, ignoreCase = true) ||
                             normalizedResult.contains(normalizedRequested, ignoreCase = true) ||
-                            normalizedRequested.contains(normalizedResult, ignoreCase = true)
+                            normalizedRequested.contains(normalizedResult, ignoreCase = true) ||
+                            // 2.1.0 · Prueba de CG (09-11): en las colaboraciones cada servicio pone a los artistas en
+                            // otro orden («Fuerza Regida, Oscar Maydon» / «Oscar Maydon & Fuerza Regida») y comparar
+                            // solo el primero botaba el video. Basta un artista en comun, como en BusquedaDeCanvas.
+                            splitAndNormalizeArtists(requestedArtist).any { local ->
+                                splitAndNormalizeArtists(resultArtist).any { it.equals(local, ignoreCase = true) }
+                            }
                         } else true
 
                         
@@ -846,6 +852,11 @@ private fun ThumbnailItem(
                         if (artistMatches && titleMatches) {
                             artwork
                         } else {
+                            android.util.Log.i(
+                                "LifeMusicCanvas",
+                                "descartado ${item.mediaId}: pedido «$requestedArtist» / «$requestedAlbum», " +
+                                    "devuelto «$resultArtist» / «$canvasAlbumName» (artista=$artistMatches, titulo=$titleMatches)",
+                            )
                             null
                         }
                     }
