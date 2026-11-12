@@ -45,12 +45,14 @@ object EleccionDeLetra {
     /** Holgura del final: las letras suelen cerrar unos segundos antes, o el video trae cola. */
     private const val HOLGURA_FINAL_S = 15
 
-    private val TIEMPO_DE_LINEA = Regex("^\\s*\\[(\\d{1,2}):(\\d{2})[.:](\\d{2,3})]")
+    // Ojo: en Android las expresiones van por ICU, mas estricto que Java en el PC: «]» y «}» siempre escapados, o la
+    // app se cae al cargar esta clase (paso en la prueba.25, 12-11).
+    private val TIEMPO_DE_LINEA = Regex("^\\s*\\[(\\d{1,2}):(\\d{2})[.:](\\d{2,3})\\]")
     private val PALABRA_RICA = Regex("<\\d{1,2}:\\d{2}\\.\\d{2,3}>")
     private val PALABRAS_APARTE = Regex("^<[^<>]+:\\d+(\\.\\d+)?:\\d+(\\.\\d+)?(\\|[^<>]+:\\d+(\\.\\d+)?:\\d+(\\.\\d+)?)*>$")
-    private val METADATO = Regex("^\\s*\\[[a-zA-Z]+:.*]\\s*$")
-    private val ETIQUETAS = Regex("\\[[^]]*]|<[^>]*>|\\{[^}]*}")
-    private val ENTRE_PARENTESIS = Regex("\\([^)]*\\)|\\[[^]]*]")
+    private val METADATO = Regex("^\\s*\\[[a-zA-Z]+:.*\\]\\s*$")
+    private val ETIQUETAS = Regex("\\[[^\\]]*\\]|<[^>]*>|\\{[^\\}]*\\}")
+    private val ENTRE_PARENTESIS = Regex("\\([^)]*\\)|\\[[^\\]]*\\]")
 
     /** Palabras vacías: no dicen nada del título (es / en). */
     private val VACIAS = setOf(

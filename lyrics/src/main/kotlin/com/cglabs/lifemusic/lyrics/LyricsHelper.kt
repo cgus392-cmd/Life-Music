@@ -133,16 +133,18 @@ constructor(
                     orden = providers.indexOfFirst { it.name == result.providerName }.coerceAtLeast(0),
                 )
                 recibidas += candidata
-                if (EleccionDeLetra.evaluar(candidata, titulo, artistas, duracion).perfecta) {
+                // La eleccion nunca puede tumbar la app: si falla, se sigue como antes.
+                if (runCatching { EleccionDeLetra.evaluar(candidata, titulo, artistas, duracion).perfecta }.getOrDefault(false)) {
                     coroutineContext.cancelChildren()
                     return@coroutineScope LyricsWithProvider(candidata.letra, candidata.proveedor)
                 }
                 if (limite == 0L) limite = System.currentTimeMillis() + ESPERA_A_LAS_DEMAS_MS
             }
             coroutineContext.cancelChildren()
-            val mejor = EleccionDeLetra.mejor(recibidas, titulo, artistas, duracion)
+            val mejor = runCatching { EleccionDeLetra.mejor(recibidas, titulo, artistas, duracion)?.candidata }
+                .getOrElse { recibidas.firstOrNull() }
                 ?: return@coroutineScope LyricsWithProvider(LYRICS_NOT_FOUND, "Unknown")
-            return@coroutineScope LyricsWithProvider(mejor.candidata.letra, mejor.candidata.proveedor)
+            return@coroutineScope LyricsWithProvider(mejor.letra, mejor.proveedor)
         }
     }
 

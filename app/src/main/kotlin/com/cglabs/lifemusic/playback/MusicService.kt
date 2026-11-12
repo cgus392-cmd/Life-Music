@@ -444,9 +444,10 @@ class MusicService :
     private val letrasReintentadas = java.util.Collections.synchronizedSet(mutableSetOf<String>())
 
     /** Una letra guardada que vale la pena volver a buscar: vacia, no encontrada o sin sincronizar. */
-    private fun letraMejorable(letra: String): Boolean =
+    private fun letraMejorable(letra: String): Boolean = runCatching {
         letra.isBlank() || letra == LyricsEntity.LYRICS_NOT_FOUND ||
             com.cglabs.lifemusic.lyrics.EleccionDeLetra.sincronia(letra) == com.cglabs.lifemusic.lyrics.EleccionDeLetra.Sincronia.NINGUNA
+    }.getOrDefault(false)
 
     /** Si la nueva es de verdad mejor que la guardada, con el mismo puntaje que elige entre proveedores. */
     private fun letraMejor(nueva: String, vieja: String, m: com.cglabs.lifemusic.models.MediaMetadata): Boolean {
@@ -456,7 +457,7 @@ class MusicService :
         fun puntaje(letra: String) = com.cglabs.lifemusic.lyrics.EleccionDeLetra.evaluar(
             com.cglabs.lifemusic.lyrics.EleccionDeLetra.Candidata("", letra, 0), m.title, artistas, m.duration,
         ).puntaje
-        return puntaje(nueva) > puntaje(vieja)
+        return runCatching { puntaje(nueva) > puntaje(vieja) }.getOrDefault(false)
     }
 
     private val entradaElegida = java.util.concurrent.ConcurrentHashMap<String, Long>()
