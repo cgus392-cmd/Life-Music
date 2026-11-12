@@ -238,6 +238,16 @@ private fun calcular(conexion: PlayerConnection, mezclando: Boolean): Calculo? {
     if (!mezclando) return null
     val servicio = conexion.service
     servicio.transicionEnCurso.value?.let { t ->
+        // 2.1.0 · Si la mezcla ya termino y lo que suena no es la entrante, la persona se movio (volvio a la
+        // anterior, eligio otra): el tocadiscos y las ondas se van a reposo de una. Antes se quedaban hasta 30 s en
+        // el final, con la funda de la otra cancion y las ondas tapando los botones (CG, 12-11).
+        // Ojo: al cerrar la mezcla puede haber un instante con la saliente aun como actual, pero cerca de su final;
+        // eso no es moverse. Volver a la anterior la deja en el comienzo, antes de donde salio.
+        val p = conexion.player
+        val actualId = p.currentMediaItem?.mediaId
+        val seMovio = !servicio.isCrossfading.value && actualId != t.aId &&
+            (actualId != t.deId || p.currentPosition < t.salienteDesdeMs)
+        if (seMovio) return@let
         val dt = (ahora - t.inicioMs).toFloat()
         // Sin plan no hubo previa: la entrada se hace rápida (1,2 s) y desde el golpe se sigue normal.
         val g = when {
