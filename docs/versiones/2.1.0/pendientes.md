@@ -26,6 +26,24 @@ Las pruebas quedan para después. CG: «lo que estamos haciendo ahora es el Auto
 | D · Perfiles por género | Reconocer salsa, reguetón (huella del dembow), vallenato y balada, y reglas por pareja (salsa → vallenato, balada → reguetón…), aprendiendo de los metadatos (BPM y demás) | Pendiente |
 | Al final de todo | Voces de Nova y Wrapped | Lo último, según CG |
 
+## 1c. Letras: la mejor, no la primera (pedido de CG, 12-11; prueba.25)
+
+- **Antes:** ganaba la primera letra sincronizada en llegar. Muchas veces venía por línea habiendo otra palabra por
+  palabra, estaba en otro idioma o era de otra versión, y la persona tenía que buscar a mano.
+- **Ahora** (`lyrics/.../EleccionDeLetra.kt`, 9 pruebas):
+  - Se espera hasta 3 s después de la primera letra útil; una perfecta corta la espera.
+  - Cada letra recibe un puntaje:
+    - sincronía: palabra > línea > ninguna;
+    - escritura igual a la del título;
+    - duración que cuadre, porque si no es otra versión;
+    - si trae palabras del título;
+    - si tiene menos de 4 líneas, baja;
+    - el orden de proveedores solo desempata.
+- **Re-evaluación:** una letra guardada sin sincronizar, vacía o no encontrada se vuelve a buscar una vez por
+  sesión, y solo se reemplaza si la nueva es mejor. Lo que la persona eligió o editó a mano
+  (`LetrasElegidasAManoKey`) nunca se toca. Registro: `LifeMusicLetra`.
+- **Falta saber de CG:** los otros puntos de «suceden varias cosas»; solo contó el primero.
+
 ## 2. Para cerrar la 2.1.0
 
 1. Gama baja en el A04s: el tocadiscos quieto, que nada se trabe y el 17 % de contenido del Inicio que quedó pendiente.

@@ -440,6 +440,25 @@ class MusicService :
     }
 
     /** 2.1.x · La mesa: puntos elegidos a mano, por cancion. La proxima mezcla de esa cancion los usa. */
+    /** 2.1.x · Canciones cuya letra ya se intento mejorar en esta sesion (una vez cada una). */
+    private val letrasReintentadas = java.util.Collections.synchronizedSet(mutableSetOf<String>())
+
+    /** Una letra guardada que vale la pena volver a buscar: vacia, no encontrada o sin sincronizar. */
+    private fun letraMejorable(letra: String): Boolean =
+        letra.isBlank() || letra == LyricsEntity.LYRICS_NOT_FOUND ||
+            com.cglabs.lifemusic.lyrics.EleccionDeLetra.sincronia(letra) == com.cglabs.lifemusic.lyrics.EleccionDeLetra.Sincronia.NINGUNA
+
+    /** Si la nueva es de verdad mejor que la guardada, con el mismo puntaje que elige entre proveedores. */
+    private fun letraMejor(nueva: String, vieja: String, m: com.cglabs.lifemusic.models.MediaMetadata): Boolean {
+        if (nueva.isBlank() || nueva == LyricsEntity.LYRICS_NOT_FOUND) return false
+        if (vieja.isBlank() || vieja == LyricsEntity.LYRICS_NOT_FOUND) return true
+        val artistas = m.artists.joinToString { it.name }
+        fun puntaje(letra: String) = com.cglabs.lifemusic.lyrics.EleccionDeLetra.evaluar(
+            com.cglabs.lifemusic.lyrics.EleccionDeLetra.Candidata("", letra, 0), m.title, artistas, m.duration,
+        ).puntaje
+        return puntaje(nueva) > puntaje(vieja)
+    }
+
     private val entradaElegida = java.util.concurrent.ConcurrentHashMap<String, Long>()
     private val salidaElegida = java.util.concurrent.ConcurrentHashMap<String, Long>()
 
@@ -1307,16 +1326,27 @@ class MusicService :
                 // El bloque estuvo siempre en Main; no se notaba porque colgaba
                 // de ShowLyricsKey, que no escribe nadie, y nunca se ejecutaba.
                 withContext(Dispatchers.IO) {
-                    if (database.lyrics(mediaMetadata.id).first() == null) {
+                    val existente = database.lyrics(mediaMetadata.id).first()
+                    // 2.1.x · Una letra guardada sin sincronizar (o ninguna) que no eligio la persona se vuelve a
+                    // buscar una vez por sesion: antes la primera eleccion, mala o no, quedaba para siempre.
+                    val reintentar = existente != null && mediaMetadata.id !in letrasReintentadas &&
+                        letraMejorable(existente.lyrics) &&
+                        !com.cglabs.lifemusic.lyrics.EleccionAMano.esAMano(this@MusicService, mediaMetadata.id)
+                    if (existente == null || reintentar) {
+                        letrasReintentadas += mediaMetadata.id
                         val lyricsWithProvider = lyricsHelper.getLyrics(mediaMetadata)
-                        database.query {
-                            upsert(
-                                LyricsEntity(
-                                    id = mediaMetadata.id,
-                                    lyrics = lyricsWithProvider.lyrics ?: "",
-                                    provider = lyricsWithProvider.providerName,
-                                ),
-                            )
+                        val nueva = lyricsWithProvider.lyrics.orEmpty()
+                        if (existente == null || letraMejor(nueva, existente.lyrics, mediaMetadata)) {
+                            database.query {
+                                upsert(
+                                    LyricsEntity(
+                                        id = mediaMetadata.id,
+                                        lyrics = nueva,
+                                        provider = lyricsWithProvider.providerName,
+                                    ),
+                                )
+                            }
+                            if (existente != null) android.util.Log.i("LifeMusicLetra", "mejorada ${mediaMetadata.id} con ${lyricsWithProvider.providerName}")
                         }
                     }
                 }

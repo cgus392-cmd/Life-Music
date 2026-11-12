@@ -1160,6 +1160,9 @@ enum class LifeLineHighlight {
  */
 val GuiasVistasKey = stringSetPreferencesKey("guiasVistas")
 
+/** 2.1.x · Canciones cuya letra eligio o edito la persona a mano: la eleccion automatica nunca las toca. */
+val LetrasElegidasAManoKey = stringSetPreferencesKey("letrasElegidasAMano")
+
 /** El estilo de Nova: «calida» (de fabrica), «energica», «breve» o «curiosa». */
 val NovaEstiloKey = stringPreferencesKey("novaEstilo")
 

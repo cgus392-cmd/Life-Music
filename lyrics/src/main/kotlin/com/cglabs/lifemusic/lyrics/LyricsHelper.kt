@@ -25,6 +25,7 @@ import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withTimeoutOrNull
 import javax.inject.Inject
 
 class LyricsHelper
@@ -106,23 +107,42 @@ constructor(
                 }
             }
 
+            // 2.1.x · La mejor letra, no la primera (EleccionDeLetra). Antes ganaba la primera sincronizada en llegar,
+            // aunque fuera por linea habiendo otra palabra por palabra, en otro idioma o de otra version. Ahora se
+            // espera un momento a las demas desde la primera util y se elige por puntaje; una perfecta corta la espera.
+            val titulo = mediaMetadata.title
+            val artistas = mediaMetadata.artists.joinToString { it.name }
+            val duracion = mediaMetadata.duration
+            val recibidas = mutableListOf<EleccionDeLetra.Candidata>()
             var responses = 0
-            val receivedUnsynced = mutableListOf<LyricsWithProvider>()
+            var limite = 0L
 
             while (responses < providers.size) {
-                val result = channel.receive()
-                responses++
-                if (result != null) {
-                    val isSynced = result.lyrics?.trimStart()?.startsWith("[") == true
-                    if (isSynced) {
-                        coroutineContext.cancelChildren()
-                        return@coroutineScope result
-                    } else {
-                        receivedUnsynced.add(result)
-                    }
+                val result = if (limite == 0L) {
+                    channel.receive()
+                } else {
+                    val restante = limite - System.currentTimeMillis()
+                    if (restante <= 0) break
+                    withTimeoutOrNull(restante) { channel.receive() } ?: break
                 }
+                responses++
+                val letra = result?.lyrics ?: continue
+                val candidata = EleccionDeLetra.Candidata(
+                    proveedor = result.providerName,
+                    letra = letra,
+                    orden = providers.indexOfFirst { it.name == result.providerName }.coerceAtLeast(0),
+                )
+                recibidas += candidata
+                if (EleccionDeLetra.evaluar(candidata, titulo, artistas, duracion).perfecta) {
+                    coroutineContext.cancelChildren()
+                    return@coroutineScope LyricsWithProvider(candidata.letra, candidata.proveedor)
+                }
+                if (limite == 0L) limite = System.currentTimeMillis() + ESPERA_A_LAS_DEMAS_MS
             }
-            return@coroutineScope receivedUnsynced.firstOrNull() ?: LyricsWithProvider(LYRICS_NOT_FOUND, "Unknown")
+            coroutineContext.cancelChildren()
+            val mejor = EleccionDeLetra.mejor(recibidas, titulo, artistas, duracion)
+                ?: return@coroutineScope LyricsWithProvider(LYRICS_NOT_FOUND, "Unknown")
+            return@coroutineScope LyricsWithProvider(mejor.candidata.letra, mejor.candidata.proveedor)
         }
     }
 
@@ -186,6 +206,9 @@ constructor(
 
     companion object {
         private const val MAX_CACHE_SIZE = 3
+
+        /** Cuanto se espera a las demas desde la primera letra util (2.1.x). */
+        private const val ESPERA_A_LAS_DEMAS_MS = 3_000L
     }
 }
 

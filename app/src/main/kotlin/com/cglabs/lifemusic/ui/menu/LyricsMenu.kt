@@ -123,6 +123,7 @@ fun LyricsMenu(
             initialTextFieldValue = TextFieldValue(lyricsProvider()?.lyrics.orEmpty()),
             singleLine = false,
             onDone = {
+                com.cglabs.lifemusic.lyrics.EleccionAMano.anotar(context, mediaMetadataProvider().id)
                 database.query {
                     upsert(
                         LyricsEntity(
@@ -268,6 +269,7 @@ fun LyricsMenu(
                         .clickable {
                             onDismiss()
                             viewModel.cancelSearch()
+                            com.cglabs.lifemusic.lyrics.EleccionAMano.anotar(context, searchMediaMetadata.id)
                             database.query {
                                 upsert(
                                     LyricsEntity(
