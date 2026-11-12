@@ -90,6 +90,7 @@ import com.cglabs.lifemusic.constants.AutomixEstiloKey
 import com.cglabs.lifemusic.constants.AutomixModo
 import com.cglabs.lifemusic.constants.AutomixModoKey
 import com.cglabs.lifemusic.playback.audio.Riser
+import com.cglabs.lifemusic.playback.audio.ReglaDeRadio
 import com.cglabs.lifemusic.constants.MixedLargoKey
 import com.cglabs.lifemusic.constants.CrossfadeDurationKey
 import com.cglabs.lifemusic.constants.CrossfadeEnabledKey
@@ -357,6 +358,8 @@ class MusicService :
         val inFirstBeatMs: Long = 0L,
         /** Cuantos compases dura, para el aviso del reproductor. */
         val compases: Int = 0,
+        /** 2.1.x · El riser suena solo si la persona eligio «Subida»; el Auto que cae en filtro no lo lleva. */
+        val conRiser: Boolean = false,
     )
 
     private data class AutomixPlanResult(
@@ -4662,15 +4665,13 @@ class MusicService :
         // se hacen eternos. 8 beats, 3-6 s: lo que tarda un DJ en cerrar un filtro.
         // 2.1.0 · Mixed Editor: el corte dura lo que un parpadeo, el eco seis golpes (el ultimo de la saliente y la cola),
         // y los que se superponen, los compases que eligio el usuario (4, 8 o 16) o los 16 golpes de siempre.
-        val largoPedido = dataStore.get(MixedLargoKey) ?: 0
-        val overlapMs = when {
-            estiloPedido == AutomixEstilo.CIERRE -> (8 * periodMs).toLong().coerceIn(3_000L, 6_000L)
-            estiloPedido == AutomixEstilo.CORTE -> CORTE_MS
-            estiloPedido == AutomixEstilo.ECO -> (6 * periodMs).toLong().coerceIn(2_500L, 7_000L)
-            largoPedido in listOf(4, 8, 16) -> (largoPedido * 4 * periodMs).toLong().coerceIn(3_000L, 48_000L)
-            else -> (16 * periodMs).toLong().coerceIn(6_000L, 16_000L)
-        }
-        val minimoMs = if (estiloPedido == AutomixEstilo.CORTE) CORTE_MS else 3_000L
+        // 2.1.x · Prueba.21: las mezclas largas por frases son cosa del Mixed Editor. Fuera de el, el largo elegido
+        // en la hoja no cuenta y manda la regla de la radio (ReglaDeRadio).
+        val largoPedido = if (mixedEditor.value) dataStore.get(MixedLargoKey) ?: 0 else 0
+        val conLargoPropio = estiloPedido == AutomixEstilo.CIERRE || estiloPedido == AutomixEstilo.CORTE ||
+            estiloPedido == AutomixEstilo.ECO
+        val porRadio = modo == AutomixModo.CANCION_COMPLETA && !conLargoPropio && largoPedido !in listOf(4, 8, 16)
+        val perfil = ReglaDeRadio.perfil(outBeat.confidence, inBeat?.confidence)
 
         // Dynamic mix-out: start the transition where the song's body ends (outro begins)
         // rather than a fixed distance from the end. Sentinel <= 0 means "no outro found".
@@ -4678,6 +4679,23 @@ class MusicService :
         // fichero. En una salsa o un vallenato la diferencia son 20 o 30 segundos de
         // fade y silencio, y sin esto el filtro actuaba sobre nada.
         val contentEnd = outBeat.contentEndMs?.takeIf { it > 0 && it <= trackDuration } ?: trackDuration
+        // La radio: se superpone solo la cola de la saliente (ya se apaga) con la intro de la entrante (aun no canta).
+        val colaMs = ReglaDeRadio.cola(contentEnd, outBeat.mixOutPointMs)
+        val introMs = ReglaDeRadio.intro(inBeat != null, inBeat?.contentStartMs, inBeat?.mixInPointMs)
+
+        val overlapMs = when {
+            estiloPedido == AutomixEstilo.CIERRE -> (8 * periodMs).toLong().coerceIn(3_000L, 6_000L)
+            estiloPedido == AutomixEstilo.CORTE -> CORTE_MS
+            estiloPedido == AutomixEstilo.ECO -> (6 * periodMs).toLong().coerceIn(2_500L, 7_000L)
+            largoPedido in listOf(4, 8, 16) -> (largoPedido * 4 * periodMs).toLong().coerceIn(3_000L, 48_000L)
+            porRadio -> ReglaDeRadio.superposicion(colaMs, introMs, perfil)
+            else -> (16 * periodMs).toLong().coerceIn(6_000L, 16_000L)
+        }
+        val minimoMs = when {
+            estiloPedido == AutomixEstilo.CORTE -> CORTE_MS
+            porRadio -> ReglaDeRadio.MINIMO_MS
+            else -> 3_000L
+        }
         val latestTrigger = contentEnd - overlapMs
         // Salir en el outro es cosa de DJ. En «cancion completa» la salsa se lleva
         // su mambo entero y la transicion ocupa solo los ultimos compases audibles.
@@ -4688,16 +4706,24 @@ class MusicService :
         // Anchor past the current position so re-planning late (pause/seek near the end)
         // still lands on the next musical boundary instead of giving up.
         val phraseMs = periodMs * 8
-        val anchor = maxOf(effectiveTrigger, player.currentPosition + 1000)
-        val k = ((anchor - outBeat.firstBeatOffsetMs) / phraseMs).toLong()
-        var triggerTime = (outBeat.firstBeatOffsetMs + k * phraseMs).toLong()
-        if (triggerTime < anchor) triggerTime = (outBeat.firstBeatOffsetMs + (k + 1) * phraseMs).toLong()
-        // Ajustar hacia delante puede empujar el fundido mas alla de donde se oye
-        // musica. Si pasa, se prefiere la frase ANTERIOR mientras siga por delante de
-        // la posicion actual: mejor entrar un poco antes que mezclar con silencio.
-        if (triggerTime + overlapMs > contentEnd) {
-            val previa = (triggerTime - phraseMs).toLong()
-            if (previa > player.currentPosition + 1000) triggerTime = previa
+        var triggerTime: Long
+        if (porRadio) {
+            // La radio: la mezcla termina donde se acaba la musica de la saliente, con el arranque en su compas mas
+            // cercano. Si se replanea tarde (pausa, salto), arranca en cuanto se pueda.
+            triggerTime = ReglaDeRadio.arranque(contentEnd, overlapMs, outBeat.firstBeatOffsetMs, periodMs)
+                .coerceAtLeast(player.currentPosition + 1000)
+        } else {
+            val anchor = maxOf(effectiveTrigger, player.currentPosition + 1000)
+            val k = ((anchor - outBeat.firstBeatOffsetMs) / phraseMs).toLong()
+            triggerTime = (outBeat.firstBeatOffsetMs + k * phraseMs).toLong()
+            if (triggerTime < anchor) triggerTime = (outBeat.firstBeatOffsetMs + (k + 1) * phraseMs).toLong()
+            // Ajustar hacia delante puede empujar el fundido mas alla de donde se oye
+            // musica. Si pasa, se prefiere la frase ANTERIOR mientras siga por delante de
+            // la posicion actual: mejor entrar un poco antes que mezclar con silencio.
+            if (triggerTime + overlapMs > contentEnd) {
+                val previa = (triggerTime - phraseMs).toLong()
+                if (previa > player.currentPosition + 1000) triggerTime = previa
+            }
         }
         // Phrase-snapping can push triggerTime past latestTrigger by up to ~1 phrase.
         // The outgoing player keeps its own playlist and keeps advancing in real time
@@ -4707,11 +4733,17 @@ class MusicService :
         // a few seconds of overshoot, shrink the overlap to whatever room is actually
         // left; only fall back if that leaves too little room to blend at all.
         // 2.1.x · Si en la mesa se eligio por donde sale, se respeta (si todavia esta por delante).
+        var salidaDeLaMesa = false
         salidaElegida[currentId]?.let { elegida ->
-            if (elegida > player.currentPosition + 1_000L && elegida < trackDuration - minimoMs) triggerTime = elegida
+            if (elegida > player.currentPosition + 1_000L && elegida < trackDuration - minimoMs) {
+                triggerTime = elegida
+                salidaDeLaMesa = true
+            }
         }
         val roomMs = trackDuration - 500 - triggerTime
-        val effectiveOverlapMs = overlapMs.coerceAtMost(roomMs)
+        // En la radio la mezcla termina con la musica: el ajuste al compas la alarga o la acorta un poco.
+        val overlapPlaneado = if (porRadio && !salidaDeLaMesa) (contentEnd - triggerTime).coerceAtLeast(minimoMs) else overlapMs
+        val effectiveOverlapMs = overlapPlaneado.coerceAtMost(roomMs)
         if (effectiveOverlapMs < minimoMs || triggerTime >= trackDuration - minimoMs) {
             Timber.tag(TAG).d("Automix fallback: trigger %d out of range (pos=%d dur=%d overlap=%d)", triggerTime, player.currentPosition, trackDuration, overlapMs)
             automixDebugInfo.value = partialDebug.copy(status = "fallback: trigger out of range")
@@ -4724,6 +4756,8 @@ class MusicService :
         //   >  8 %  ASISTIDO + FILTRO sin estirar; el barrido hace la transicion
         // El 4 % sale de BitChord (MAX_STRETCH_DEVIATION); el 8 % era el tope de Echo
         // y se conserva como limite de estiramiento.
+        // 2.1.x · Prueba.21: el tope de estiramiento baja del 8 % al 5 % (Kim et al., ISMIR 2020: el 86 % de los DJ
+        // estira menos del 5 %). En la radio, ademas, solo con golpe claro en las dos y 4 compases de mezcla.
         val nivel: NivelTransicion
         val estiloAutomatico: EstiloTransicion
         var tempoRatio = 1f
@@ -4731,10 +4765,21 @@ class MusicService :
             tempoRatio = outBeat.bpm / inBeat!!.bpm
             while (tempoRatio > 1.5f) tempoRatio /= 2f
             while (tempoRatio < 0.667f) tempoRatio *= 2f
-            val desvio = kotlin.math.abs(tempoRatio - 1f)
+        }
+        val desvio = kotlin.math.abs(tempoRatio - 1f)
+        if (porRadio) {
+            val alGolpe = entranteFiable && ReglaDeRadio.alGolpe(desvio, perfil, effectiveOverlapMs, periodMs)
+            nivel = when {
+                alGolpe -> NivelTransicion.AL_BEAT
+                perfil == ReglaDeRadio.Perfil.RITMICO -> NivelTransicion.ASISTIDO
+                else -> NivelTransicion.PLANO
+            }
+            estiloAutomatico = ReglaDeRadio.estilo(perfil, alGolpe)
+            if (!alGolpe) tempoRatio = 1f
+        } else if (entranteFiable) {
             when {
                 desvio <= 0.04f -> { nivel = NivelTransicion.AL_BEAT; estiloAutomatico = EstiloTransicion.BLEND }
-                desvio <= 0.08f -> { nivel = NivelTransicion.AL_BEAT; estiloAutomatico = EstiloTransicion.FILTRO }
+                desvio <= ReglaDeRadio.ESTIRAR_HASTA -> { nivel = NivelTransicion.AL_BEAT; estiloAutomatico = EstiloTransicion.FILTRO }
                 else -> { nivel = NivelTransicion.ASISTIDO; estiloAutomatico = EstiloTransicion.FILTRO; tempoRatio = 1f }
             }
         } else {
@@ -4822,10 +4867,19 @@ class MusicService :
             outFirstBeatMs = outBeat.firstBeatOffsetMs,
             inFirstBeatMs = inBeat?.firstBeatOffsetMs ?: 0L,
             compases = (effectiveOverlapMs / (4 * periodMs)).roundToInt(),
+            conRiser = estiloPedido == AutomixEstilo.FILTRO,
         )
         Timber.tag(TAG).d(
             "Automix plan: trigger=%dms incomingStart=%dms tempoRatio=%.3f pitchRatio=%.3f overlap=%dms",
             plan.triggerTimeMs, plan.incomingStartMs, plan.tempoRatio, plan.pitchRatio, plan.overlapMs
+        )
+        // 2.1.x · Para afinar con datos: de donde salio cada mezcla.
+        android.util.Log.i(
+            "LifeMusicMezcla",
+            "plan ${if (porRadio) "radio" else "frases"} perfil=${perfil.name.lowercase()} cola=${colaMs ?: "?"} " +
+                "intro=${introMs ?: "?"} mezcla=${plan.overlapMs} ms arranca=${plan.triggerTimeMs} fin=$contentEnd " +
+                "entra=${plan.incomingStartMs} desvio=${"%.3f".format(desvio)} nivel=${nivel.name.lowercase()} " +
+                "estilo=${estilo.name.lowercase()} conf=${"%.2f".format(outBeat.confidence)}/${inBeat?.confidence?.let { "%.2f".format(it) } ?: "?"}",
         )
         automixDebugInfo.value = partialDebug.copy(
             status = "plan ready: ${nivel.name.lowercase()} / ${estilo.name.lowercase()} / ${modo.name.lowercase()}",
@@ -5157,7 +5211,8 @@ class MusicService :
 
     private fun velocidadDeEntrada(plan: AutomixPlan?): Float {
         if (plan == null || plan.nivel != NivelTransicion.AL_BEAT) return 1f
-        return plan.tempoRatio.takeIf { it in 0.92f..1.08f } ?: 1f
+        // 2.1.x · Prueba.21: tope del 5 % (antes 8 %).
+        return plan.tempoRatio.takeIf { kotlin.math.abs(it - 1f) <= ReglaDeRadio.ESTIRAR_HASTA + 0.001f } ?: 1f
     }
 
     /** 2.1.0 · Mixed Editor: el usuario cambio el estilo o el largo; la proxima transicion se vuelve a planear. */
@@ -5506,7 +5561,7 @@ class MusicService :
                 )
             }
             // Subida: el riser termina justo cuando la entrante ya esta entera (al 60 % del fundido).
-            val riser = if (estilo == EstiloTransicion.FILTRO && !relevo) {
+            val riser = if (estilo == EstiloTransicion.FILTRO && !relevo && djPlan?.conRiser == true) {
                 val largo = minOf((8 * golpeEntranteMs).toLong(), (duration * 0.55f).toLong()).coerceAtLeast(1_500L)
                 runCatching { Riser(largo, 0.32f * startVolume) }.getOrNull()?.let { it to (0.6f - largo.toFloat() / duration).coerceAtLeast(0f) }
             } else {

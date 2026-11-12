@@ -2027,8 +2027,30 @@ fun BottomSheetPlayer(
                 modifier = Modifier.padding(horizontal = PlayerHorizontalPadding),
             )
 
+            // 2.1.x · Mixed Editor: la luz de la barra mientras mezcla, como el «Mixing» de Apple. Se prende en
+            // 0,35 s y se apaga despacio (3,5 s). En fondos claros el halo va en el color del tema: uno oscuro
+            // pareceria una sombra.
+            val barraMezclando = isCrossfading && mezclando
+            val brilloDeLaBarra by animateFloatAsState(
+                targetValue = if (barraMezclando) 1f else 0f,
+                animationSpec = tween(durationMillis = if (barraMezclando) 350 else 3500, easing = LinearOutSlowInEasing),
+                label = "brilloDeLaBarra",
+            )
+            val colorDelBrillo = if (textButtonColor.luminance() > 0.5f) Color.White else MaterialTheme.colorScheme.primary
+            val modificadorDeBarra = Modifier
+                .padding(horizontal = PlayerHorizontalPadding)
+                .brilloDeMezcla(
+                    intensidad = { brilloDeLaBarra },
+                    progreso = {
+                        val total = duration
+                        if (total == C.TIME_UNSET || total <= 0L) 0f
+                        else (sliderPosition ?: effectivePosition).toFloat() / total.toFloat()
+                    },
+                    color = colorDelBrillo,
+                )
+
             // 2.1.0 · Mixed Editor: mientras mezcla, la barra se vuelve ondulada (maqueta, lamina 4).
-            when (if (isCrossfading && mezclando) SliderStyle.WAVY else sliderStyle) {
+            when (if (barraMezclando) SliderStyle.WAVY else sliderStyle) {
                 SliderStyle.DEFAULT -> {
                     Slider(
                         value = (sliderPosition ?: effectivePosition).toFloat(),
@@ -2058,7 +2080,7 @@ fun BottomSheetPlayer(
                             playerBackground = playerBackground,
                             useDarkTheme = useDarkTheme
                         ),
-                        modifier = Modifier.padding(horizontal = PlayerHorizontalPadding),
+                        modifier = modificadorDeBarra,
                     )
                 }
 
@@ -2082,7 +2104,7 @@ fun BottomSheetPlayer(
                                 }
                                 sliderPosition = null
                             },
-                            modifier = Modifier.padding(horizontal = PlayerHorizontalPadding),
+                            modifier = modificadorDeBarra,
                             colors = PlayerSliderColors.getSliderColors(
                                 activeColor = if (useNewPlayerDesign) textButtonColor else textButtonColor.copy(alpha = 0.7f),
                                 playerBackground = playerBackground,
@@ -2114,7 +2136,7 @@ fun BottomSheetPlayer(
                                 playerBackground = playerBackground,
                                 useDarkTheme = useDarkTheme
                             ),
-                            modifier = Modifier.padding(horizontal = PlayerHorizontalPadding),
+                            modifier = modificadorDeBarra,
                             isPlaying = effectiveIsPlaying
                         )
                     }
@@ -2171,7 +2193,7 @@ fun BottomSheetPlayer(
                                 )
                             )
                         },
-                        modifier = Modifier.padding(horizontal = PlayerHorizontalPadding)
+                        modifier = modificadorDeBarra
                     )
                 }
             }

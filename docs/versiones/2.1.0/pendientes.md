@@ -56,7 +56,9 @@ Las pruebas quedan para después. CG: «lo que estamos haciendo ahora es el Auto
   - curva de energía del set;
   - 👍/👎 local por mezcla;
   - memoria de mezclas.
-- **Visual:** la carátula que se funde como tinta y el brillo de la barra durante la mezcla.
+- **Visual:** la carátula que se funde como tinta.
+  - El brillo de la barra durante la mezcla salió del banco el 11-11 porque CG lo pidió.
+  - Está programado en `ui/player/BrilloDeMezcla.kt` y viaja en la próxima prueba.
 - **Alta fidelidad:**
   - Calidad Premium rotulada «256 kbps»;
   - USB bit-perfect;

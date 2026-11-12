@@ -1892,11 +1892,11 @@
     <string name="mixed_titulo">Mixed Editor</string>
     <string name="mixed_estilo">Transition style</string>
     <string name="mixed_largo">Length</string>
-    <string name="mixed_largo_desc">In bars. Long mixes sound best when both songs have a similar tempo and key.</string>
+    <string name="mixed_largo_desc">In bars. Auto only blends the end of one song with the intro of the next, skipping nothing. Long mixes sound best when both songs have a similar tempo and key.</string>
     <string name="mixed_largo_no_aplica">Cut and echo have their own length.</string>
     <string name="mixed_listo">Done</string>
     <string name="mixed_estilo_auto">Auto</string>
-    <string name="mixed_estilo_auto_desc">The pair decides: an on-beat fade when the tempos are close, a rise when they are far apart.</string>
+    <string name="mixed_estilo_auto_desc">The pair decides: on the beat when the tempos are close, a bass swap when they are far apart, and a clean fade when one of them has no clear beat.</string>
     <string name="mixed_estilo_fundido">Fade</string>
     <string name="mixed_estilo_fundido_desc">Both play together on the same beat, tempo matched, and the bass changes hands once.</string>
     <string name="mixed_estilo_subida">Rise</string>

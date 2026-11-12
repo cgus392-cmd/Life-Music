@@ -98,4 +98,15 @@ Lo que más se oye y lo que menos arriesga. Sin esto, nada de lo demás suena bi
 ## Después (ideas que salieron y no entran ahora)
 - La carátula que se funde como tinta (Apple). Nuestro equivalente aprobado es el tocadiscos; la tinta podría ser un
   estilo de transición visual aparte.
-- El brillo de la barra durante «Mixing». Ya tenemos la etiqueta MIX verde; se podría sumar el brillo.
+- ~~El brillo de la barra durante «Mixing».~~ Pasó a hacerse el 11-11, a pedido de CG.
+  - **Medido cuadro a cuadro**, a 10 cuadros por segundo:
+    - la parte llena de la barra se prende en unos 0,3 s, justo cuando aparece «Mixing» (10,8 s);
+    - queda quieta, sin titilar, toda la mezcla;
+    - sigue sobre el pedacito lleno de la canción nueva;
+    - se apaga despacio, en unos 4 s, antes de que vuelva «Lossless» (~31 s);
+    - en el tramo oscuro del video la parte llena brilla un 50 % más que al final.
+  - La etiqueta «Mixing» también se ilumina.
+  - **Programado** en `ui/player/BrilloDeMezcla.kt`: un halo de cinco trazos, sin filtros de desenfoque, que sirve en
+    cualquier Android.
+    - Se prende en 0,35 s y se apaga en 3,5 s.
+    - Va blanco en fondos oscuros y en el color del tema en los claros.

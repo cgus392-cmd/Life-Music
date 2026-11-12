@@ -1515,11 +1515,11 @@
     <string name="mixed_titulo">Mixed Editor</string>
     <string name="mixed_estilo">Estilo de transición</string>
     <string name="mixed_largo">Largo</string>
-    <string name="mixed_largo_desc">En compases. Las mezclas largas suenan mejor cuando las dos canciones tienen tempo y tono parecidos.</string>
+    <string name="mixed_largo_desc">En compases. Auto junta solo el final de una con la intro de la otra, sin saltarse nada. Las mezclas largas suenan mejor cuando las dos canciones tienen tempo y tono parecidos.</string>
     <string name="mixed_largo_no_aplica">El corte y el eco tienen su propio largo.</string>
     <string name="mixed_listo">Listo</string>
     <string name="mixed_estilo_auto">Auto</string>
-    <string name="mixed_estilo_auto_desc">Lo decide la pareja: fundido al golpe si los tempos se parecen, subida si están lejos.</string>
+    <string name="mixed_estilo_auto_desc">Lo decide la pareja: al golpe si los tempos se parecen, con cambio de bajos si están lejos y un fundido limpio si alguna no tiene golpe marcado.</string>
     <string name="mixed_estilo_fundido">Fundido</string>
     <string name="mixed_estilo_fundido_desc">Las dos suenan juntas al mismo golpe, con el tempo igualado, y los graves cambian de mano una vez.</string>
     <string name="mixed_estilo_subida">Subida</string>

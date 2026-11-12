@@ -41,7 +41,7 @@ tempo en cualquier pareja a menos del 8 %. Eso sirve para un set de DJ, no para 
    [PlayIt](https://docs.playitsoftware.com/PlayItLive/216/segue_editor.html),
    [Myriad](https://help.broadcastradio.com/support/solutions/articles/101000549613-setting-using-timing-markers-in-myriad-playout-6).
 
-## Propuesta: dos productos, no uno (pendiente del sí de CG)
+## Propuesta: dos productos, no uno (APROBADA por CG el 11-11)
 
 | | Auto (escuchar normal) | Mixed Editor / modo DJ (a pedido) |
 |---|---|---|
@@ -58,6 +58,38 @@ Siguiente tanda (prueba.21), si CG aprueba:
 2. Tope de estiramiento del 5 %.
 3. Mezclas largas solo en el Mixed Editor.
 4. Primera versión de los perfiles por género.
+
+### Cómo quedó en la prueba.21 (11-11)
+
+La regla está en `playback/.../audio/ReglaDeRadio.kt`, con 9 pruebas en `ReglaDeRadioTest`.
+
+- **Cuándo aplica:** en Auto, en «canción completa» y sin un largo de compases elegido en el Mixed Editor. Fuera
+  del Mixed Editor, el largo de la hoja no cuenta.
+- **Superposición:**
+  - lo menor entre la cola de la saliente (`contentEnd − mixOut`) y la intro de la entrante
+    (`mixIn − contentStart`);
+  - entre 2,5 s y 12 s, o 8 s si no hay golpe claro;
+  - sin análisis, 4 s.
+- **Final de la mezcla:** termina donde se acaba la música de la saliente y arranca en su compás más cercano.
+  - La entrante empieza desde que se oye, así que nunca se salta la intro.
+  - Si en la mesa se eligió por dónde sale, se respeta.
+- **Perfil:** «rítmico» si las dos tienen confianza de golpe de 0,8 o más; si no, «suave».
+  - Las confianzas reales rondan 0,90–0,97 con golpe y bajan de 0,6 sin él.
+  - La app no conoce el género porque YouTube no lo da; el perfil sale de cómo suena.
+- **Estilo del Auto:**
+  - rítmico que se puede estirar: al golpe (BLEND);
+  - rítmico que no: cambio de bajos con filtro, **sin riser**;
+  - suave: fundido limpio.
+  - El riser solo suena si la persona elige «Subida».
+- **Estirar:** solo hasta el 5 % (antes 8 %), en los dos productos. En la radio, además, con perfil rítmico y 4
+  compases de mezcla; por debajo del 1,5 % vale aunque la mezcla sea corta.
+- **Transponer:** nunca. El código calculaba el cambio de tono pero no lo aplicaba; sigue así.
+- **Registro para afinar:** `LifeMusicMezcla plan radio perfil=… cola=… intro=… mezcla=… desvio=… nivel=… estilo=…`.
+
+Pendiente para la siguiente vuelta:
+- Usar las secciones del mapa (intro y outro con la voz) cuando la canción tenga mapa. Hoy se usan las marcas de
+  energía del análisis de tempo.
+- Comparar las dos marcas con los registros de las pruebas.
 
 ## Decisión de CG sobre los mashups (10-11)
 
