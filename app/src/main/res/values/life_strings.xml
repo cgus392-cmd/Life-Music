@@ -1174,6 +1174,13 @@
     <string name="guia_letra_texto">Press and hold a line to select it (up to 10). Then Share: as an image card, or as a video clip of exactly that segment.</string>
     <string name="guia_corazon_titulo">Hold the heart to download</string>
     <string name="guia_corazon_texto">A tap marks the song as a favorite, as always. Press and hold and it also downloads for offline listening.</string>
+    <string name="guia_mezclar_lista_titulo">Mix your playlist like a DJ</string>
+    <string name="guia_mezclar_lista_texto">Tap Mix: Life Music listens to the songs and blends them on the beat, one flowing into the next.</string>
+    <string name="guia_mezclar_cola_titulo">Mix what is already playing</string>
+    <string name="guia_mezclar_cola_texto">Turn on Mix here and the queue you are listening to starts mixing, without starting over.</string>
+    <string name="guia_etiqueta_mix_titulo">Your mix, your way</string>
+    <string name="guia_etiqueta_mix_texto">Tap MIX to pick the style and length, or to open the desk. Press and hold it to see the turntable.</string>
+    <string name="update_novedades_guia">When you reach something new, the app shows you how to try it.</string>
     <string name="corazon_descargando">Downloading “%1$s”</string>
     <string name="corazon_ya_descargada">Already downloaded</string>
     <string name="cast_transmitir">Play on…</string>

@@ -2254,6 +2254,8 @@ fun BottomSheetPlayer(
                                     color = if (mezclando) verdeMix.copy(alpha = 0.7f) else TextBackgroundColor.copy(alpha = 0.12f),
                                     shape = RoundedCornerShape(4.dp)
                                 )
+                                // 2.1.0 · La guia la senala la primera vez que aparece en verde.
+                                .then(if (mezclando) Modifier.objetivoDeGuia(com.cglabs.lifemusic.ui.guia.Guia.ETIQUETA_MIX) else Modifier)
                                 .combinedClickable(
                                     enabled = sleepTimerEnabled || mezclando,
                                     // Toque largo con la mezcla prendida: una pasada del tocadiscos, sin cambiar la musica.
@@ -2261,7 +2263,12 @@ fun BottomSheetPlayer(
                                         if (mezclando) com.cglabs.lifemusic.ui.player.tocadiscos.Tocadiscos.ensayar(playerConnection)
                                     },
                                 ) {
-                                    if (sleepTimerEnabled) showSleepTimerDialog = true else mostrarModoMezcla = true
+                                    if (sleepTimerEnabled) {
+                                        showSleepTimerDialog = true
+                                    } else {
+                                        mostrarModoMezcla = true
+                                        com.cglabs.lifemusic.ui.guia.Guia.hecho(com.cglabs.lifemusic.ui.guia.Guia.EV_HOJA_MIX)
+                                    }
                                 }
                                 .padding(horizontal = 6.dp, vertical = 2.dp)
                         ) {

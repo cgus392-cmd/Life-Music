@@ -789,6 +789,13 @@
     <string name="guia_letra_texto">Mantén pulsada una línea para seleccionarla (hasta 10). Luego Compartir: como tarjeta de imagen, o como clip de vídeo de justo ese tramo.</string>
     <string name="guia_corazon_titulo">Mantén el corazón para descargar</string>
     <string name="guia_corazon_texto">Un toque marca la canción como favorita, como siempre. Mantenlo pulsado y además se descarga para escucharla sin conexión.</string>
+    <string name="guia_mezclar_lista_titulo">Mezcla tu lista como un DJ</string>
+    <string name="guia_mezclar_lista_texto">Toca Mezclar: Life Music escucha las canciones y las une al compás, una entrando en la otra.</string>
+    <string name="guia_mezclar_cola_titulo">Mezcla lo que ya suena</string>
+    <string name="guia_mezclar_cola_texto">Prende Mezclar aquí y la cola que estás oyendo empieza a mezclarse, sin volver a empezar.</string>
+    <string name="guia_etiqueta_mix_titulo">Tu mezcla, a tu gusto</string>
+    <string name="guia_etiqueta_mix_texto">Toca MIX para elegir el estilo y el largo, o para abrir la mesa. Déjalo presionado y verás el tocadiscos.</string>
+    <string name="update_novedades_guia">Cuando llegues a algo nuevo, la app te muestra cómo probarlo.</string>
     <string name="corazon_descargando">Descargando «%1$s»</string>
     <string name="corazon_ya_descargada">Ya está descargada</string>
     <string name="cast_transmitir">Reproducir en…</string>
@@ -1492,6 +1499,7 @@
     <string name="nova_entrada_encima_desc">Como en la radio: la canción arranca bajita, Nova habla y termina justo cuando entra la voz.</string>
     <string name="nova_entrada_antes_desc">La canción espera quieta a que Nova termine de hablar y luego arranca.</string>
     <string name="mixed_mezclar">Mezclar</string>
+    <string name="save_album">Guardar</string>
     <string name="mixed_analizando">Analizando canciones…</string>
     <string name="mixed_analizando_desc">Nova escucha las primeras canciones una vez: los golpes, el tempo y la tonalidad. Lo hace en el teléfono y lo guarda, así la próxima vez es inmediato. Las demás las escucha mientras suenan.</string>
     <string name="mixed_bpm">%1$d BPM</string>

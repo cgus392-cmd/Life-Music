@@ -31,7 +31,12 @@ object NovedadesEnLinea {
         }
         return try {
             if (conexion.responseCode !in 200..299) error("HTTP ${conexion.responseCode}")
-            conexion.inputStream.bufferedReader().use { it.readText() }
+            val texto = conexion.inputStream.bufferedReader().use { it.readText() }
+            // 2.1.0 · Pages responde 200 con su index.html cuando el archivo no existe (ficha aun sin publicar):
+            // eso no es una ficha y no puede pisar la copia buena.
+            val inicio = texto.trimStart().firstOrNull()
+            if (inicio != '{' && inicio != '[') error("no es JSON")
+            texto
         } finally {
             conexion.disconnect()
         }

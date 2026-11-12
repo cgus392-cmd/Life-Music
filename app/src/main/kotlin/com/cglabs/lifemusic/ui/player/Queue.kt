@@ -155,6 +155,8 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
+import com.cglabs.lifemusic.ui.guia.Guia
+import com.cglabs.lifemusic.ui.guia.objetivoDeGuia
 import sh.calvin.reorderable.ReorderableItem
 import sh.calvin.reorderable.rememberReorderableLazyListState
 import android.widget.Toast
@@ -988,6 +990,7 @@ fun Queue(
                     ToggleButton(
                         checked = mezclandoCola,
                         onCheckedChange = { prender ->
+                            com.cglabs.lifemusic.ui.guia.Guia.hecho(com.cglabs.lifemusic.ui.guia.Guia.EV_MEZCLAR_COLA)
                             if (prender) {
                                 playerConnection.service.mixedEditor.value = true
                                 android.widget.Toast.makeText(contextoCola, contextoCola.getString(R.string.mixed_activado), android.widget.Toast.LENGTH_LONG).show()
@@ -1005,7 +1008,8 @@ fun Queue(
                         ),
                         modifier = Modifier
                             .weight(1f)
-                            .height(64.dp),
+                            .height(64.dp)
+                            .objetivoDeGuia(Guia.MEZCLAR_COLA),
                         contentPadding = androidx.compose.foundation.layout.PaddingValues(horizontal = 4.dp, vertical = 6.dp),
                     ) {
                         Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(4.dp)) {

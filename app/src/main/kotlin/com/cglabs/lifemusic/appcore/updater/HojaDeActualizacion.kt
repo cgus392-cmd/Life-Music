@@ -243,6 +243,13 @@ fun HojaDeLoNuevo(version: String, alCerrar: () -> Unit, alVerHistorial: () -> U
                     modifier = Modifier.padding(bottom = 10.dp),
                 )
                 FichaDeVersion(version, lista)
+                // 2.1.0 · La guia interactiva ensena cada cosa nueva donde aparece; aqui se avisa.
+                Text(
+                    stringResource(R.string.update_novedades_guia),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.padding(top = 12.dp),
+                )
             }
             Spacer(Modifier.height(12.dp))
             Button(onClick = alCerrar, modifier = Modifier.fillMaxWidth().height(52.dp)) {

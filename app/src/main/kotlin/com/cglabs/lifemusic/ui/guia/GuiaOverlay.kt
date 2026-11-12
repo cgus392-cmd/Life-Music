@@ -77,6 +77,12 @@ fun GuiaOverlay() {
     fun visible(nombre: String): Rect? = objetivos[nombre]?.takeIf {
         it.width > 0f && it.height > 0f && it.bottom > 0f && it.right > 0f && it.top < altoPantallaPx && it.left < anchoPantallaPx
     }
+    // 2.1.0 · Una guia de un solo paso queda vista en cuanto se prueba, aunque el gesto lleve a otra pantalla
+    // («Mezclar» abre «Analizando»): si no, la capa se desmontaba antes de anotarla y volvia a salir al regresar.
+    LaunchedEffect(hechos) {
+        val probadas = GUIAS.filter { g -> g.nombre !in vistas && g.pasos.size == 1 && g.pasos[0].evento?.let { it in hechos } == true }
+        if (probadas.isNotEmpty()) vistas = vistas + probadas.map { it.nombre }
+    }
     // La primera guia pendiente cuyo primer control este en pantalla.
     val guia = GUIAS.firstOrNull { it.nombre !in vistas && visible(it.pasos.first().objetivo) != null } ?: return
     var paso by remember(guia.nombre) { mutableIntStateOf(0) }

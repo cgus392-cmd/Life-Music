@@ -2,6 +2,7 @@
 
 package com.cglabs.lifemusic.ui.screens.playlist
 
+import com.cglabs.lifemusic.ui.guia.objetivoDeGuia
 import android.content.Intent
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.ContainedLoadingIndicator
@@ -997,11 +998,12 @@ private fun OnlinePlaylistHeader(
                 ToggleButton(
                     checked = false,
                     onCheckedChange = {
+                        com.cglabs.lifemusic.ui.guia.Guia.hecho(com.cglabs.lifemusic.ui.guia.Guia.EV_MEZCLAR_LISTA)
                         com.cglabs.lifemusic.ui.screens.mixed.PedidoDeMezcla.abrir(
                             navController, playlist.title, songs.map { it.toMediaItem() },
                         )
                     },
-                    modifier = Modifier.weight(1f).height(64.dp).semantics { role = Role.Button },
+                    modifier = Modifier.weight(1f).height(64.dp).objetivoDeGuia(com.cglabs.lifemusic.ui.guia.Guia.MEZCLAR_LISTA).semantics { role = Role.Button },
                     // 2.1.0 · Como en la cola: icono arriba y texto abajo, para que los cuatro quepan.
                     contentPadding = PaddingValues(horizontal = 4.dp, vertical = 6.dp),
                     shapes = ButtonGroupDefaults.connectedMiddleButtonShapes(),

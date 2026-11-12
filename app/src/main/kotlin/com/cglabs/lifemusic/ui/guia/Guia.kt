@@ -48,6 +48,14 @@ object Guia {
     const val EV_VOLUMEN = "volumen_cambiado"
     const val EV_LETRA_SELECCION = "letra_seleccion"
     const val EV_CORAZON_LARGO = "corazon_largo"
+
+    // 2.1.0 · Mixed Editor
+    const val MEZCLAR_LISTA = "mezclar_lista"
+    const val MEZCLAR_COLA = "mezclar_cola"
+    const val ETIQUETA_MIX = "etiqueta_mix"
+    const val EV_MEZCLAR_LISTA = "mezclar_lista_tocado"
+    const val EV_MEZCLAR_COLA = "mezclar_cola_tocado"
+    const val EV_HOJA_MIX = "hoja_mix_abierta"
 }
 
 class PasoDeGuia(val objetivo: String, val titulo: Int, val texto: Int, val evento: String?)
@@ -71,6 +79,19 @@ val GUIAS = listOf(
     DefinicionDeGuia(
         "corazon_1110",
         listOf(PasoDeGuia(Guia.CORAZON, R.string.guia_corazon_titulo, R.string.guia_corazon_texto, Guia.EV_CORAZON_LARGO)),
+    ),
+    // 2.1.0 · Como probar el Mixed Editor, cada paso donde aparece por primera vez.
+    DefinicionDeGuia(
+        "mezclar_lista_2100",
+        listOf(PasoDeGuia(Guia.MEZCLAR_LISTA, R.string.guia_mezclar_lista_titulo, R.string.guia_mezclar_lista_texto, Guia.EV_MEZCLAR_LISTA)),
+    ),
+    DefinicionDeGuia(
+        "mezclar_cola_2100",
+        listOf(PasoDeGuia(Guia.MEZCLAR_COLA, R.string.guia_mezclar_cola_titulo, R.string.guia_mezclar_cola_texto, Guia.EV_MEZCLAR_COLA)),
+    ),
+    DefinicionDeGuia(
+        "etiqueta_mix_2100",
+        listOf(PasoDeGuia(Guia.ETIQUETA_MIX, R.string.guia_etiqueta_mix_titulo, R.string.guia_etiqueta_mix_texto, Guia.EV_HOJA_MIX)),
     ),
 )
 
