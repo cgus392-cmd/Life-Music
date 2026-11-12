@@ -1495,6 +1495,7 @@
     <string name="mixed_analizando">Analizando canciones…</string>
     <string name="mixed_analizando_desc">Nova escucha las primeras canciones una vez: los golpes, el tempo y la tonalidad. Lo hace en el teléfono y lo guarda, así la próxima vez es inmediato. Las demás las escucha mientras suenan.</string>
     <string name="mixed_bpm">%1$d BPM</string>
+    <string name="mixed_bpm_tramos">%1$d → %2$d BPM</string>
     <string name="mixed_mayor">mayor</string>
     <string name="mixed_menor">menor</string>
     <string name="mixed_sin_golpes">Sin golpes claros: va con fundido</string>
@@ -1528,13 +1529,14 @@
     <string name="mixed_estilo_corte_desc">Sin fundido: en el golpe de la frase se va una y entra la otra, entera.</string>
     <string name="mixed_estilo_eco">Eco</string>
     <string name="mixed_estilo_eco_desc">La que sale se corta en el golpe y se aleja en eco mientras entra la nueva.</string>
+    <string name="mixed_estilo_bajos">Cambio de bajos</string>
     <string name="mixed_estilo_cierre">Cierre</string>
     <string name="mixed_aviso">Mixed Editor · %1$s</string>
     <string name="mixed_aviso_compases">Mixed Editor · %1$s de %2$d compases</string>
     <string name="mixed_sale">Sale</string>
     <string name="mixed_entra">Entra</string>
-    <string name="mixed_mesa">La mesa</string>
-    <string name="mixed_abrir_mesa">Abrir la mesa</string>
+    <string name="mixed_mesa">La mesa (beta)</string>
+    <string name="mixed_abrir_mesa">Abrir la mesa (beta)</string>
     <string name="mixed_compatibles">Compatibles</string>
     <string name="mixed_lejanas">Tempos lejanos</string>
     <string name="mixed_nova_sugiere">Nova sugiere</string>

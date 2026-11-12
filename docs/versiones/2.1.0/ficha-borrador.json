@@ -1,0 +1,78 @@
+{
+  "version": "2.1.0",
+  "imagen": "https://lifemusic.pages.dev/novedades/2.1.0.webp",
+  "es": {
+    "resumen": "Llega el Mixed Editor: tu música mezclada al compás, como un DJ, con un tocadiscos de verdad.",
+    "funciones": [
+      {
+        "icono": "graphic_eq",
+        "titulo": "Mixed Editor",
+        "texto": "Toca «Mezclar» en una lista o en la cola. Elige el estilo (Auto, Fundido, Subida, Corte en el golpe o Eco) y mira las dos ondas mientras una canción entra en la otra. La mesa para elegir los puntos de mezcla llega en beta."
+      },
+      {
+        "icono": "speed",
+        "titulo": "Mezclas al golpe",
+        "texto": "El Auto mezcla como la radio: junta el final de una con la intro de la otra, sin saltarse nada, y ajusta el tempo cuando las canciones se parecen."
+      },
+      {
+        "icono": "album",
+        "titulo": "Un tocadiscos de verdad",
+        "texto": "En cada cambio, el vinilo sale de su funda y gira en el plato, también en el estilo Apple Music."
+      },
+      {
+        "icono": "radio",
+        "titulo": "Nova como la radio",
+        "texto": "Nova habla sobre la intro y la música respira mientras lo hace."
+      },
+      {
+        "icono": "lyrics",
+        "titulo": "La letra para tus estados",
+        "texto": "Comparte una frase de la canción en vertical, lista para WhatsApp o Instagram."
+      }
+    ],
+    "arreglos": [
+      "El Canvas se ve en todos los estilos del reproductor.",
+      "La cola y los botones de las listas ya caben.",
+      "El tempo del reguetón se mide bien.",
+      "«Novedades de esta versión» y el historial muestran siempre la versión nueva.",
+      "Los teléfonos de gama baja usan un vidrio más liviano."
+    ]
+  },
+  "en": {
+    "resumen": "Meet the Mixed Editor: your music mixed on the beat, like a DJ, with a real turntable.",
+    "funciones": [
+      {
+        "icono": "graphic_eq",
+        "titulo": "Mixed Editor",
+        "texto": "Tap «Mix» on a playlist or in the queue. Pick the style (Auto, Fade, Rise, Cut on the beat or Echo) and watch both waveforms as one song flows into the next. The desk for choosing mix points arrives in beta."
+      },
+      {
+        "icono": "speed",
+        "titulo": "Mixes on the beat",
+        "texto": "Auto mixes like the radio: it joins the end of one song with the intro of the next, skipping nothing, and matches the tempo when the songs are close."
+      },
+      {
+        "icono": "album",
+        "titulo": "A real turntable",
+        "texto": "On every change the record slides out of its sleeve and spins on the platter, in the Apple Music style too."
+      },
+      {
+        "icono": "radio",
+        "titulo": "Nova like the radio",
+        "texto": "Nova talks over the intro and the music breathes underneath."
+      },
+      {
+        "icono": "lyrics",
+        "titulo": "Lyrics for your status",
+        "texto": "Share a line of the song in vertical format, ready for WhatsApp or Instagram."
+      }
+    ],
+    "arreglos": [
+      "Canvas shows in every player style.",
+      "The queue and playlist buttons now fit.",
+      "Reggaeton tempo is measured correctly.",
+      "«What's new in this version» and the history always show the new version.",
+      "Low-end phones use a lighter glass effect."
+    ]
+  }
+}

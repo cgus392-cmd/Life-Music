@@ -169,6 +169,8 @@ fun HojaDeMezcla(onDejarDeMezclar: () -> Unit, onCerrar: () -> Unit, onAbrirMesa
 fun nombreDeEstiloPlaneado(estilo: String?): String = stringResource(
     when (estilo) {
         "filtro" -> R.string.mixed_estilo_subida
+        // 2.1.x · El filtro del Auto, sin el riser: no es la «Subida» que elige la persona.
+        "bajos" -> R.string.mixed_estilo_bajos
         "corte" -> R.string.mixed_estilo_corte
         "eco" -> R.string.mixed_estilo_eco
         "cierre" -> R.string.mixed_estilo_cierre

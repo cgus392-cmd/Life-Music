@@ -4883,7 +4883,7 @@ class MusicService :
         )
         automixDebugInfo.value = partialDebug.copy(
             status = "plan ready: ${nivel.name.lowercase()} / ${estilo.name.lowercase()} / ${modo.name.lowercase()}",
-            estilo = estilo.name.lowercase(),
+            estilo = if (estilo == EstiloTransicion.FILTRO && !plan.conRiser) "bajos" else estilo.name.lowercase(),
             compases = plan.compases,
             overlapMs = plan.overlapMs,
             triggerTimeMs = plan.triggerTimeMs,

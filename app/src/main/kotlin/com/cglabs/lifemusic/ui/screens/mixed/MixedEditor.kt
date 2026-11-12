@@ -53,6 +53,7 @@ import com.cglabs.lifemusic.LocalPlayerConnection
 import com.cglabs.lifemusic.R
 import com.cglabs.lifemusic.db.entities.BeatInfoEntity
 import com.cglabs.lifemusic.playback.queues.ListQueue
+import kotlin.math.roundToInt
 
 /**
  * 2.1.0 · Mixed Editor v1 (maqueta aprobada por CG el 09-11, Brand/maquetas/2026-11-07-mesa-de-mezcla).
@@ -109,7 +110,12 @@ private val NOTAS = listOf("Do", "Do♯", "Re", "Re♯", "Mi", "Fa", "Fa♯", "S
 
 @Composable
 private fun detalle(info: BeatInfoEntity): String {
-    val bpm = stringResource(R.string.mixed_bpm, info.bpm.toInt())
+    // 2.1.0 · El tempo con que se mezcla, no el de la mitad: el del comienzo (por donde entra) y el del final (por
+    // donde sale). Si son el mismo, uno solo.
+    val entra = (info.bpmEntrada?.takeIf { it > 0f } ?: info.bpm).roundToInt()
+    val sale = (info.bpmSalida?.takeIf { it > 0f } ?: info.bpm).roundToInt()
+    val bpm = if (entra == sale) stringResource(R.string.mixed_bpm, sale)
+    else stringResource(R.string.mixed_bpm_tramos, entra, sale)
     val tono = info.keyPitchClass?.let { NOTAS.getOrNull(it) }?.let { nota ->
         nota + " " + stringResource(if (info.keyIsMinor == true) R.string.mixed_menor else R.string.mixed_mayor)
     }

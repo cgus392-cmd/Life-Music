@@ -831,7 +831,11 @@ private fun OnlinePlaylistHeader(
                             text = if (isPlaying && mediaMetadata?.album?.id == playlist.id) stringResource(
                                 R.string.pause
                             ) else stringResource(R.string.play),
-                            style = MaterialTheme.typography.labelLarge
+                            style = MaterialTheme.typography.labelLarge,
+                            // 2.1.0 · «Reprod / ucir» partido en dos: en una sola linea siempre.
+                            maxLines = 1,
+                            softWrap = false,
+                            overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis
                         )
                     }
                 }
@@ -907,9 +911,12 @@ private fun OnlinePlaylistHeader(
                             }
                         }
                     },
-                    modifier = Modifier.weight(1f).semantics { role = Role.Button },
+                    modifier = Modifier.weight(1f).height(64.dp).semantics { role = Role.Button },
+                    // 2.1.0 · Como en la cola: icono arriba y texto abajo, para que los cuatro quepan.
+                    contentPadding = PaddingValues(horizontal = 4.dp, vertical = 6.dp),
                     shapes = ButtonGroupDefaults.connectedLeadingButtonShapes(),
                 ) {
+                    Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(4.dp)) {
                     when (downloadState) {
                         Download.STATE_COMPLETED -> {
                             Icon(
@@ -935,15 +942,18 @@ private fun OnlinePlaylistHeader(
                             )
                         }
                     }
-                    Spacer(Modifier.size(ToggleButtonDefaults.IconSpacing))
+                    
                     Text(
                         text = when (downloadState) {
                             Download.STATE_COMPLETED -> stringResource(R.string.saved)
                             Download.STATE_DOWNLOADING -> stringResource(R.string.saving)
                             else -> stringResource(R.string.save_album)
                         },
-                        style = MaterialTheme.typography.labelMedium
+                        style = MaterialTheme.typography.labelMedium,
+                        maxLines = 1,
+                        overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis
                     )
+                    }
                 }
 
                 
@@ -961,21 +971,25 @@ private fun OnlinePlaylistHeader(
                             )
                         }
                     },
-                    modifier = Modifier.weight(1f).semantics { role = Role.Button },
+                    modifier = Modifier.weight(1f).height(64.dp).semantics { role = Role.Button },
+                    // 2.1.0 · Como en la cola: icono arriba y texto abajo, para que los cuatro quepan.
+                    contentPadding = PaddingValues(horizontal = 4.dp, vertical = 6.dp),
                     shapes = ButtonGroupDefaults.connectedMiddleButtonShapes(),
                 ) {
+                    Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(4.dp)) {
                     Icon(
                         painter = painterResource(R.drawable.shuffle),
                         contentDescription = stringResource(R.string.shuffle_content_desc),
                         modifier = Modifier.size(20.dp)
                     )
-                    Spacer(Modifier.size(ToggleButtonDefaults.IconSpacing))
+                    
                     Text(
                         stringResource(R.string.shuffle_label),
                         style = MaterialTheme.typography.labelMedium,
                         maxLines = 1,
                         overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis
                     )
+                    }
                 }
 
                 
@@ -987,21 +1001,25 @@ private fun OnlinePlaylistHeader(
                             navController, playlist.title, songs.map { it.toMediaItem() },
                         )
                     },
-                    modifier = Modifier.weight(1f).semantics { role = Role.Button },
+                    modifier = Modifier.weight(1f).height(64.dp).semantics { role = Role.Button },
+                    // 2.1.0 · Como en la cola: icono arriba y texto abajo, para que los cuatro quepan.
+                    contentPadding = PaddingValues(horizontal = 4.dp, vertical = 6.dp),
                     shapes = ButtonGroupDefaults.connectedMiddleButtonShapes(),
                 ) {
+                    Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(4.dp)) {
                     Icon(
                         painter = painterResource(R.drawable.mezclar),
                         contentDescription = null,
                         modifier = Modifier.size(20.dp)
                     )
-                    Spacer(Modifier.size(ToggleButtonDefaults.IconSpacing))
+                    
                     Text(
                         stringResource(R.string.mixed_mezclar),
                         style = MaterialTheme.typography.labelMedium,
                         maxLines = 1,
                         overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis
                     )
+                    }
                 }
 
                 ToggleButton(
@@ -1016,19 +1034,25 @@ private fun OnlinePlaylistHeader(
                             )
                         }
                     },
-                    modifier = Modifier.weight(1f).semantics { role = Role.Button },
+                    modifier = Modifier.weight(1f).height(64.dp).semantics { role = Role.Button },
+                    // 2.1.0 · Como en la cola: icono arriba y texto abajo, para que los cuatro quepan.
+                    contentPadding = PaddingValues(horizontal = 4.dp, vertical = 6.dp),
                     shapes = ButtonGroupDefaults.connectedTrailingButtonShapes(),
                 ) {
+                    Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(4.dp)) {
                     Icon(
                         painter = painterResource(R.drawable.more_vert),
                         contentDescription = stringResource(R.string.more_options),
                         modifier = Modifier.size(20.dp)
                     )
-                    Spacer(Modifier.size(ToggleButtonDefaults.IconSpacing))
+                    
                     Text(
                         stringResource(R.string.more_label),
-                        style = MaterialTheme.typography.labelMedium
+                        style = MaterialTheme.typography.labelMedium,
+                        maxLines = 1,
+                        overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis
                     )
+                    }
                 }
             }
         }

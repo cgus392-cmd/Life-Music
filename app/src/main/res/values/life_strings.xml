@@ -1875,6 +1875,7 @@
     <string name="mixed_analizando">Analyzing songs…</string>
     <string name="mixed_analizando_desc">Nova listens to the first songs once: the beats, the tempo and the key. It happens on your phone and is saved, so next time it is instant. The rest are analyzed as they play.</string>
     <string name="mixed_bpm">%1$d BPM</string>
+    <string name="mixed_bpm_tramos">%1$d → %2$d BPM</string>
     <string name="mixed_mayor">major</string>
     <string name="mixed_menor">minor</string>
     <string name="mixed_sin_golpes">No clear beats: it will fade</string>
@@ -1905,13 +1906,14 @@
     <string name="mixed_estilo_corte_desc">No fade: on the phrase beat one leaves and the other comes in, whole.</string>
     <string name="mixed_estilo_eco">Echo</string>
     <string name="mixed_estilo_eco_desc">The outgoing song is cut on the beat and fades away in echo while the new one comes in.</string>
+    <string name="mixed_estilo_bajos">Bass swap</string>
     <string name="mixed_estilo_cierre">Close</string>
     <string name="mixed_aviso">Mixed Editor · %1$s</string>
     <string name="mixed_aviso_compases">Mixed Editor · %1$s, %2$d bars</string>
     <string name="mixed_sale">Out</string>
     <string name="mixed_entra">In</string>
-    <string name="mixed_mesa">The desk</string>
-    <string name="mixed_abrir_mesa">Open the desk</string>
+    <string name="mixed_mesa">The desk (beta)</string>
+    <string name="mixed_abrir_mesa">Open the desk (beta)</string>
     <string name="mixed_compatibles">Compatible</string>
     <string name="mixed_lejanas">Distant tempos</string>
     <string name="mixed_nova_sugiere">Nova suggests</string>

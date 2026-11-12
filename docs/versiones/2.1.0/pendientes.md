@@ -46,6 +46,15 @@ Las pruebas quedan para después. CG: «lo que estamos haciendo ahora es el Auto
   «Pídele a Nova».
 - **Automix v2:** entrada y salida por estructura, voces, mashup por capas. Plan en `automix-v2/plan.md`.
 - **Detalle:** en Apple Music, que el canvas siga en video durante el tocadiscos.
+- **Cola (pedido de CG, 12-11):** que las canciones del algoritmo se puedan mover de posición.
+  - Hoy la cola real ya se mueve con la manija. «Contenido similar» (`automixItems`, las sugerencias de YouTube) no
+    se mueve porque esas canciones no están en la cola: solo tienen «reproducir después» y «agregar».
+  - **Idea:** darles manija también. Moverlas entre ellas reordena las sugerencias; arrastrar una hacia arriba la
+    mete en la cola en esa posición.
+- **Mashups, M2 a M4** (ver `automix-v2/mashups-m1.md`):
+  - M2 «Preparar canciones», con KARA o Spleeter según la capacidad, en Estudio;
+  - M3 el motor, que puede estirar y transponer;
+  - M4 el modo Mashup en la mesa.
 
 ## 4. Banco de ideas (sin fecha)
 

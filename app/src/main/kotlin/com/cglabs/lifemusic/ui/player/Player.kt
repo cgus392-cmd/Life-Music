@@ -3057,7 +3057,8 @@ fun BottomSheetPlayer(
         val compasesPlaneados = automixDebug?.compases ?: 0
         val textoDelAviso = remember(tocadiscos?.idA, estiloPlaneado, compasesPlaneados) {
             when {
-                automixDebug?.estilo in listOf("corte", "eco", "cierre") || compasesPlaneados <= 0 ->
+                // Con menos de 2 compases (las mezclas cortas del Auto) solo se nombra el estilo: «1 compases» no.
+                automixDebug?.estilo in listOf("corte", "eco", "cierre") || compasesPlaneados < 2 ->
                     context.getString(R.string.mixed_aviso, estiloPlaneado)
                 else -> context.getString(R.string.mixed_aviso_compases, estiloPlaneado, compasesPlaneados)
             }
