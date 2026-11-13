@@ -32,9 +32,9 @@ const MAX_FALLOS = 5;
 const MAX_CUERPO = 8192;
 const MAX_FIRMA = 160000;
 const ID = /^[0-9a-f-]{36}$/;
-// Decision de CG (22-10): la Sala queda cerrada para el equipo hasta nuevo aviso. Solo el dueño entra;
-// los pases y los codigos de otros aparatos no abren, y quien ya tenia sesion ve «no disponible».
-const SALA_CERRADA = true;
+// Decision de CG (22-10): la Sala quedo cerrada para el equipo hasta nuevo aviso.
+// 12-11: CG la reabre para los probadores («activemosla»). Para cerrarla otra vez, true.
+const SALA_CERRADA = false;
 
 // ── Respuestas ───────────────────────────────────────────────────────────────
 
